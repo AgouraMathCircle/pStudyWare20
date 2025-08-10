@@ -1,0 +1,403 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Production builds
+build/
+dist/
+out/
+.next/
+.nuxt/
+.vite/
+.parcel-cache/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
+
+# Dependency directories
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+out
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# React specific
+# Storybook build outputs
+storybook-static
+storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Local Netlify folder
+.netlify
+
+# Sentry Config File
+.sentryclirc
+
+# Turbo
+.turbo
+
+# Vercel
+.vercel
+
+# Bundle analyzer
+bundle-analyzer-report.html
+webpack-bundle-analyzer-report.html
+
+# React DevTools
+react-devtools
+
+# Testing
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Build tools
+.esbuild/
+.rollup.cache/
+
+# Package managers
+.npm/
+.yarn/
+.pnpm-store/
+
+# Debug logs
+debug.log
+debug-*.log
+
+# Performance monitoring
+*.cpuprofile
+*.heapprofile
+
+# Memory dumps
+*.heapsnapshot
+
+# Source maps (uncomment if you want to ignore them)
+# *.map
+
+# Local development databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Local configuration overrides
+config.local.js
+config.local.json
+config.local.ts
+
+# Local SSL certificates
+*.pem
+*.key
+*.crt
+
+# Local development ports
+.port
+.ports
+
+# Local development scripts
+scripts/local/
+scripts/dev/
+
+# Local development data
+data/local/
+data/dev/
+
+# Local development logs
+logs/local/
+logs/dev/
+
+# Local development cache
+cache/local/
+cache/dev/
+
+# Local development temp
+temp/local/
+temp/dev/
+
+# Local development builds
+builds/local/
+builds/dev/
+
+# Local development dist
+dist/local/
+dist/dev/
+
+# Local development public
+public/local/
+public/dev/
+
+# Local development src
+src/local/
+src/dev/
+
+# Local development components
+components/local/
+components/dev/
+
+# Local development pages
+pages/local/
+pages/dev/
+
+# Local development hooks
+hooks/local/
+hooks/dev/
+
+# Local development utils
+utils/local/
+utils/dev/
+
+# Local development services
+services/local/
+services/dev/
+
+# Local development styles
+styles/local/
+styles/dev/
+
+# Local development assets
+assets/local/
+assets/dev/
+
+# Local development images
+images/local/
+images/dev/
+
+# Local development fonts
+fonts/local/
+fonts/dev/
+
+# Local development icons
+icons/local/
+icons/dev/
+
+# Local development sounds
+sounds/local/
+sounds/dev/
+
+# Local development videos
+videos/local/
+videos/dev/
+
+# Local development docs
+docs/local/
+docs/dev/
+
+# Local development tests
+tests/local/
+tests/dev/
+
+# Local development mocks
+mocks/local/
+mocks/dev/
+
+# Local development fixtures
+fixtures/local/
+fixtures/dev/
+
+# Local development seeds
+seeds/local/
+seeds/dev/
+
+# Local development migrations
+migrations/local/
+migrations/dev/
+
+# Local development schemas
+schemas/local/
+schemas/dev/
+
+# Local development types
+types/local/
+types/dev/
+
+# Local development interfaces
+interfaces/local/
+interfaces/dev/
+
+# Local development enums
+enums/local/
+enums/dev/
+
+# Local development constants
+constants/local/
+constants/dev/
+
+# Local development helpers
+helpers/local/
+helpers/dev/
+
+# Local development validators
+validators/local/
+validators/dev/
+
+# Local development transformers
+transformers/local/
+transformers/dev/
+
+# Local development adapters
+adapters/local/
+adapters/dev/
+
+# Local development decorators
+decorators/local/
+decorators/dev/
+
+# Local development mixins
+mixins/local/
+mixins/dev/
+
+# Local development plugins
+plugins/local/
+plugins/dev/
+
+# Local development middleware
+middleware/local/
+middleware/dev/
+
+# Local development routes
+routes/local/
+routes/dev/
+
+# Local development controllers
+controllers/local/
+controllers/dev/
+
+# Local development models
+models/local/
+models/dev/
+
+# Local development views
+views/local/
+views/dev/
+
+# Local development templates
+templates/local/
+templates/dev/
+
+# Local development layouts
+layouts/local/
+layouts/dev/
