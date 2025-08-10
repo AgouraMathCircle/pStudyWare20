@@ -1,0 +1,29 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace pStudyWare20.Data.Models;
+
+public partial class AmcTblUserNotificationToken
+{
+    public long Id { get; set; }
+
+    public string? UserName { get; set; }
+
+    public string? DeviceToken { get; set; }
+
+    public string? DevicePlatform { get; set; }
+
+    public string? DeviceIdiom { get; set; }
+
+    public string? DeviceVersion { get; set; }
+
+    public string? DeviceManufacturer { get; set; }
+
+    public string? DeviceModel { get; set; }
+
+    public string? DeviceType { get; set; }
+
+    public DateTime? CreatedDate { get; set; }
+
+    public DateTime? UpdatedDate { get; set; }
+}

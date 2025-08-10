@@ -1,0 +1,277 @@
+﻿{
+   "CodeGenerationMode": 4,
+   "ContextClassName": "AMC_DBContext",
+   "ContextNamespace": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "ModelNamespace": null,
+   "OutputContextPath": null,
+   "OutputPath": "Models",
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "pStudyWare20.Data",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 2,
+   "SelectedToBeGenerated": 0,
+   "T4TemplatePath": null,
+   "Tables": [
+      {
+         "Name": "[AMCDevUser].[coursememberships]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[AMCDevUser].[courses]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[AMCDevUser].[notificationslogs]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[AMCDevUser].[notificationtemplates]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[AMCDevUser].[pushhokens]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[AMCDevUser].[users]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ChapterMaster]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ClassMaster]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ClassSchedule]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ClassType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_Country]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMaster]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMaster_Bak]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMaster_bak2021]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMaster_RowScoreLookup]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMasterAnswerKey]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMasterAnswerKey_2021]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMasterAnswerKey_Bak]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_InstructorMaster]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_MailMerger]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblAccountPayable]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblAccountReceivable]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblChannel]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblDocuments]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblDonors]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblEmailTracking]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblEnquiry]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblLookupSemester]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblMeetingSchedule]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblNewsltr]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblPostMessage]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblRegistration]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblReportCard]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblReportCard_Bak]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblSpecialEventsRegistration]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblStates]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblStudentDocuments]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblStudents]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblStudents_History]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblTestimonials]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblTimeTracking]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblTriangularRegistration]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblUserNotificationToken]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblUsers]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblUserTracking]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblVideos]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblVolunteersRequest]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Comments]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[EC_tblEnquiry]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MemberMaster]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MemberMasterBackup]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MemberReference]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MemberType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PageHitsCounter]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[StudentLog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SubjectMaster]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[temp]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[upload1]",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": null,
+   "UncountableWords": null,
+   "UseAsyncStoredProcedureCalls": true,
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": true,
+   "UseDatabaseNamesForRoutines": true,
+   "UseDateOnlyTimeOnly": true,
+   "UseDbContextSplitting": false,
+   "UseDecimalDataAnnotationForSprocResult": true,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": true,
+   "UseInternalAccessModifiersForSprocsAndFunctions": false,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": false,
+   "UseNoDefaultConstructor": false,
+   "UseNoNavigations": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UsePrefixNavigationNaming": false,
+   "UseSchemaFolders": false,
+   "UseSchemaNamespaces": false,
+   "UseSpatial": false,
+   "UseT4": false,
+   "UseT4Split": false
+}

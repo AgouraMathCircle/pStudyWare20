@@ -1,0 +1,701 @@
+﻿{
+   "ConnectionStringName": "dab-connection-string",
+   "Dacpac": null,
+   "DatabaseType": 3,
+   "MergeDacpacs": false,
+   "ProjectPath": "C:\\AMCProjects\\AMC\\pStudyWare20\\pStudyWare20.Data",
+   "Tables": [
+      {
+         "Name": "[AMCDevUser].[coursememberships]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[AMCDevUser].[courses]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[AMCDevUser].[notificationslogs]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[AMCDevUser].[notificationtemplates]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[AMCDevUser].[pushhokens]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[AMCDevUser].[users]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ChapterMaster]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ClassMaster]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ClassSchedule]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ClassType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_Country]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMaster]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMaster_Bak]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMaster_bak2021]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMaster_RowScoreLookup]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMasterAnswerKey]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMasterAnswerKey_2021]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_ExamMasterAnswerKey_Bak]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_InstructorMaster]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_MailMerger]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblAccountPayable]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblAccountReceivable]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblChannel]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblDocuments]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblDonors]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblEmailTracking]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblEnquiry]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblLookupSemester]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblMeetingSchedule]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblNewsltr]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblPostMessage]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblRegistration]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblReportCard]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblReportCard_Bak]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblSpecialEventsRegistration]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblStates]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblStudentDocuments]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblStudents]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblStudents_History]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblTestimonials]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblTimeTracking]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblTriangularRegistration]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblUserNotificationToken]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblUsers]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblUserTracking]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblVideos]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_tblVolunteersRequest]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Comments]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[EC_tblEnquiry]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MemberMaster]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MemberMasterBackup]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MemberReference]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MemberType]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PageHitsCounter]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[StudentLog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SubjectMaster]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[temp]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[upload1]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[AMC_spAccountPayable_Delete]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAccountPayable_Select]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAccountPayable_Update]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAccountReceivable_Delete]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAccountReceivable_Select]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAccountReceivable_Update]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAddDocument]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAddEmailTracking]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAddEnquiry]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAddInstructor]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAddSpecialEventsRegistration]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAddStudent]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAddStudentDocument]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAddStudentExamAnswerKey]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAddStudentScore]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAddTimeTracking]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAddTriangularRegistration]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAddUserTracking]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spAddVolunteersRequest]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spDeleteDocuments]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spDeleteExistingReport]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spDeleteInstructor]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spDeleteRegisterednfo]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spDeleteSpecialEventsRegistration]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spDeleteStudentScore]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spDeleteTimeTracking]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spDocuments]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spDocumentsRepository]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spDonors_Insert]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spExamMaster_Delete]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spExamMaster_Insert]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spExamMaster_Select]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spExamMaster_Update]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spExamMasterByID]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spGENERATEPASSWORD]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spGetAllDonors]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spGetChannel]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spGetDonors]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spGetMessageCenter_Message]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spGetMessageCenter]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spGetSentMessages]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spGetTestimonials]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spGetUserNotifications]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spMeetingSchedule_Select]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spNewsltr]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spPasswordUpdate]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spPostMessage_Insert]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spPublishDocuments]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spPushNotifications]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spRegisterednfo]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spRegisterExistingUser]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spRegisterExistingUserCheck]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spRegisterStudent]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spRegisterUser]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spReportCard_SemesterReport]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spReportCard_StudentDashboard]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spReportCard_SummaryReport]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spReportCard]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spReportCard1]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectChapter]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectClassListbyInstructor]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectCurrentSession]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectEmailGroupbyUserName]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectExamQuestions]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectInstructorList]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectPostMessage]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectReportCardDate]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectScheduleLookup]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectSemesterLookup]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectSpecialEventsRegistration]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectStudentList]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectStudentListbyUserName]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectStudentProfile]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectStudentWaitingList]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectTimeTracking]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectUserTrackingList]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectUserTrackingSummary]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSelectVolunteersRequest]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spSetTestimonial]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spStudentDocuments]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spStudentExamAnswerKey_Insert_All]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spStudentExamAnswerKey_Insert]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spStudentScore_Select]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spStudentScore_Validate]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spUpdateAddEmailTracking]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spUpdateDocuments]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spUpdateSemesterLookup]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spUpdateStudentClass]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spUpdateStudentdetail]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spUpdateStudentProfile]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spUpdateStudentScore]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spUpdateStudentWaitingListStatus]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spUpdateVolunteerStatus]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spUserNotificationToken_Insert]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spUserNotificationToken_Select]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spValidateStudentExamAnswerKey]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spValidateStudentExamAnswerKeyALL]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_spVolunteersRequest_Delete]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_tblMeetingSchedule_Insert]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMC_tblMeetingSchedule_Select]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[AMCAPI_spDashboardMessage_Select]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Apps_AuthenticateUser]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Apps_GetAlertList]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Apps_GetChannelList]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Apps_GetStudentDocumentsById]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Apps_GetStudentListsByUserId]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[Apps_GetStudentReportDetailsById]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[EC_spAddEnquiry]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[pAdminAddMember]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[pAdminLog]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[pStdentReports]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[pStudentLogFrm]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[pWebComments]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[pWebMemberFrm]",
+         "ObjectType": 1
+      },
+      {
+         "Name": "[dbo].[usp_pStudyware_Select_StudentLog]",
+         "ObjectType": 1
+      }
+   ]
+}
