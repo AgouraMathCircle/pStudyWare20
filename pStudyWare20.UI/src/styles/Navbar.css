@@ -1,0 +1,480 @@
+/* Navbar Component Styles - Matching Original Header Design */
+
+/* Main Navbar Container */
+.navbar-container {
+  width: 100%;
+  position: relative;
+  z-index: 1000;
+}
+
+/* Navbar Sticky Header */
+.navbar-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  background: #53b50a;
+  padding: 5px 0px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Logo Area */
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.navbar-logo:hover {
+  transform: scale(1.05);
+}
+
+.navbar-logo img {
+  transition: 0.4s;
+  -webkit-transition: 0.4s;
+  max-height: 48px;
+  height: 50px;
+}
+
+.navbar-logo-text {
+  font-family: "Jost", sans-serif;
+  font-weight: 700;
+  color: #ffffff;
+  margin-left: 10px;
+}
+
+/* Main Menu Container */
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Menu Items */
+.navbar-item {
+  position: relative;
+  display: inline-block;
+  margin-right: 20px;
+  padding: 0;
+}
+
+.navbar-menu-item {
+  transition: all 0.3s ease;
+  font-size: 16px;
+  font-weight: 600;
+  height: 30px;
+  line-height: 12px;
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+  z-index: 1;
+  position: relative;
+  font-family: "Jost", sans-serif;
+  border-radius: 5px;
+  text-transform: capitalize;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navbar-menu-item:hover {
+  color: #102d47;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Active Menu Item */
+.menu-item-active .navbar-menu-item {
+  color: #102d47 !important;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Submenu Styling */
+.submenu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #53b50a;
+  margin: 0;
+  padding: 15px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 0 0 5px 5px;
+  min-width: 200px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.navbar-item:hover .submenu {
+  display: block;
+}
+
+/* Submenu Items */
+.submenu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 30px;
+  color: #fff;
+  font-weight: 500;
+  text-transform: capitalize;
+  font-size: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 0;
+  border: none;
+}
+
+.submenu-item:hover {
+  color: #102d47 !important;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile Menu Styles */
+.mobile-menu-item {
+  transition: all 0.2s ease;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobile-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-submenu {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-left: 3px solid #ffffff;
+}
+
+/* Mobile Menu Button */
+.menu-button {
+  transition: all 0.2s ease;
+  color: #ffffff;
+}
+
+.menu-button:hover {
+  transform: scale(1.1);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Dropdown Arrow */
+.dropdown-arrow {
+  transition: transform 0.2s ease;
+  color: #ffffff;
+}
+
+.dropdown-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+/* Mobile Drawer */
+.mobile-drawer {
+  background-color: #53b50a;
+  color: #ffffff;
+}
+
+.mobile-drawer .MuiDrawer-paper {
+  background-color: #53b50a;
+  color: #ffffff;
+  width: 280px;
+}
+
+/* Mobile Menu List */
+.mobile-menu-list {
+  padding: 0;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .navbar-menu {
+    gap: 0.5rem;
+  }
+
+  .navbar-menu-item {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  .navbar-item {
+    margin-right: 15px;
+  }
+}
+
+@media (max-width: 960px) {
+  .navbar-logo-text {
+    font-size: 1.1rem;
+  }
+
+  .navbar-menu {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-sticky {
+    padding: 3px 0px;
+  }
+
+  .navbar-logo img {
+    max-height: 40px;
+    height: 40px;
+  }
+}
+
+/* Sticky Behavior */
+.navbar-sticky.sticky {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: #53b50a;
+}
+
+/* Focus Styles for Accessibility */
+.navbar-menu-item:focus,
+.submenu-item:focus,
+.mobile-menu-item:focus {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .submenu {
+    border: 2px solid #ffffff;
+  }
+
+  .navbar-menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .navbar-sticky,
+  .navbar-menu-item,
+  .submenu,
+  .mobile-menu-item,
+  .menu-button,
+  .navbar-logo,
+  .dropdown-arrow {
+    transition: none;
+  }
+}
+
+/* Dark Theme Adjustments */
+@media (prefers-color-scheme: dark) {
+  .navbar-sticky {
+    background-color: #53b50a;
+  }
+
+  .submenu {
+    background-color: #53b50a;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .navbar-container {
+    display: none;
+  }
+}
+
+/* Custom Scrollbar for Mobile Menu */
+.mobile-menu-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.mobile-menu-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.mobile-menu-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.mobile-menu-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Loading State for Logo */
+.navbar-logo-loading {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Menu Item Badge Styles */
+.menu-item-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #ff4444;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+/* Menu Item Ripple Effect */
+.menu-item-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.menu-item-ripple::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.menu-item-ripple:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+/* Submenu Animation */
+.submenu {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease-in-out;
+}
+
+.navbar-item:hover .submenu {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Submenu Item Hover Effects */
+.submenu-item {
+  position: relative;
+}
+
+.submenu-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: width 0.2s ease;
+}
+
+.submenu-item:hover::before {
+  width: 100%;
+}
+
+/* Active Menu Item Styling */
+.menu-item-active {
+  position: relative;
+}
+
+.menu-item-active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background-color: #ffffff;
+  transition: width 0.3s ease;
+}
+
+.menu-item-active:hover::after {
+  width: 100%;
+}
+
+/* Mobile Menu Animations */
+.mobile-submenu {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.mobile-submenu-enter {
+  max-height: 0;
+  opacity: 0;
+}
+
+.mobile-submenu-enter-active {
+  max-height: 300px;
+  opacity: 1;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.mobile-submenu-exit {
+  max-height: 300px;
+  opacity: 1;
+}
+
+.mobile-submenu-exit-active {
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+/* Drawer Animations */
+.drawer-paper {
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Container Responsive Adjustments */
+@media (max-width: 1400px) {
+  .navbar-menu {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 1100px) {
+  .navbar-menu-item {
+    font-size: 15px;
+    padding: 8px 10px;
+  }
+}
+
+/* Logo Responsive Adjustments */
+@media (max-width: 768px) {
+  .navbar-logo-text {
+    display: none;
+  }
+}
+
+/* Mobile Menu Enhancements */
+@media (max-width: 960px) {
+  .mobile-drawer .MuiDrawer-paper {
+    width: 280px;
+  }
+
+  .mobile-menu-item {
+    font-size: 16px;
+    padding: 16px 20px;
+  }
+}

@@ -1,0 +1,277 @@
+/* Student Dashboard Styles */
+
+.student-dashboard {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* Menu Styles */
+.student-dashboard .MuiAppBar-root {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.student-dashboard .MuiToolbar-root {
+  min-height: 64px;
+}
+
+/* Card Styles */
+.student-dashboard .MuiCard-root {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  transition: box-shadow 0.3s ease;
+}
+
+.student-dashboard .MuiCard-root:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Table Styles */
+.student-dashboard .MuiTableContainer-root {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.student-dashboard .MuiTableHead-root .MuiTableRow-root {
+  background-color: #f8f9fa;
+}
+
+.student-dashboard .MuiTableHead-root .MuiTableCell-root {
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.student-dashboard .MuiTableBody-root .MuiTableRow-root:hover {
+  background-color: #f8f9fa;
+}
+
+/* Button Styles */
+.student-dashboard .MuiButton-contained {
+  text-transform: none;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.student-dashboard .MuiButton-contained:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Chip Styles */
+.student-dashboard .MuiChip-root {
+  font-weight: 500;
+  border-radius: 4px;
+}
+
+/* Alert Styles */
+.student-dashboard .MuiAlert-root {
+  border-radius: 8px;
+  border: none;
+}
+
+/* Paper Styles */
+.student-dashboard .MuiPaper-root {
+  border-radius: 8px;
+}
+
+/* Icon Styles */
+.student-dashboard .MuiSvgIcon-root {
+  transition: color 0.3s ease;
+}
+
+/* Link Styles */
+.student-dashboard a {
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.student-dashboard a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 960px) {
+  .student-dashboard .MuiContainer-root {
+    padding: 16px;
+  }
+  
+  .student-dashboard .MuiGrid-container {
+    margin: 0;
+  }
+  
+  .student-dashboard .MuiCard-root {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .student-dashboard .MuiTableContainer-root {
+    font-size: 0.75rem;
+  }
+  
+  .student-dashboard .MuiTableCell-root {
+    padding: 8px 4px;
+  }
+  
+  .student-dashboard .MuiButton-root {
+    font-size: 0.875rem;
+    padding: 8px 16px;
+  }
+}
+
+/* Animation Styles */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.student-dashboard .MuiCard-root {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Custom Scrollbar */
+.student-dashboard .MuiTableContainer-root::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.student-dashboard .MuiTableContainer-root::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.student-dashboard .MuiTableContainer-root::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.student-dashboard .MuiTableContainer-root::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Loading State */
+.student-dashboard .loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+/* Error State */
+.student-dashboard .error-container {
+  text-align: center;
+  padding: 40px 20px;
+  color: #d32f2f;
+}
+
+/* Success State */
+.student-dashboard .success-container {
+  text-align: center;
+  padding: 40px 20px;
+  color: #2e7d32;
+}
+
+/* Dashboard Messages Specific Styles */
+.dashboard-messages .MuiCard-root {
+  margin-bottom: 16px;
+}
+
+.dashboard-messages .MuiAlert-root {
+  margin-bottom: 16px;
+}
+
+/* Registration Section Specific Styles */
+.registration-section .MuiTableContainer-root {
+  margin-bottom: 16px;
+}
+
+.registration-section .MuiButton-root {
+  margin: 8px;
+}
+
+/* Profile Section Specific Styles */
+.profile-section .MuiTableContainer-root {
+  max-height: 300px;
+}
+
+.profile-section .MuiIconButton-root {
+  color: #53b50a;
+}
+
+.profile-section .MuiIconButton-root:hover {
+  background-color: rgba(83, 181, 10, 0.1);
+}
+
+/* Report Card Specific Styles */
+.report-card .MuiTableContainer-root {
+  max-height: 200px;
+}
+
+.report-card .score-cell {
+  font-weight: 600;
+}
+
+/* Final Exam Section Specific Styles */
+.final-exam-section .MuiButton-root {
+  background-color: #d32f2f;
+}
+
+.final-exam-section .MuiButton-root:hover {
+  background-color: #b71c1c;
+}
+
+/* Menu Specific Styles */
+.student-menu .MuiAppBar-root {
+  background-color: #53b50a;
+}
+
+.student-menu .MuiButton-root {
+  color: #ffffff;
+}
+
+.student-menu .MuiButton-root:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.student-menu .MuiButton-root.Mui-selected {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Mobile Menu Styles */
+.student-menu .MuiMenu-paper {
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.student-menu .MuiMenuItem-root {
+  padding: 12px 16px;
+}
+
+.student-menu .MuiMenuItem-root:hover {
+  background-color: #f5f5f5;
+}
+
+/* Print Styles */
+@media print {
+  .student-dashboard .MuiAppBar-root,
+  .student-dashboard .MuiButton-root {
+    display: none !important;
+  }
+  
+  .student-dashboard .MuiCard-root {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+  
+  .student-dashboard .MuiTableContainer-root {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+} 

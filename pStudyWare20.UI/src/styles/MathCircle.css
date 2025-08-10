@@ -1,0 +1,49 @@
+/* MathCircle Component Styles */
+
+.math-circle-container {
+  min-height: 100vh;
+}
+
+/* Image styling */
+.math-circle-container img {
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* Team member cards */
+.math-circle-container .MuiCard-root {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+}
+
+.math-circle-container .MuiCard-root:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+}
+
+/* Animated arrows */
+@keyframes leftRight {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(20px); }
+}
+
+@keyframes upDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(20px); }
+}
+
+.animated-arrow {
+  opacity: 0.6;
+  z-index: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .animated-arrow {
+    display: none;
+  }
+  
+  .math-circle-container .MuiCard-root {
+    margin-bottom: 20px;
+  }
+} 

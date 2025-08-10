@@ -1,0 +1,6 @@
+dist
+node_modules
+src/assets/js/
+src/assets/js/*.js
+src/assets/js/*.min.js
+*.min.js 

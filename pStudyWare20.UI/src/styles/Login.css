@@ -1,0 +1,533 @@
+/* Login Page Styles - Material-UI Enhanced Design */
+
+/* Main Content */
+.main-content {
+  position: relative;
+}
+
+/* Breadcrumbs Section */
+.sc-breadcrumbs {
+  position: relative;
+  background: #f8f9fa;
+  padding: 60px 0;
+  text-align: center;
+}
+
+.sc-breadcrumbs .breadcrumbs-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.sc-breadcrumbs .breadcrumbs-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sc-breadcrumbs .breadcrumbs-text {
+  position: relative;
+  z-index: 2;
+}
+
+.sc-breadcrumbs .breadcrumbs-text .page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 10px;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.sc-breadcrumbs .breadcrumbs-text ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  animation: fadeInUp 1s ease-out 0.2s both;
+}
+
+.sc-breadcrumbs .breadcrumbs-text ul li {
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.sc-breadcrumbs .breadcrumbs-text ul li a {
+  color: #ffffff;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.sc-breadcrumbs .breadcrumbs-text ul li a:hover,
+.sc-breadcrumbs .breadcrumbs-text ul li a.active {
+  color: #53b50a;
+}
+
+.sc-breadcrumbs .breadcrumbs-text ul li.active {
+  color: #53b50a;
+}
+
+/* Login Section */
+.sc-about {
+  position: relative;
+  background: #ffffff;
+  padding: 80px 0 70px;
+}
+
+.sc-about .login-title {
+  text-align: center;
+  margin-bottom: 50px;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.sc-about .login-title .title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 0;
+}
+
+/* Login Form Container */
+.login-form-container {
+  animation: slideInLeft 0.8s ease-out 0.6s both;
+  transition: all 0.3s ease;
+}
+
+.login-form-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Contact Info Container */
+.contact-info-container {
+  animation: slideInRight 0.8s ease-out 0.8s both;
+  transition: all 0.3s ease;
+}
+
+.contact-info-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Form Styling */
+.login-form {
+  width: 100%;
+}
+
+/* Material-UI TextField Overrides */
+.login-form .MuiTextField-root {
+  margin-bottom: 16px;
+}
+
+.login-form .MuiFormControl-root {
+  margin-bottom: 16px;
+}
+
+/* Button Animations */
+.login-form .MuiButton-root {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-form .MuiButton-root::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.login-form .MuiButton-root:hover::before {
+  left: 100%;
+}
+
+/* Social Media Icons */
+.contact-info-container .MuiIconButton-root {
+  transition: all 0.3s ease;
+  transform: scale(1);
+}
+
+.contact-info-container .MuiIconButton-root:hover {
+  transform: scale(1.2);
+}
+
+/* Animated Arrows */
+.animated-arrow {
+  position: absolute;
+  z-index: 1;
+}
+
+.animated-arrow-1 {
+  top: 20%;
+  left: 5%;
+  animation: leftRight 3s ease-in-out infinite;
+}
+
+.animated-arrow-2 {
+  top: 60%;
+  right: 10%;
+  animation: upDown 4s ease-in-out infinite;
+}
+
+.animated-arrow-3 {
+  bottom: 30%;
+  left: 15%;
+  animation: upDown 3.5s ease-in-out infinite;
+}
+
+.animated-arrow-4 {
+  top: 40%;
+  right: 5%;
+  animation: leftRight 4.5s ease-in-out infinite;
+}
+
+.animated-arrow img {
+  width: 30px;
+  height: auto;
+  opacity: 0.6;
+}
+
+/* Arrow Animations */
+@keyframes leftRight {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(20px);
+  }
+}
+
+@keyframes upDown {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* Fade In Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide In Animations */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 991px) {
+  .sc-breadcrumbs .breadcrumbs-text .page-title {
+    font-size: 2rem;
+  }
+
+  .sc-about .login-title .title {
+    font-size: 2rem;
+  }
+
+  .login-form-container,
+  .contact-info-container {
+    margin-bottom: 30px;
+  }
+}
+
+@media (max-width: 767px) {
+  .sc-breadcrumbs {
+    padding: 40px 0;
+  }
+
+  .sc-breadcrumbs .breadcrumbs-text .page-title {
+    font-size: 1.5rem;
+  }
+
+  .sc-about {
+    padding: 40px 0;
+  }
+
+  .sc-about .login-title .title {
+    font-size: 1.5rem;
+  }
+
+  .login-form-container,
+  .contact-info-container {
+    padding: 20px !important;
+  }
+
+  .animated-arrow {
+    display: none;
+  }
+}
+
+/* Container and Layout */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -15px;
+}
+
+.col-md-7 {
+  flex: 0 0 58.333333%;
+  max-width: 58.333333%;
+  padding: 0 15px;
+}
+
+.col-md-5 {
+  flex: 0 0 41.666667%;
+  max-width: 41.666667%;
+  padding: 0 15px;
+}
+
+/* Utility Classes */
+.pt-80 {
+  padding-top: 80px;
+}
+
+.pb-70 {
+  padding-bottom: 70px;
+}
+
+.md-pt-40 {
+  padding-top: 40px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.position-relative {
+  position: relative;
+}
+
+.arrow-animation-1 {
+  position: relative;
+}
+
+/* White Color Utility */
+.white-color {
+  color: #ffffff;
+}
+
+/* Breadcrumbs Overlay */
+.breadcrumbs-overlay {
+  position: relative;
+}
+
+.breadcrumbs-overlay::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1;
+}
+
+.breadcrumbs-overlay .breadcrumbs-text {
+  z-index: 2;
+}
+
+/* Material-UI Override Styles */
+.login-form .MuiOutlinedInput-root {
+  transition: all 0.3s ease;
+}
+
+.login-form .MuiOutlinedInput-root:hover {
+  transform: translateY(-2px);
+}
+
+.login-form .MuiButton-contained {
+  position: relative;
+  overflow: hidden;
+}
+
+.login-form .MuiButton-contained::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.login-form .MuiButton-contained:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Loading Animation */
+.login-form-container,
+.contact-info-container {
+  animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form Field Focus Effects */
+.login-form .MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
+  box-shadow: 0 0 0 2px rgba(83, 181, 10, 0.2);
+}
+
+.login-form .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
+  box-shadow: 0 0 0 2px rgba(83, 181, 10, 0.2);
+}
+
+/* Alert Animations */
+.login-form .MuiAlert-root {
+  animation: slideInDown 0.5s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Social Media Hover Effects */
+.contact-info-container .MuiIconButton-root {
+  position: relative;
+}
+
+.contact-info-container .MuiIconButton-root::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.1;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.contact-info-container .MuiIconButton-root:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+/* Form Validation Styles */
+.login-form .MuiFormHelperText-root.Mui-error {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+/* Success Message Animation */
+.login-form .MuiAlert-root.MuiAlert-standardSuccess {
+  animation: successPulse 0.6s ease-out;
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Responsive Grid Adjustments */
+@media (max-width: 959px) {
+  .col-md-7,
+  .col-md-5 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .contact-info-container {
+    margin-top: 30px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .animated-arrow,
+  .login-form .MuiButton-root::before,
+  .contact-info-container .MuiIconButton-root::before {
+    display: none;
+  }
+}

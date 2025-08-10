@@ -1,0 +1,43 @@
+/* Contact Component Styles */
+
+.contact-container {
+  min-height: 100vh;
+}
+
+/* Form styles */
+.contact-form {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Contact cards */
+.contact-container .MuiCard-root {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: 20px;
+}
+
+.contact-container .MuiCard-root:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Content spacing */
+.contact-container .MuiContainer-root {
+  padding: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .contact-container {
+    padding: 20px 0;
+  }
+  
+  .contact-container .MuiContainer-root {
+    padding: 10px;
+  }
+  
+  .contact-container .MuiCard-root {
+    margin-bottom: 15px;
+  }
+}

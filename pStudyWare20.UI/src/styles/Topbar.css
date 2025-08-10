@@ -1,0 +1,224 @@
+/* Topbar Component Styles - Agoura Math Circle Theme */
+
+.topbar-container {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Program links container */
+.program-links-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+/* Individual program link */
+.program-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.program-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Topbar link styling */
+.topbar-link {
+  position: relative;
+  transition: all 0.3s ease;
+  color: #ffffff !important;
+  font-weight: 500;
+}
+
+.topbar-link::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: #ffd700;
+  transition: width 0.3s ease;
+}
+
+.topbar-link:hover {
+  color: #ffd700 !important;
+}
+
+.topbar-link:hover::after {
+  width: 100%;
+}
+
+/* Social media container */
+.social-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Social media icons */
+.social-icon {
+  transition: all 0.3s ease !important;
+  color: #ffffff !important;
+}
+
+.social-icon:hover {
+  transform: scale(1.1);
+  color: #ffd700 !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Action buttons container */
+.action-buttons-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: 16px;
+}
+
+/* Login and Donate button styling */
+.topbar-action-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.topbar-action-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 215, 0, 0.2),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.topbar-action-button:hover {
+  color: #ffd700 !important;
+}
+
+.topbar-action-button:hover::before {
+  left: 100%;
+}
+
+/* Responsive adjustments for very small screens */
+@media (max-width: 600px) {
+  .topbar-container {
+    padding: 8px 0;
+  }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 960px) {
+  .program-links-container {
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  .social-container,
+  .action-buttons-container {
+    justify-content: center;
+    margin-left: 0;
+  }
+  
+  .program-link {
+    font-size: 0.8rem;
+    padding: 3px 6px;
+  }
+  
+  .topbar-link {
+    font-size: 0.8rem;
+  }
+  
+  .topbar-action-button {
+    font-size: 0.8rem;
+  }
+}
+
+/* Tablet responsive adjustments */
+@media (max-width: 768px) {
+  .program-links-container {
+    gap: 12px;
+  }
+  
+  .social-container {
+    gap: 6px;
+  }
+  
+  .action-buttons-container {
+    gap: 12px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .topbar-link {
+    border: 1px solid transparent;
+  }
+
+  .topbar-link:hover {
+    border-color: #ffd700;
+  }
+  
+  .social-icon {
+    border: 1px solid transparent;
+  }
+  
+  .social-icon:hover {
+    border-color: #ffd700;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .topbar-link,
+  .topbar-action-button,
+  .program-link,
+  .social-icon {
+    transition: none;
+  }
+
+  .topbar-link::after,
+  .topbar-action-button::before {
+    transition: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .topbar-container {
+    display: none;
+  }
+}
+
+/* Focus styles for accessibility */
+.topbar-link:focus,
+.topbar-action-button:focus,
+.social-icon:focus {
+  outline: 2px solid #ffd700;
+  outline-offset: 2px;
+}
+
+/* Dark theme adjustments (if needed) */
+@media (prefers-color-scheme: dark) {
+  .topbar-container {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  }
+}
