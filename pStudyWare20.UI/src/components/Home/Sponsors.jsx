@@ -177,7 +177,6 @@ const Sponsors = () => {
           >
             {getCurrentSponsors().map((sponsor, index) => (
               <Grid
-                item
                 xs={6}
                 sm={4}
                 md={2.4}

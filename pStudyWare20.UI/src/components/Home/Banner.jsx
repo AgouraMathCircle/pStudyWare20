@@ -66,7 +66,7 @@ const Banner = () => {
     >
       <Container maxWidth="lg">
         <Grid container spacing={3}>
-          <Grid item xs={12} lg={6}>
+          <Grid xs={12} lg={6}>
             <Box
               sx={{
                 paddingBottom: "200px",
@@ -137,7 +137,7 @@ const Banner = () => {
               </Button>
             </Box>
           </Grid>
-          <Grid item xs={12} lg={6}>
+          <Grid xs={12} lg={6}>
             {/* Right side content - hidden on mobile */}
             <Box
               sx={{
@@ -248,7 +248,7 @@ const Banner = () => {
       </Box>
 
       {/* Global styles for animations */}
-      <style jsx global>{`
+      <style>{`
         @keyframes pulse-border {
           0% {
             transform: translateX(-50%) scale(1);

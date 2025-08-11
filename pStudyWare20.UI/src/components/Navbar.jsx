@@ -11,6 +11,7 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  ListItemButton,
   Collapse,
   useTheme,
   useMediaQuery,
@@ -18,6 +19,7 @@ import {
   Menu,
   MenuItem,
   Divider,
+  Container,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
@@ -54,6 +56,9 @@ import {
   Twitter as TwitterIcon,
   Instagram as InstagramIcon,
   LinkedIn as LinkedInIcon,
+  MenuBook as ResourcesIcon,
+  Lock as LockIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../services";
@@ -72,17 +77,10 @@ const Navbar = () => {
   const [expandedMenus, setExpandedMenus] = useState({});
   const [user, setUser] = useState(null);
 
-  React.useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    setUser(currentUser);
-  }, []);
-
   // Initialize authentication state on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     const initializeAuthState = () => {
       const currentUser = authService.getCurrentUser();
-      console.log("Navbar: Initializing auth state");
-      console.log("Navbar: Current user:", currentUser);
       setUser(currentUser);
     };
 
@@ -90,27 +88,31 @@ const Navbar = () => {
   }, []);
 
   // Listen for authentication changes
-  React.useEffect(() => {
+  useEffect(() => {
     const handleStorageChange = () => {
-      console.log("Navbar: Storage change detected");
       const currentUser = authService.getCurrentUser();
-      console.log("Navbar: Current user after storage change:", currentUser);
       setUser(currentUser);
     };
 
-    const handleLogoutEvent = () => {
-      console.log("Navbar: Logout event received");
-      setUser(null);
-      console.log("Navbar: User state cleared");
-    };
-
     window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("authLogout", handleLogoutEvent);
+    window.addEventListener("userLoggedIn", handleStorageChange);
+    window.addEventListener("userLoggedOut", handleStorageChange);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("authLogout", handleLogoutEvent);
+      window.removeEventListener("userLoggedIn", handleStorageChange);
+      window.removeEventListener("userLoggedOut", handleStorageChange);
     };
+  }, []);
+
+  // Listen for logout events
+  useEffect(() => {
+    const handleLogoutEvent = () => {
+      setUser(null);
+    };
+
+    window.addEventListener("userLoggedOut", handleLogoutEvent);
+    return () => window.removeEventListener("userLoggedOut", handleLogoutEvent);
   }, []);
 
   // Logo image - updated path to use src/assets/images/
@@ -220,15 +222,6 @@ const Navbar = () => {
     user && (user.role === "Student" || user.MemberType === "S")
       ? studentMenuItems
       : regularMenuItems;
-
-  // Debug menu selection
-  console.log("Navbar: Current user:", user);
-  console.log("Navbar: User role:", user?.role);
-  console.log("Navbar: User MemberType:", user?.MemberType);
-  console.log(
-    "Navbar: Selected menu items:",
-    menuItems === studentMenuItems ? "Student Menu" : "Regular Menu"
-  );
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);

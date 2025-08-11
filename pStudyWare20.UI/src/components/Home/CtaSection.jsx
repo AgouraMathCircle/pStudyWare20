@@ -111,7 +111,7 @@ const CtaSection = () => {
       >
         <Container maxWidth="lg">
           <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} lg={4}>
+            <Grid xs={12} lg={4}>
               <Box
                 sx={{
                   animation: `${fadeInAnimation} 0.8s ease-out`,
@@ -165,7 +165,7 @@ const CtaSection = () => {
                 </Button>
               </Box>
             </Grid>
-            <Grid item xs={12} lg={8}>
+            <Grid xs={12} lg={8}>
               <Box
                 sx={{
                   display: "flex",
@@ -175,7 +175,7 @@ const CtaSection = () => {
                 }}
               >
                 <Grid container spacing={2}>
-                  <Grid item xs={6} md={6}>
+                  <Grid xs={6} md={6}>
                     <Card
                       sx={{
                         height: "200px",
@@ -197,7 +197,7 @@ const CtaSection = () => {
                       />
                     </Card>
                   </Grid>
-                  <Grid item xs={6} md={6}>
+                  <Grid xs={6} md={6}>
                     <Card
                       sx={{
                         height: "200px",
@@ -244,7 +244,7 @@ const CtaSection = () => {
         <Container maxWidth="lg">
           <Grid container spacing={4} alignItems="center">
             {/* Satellite Program */}
-            <Grid item xs={12} lg={4} md={6}>
+            <Grid xs={12} lg={4} md={6}>
               <Box
                 sx={{
                   textAlign: "center",
@@ -326,7 +326,7 @@ const CtaSection = () => {
             </Grid>
 
             {/* YouTube Video */}
-            <Grid item xs={12} lg={3} md={6}>
+            <Grid xs={12} lg={3} md={6}>
               <Box
                 sx={{
                   display: "flex",
@@ -355,7 +355,7 @@ const CtaSection = () => {
             </Grid>
 
             {/* Triangular Talks */}
-            <Grid item xs={12} lg={5} md={12}>
+            <Grid xs={12} lg={5} md={12}>
               <Box
                 sx={{
                   textAlign: "center",
