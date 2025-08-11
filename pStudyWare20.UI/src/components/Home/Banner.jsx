@@ -8,14 +8,13 @@ import {
   keyframes,
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-
-// Arrow images moved to public/assets/images/
-const arrow1 = "/assets/images/banner/arrow-1.png";
-const arrow2 = "/assets/images/banner/arrow-2.png";
-const arrow3 = "/assets/images/banner/arrow-3.png";
-const arrow4 = "/assets/images/banner/arrow-4.png";
-const arrow5 = "/assets/images/banner/arrow-5.png";
-const bannerBg2 = "/assets/images/banner/banner-bg2.jpg";
+// Import images from src/assets
+import arrow1Img from "../../assets/images/banner/arrow-1.png";
+import arrow2Img from "../../assets/images/banner/arrow-2.png";
+import arrow3Img from "../../assets/images/banner/arrow-3.png";
+import arrow4Img from "../../assets/images/banner/arrow-4.png";
+import arrow5Img from "../../assets/images/banner/arrow-5.png";
+import bannerBg2Img from "../../assets/images/banner/banner-bg2.jpg";
 
 // Keyframe animations
 const upDownAnimation = keyframes`
@@ -47,7 +46,7 @@ const Banner = () => {
     <Box
       sx={{
         position: "relative",
-        backgroundImage: `url(${bannerBg2})`,
+        backgroundImage: `url(${bannerBg2Img})`,
         backgroundSize: "cover",
         backgroundPosition: "center center",
         backgroundRepeat: "no-repeat",
@@ -181,7 +180,7 @@ const Banner = () => {
           },
         }}
       >
-        <img src={arrow1} alt="Animated arrow 1" />
+        <img src={arrow1Img} alt="Animated arrow 1" />
       </Box>
 
       <Box
@@ -197,7 +196,7 @@ const Banner = () => {
           },
         }}
       >
-        <img src={arrow2} alt="Animated arrow 2" />
+        <img src={arrow2Img} alt="Animated arrow 2" />
       </Box>
 
       <Box
@@ -213,7 +212,7 @@ const Banner = () => {
           },
         }}
       >
-        <img src={arrow3} alt="Animated arrow 3" />
+        <img src={arrow3Img} alt="Animated arrow 3" />
       </Box>
 
       <Box
@@ -229,7 +228,7 @@ const Banner = () => {
           },
         }}
       >
-        <img src={arrow4} alt="Animated arrow 4" />
+        <img src={arrow4Img} alt="Animated arrow 4" />
       </Box>
 
       <Box
@@ -245,7 +244,7 @@ const Banner = () => {
           },
         }}
       >
-        <img src={arrow5} alt="Animated arrow 5" />
+        <img src={arrow5Img} alt="Animated arrow 5" />
       </Box>
 
       {/* Global styles for animations */}

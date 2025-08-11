@@ -23,16 +23,15 @@ import {
 import { Link as RouterLink } from "react-router-dom";
 import "../styles/Resources.css";
 
-// Import images
-// Images moved to public/assets/images/
-const pageHeader = "/assets/images/about/page-header.jpg";
-const aboutImage = "/assets/images/about/about-own.png";
-const mathImage = "/assets/images/more-pics/18815106_430259484010193_8107987424437199662_o.jpg";
-const satImage = "/assets/images/more-pics/60774483_818756345160503_5977584716335808512_n.jpg";
-const referenceImage = "/assets/images/more-pics/60961218_818756365160501_3183596365871579136_n.jpg";
-const arrow1 = "/assets/images/arrow-1.png";
-const arrow2 = "/assets/images/arrow-2.png";
-const arrow3 = "/assets/images/arrow-3.png";
+// Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
+import aboutImage from "../assets/images/about/about-own.png";
+import mathImage from "../assets/images/more-pics/18815106_430259484010193_8107987424437199662_o.jpg";
+import satImage from "../assets/images/more-pics/60774483_818756345160503_5977584716335808512_n.jpg";
+import referenceImage from "../assets/images/more-pics/60961218_818756365160501_3183596365871579136_n.jpg";
+import arrow1Img from "../assets/images/arrow-1.png";
+import arrow2Img from "../assets/images/arrow-2.png";
+import arrow3Img from "../assets/images/arrow-3.png";
 
 const Resources = () => {
   return (
@@ -40,7 +39,7 @@ const Resources = () => {
       {/* Breadcrumbs Start */}
       <Box className="sc-breadcrumbs breadcrumbs-overlay">
         <Box className="breadcrumbs-img">
-          <img src={pageHeader} alt="Breadcrumbs Image" />
+          <img src={pageHeaderImg} alt="Breadcrumbs Image" />
         </Box>
         <Box className="breadcrumbs-text white-color">
           <Typography variant="h1" className="page-title">
@@ -92,16 +91,16 @@ const Resources = () => {
         <Container maxWidth="lg">
           {/* Animated Arrows */}
           <Box className="animated-arrow-1 animated-arrow left-right-new">
-            <img src={arrow1} alt="" />
+            <img src={arrow1Img} alt="" />
           </Box>
           <Box className="animated-arrow-2 animated-arrow up-down-new">
-            <img src={arrow2} alt="" />
+            <img src={arrow2Img} alt="" />
           </Box>
           <Box className="animated-arrow-3 animated-arrow up-down-new">
-            <img src={arrow3} alt="" />
+            <img src={arrow3Img} alt="" />
           </Box>
           <Box className="animated-arrow-4 animated-arrow left-right-new">
-            <img src={arrow3} alt="" />
+            <img src={arrow3Img} alt="" />
           </Box>
 
           <Grid container className="row row-res">

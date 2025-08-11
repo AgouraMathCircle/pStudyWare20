@@ -4,11 +4,22 @@ import {
   Typography,
   Container,
   Grid,
+  Card,
+  CardMedia,
   IconButton,
   keyframes,
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+// Import images from src/assets
+import client1Img from "../../assets/images/clients/clients-1.png";
+import client3Img from "../../assets/images/clients/clients-3.png";
+import client4Img from "../../assets/images/clients/clients-4.png";
+import client5Img from "../../assets/images/clients/clients-5.png";
+import client6Img from "../../assets/images/clients/clients-6.png";
+import client7Img from "../../assets/images/clients/clients-7.png";
+import client8Img from "../../assets/images/clients/clients-8.png";
+import client2Img from "../../assets/images/clients/clients-2.png";
 
 // Keyframe animations
 const fadeInAnimation = keyframes`
@@ -29,49 +40,49 @@ const Sponsors = () => {
     {
       id: 1,
       name: "Alapio",
-      image: "/assets/images/clients/clients-1.png",
+      image: client1Img,
       link: "https://www.alapio.org",
     },
     {
       id: 2,
       name: "Sponsor 2",
-      image: "/assets/images/clients/clients-3.png",
+      image: client3Img,
       link: null,
     },
     {
       id: 3,
       name: "NextPhase Recruiting",
-      image: "/assets/images/clients/clients-4.png",
+      image: client4Img,
       link: "https://nextphase-recruiting.com",
     },
     {
       id: 4,
       name: "Sponsor 4",
-      image: "/assets/images/clients/clients-5.png",
+      image: client5Img,
       link: null,
     },
     {
       id: 5,
       name: "Spring Info Services",
-      image: "/assets/images/clients/clients-6.png",
+      image: client6Img,
       link: "http://springinfoservices.com",
     },
     {
       id: 6,
       name: "Camreal",
-      image: "/assets/images/clients/clients-7.png",
+      image: client7Img,
       link: "https://www.camreal.com",
     },
     {
       id: 7,
       name: "Bits Informatics",
-      image: "/assets/images/clients/clients-8.png",
+      image: client8Img,
       link: "https://bitsi.in",
     },
     {
       id: 8,
       name: "Sponsor 8",
-      image: "/assets/images/clients/clients-2.png",
+      image: client2Img,
       link: null,
     },
   ];
@@ -80,13 +91,13 @@ const Sponsors = () => {
   const totalSlides = Math.ceil(sponsors.length / sponsorsPerView);
 
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === totalSlides - 1 ? 0 : prevIndex + 1
     );
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? totalSlides - 1 : prevIndex - 1
     );
   };
@@ -102,15 +113,18 @@ const Sponsors = () => {
 
   const getCurrentSponsors = () => {
     const startIndex = currentIndex * sponsorsPerView;
-    const currentSponsors = sponsors.slice(startIndex, startIndex + sponsorsPerView);
-    
+    const currentSponsors = sponsors.slice(
+      startIndex,
+      startIndex + sponsorsPerView
+    );
+
     // If we don't have exactly 5 sponsors, fill with the first sponsors to avoid blanks
     if (currentSponsors.length < sponsorsPerView) {
       const remainingSlots = sponsorsPerView - currentSponsors.length;
       const additionalSponsors = sponsors.slice(0, remainingSlots);
       return [...currentSponsors, ...additionalSponsors];
     }
-    
+
     return currentSponsors;
   };
 
@@ -155,9 +169,20 @@ const Sponsors = () => {
           }}
         >
           {/* Sponsors Grid */}
-          <Grid container spacing={3} justifyContent="center" alignItems="center">
+          <Grid
+            container
+            spacing={3}
+            justifyContent="center"
+            alignItems="center"
+          >
             {getCurrentSponsors().map((sponsor, index) => (
-              <Grid item xs={6} sm={4} md={2.4} key={`${sponsor.id}-${currentIndex}-${index}`}>
+              <Grid
+                item
+                xs={6}
+                sm={4}
+                md={2.4}
+                key={`${sponsor.id}-${currentIndex}-${index}`}
+              >
                 <Box
                   sx={{
                     display: "flex",
@@ -168,7 +193,9 @@ const Sponsors = () => {
                     borderRadius: "10px",
                     boxShadow: "0px 0px 16px rgba(4, 59, 80, 0.1)",
                     transition: "all 0.3s ease",
-                    animation: `${fadeInAnimation} 0.8s ease-out ${0.3 + index * 0.1}s both`,
+                    animation: `${fadeInAnimation} 0.8s ease-out ${
+                      0.3 + index * 0.1
+                    }s both`,
                     height: "120px",
                     "&:hover": {
                       transform: "translateY(-5px)",
@@ -310,11 +337,17 @@ const Sponsors = () => {
                   width: "12px",
                   height: "12px",
                   borderRadius: "50%",
-                  backgroundColor: index === currentIndex ? "#40c1ec" : "rgba(64, 193, 236, 0.3)",
+                  backgroundColor:
+                    index === currentIndex
+                      ? "#40c1ec"
+                      : "rgba(64, 193, 236, 0.3)",
                   cursor: "pointer",
                   transition: "all 0.3s ease",
                   "&:hover": {
-                    backgroundColor: index === currentIndex ? "#40c1ec" : "rgba(64, 193, 236, 0.6)",
+                    backgroundColor:
+                      index === currentIndex
+                        ? "#40c1ec"
+                        : "rgba(64, 193, 236, 0.6)",
                   },
                 }}
               />

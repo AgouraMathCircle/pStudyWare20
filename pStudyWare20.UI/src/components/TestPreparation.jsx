@@ -18,16 +18,14 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import "../styles/TestPreparation.css";
-
-// Import images
-// Images moved to public/assets/images/
-const pageHeaderImg = "/assets/images/about/page-header.jpg";
-const logoImg = "/assets/images/about/logo.jpg";
-const actImg = "/assets/images/about/agoura-act.png";
-const psatImg = "/assets/images/about/agoura-PSAT.png";
-const arrow1 = "/assets/images/arrow-1.png";
-const arrow2 = "/assets/images/arrow-2.png";
-const arrow3 = "/assets/images/arrow-3.png";
+// Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
+import logoImg from "../assets/images/about/logo.jpg";
+import actImg from "../assets/images/about/agoura-act.png";
+import psatImg from "../assets/images/about/agoura-PSAT.png";
+import arrow1Img from "../assets/images/arrow-1.png";
+import arrow2Img from "../assets/images/arrow-2.png";
+import arrow3Img from "../assets/images/arrow-3.png";
 
 const TestPreparation = () => {
   const theme = useTheme();
@@ -585,7 +583,7 @@ const TestPreparation = () => {
             animation: "leftRight 3s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow1} alt="" />
+          <Box component="img" src={arrow1Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-2 animated-arrow up-down-new"
@@ -596,7 +594,7 @@ const TestPreparation = () => {
             animation: "upDown 4s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow2} alt="" />
+          <Box component="img" src={arrow2Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-3 animated-arrow up-down-new"
@@ -607,7 +605,7 @@ const TestPreparation = () => {
             animation: "upDown 3.5s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow3} alt="" />
+          <Box component="img" src={arrow3Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-4 animated-arrow left-right-new"
@@ -618,7 +616,7 @@ const TestPreparation = () => {
             animation: "leftRight 4.5s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow3} alt="" />
+          <Box component="img" src={arrow3Img} alt="" />
         </Box>
       </Box>
 

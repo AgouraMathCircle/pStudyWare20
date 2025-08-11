@@ -44,6 +44,24 @@ import {
 } from "@mui/icons-material";
 import { paypalService } from "../services";
 import donorService from "../services/donorService";
+// Import images from src/assets
+import boxImg from "../assets/images/box.jpg";
+import client1Img from "../assets/images/clients/clients-1.png";
+import client3Img from "../assets/images/clients/clients-3.jpg";
+import client4Img from "../assets/images/clients/clients-4.png";
+import client5Img from "../assets/images/clients/clients-5.png";
+import client7Img from "../assets/images/clients/clients-7.jpg";
+import client6Img from "../assets/images/clients/clients-6.png";
+import client8Img from "../assets/images/clients/clients-8.png";
+import client2Img from "../assets/images/clients/clients-2.png";
+import teamMember1 from "../assets/images/team/1.jpg";
+import teamMember2 from "../assets/images/team/2.jpg";
+import teamMember3 from "../assets/images/team/3.jpg";
+import teamMember4 from "../assets/images/team/4.jpg";
+import teamMember5 from "../assets/images/team/5.jpg";
+import teamMember6 from "../assets/images/team/6.jpg";
+import teamMember7 from "../assets/images/team/7.jpg";
+import teamMember8 from "../assets/images/team/8.jpg";
 
 // Keyframe animations
 const fadeInAnimation = keyframes`
@@ -185,28 +203,28 @@ const Donate = () => {
   const sponsors = [
     {
       name: "Alapio",
-      image: "/assets/images/clients/clients-1.png",
+      image: client1Img,
       link: "https://www.alapio.org",
     },
-    { name: "Client 3", image: "/assets/images/clients/clients-3.jpg" },
+    { name: "Client 3", image: client3Img },
     {
       name: "NextPhase Recruiting",
-      image: "/assets/images/clients/clients-4.png",
+      image: client4Img,
       link: "https://nextphase-recruiting.com",
     },
-    { name: "Client 5", image: "/assets/images/clients/clients-5.png" },
-    { name: "Client 7", image: "/assets/images/clients/clients-7.jpg" },
+    { name: "Client 5", image: client5Img },
+    { name: "Client 7", image: client7Img },
     {
       name: "Spring Info Services",
-      image: "/assets/images/clients/clients-6.png",
+      image: client6Img,
       link: "http://springinfoservices.com",
     },
     {
       name: "Bits Informatics",
-      image: "/assets/images/clients/clients-8.png",
+      image: client8Img,
       link: "https://bitsi.in",
     },
-    { name: "Client 2", image: "/assets/images/clients/clients-2.png" },
+    { name: "Client 2", image: client2Img },
   ];
 
   // Fetch donors data from API using axios
@@ -265,7 +283,7 @@ const Donate = () => {
             name: "John Smith",
             level: "Diamond",
             amount: 15000,
-            image: "/assets/images/team/1.jpg",
+            image: teamMember1,
             message: "Supporting education for future generations",
           },
           {
@@ -273,7 +291,7 @@ const Donate = () => {
             name: "Sarah Johnson",
             level: "Platinum",
             amount: 7500,
-            image: "/assets/images/team/2.jpg",
+            image: teamMember2,
             message: "Investing in our children's future",
           },
           {
@@ -281,7 +299,7 @@ const Donate = () => {
             name: "Michael Chen",
             level: "Gold",
             amount: 3500,
-            image: "/assets/images/team/3.jpg",
+            image: teamMember3,
             message: "Math education is the foundation of innovation",
           },
           {
@@ -289,7 +307,7 @@ const Donate = () => {
             name: "Emily Davis",
             level: "Silver",
             amount: 1800,
-            image: "/assets/images/team/4.jpg",
+            image: teamMember4,
             message: "Every child deserves quality education",
           },
           {
@@ -297,7 +315,7 @@ const Donate = () => {
             name: "David Wilson",
             level: "Bronze",
             amount: 750,
-            image: "/assets/images/team/5.jpg",
+            image: teamMember5,
             message: "Supporting local education initiatives",
           },
           {
@@ -305,7 +323,7 @@ const Donate = () => {
             name: "Lisa Brown",
             level: "Gold",
             amount: 3000,
-            image: "/assets/images/team/6.jpg",
+            image: teamMember6,
             message: "Building a stronger community through education",
           },
         ]);
@@ -357,14 +375,14 @@ const Donate = () => {
   // Helper function to get donor image
   const getDonorImage = (donorId) => {
     const teamImages = [
-      "/assets/images/team/1.jpg",
-      "/assets/images/team/2.jpg",
-      "/assets/images/team/3.jpg",
-      "/assets/images/team/4.jpg",
-      "/assets/images/team/5.jpg",
-      "/assets/images/team/6.jpg",
-      "/assets/images/team/7.jpg",
-      "/assets/images/team/8.jpg",
+      teamMember1,
+      teamMember2,
+      teamMember3,
+      teamMember4,
+      teamMember5,
+      teamMember6,
+      teamMember7,
+      teamMember8,
     ];
     return teamImages[(donorId - 1) % teamImages.length];
   };
@@ -1025,7 +1043,7 @@ const Donate = () => {
                 }}
               >
                 <img
-                  src="/assets/images/box.jpg"
+                  src={boxImg}
                   alt="Donation Box"
                   style={{
                     width: "100%",

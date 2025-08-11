@@ -12,24 +12,36 @@ import {
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-
-// Background images moved to public/assets/images/
-const ctaBgImage = "/assets/images/bg/cta-bg.jpg";
-const ctaBgImage2 = "/assets/images/bg/cta-bg2.jpg";
+// Import images from src/assets
+import satelliteLogoImg from "../../assets/images/about/Satellite_logo.jpg";
+import triangularTalksLogoImg from "../../assets/images/talk/Triangular-Talks-Logo.png";
+import ctaBgImage from "../../assets/images/bg/cta-bg.jpg";
+import ctaBgImage2 from "../../assets/images/bg/cta-bg2.jpg";
+import class010 from "../../assets/images/class/010.jpg";
+import class011 from "../../assets/images/class/011.jpg";
+import class001 from "../../assets/images/class/001.jpg";
+import class002 from "../../assets/images/class/002.jpg";
+import class003 from "../../assets/images/class/003.jpg";
+import class004 from "../../assets/images/class/004.jpg";
+import class005 from "../../assets/images/class/005.jpg";
+import class006 from "../../assets/images/class/006.jpg";
+import class007 from "../../assets/images/class/007.jpg";
+import class008 from "../../assets/images/class/008.jpg";
+import class009 from "../../assets/images/class/009.jpg";
 
 // Class images for carousel
 const classImages = [
-  "/assets/images/class/010.jpg",
-  "/assets/images/class/011.jpg",
-  "/assets/images/class/001.jpg",
-  "/assets/images/class/002.jpg",
-  "/assets/images/class/003.jpg",
-  "/assets/images/class/004.jpg",
-  "/assets/images/class/005.jpg",
-  "/assets/images/class/006.jpg",
-  "/assets/images/class/007.jpg",
-  "/assets/images/class/008.jpg",
-  "/assets/images/class/009.jpg",
+  class010,
+  class011,
+  class001,
+  class002,
+  class003,
+  class004,
+  class005,
+  class006,
+  class007,
+  class008,
+  class009,
 ];
 
 // Keyframe animations
@@ -241,7 +253,7 @@ const CtaSection = () => {
               >
                 <Box
                   component="img"
-                  src="/assets/images/about/satellite_logo.jpg"
+                  src={satelliteLogoImg}
                   alt="Satellite Program"
                   sx={{
                     width: "250px",
@@ -352,7 +364,7 @@ const CtaSection = () => {
               >
                 <Box
                   component="img"
-                  src="/assets/images/talk/Triangular-Talks-Logo.png"
+                  src={triangularTalksLogoImg}
                   alt="Triangular Talks"
                   sx={{
                     width: "250px",

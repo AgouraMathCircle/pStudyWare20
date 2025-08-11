@@ -1,48 +1,66 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AppBar,
   Toolbar,
-  Container,
-  Box,
   Typography,
   Button,
   IconButton,
+  Box,
   Drawer,
   List,
   ListItem,
   ListItemText,
-  ListItemButton,
+  ListItemIcon,
   Collapse,
   useTheme,
   useMediaQuery,
+  Avatar,
+  Menu,
+  MenuItem,
   Divider,
 } from "@mui/material";
 import {
   Menu as MenuIcon,
-  Close as CloseIcon,
-  ExpandLess,
-  ExpandMore,
   Home as HomeIcon,
   Info as InfoIcon,
+  HowToReg as RegisterIcon,
   PhotoLibrary as GalleryIcon,
-  MenuBook as ResourcesIcon,
-  HelpOutline as FAQIcon,
-  VolunteerActivism as DonateIcon,
-  Login as LoginIcon,
-  ContactMail as ContactIcon,
-  PersonAdd as RegisterIcon,
   School as SchoolIcon,
-  Dashboard as DashboardIcon,
   Assignment as AssignmentIcon,
   Upload as UploadIcon,
   Assessment as AssessmentIcon,
   Message as MessageIcon,
-  Lock as LockIcon,
+  VpnKey as VpnKeyIcon,
+  Logout as LogoutIcon,
+  ExpandLess,
+  ExpandMore,
+  Dashboard as DashboardIcon,
+  People as PeopleIcon,
+  VolunteerActivism as VolunteerActivismIcon,
+  AdminPanelSettings as AdminIcon,
+  Person as PersonIcon,
+  Settings as SettingsIcon,
+  Notifications as NotificationsIcon,
+  AccountCircle as AccountCircleIcon,
+  School as SchoolIcon2,
+  Engineering as EngineeringIcon,
+  Quiz as QuizIcon,
+  Satellite as SatelliteIcon,
+  ContactSupport as FAQIcon,
+  AttachMoney as DonateIcon,
+  ContactMail as ContactIcon,
+  YouTube as YouTubeIcon,
+  Facebook as FacebookIcon,
+  Twitter as TwitterIcon,
+  Instagram as InstagramIcon,
+  LinkedIn as LinkedInIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../services";
 import useNavigation from "../hooks/useNavigation";
 import "../styles/Navbar.css";
+// Import images from src/assets
+import logoImg from "../assets/images/logo.png";
 
 const Navbar = () => {
   const theme = useTheme();
@@ -96,7 +114,7 @@ const Navbar = () => {
   }, []);
 
   // Logo image - updated path to use src/assets/images/
-  const logoUrl = "/src/assets/images/logo.png"; // Updated path
+  const logoUrl = logoImg; // Updated path
 
   // Regular menu items for non-authenticated users
   const regularMenuItems = [

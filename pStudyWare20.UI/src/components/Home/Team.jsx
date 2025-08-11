@@ -12,6 +12,21 @@ import {
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import TwitterIcon from "@mui/icons-material/Twitter";
+import FacebookIcon from "@mui/icons-material/Facebook";
+import InstagramIcon from "@mui/icons-material/Instagram";
+// Import images from src/assets
+import teamMember1 from "../../assets/images/team/1.jpg";
+import teamMember2 from "../../assets/images/team/2.jpg";
+import teamMember13 from "../../assets/images/team/13.png";
+import teamMember3 from "../../assets/images/team/3.jpg";
+import teamMember8 from "../../assets/images/team/8.jpg";
+import teamMemberCharlie from "../../assets/images/team/volunteers/charlie.png";
+import teamMember4 from "../../assets/images/team/4.jpg";
+import teamMember5 from "../../assets/images/team/5.jpg";
+import teamMember6 from "../../assets/images/team/6.jpg";
+import teamMemberMugil from "../../assets/images/team/volunteers/mugil.jpg";
 
 // Keyframe animations
 const fadeInAnimation = keyframes`
@@ -33,61 +48,61 @@ const Team = () => {
       id: 1,
       name: "PRANAV KALYAN",
       role: "FOUNDER & PRESIDENT",
-      image: "/assets/images/team/1.jpg",
+      image: teamMember1,
     },
     {
       id: 2,
       name: "SRIYA KALYAN",
       role: "CHIEF EXECUTIVE OFFICER",
-      image: "/assets/images/team/2.jpg",
+      image: teamMember2,
     },
     {
       id: 3,
       name: "DR BHARAT PATEL",
       role: "DIRECTOR",
-      image: "/assets/images/team/13.png",
+      image: teamMember13,
     },
     {
       id: 4,
       name: "ANDREW XU",
       role: "DIRECTOR",
-      image: "/assets/images/team/3.jpg",
+      image: teamMember3,
     },
     {
       id: 5,
       name: "JOSHNA JUDE",
       role: "SENIOR VICE PRESIDENT",
-      image: "/assets/images/team/8.jpg",
+      image: teamMember8,
     },
     {
       id: 6,
       name: "CHARLIE NICKS",
       role: "SENIOR VICE PRESIDENT",
-      image: "/assets/images/team/volunteers/charlie.png",
+      image: teamMemberCharlie,
     },
     {
       id: 7,
       name: "MINITA CLARKE",
       role: "ADVISORY BOARD",
-      image: "/assets/images/team/4.jpg",
+      image: teamMember4,
     },
     {
       id: 8,
       name: "DIANA NGUYEN",
       role: "ADVISORY BOARD",
-      image: "/assets/images/team/5.jpg",
+      image: teamMember5,
     },
     {
       id: 9,
       name: "JOSEPH KEAYS",
       role: "ADVISORY BOARD",
-      image: "/assets/images/team/6.jpg",
+      image: teamMember6,
     },
     {
       id: 10,
       name: "MUGIL SHANMUGAM",
       role: "SENIOR VICE PRESIDENT",
-      image: "/assets/images/team/volunteers/mugil.jpg",
+      image: teamMemberMugil,
     },
   ];
 
@@ -95,13 +110,13 @@ const Team = () => {
   const totalSlides = Math.ceil(teamMembers.length / membersPerView);
 
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === totalSlides - 1 ? 0 : prevIndex + 1
     );
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? totalSlides - 1 : prevIndex - 1
     );
   };
@@ -117,15 +132,18 @@ const Team = () => {
 
   const getCurrentMembers = () => {
     const startIndex = currentIndex * membersPerView;
-    const currentMembers = teamMembers.slice(startIndex, startIndex + membersPerView);
-    
+    const currentMembers = teamMembers.slice(
+      startIndex,
+      startIndex + membersPerView
+    );
+
     // If we don't have exactly 4 members, fill with the first members to avoid blanks
     if (currentMembers.length < membersPerView) {
       const remainingSlots = membersPerView - currentMembers.length;
       const additionalMembers = teamMembers.slice(0, remainingSlots);
       return [...currentMembers, ...additionalMembers];
     }
-    
+
     return currentMembers;
   };
 
@@ -187,7 +205,13 @@ const Team = () => {
           {/* Team Members Grid */}
           <Grid container spacing={3} justifyContent="center">
             {getCurrentMembers().map((member, index) => (
-              <Grid item xs={12} sm={6} md={3} key={`${member.id}-${currentIndex}-${index}`}>
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={3}
+                key={`${member.id}-${currentIndex}-${index}`}
+              >
                 <Card
                   sx={{
                     backgroundColor: "#ffffff",
@@ -195,7 +219,9 @@ const Team = () => {
                     overflow: "hidden",
                     boxShadow: "0px 0px 16px rgba(4, 59, 80, 0.1)",
                     transition: "all 0.5s ease",
-                    animation: `${fadeInAnimation} 0.8s ease-out ${0.3 + index * 0.1}s both`,
+                    animation: `${fadeInAnimation} 0.8s ease-out ${
+                      0.3 + index * 0.1
+                    }s both`,
                     height: "100%",
                     "&:hover": {
                       transform: "translateY(-10px)",
@@ -330,11 +356,17 @@ const Team = () => {
                   width: "12px",
                   height: "12px",
                   borderRadius: "50%",
-                  backgroundColor: index === currentIndex ? "#40c1ec" : "rgba(64, 193, 236, 0.3)",
+                  backgroundColor:
+                    index === currentIndex
+                      ? "#40c1ec"
+                      : "rgba(64, 193, 236, 0.3)",
                   cursor: "pointer",
                   transition: "all 0.3s ease",
                   "&:hover": {
-                    backgroundColor: index === currentIndex ? "#40c1ec" : "rgba(64, 193, 236, 0.6)",
+                    backgroundColor:
+                      index === currentIndex
+                        ? "#40c1ec"
+                        : "rgba(64, 193, 236, 0.6)",
                   },
                 }}
               />

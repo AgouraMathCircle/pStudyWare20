@@ -28,10 +28,8 @@ import {
   YouTube,
 } from "@mui/icons-material";
 import "../styles/Login.css";
-
-// Import images
-// Images moved to public/assets/images/
-const pageHeader = "/assets/images/about/page-header.jpg";
+// Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -179,7 +177,7 @@ const Login = () => {
       {/* Breadcrumbs Start */}
       <div className="sc-breadcrumbs breadcrumbs-overlay">
         <div className="breadcrumbs-img">
-          <img src={pageHeader} alt="Breadcrumbs Image" />
+          <img src={pageHeaderImg} alt="Breadcrumbs Image" />
         </div>
         <div className="breadcrumbs-text white-color">
           <h1 className="page-title">LOGIN</h1>

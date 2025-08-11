@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import "../styles/StudentRegistration.css";
-// Images moved to public/assets/images/
-const pageHeaderImg = "/assets/images/about/page-header.jpg";
+// Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
+import arrow1Img from "../assets/images/arrow-1.png";
+import arrow2Img from "../assets/images/arrow-2.png";
+import arrow3Img from "../assets/images/arrow-3.png";
 
 const StudentRegistration = () => {
   const [formData, setFormData] = useState({
@@ -665,16 +668,16 @@ const StudentRegistration = () => {
 
           {/* Animated Arrows */}
           <div className="animated-arrow-1 animated-arrow left-right-new">
-            <img src="/assets/images/arrow-1.png" alt="" />
+            <img src={arrow1Img} alt="" />
           </div>
           <div className="animated-arrow-2 animated-arrow up-down-new">
-            <img src="/assets/images/arrow-2.png" alt="" />
+            <img src={arrow2Img} alt="" />
           </div>
           <div className="animated-arrow-3 animated-arrow up-down-new">
-            <img src="/assets/images/arrow-3.png" alt="" />
+            <img src={arrow3Img} alt="" />
           </div>
           <div className="animated-arrow-4 animated-arrow left-right-new">
-            <img src="/assets/images/arrow-3.png" alt="" />
+            <img src={arrow3Img} alt="" />
           </div>
         </div>
       </div>

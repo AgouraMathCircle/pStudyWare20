@@ -16,16 +16,24 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import "../styles/MathCircle.css";
-
-// Import images
-// Images moved to public/assets/images/
-const pageHeaderImg = "/assets/images/about/page-header.jpg";
-const aboutAmcImg = "/assets/images/about/about-amc copy copy.png";
-const arrow1 = "/assets/images/arrow-1.png";
-const arrow2 = "/assets/images/arrow-2.png";
-const arrow3 = "/assets/images/arrow-3.png";
-const arrow4 = "/assets/images/arrow-4.png";
-const arrow5 = "/assets/images/arrow-5.png";
+// Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
+import aboutAmcImg from "../assets/images/about/about-amc copy copy.png";
+import arrow1Img from "../assets/images/arrow-1.png";
+import arrow2Img from "../assets/images/arrow-2.png";
+import arrow3Img from "../assets/images/arrow-3.png";
+import arrow4Img from "../assets/images/arrow-4.png";
+import arrow5Img from "../assets/images/arrow-5.png";
+import teamMember1 from "../assets/images/team/1.jpg";
+import teamMember2 from "../assets/images/team/2.jpg";
+import teamMember13 from "../assets/images/team/13.png";
+import teamMember3 from "../assets/images/team/3.jpg";
+import teamMember8 from "../assets/images/team/8.jpg";
+import teamMemberCharlie from "../assets/images/team/volunteers/charlie.png";
+import teamMember4 from "../assets/images/team/4.jpg";
+import teamMember5 from "../assets/images/team/5.jpg";
+import teamMember6 from "../assets/images/team/6.jpg";
+import teamMember7 from "../assets/images/team/7.jpg";
 
 const MathCircle = () => {
   const theme = useTheme();
@@ -45,52 +53,52 @@ const MathCircle = () => {
     {
       name: "PRANAV KALYAN",
       role: "FOUNDER & PRESIDENT",
-      image: "/src/assets/images/team/1.jpg",
+      image: teamMember1,
     },
     {
       name: "SRIYA KALYAN",
       role: "CHIEF EXECUTIVE OFFICER",
-      image: "/src/assets/images/team/2.jpg",
+      image: teamMember2,
     },
     {
       name: "DR BHARAT PATEL",
       role: "DIRECTOR",
-      image: "/src/assets/images/team/13.png",
+      image: teamMember13,
     },
     {
       name: "ANDREW XU",
       role: "DIRECTOR",
-      image: "/src/assets/images/team/3.jpg",
+      image: teamMember3,
     },
     {
       name: "JOSHNA JUDE",
       role: "SENIOR VICE PRESIDENT",
-      image: "/src/assets/images/team/8.jpg",
+      image: teamMember8,
     },
     {
       name: "CHARLIE NICKS",
       role: "SENIOR VICE PRESIDENT",
-      image: "/src/assets/images/team/volunteers/charlie.png",
+      image: teamMemberCharlie,
     },
     {
       name: "MINITA CLARKE",
       role: "ADVISORY BOARD",
-      image: "/src/assets/images/team/4.jpg",
+      image: teamMember4,
     },
     {
       name: "DIANA NGUYEN",
       role: "ADVISORY BOARD",
-      image: "/src/assets/images/team/5.jpg",
+      image: teamMember5,
     },
     {
       name: "JOSEPH KEAYS",
       role: "ADVISORY BOARD",
-      image: "/src/assets/images/team/6.jpg",
+      image: teamMember6,
     },
     {
       name: "MUGIL SHANMUGAM",
       role: "ADVISORY BOARD",
-      image: "/src/assets/images/team/7.jpg",
+      image: teamMember7,
     },
   ];
 
@@ -509,7 +517,7 @@ const MathCircle = () => {
             animation: "leftRight 3s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow1} alt="" />
+          <Box component="img" src={arrow1Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-2 animated-arrow up-down-new"
@@ -520,7 +528,7 @@ const MathCircle = () => {
             animation: "upDown 4s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow2} alt="" />
+          <Box component="img" src={arrow2Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-3 animated-arrow up-down-new"
@@ -531,7 +539,7 @@ const MathCircle = () => {
             animation: "upDown 3.5s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow3} alt="" />
+          <Box component="img" src={arrow3Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-4 animated-arrow left-right-new"
@@ -542,7 +550,7 @@ const MathCircle = () => {
             animation: "leftRight 4.5s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow3} alt="" />
+          <Box component="img" src={arrow3Img} alt="" />
         </Box>
       </Box>
 
@@ -667,7 +675,7 @@ const MathCircle = () => {
             animation: "leftRight 3s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow5} alt="" />
+          <Box component="img" src={arrow5Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-2 animated-arrow up-down-new"
@@ -678,7 +686,7 @@ const MathCircle = () => {
             animation: "upDown 4s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow2} alt="" />
+          <Box component="img" src={arrow2Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-3 animated-arrow up-down-new"
@@ -689,7 +697,7 @@ const MathCircle = () => {
             animation: "upDown 3.5s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow4} alt="" />
+          <Box component="img" src={arrow4Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-4 animated-arrow left-right-new"
@@ -700,7 +708,7 @@ const MathCircle = () => {
             animation: "leftRight 4.5s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow3} alt="" />
+          <Box component="img" src={arrow3Img} alt="" />
         </Box>
       </Box>
 

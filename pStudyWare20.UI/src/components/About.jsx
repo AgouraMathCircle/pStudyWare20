@@ -1,8 +1,19 @@
 import React from "react";
 import "../styles/About.css";
-// Images moved to public/assets/images/
-const pageHeaderImg = "/assets/images/about/page-header.jpg";
-const aboutAmcImg = "/assets/images/about/about-amc copy copy.png";
+// Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
+import aboutAmcImg from "../assets/images/about/about-amc copy copy.png";
+import arrow1Img from "../assets/images/arrow-1.png";
+import arrow2Img from "../assets/images/arrow-2.png";
+import arrow3Img from "../assets/images/arrow-3.png";
+import arrow4Img from "../assets/images/arrow-4.png";
+import arrow5Img from "../assets/images/arrow-5.png";
+import teamMember1 from "../assets/images/team/1.jpg";
+import teamMember2 from "../assets/images/team/2.jpg";
+import austinLawImg from "../assets/images/team/Team/AustinLaw.png";
+import joshnaImg from "../assets/images/team/Team/Joshna.png";
+import charlieImg from "../assets/images/team/volunteers/charlie.png";
+import mugilImg from "../assets/images/team/volunteers/mugil.jpg";
 
 const About = () => {
   return (
@@ -169,16 +180,16 @@ const About = () => {
 
         {/* Animated Arrows */}
         <div className="animated-arrow-1 animated-arrow left-right-new">
-          <img src="/assets/images/arrow-1.png" alt="" />
+          <img src={arrow1Img} alt="" />
         </div>
         <div className="animated-arrow-2 animated-arrow up-down-new">
-          <img src="/assets/images/arrow-2.png" alt="" />
+          <img src={arrow2Img} alt="" />
         </div>
         <div className="animated-arrow-3 animated-arrow up-down-new">
-          <img src="/assets/images/arrow-3.png" alt="" />
+          <img src={arrow3Img} alt="" />
         </div>
         <div className="animated-arrow-4 animated-arrow left-right-new">
-          <img src="/assets/images/arrow-3.png" alt="" />
+          <img src={arrow3Img} alt="" />
         </div>
       </div>
 
@@ -237,16 +248,16 @@ const About = () => {
           </div>
         </div>
         <div className="animated-arrow-1 animated-arrow left-right-new">
-          <img src="/assets/images/arrow-5.png" alt="" />
+          <img src={arrow5Img} alt="" />
         </div>
         <div className="animated-arrow-2 animated-arrow up-down-new">
-          <img src="/assets/images/arrow-2.png" alt="" />
+          <img src={arrow2Img} alt="" />
         </div>
         <div className="animated-arrow-3 animated-arrow up-down-new">
-          <img src="/assets/images/arrow-4.png" alt="" />
+          <img src={arrow4Img} alt="" />
         </div>
         <div className="animated-arrow-4 animated-arrow left-right-new">
-          <img src="/assets/images/arrow-3.png" alt="" />
+          <img src={arrow3Img} alt="" />
         </div>
       </div>
 
@@ -262,7 +273,7 @@ const About = () => {
                 <div className="team-wrap">
                   <div className="team-img">
                     <a href="">
-                      <img src="/assets/images/team/1.jpg" alt="" />
+                      <img src={teamMember1} alt="" />
                     </a>
                     <div className="team-social">
                       <li>
@@ -303,7 +314,7 @@ const About = () => {
                 <div className="team-wrap">
                   <div className="team-img">
                     <a href="">
-                      <img src="/assets/images/team/2.jpg" alt="" />
+                      <img src={teamMember2} alt="" />
                     </a>
                     <div className="team-social">
                       <li>
@@ -358,10 +369,7 @@ const About = () => {
                 <div className="team-wrap team-wrap1">
                   <div className="team-img">
                     <a href="">
-                      <img
-                        src="/assets/images/team/Team/AustinLaw.png"
-                        alt=""
-                      />
+                      <img src={austinLawImg} alt="" />
                     </a>
                     <div className="team-social">
                       <li>
@@ -402,7 +410,7 @@ const About = () => {
                 <div className="team-wrap">
                   <div className="team-img">
                     <a href="">
-                      <img src="/assets/images/team/Team/Joshna.png" alt="" />
+                      <img src={joshnaImg} alt="" />
                     </a>
                     <div className="team-social">
                       <li>
@@ -443,10 +451,7 @@ const About = () => {
                 <div className="team-wrap">
                   <div className="team-img">
                     <a href="">
-                      <img
-                        src="/assets/images/team/volunteers/charlie.png"
-                        alt=""
-                      />
+                      <img src={charlieImg} alt="" />
                     </a>
                     <div className="team-social">
                       <li>
@@ -487,10 +492,7 @@ const About = () => {
                 <div className="team-wrap">
                   <div className="team-img">
                     <a href="">
-                      <img
-                        src="/assets/images/team/volunteers/mugil.jpg"
-                        alt=""
-                      />
+                      <img src={mugilImg} alt="" />
                     </a>
                     <div className="team-social">
                       <li>

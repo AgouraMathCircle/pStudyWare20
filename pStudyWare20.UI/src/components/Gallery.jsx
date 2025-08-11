@@ -25,10 +25,8 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import "../styles/Gallery.css";
-
-// Import images
-// Images moved to public/assets/images/
-const pageHeaderImg = "/assets/images/about/page-header.jpg";
+// Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
 
 const Gallery = () => {
   const theme = useTheme();

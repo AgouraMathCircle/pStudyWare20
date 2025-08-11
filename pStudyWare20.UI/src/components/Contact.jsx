@@ -19,10 +19,8 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import "../styles/Contact.css";
-
-// Import images
-// Images moved to public/assets/images/
-const pageHeaderImg = "/assets/images/about/page-header.jpg";
+// Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
 
 const Contact = () => {
   const theme = useTheme();

@@ -16,16 +16,14 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import "../styles/EngineeringCircle.css";
-
-// Import images
-// Images moved to public/assets/images/
-const pageHeaderImg = "/assets/images/about/page-header.jpg";
-const engineeringLogoImg = "/assets/images/about/engineering-logo.jpg";
-const arrow1 = "/assets/images/arrow-1.png";
-const arrow2 = "/assets/images/arrow-2.png";
-const arrow3 = "/assets/images/arrow-3.png";
-const arrow4 = "/assets/images/arrow-4.png";
-const arrow5 = "/assets/images/arrow-5.png";
+// Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
+import engineeringLogoImg from "../assets/images/about/engineering-logo.jpg";
+import arrow1Img from "../assets/images/arrow-1.png";
+import arrow2Img from "../assets/images/arrow-2.png";
+import arrow3Img from "../assets/images/arrow-3.png";
+import arrow4Img from "../assets/images/arrow-4.png";
+import arrow5Img from "../assets/images/arrow-5.png";
 
 const EngineeringCircle = () => {
   const theme = useTheme();
@@ -286,7 +284,7 @@ const EngineeringCircle = () => {
             animation: "leftRight 3s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow1} alt="" />
+          <Box component="img" src={arrow1Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-2 animated-arrow up-down-new"
@@ -297,7 +295,7 @@ const EngineeringCircle = () => {
             animation: "upDown 4s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow2} alt="" />
+          <Box component="img" src={arrow2Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-3 animated-arrow up-down-new"
@@ -308,7 +306,7 @@ const EngineeringCircle = () => {
             animation: "upDown 3.5s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow3} alt="" />
+          <Box component="img" src={arrow3Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-4 animated-arrow left-right-new"
@@ -319,7 +317,7 @@ const EngineeringCircle = () => {
             animation: "leftRight 4.5s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow3} alt="" />
+          <Box component="img" src={arrow3Img} alt="" />
         </Box>
       </Box>
 
@@ -444,7 +442,7 @@ const EngineeringCircle = () => {
             animation: "leftRight 3s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow5} alt="" />
+          <Box component="img" src={arrow5Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-2 animated-arrow up-down-new"
@@ -455,7 +453,7 @@ const EngineeringCircle = () => {
             animation: "upDown 4s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow2} alt="" />
+          <Box component="img" src={arrow2Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-3 animated-arrow up-down-new"
@@ -466,7 +464,7 @@ const EngineeringCircle = () => {
             animation: "upDown 3.5s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow4} alt="" />
+          <Box component="img" src={arrow4Img} alt="" />
         </Box>
         <Box
           className="animated-arrow-4 animated-arrow left-right-new"
@@ -477,7 +475,7 @@ const EngineeringCircle = () => {
             animation: "leftRight 4.5s ease-in-out infinite",
           }}
         >
-          <Box component="img" src={arrow3} alt="" />
+          <Box component="img" src={arrow3Img} alt="" />
         </Box>
       </Box>
 

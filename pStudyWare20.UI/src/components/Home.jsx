@@ -10,9 +10,6 @@ import Stats from "./Home/Stats";
 import VideoGallery from "./Home/VideoGallery";
 import Team from "./Home/Team";
 import Sponsors from "./Home/Sponsors";
-// Images moved to public/assets/images/
-const counterBg2 = "/assets/images/bg/counter-bg2.jpg";
-const bannerBg2 = "/assets/images/banner/banner-bg2.jpg";
 import "../styles/Home.css";
 
 const Home = () => {

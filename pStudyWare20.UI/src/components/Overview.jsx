@@ -1,9 +1,9 @@
 import React from "react";
 import "../styles/Overview.css";
-// Images moved to public/assets/images/
-const pageHeaderImg = "/assets/images/about/page-header.jpg";
-const speechImg = "/assets/images/about/Speech.jpg";
-const eg1Img = "/assets/images/about/EG_1.jpg";
+// Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
+import speechImg from "../assets/images/about/Speech.jpg";
+import eg1Img from "../assets/images/about/EG_1.jpg";
 
 const Overview = () => {
   return (

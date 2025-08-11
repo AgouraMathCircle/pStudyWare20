@@ -14,11 +14,10 @@ import {
   keyframes,
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-
-// Images moved to public/assets/images/
-const eventsImage = "/assets/images/courses/8.png";
-const scheduleImage = "/assets/images/about/12.jpg";
-const mediaImage = "/assets/images/courses/10.png";
+// Import images from src/assets
+import eventsImage from "../../assets/images/courses/8.png";
+import scheduleImage from "../../assets/images/about/12.jpg";
+import mediaImage from "../../assets/images/courses/10.png";
 
 // Keyframe animations
 const fadeInAnimation = keyframes`

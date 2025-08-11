@@ -12,15 +12,12 @@ import {
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-
-// Background image moved to public/assets/images/
-const counterBg2 = "/assets/images/bg/counter-bg2.jpg";
-
-// Arrow images moved to public/assets/images/
-const arrow2 = "/assets/images/arrow-2.png";
-const arrow3 = "/assets/images/arrow-3.png";
-const arrow4 = "/assets/images/arrow-4.png";
-const arrow5 = "/assets/images/arrow-5.png";
+// Import images from src/assets
+import counterBg2Img from "../../assets/images/bg/counter-bg2.jpg";
+import arrow2Img from "../../assets/images/arrow-2.png";
+import arrow3Img from "../../assets/images/arrow-3.png";
+import arrow4Img from "../../assets/images/arrow-4.png";
+import arrow5Img from "../../assets/images/arrow-5.png";
 
 // Keyframe animations
 const fadeInAnimation = keyframes`
@@ -121,7 +118,7 @@ const VideoGallery = () => {
   return (
     <Box
       sx={{
-        backgroundImage: `url(${counterBg2})`,
+        backgroundImage: `url(${counterBg2Img})`,
         backgroundSize: "cover",
         backgroundPosition: "center center",
         backgroundRepeat: "no-repeat",
@@ -137,7 +134,7 @@ const VideoGallery = () => {
       {/* Animated Arrows */}
       <Box
         component="img"
-        src={arrow5}
+        src={arrow5Img}
         alt="Animated Arrow"
         sx={{
           position: "absolute",
@@ -151,7 +148,7 @@ const VideoGallery = () => {
       />
       <Box
         component="img"
-        src={arrow2}
+        src={arrow2Img}
         alt="Animated Arrow"
         sx={{
           position: "absolute",
@@ -165,7 +162,7 @@ const VideoGallery = () => {
       />
       <Box
         component="img"
-        src={arrow4}
+        src={arrow4Img}
         alt="Animated Arrow"
         sx={{
           position: "absolute",
@@ -179,7 +176,7 @@ const VideoGallery = () => {
       />
       <Box
         component="img"
-        src={arrow3}
+        src={arrow3Img}
         alt="Animated Arrow"
         sx={{
           position: "absolute",

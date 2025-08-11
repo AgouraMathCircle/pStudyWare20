@@ -11,13 +11,11 @@ import {
 } from "@mui/material";
 import { ExpandMore } from "@mui/icons-material";
 import "../styles/FAQ.css";
-
-// Import images
-// Images moved to public/assets/images/
-const pageHeader = "/assets/images/about/page-header.jpg";
-const arrow1 = "/assets/images/arrow-1.png";
-const arrow2 = "/assets/images/arrow-2.png";
-const arrow3 = "/assets/images/arrow-3.png";
+// Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
+import arrow1Img from "../assets/images/arrow-1.png";
+import arrow2Img from "../assets/images/arrow-2.png";
+import arrow3Img from "../assets/images/arrow-3.png";
 
 const FAQ = () => {
   const [expanded, setExpanded] = useState(null);
@@ -185,7 +183,7 @@ const FAQ = () => {
       {/* Breadcrumbs Start */}
       <div className="sc-breadcrumbs breadcrumbs-overlay">
         <div className="breadcrumbs-img">
-          <img src={pageHeader} alt="Breadcrumbs Image" />
+          <img src={pageHeaderImg} alt="Breadcrumbs Image" />
         </div>
         <div className="breadcrumbs-text white-color">
           <h1 className="page-title">FAQ</h1>

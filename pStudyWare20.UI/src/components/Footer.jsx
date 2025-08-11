@@ -18,11 +18,11 @@ import {
   Link,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-// Arrow images moved to public/assets/images/
-const arrow8 = "/assets/images/arrow-8.png";
-const arrow9 = "/assets/images/arrow-9.png";
-const arrow3 = "/assets/images/arrow-3.png";
-const arrow7 = "/assets/images/arrow-7.png";
+// Import images from src/assets
+import arrow8Img from "../assets/images/arrow-8.png";
+import arrow9Img from "../assets/images/arrow-9.png";
+import arrow3Img from "../assets/images/arrow-3.png";
+import arrow7Img from "../assets/images/arrow-7.png";
 
 // Styled components for custom styling
 const StyledFooter = styled(Box)(({ theme }) => ({
@@ -465,16 +465,16 @@ const Footer = () => {
       </FooterBottom>
 
       <AnimatedArrow className="animated-arrow-1">
-        <img src={arrow8} alt="" />
+        <img src={arrow8Img} alt="" />
       </AnimatedArrow>
       <AnimatedArrow className="animated-arrow-2">
-        <img src={arrow9} alt="" />
+        <img src={arrow9Img} alt="" />
       </AnimatedArrow>
       <AnimatedArrow className="animated-arrow-3">
-        <img src={arrow3} alt="" />
+        <img src={arrow3Img} alt="" />
       </AnimatedArrow>
       <AnimatedArrow className="animated-arrow-4">
-        <img src={arrow7} alt="" />
+        <img src={arrow7Img} alt="" />
       </AnimatedArrow>
     </StyledFooter>
   );

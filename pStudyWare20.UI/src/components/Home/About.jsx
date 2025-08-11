@@ -11,10 +11,9 @@ import {
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-
-// Images moved to public/assets/images/
-const aboutImage = "/assets/images/about/about2.png";
-const shapeImage = "/assets/images/about/shap_image.png";
+// Import images from src/assets
+import aboutImage from "../../assets/images/about/about2.png";
+import shapeImage from "../../assets/images/about/shap_image.png";
 
 // Keyframe animations
 const fadeInAnimation = keyframes`
