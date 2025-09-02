@@ -345,7 +345,7 @@ const TestPreparation = () => {
                 <Button
                   variant="contained"
                   className="readon eng-btn"
-                  onClick={() => handleNavigation("/registration/student")}
+                  onClick={() => handleNavigation("/studentregistration")}
                   sx={{
                     backgroundColor: theme.palette.primary.main,
                     color: "white",
@@ -553,7 +553,7 @@ const TestPreparation = () => {
                 <Button
                   variant="contained"
                   className="readon eng-btn"
-                  onClick={() => handleNavigation("/registration/student")}
+                  onClick={() => handleNavigation("/studentregistration")}
                   sx={{
                     backgroundColor: theme.palette.primary.main,
                     color: "white",
@@ -648,7 +648,7 @@ const TestPreparation = () => {
             <Button
               variant="contained"
               size="large"
-              onClick={() => handleNavigation("/registration/student")}
+              onClick={() => handleNavigation("/studentregistration")}
               sx={{
                 backgroundColor: "white",
                 color: theme.palette.primary.main,
