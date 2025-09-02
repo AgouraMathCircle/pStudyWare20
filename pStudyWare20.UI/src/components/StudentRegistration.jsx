@@ -1,4 +1,30 @@
 import React, { useState, useEffect } from "react";
+import {
+  Container,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
+  Alert,
+  Box,
+  Paper,
+  Breadcrumbs,
+  Link,
+  FormControlLabel,
+  Checkbox,
+  Radio,
+  RadioGroup,
+  FormLabel,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import studentService from "../services/studentService";
 import "../styles/StudentRegistration.css";
 // Import images from src/assets
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
@@ -7,6 +33,7 @@ import arrow2Img from "../assets/images/arrow-2.png";
 import arrow3Img from "../assets/images/arrow-3.png";
 
 const StudentRegistration = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     // Parent Information
     parentFirstName: "",
@@ -16,7 +43,7 @@ const StudentRegistration = () => {
     city: "",
     state: "",
     country: "US",
-    
+
     // Student Information
     studentFirstName: "",
     studentLastName: "",
@@ -25,90 +52,64 @@ const StudentRegistration = () => {
     grade: "0",
     session: "0",
     location: "0",
-    
+
     // User Name Selection
     userNameType: "P", // P for Parent, S for Student
-    
+
     // Signatures
     waiverSignature: "",
     ruleSignature: "",
     picturePermission: true,
-    
+
     // Validation
-    validEmailAddress: ""
+    validEmailAddress: "",
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [locations, setLocations] = useState([]);
-
-  const grades = [
-    { value: "0", text: "--Select--" },
-    { value: "1", text: "1" },
-    { value: "2", text: "2" },
-    { value: "3", text: "3" },
-    { value: "4", text: "4" },
-    { value: "5", text: "5" },
-    { value: "6", text: "6" },
-    { value: "7", text: "7" },
-    { value: "8", text: "8" },
-    { value: "9", text: "9" },
-    { value: "10", text: "10" },
-    { value: "11", text: "11" },
-    { value: "12", text: "12" }
-  ];
-
-  const sessions = [
-    { value: "0", text: "--Select--" },
-    { value: "S2025", text: "Spring Semester 2025" }
-  ];
-
-  const countries = [
-    { value: "US", text: "United States" },
-    { value: "CA", text: "Canada" },
-    { value: "GB", text: "United Kingdom" },
-    { value: "CN", text: "China" },
-    { value: "IN", text: "India" },
-    { value: "SG", text: "Singapore" },
-    { value: "MX", text: "Mexico" },
-    { value: "MY", text: "Malaysia" },
-    // Add more countries as needed
-  ];
+  const [sessions, setSessions] = useState([]);
+  const [grades, setGrades] = useState([]);
+  const [countries, setCountries] = useState([]);
 
   useEffect(() => {
-    // Load locations from API
-    loadLocations();
+    // Load all data from services
+    loadFormData();
   }, []);
 
-  const loadLocations = async () => {
+  const loadFormData = async () => {
     try {
-      // This would be replaced with actual API call
-      const mockLocations = [
-        { value: "0", text: "--Select--" },
-        { value: "1", text: "Agoura Math Circle - El Camino Real High School, Woodland Hills" },
-        { value: "2", text: "VIRTUAL Math Circle - Internet" },
-        { value: "3", text: "Irvine Math Circle - Beacon Park School, Irvine" },
-        { value: "4", text: "Introduction to Artificial Intelligence - Internet , Agoura Hills" },
-        { value: "6", text: "ACT - Internet , Agoura Hills" }
-      ];
-      setLocations(mockLocations);
+      const [locationsData, sessionsData, gradesData, countriesData] =
+        await Promise.all([
+          studentService.getLocations(),
+          studentService.getSessions(),
+          studentService.getGrades(),
+          studentService.getCountries(),
+        ]);
+
+      setLocations(locationsData);
+      setSessions(sessionsData);
+      setGrades(gradesData);
+      setCountries(countriesData);
     } catch (error) {
-      console.error("Error loading locations:", error);
+      console.error("Error loading form data:", error);
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ""
+        [name]: "",
       }));
     }
   };
@@ -125,12 +126,20 @@ const StudentRegistration = () => {
     }
     if (!formData.parentEmail.trim()) {
       newErrors.parentEmail = "Please enter your Email Address.";
-    } else if (!/^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(formData.parentEmail)) {
+    } else if (
+      !/^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(
+        formData.parentEmail
+      )
+    ) {
       newErrors.parentEmail = "Please enter a valid Parent Email ID.";
     }
     if (!formData.parentPhone.trim()) {
       newErrors.parentPhone = "Please enter your Phone Number.";
-    } else if (!/^[01]?[- .]?(\([2-9]\d{2}\)|[2-9]\d{2})[- .]?\d{3}[- .]?\d{4}$/.test(formData.parentPhone)) {
+    } else if (
+      !/^[01]?[- .]?(\([2-9]\d{2}\)|[2-9]\d{2})[- .]?\d{3}[- .]?\d{4}$/.test(
+        formData.parentPhone
+      )
+    ) {
       newErrors.parentPhone = "Please enter a valid Phone No.";
     }
     if (!formData.city.trim()) {
@@ -163,7 +172,12 @@ const StudentRegistration = () => {
     // Student Email Validation
     if (formData.userNameType === "S" && !formData.studentEmail.trim()) {
       newErrors.studentEmail = "Please enter student email";
-    } else if (formData.studentEmail.trim() && !/^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(formData.studentEmail)) {
+    } else if (
+      formData.studentEmail.trim() &&
+      !/^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(
+        formData.studentEmail
+      )
+    ) {
       newErrors.studentEmail = "Please enter a valid Student Email ID.";
     }
 
@@ -181,508 +195,610 @@ const StudentRegistration = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
-    try {
-      // This would be replaced with actual API call
-      const response = await fetch('/api/studentregistration', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
+    setIsLoading(true);
+    setSubmitError("");
 
-      if (response.ok) {
-        setIsSubmitted(true);
-      } else {
-        console.error('Registration failed');
-      }
+    try {
+      const response = await studentService.registerStudent(formData);
+      setIsSubmitted(true);
     } catch (error) {
-      console.error('Error submitting registration:', error);
+      setSubmitError(error.message || "Registration failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   if (isSubmitted) {
     return (
-      <div className="student-registration-page">
-        <div className="sc-breadcrumbs breadcrumbs-overlay">
-          <div className="breadcrumbs-img">
-            <img src={pageHeaderImg} alt="Breadcrumbs Image" />
-          </div>
-          <div className="breadcrumbs-text white-color">
-            <h1 className="page-title">STUDENTS REGISTRATION</h1>
-            <ul>
-              <li>
-                <a className="active" href="/">Home &gt;</a>
-              </li>
-              <li className="active">Registration &gt;</li>
-              <li className="active">Student Registration</li>
-            </ul>
-          </div>
-        </div>
+      <div className="student-registration">
+        <Container maxWidth="lg">
+          {/* Breadcrumbs */}
+          <Box sx={{ mb: 3 }}>
+            <Breadcrumbs aria-label="breadcrumb">
+              <Link color="inherit" href="/" underline="hover">
+                Home
+              </Link>
+              <Link color="inherit" href="/registration" underline="hover">
+                Registration
+              </Link>
+              <Typography color="text.primary">Student Registration</Typography>
+            </Breadcrumbs>
+          </Box>
 
-        <div className="sc-about pt-20 pb-70 md-pt-40 position-relative arrow-animation-1">
-          <div className="container">
-            <div className="row">
-              <div className="col-lg-12 text-center">
-                <h4 className="heading">
-                  {formData.studentFirstName} {formData.studentLastName}'s application has successfully been submitted. 
-                  We will review it and update your enrollment status by email.
-                </h4>
-              </div>
-            </div>
-          </div>
-        </div>
+          <Paper elevation={3} sx={{ p: 4, textAlign: "center" }}>
+            <Typography
+              variant="h4"
+              component="h1"
+              gutterBottom
+              color="primary"
+            >
+              Registration Successful!
+            </Typography>
+            <Typography variant="h6" gutterBottom>
+              {formData.studentFirstName} {formData.studentLastName}'s
+              application has successfully been submitted.
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              We will review it and update your enrollment status by email.
+            </Typography>
+            <Box sx={{ mt: 3 }}>
+              <Button
+                variant="contained"
+                onClick={() => navigate("/")}
+                sx={{ mr: 2 }}
+              >
+                Go Home
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => window.location.reload()}
+              >
+                Register Another Student
+              </Button>
+            </Box>
+          </Paper>
+        </Container>
       </div>
     );
   }
 
   return (
-    <div className="student-registration-page">
-      {/* Breadcrumbs Section */}
-      <div className="sc-breadcrumbs breadcrumbs-overlay">
-        <div className="breadcrumbs-img">
-          <img src={pageHeaderImg} alt="Breadcrumbs Image" />
-        </div>
-        <div className="breadcrumbs-text white-color">
-          <h1 className="page-title">STUDENTS REGISTRATION</h1>
-          <ul>
-            <li>
-              <a className="active" href="/">Home &gt;</a>
-            </li>
-            <li className="active">Registration &gt;</li>
-            <li className="active">Student Registration</li>
-          </ul>
-        </div>
-      </div>
+    <div className="student-registration">
+      <Container maxWidth="lg">
+        {/* Breadcrumbs */}
+        <Box sx={{ mb: 3 }}>
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link color="inherit" href="/" underline="hover">
+              Home
+            </Link>
+            <Link color="inherit" href="/registration" underline="hover">
+              Registration
+            </Link>
+            <Typography color="text.primary">Student Registration</Typography>
+          </Breadcrumbs>
+        </Box>
 
-      {/* Registration Form Section */}
-      <div className="sc-about pt-20 pb-70 md-pt-40 position-relative arrow-animation-1">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-12 text-center">
-              <h3 className="heading">Register for New Student</h3>
-            </div>
-          </div>
+        {/* Page Header */}
+        <Box sx={{ mb: 4, textAlign: "center" }}>
+          <Typography variant="h2" component="h1" gutterBottom>
+            STUDENT REGISTRATION
+          </Typography>
+          <Typography variant="h5" color="text.secondary">
+            Register for New Student
+          </Typography>
+        </Box>
 
-          {/* Important Notice */}
-          <div className="row eng-row">
-            <div className="col-lg-12">
-              <div className="sec-title">
-                <div className="important-notice">
-                  <strong style={{ color: "red" }}>Important: </strong>
-                  Registration for the Fall 2024 Semester is now closed due to full capacity. 
-                  Unfortunately, no more spots are available. We invite you to register for our 
-                  upcoming Spring 2025 Semester. Thank you for your interest in Agoura Math Circle! 
-                  <strong style={{ color: "red" }}>Existing students, please do not use this page to register 
-                  for ONLINE or ONSITE Math Circle classes. Instead, follow the separate registration 
-                  instructions provided for returning students. This page is for new students only.</strong>
-                </div>
-                <br />
-                <div className="register-now">
-                  <strong style={{ color: "green" }}>Register Now:</strong>
-                  Use this page to register for any type of program (
-                  <a href="/test-preparation" target="_blank" style={{ color: "#0000FF" }}>
-                    Test Preparation- SAT/PSAT and ACT
-                  </a> and 
-                  <a href="/engineering-circle" target="_blank" style={{ color: "#0000FF" }}>
-                    Engineering circle - Data Science, Game Development and Artificial Intelligence
-                  </a>), with the exception of existing students registering for a new semester at math circle. 
-                  Please carefully choose the course and location. After you submit your application, we will 
-                  review and decide based on the availability of space and eligibility.
-                </div>
-                <br />
-                <div className="engineering-notice">
-                  <strong style={{ color: "red" }}>Engineering Circle:</strong>
-                  Before you apply for Agoura Engineering Circle, please review the 
-                  <a href="/test-preparation" target="_blank" style={{ color: "#0000FF" }}> curriculum</a> 
-                  and the criteria for eligibility and make an informed decision to see if this is the right 
-                  class for you. Due to the limited available space and the challenging material, we will 
-                  conduct an assessment. We will email details regarding this assessment. Based on the 
-                  eligibility and performance of the student on the exam, we will decide on the student's enrollment.
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Important Notice */}
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Important Notice
+          </Typography>
+          <Typography variant="body1" paragraph>
+            Registration for the Fall 2024 Semester is now closed due to full
+            capacity. Unfortunately, no more spots are available. We invite you
+            to register for our upcoming Spring 2025 Semester. Thank you for
+            your interest in Agoura Math Circle!
+          </Typography>
+          <Typography variant="body1" paragraph>
+            <strong>
+              Existing students, please do not use this page to register for
+              ONLINE or ONSITE Math Circle classes. Instead, follow the separate
+              registration instructions provided for returning students. This
+              page is for new students only.
+            </strong>
+          </Typography>
+        </Alert>
 
-          <form onSubmit={handleSubmit}>
-            <div className="row eng-row1">
-              {/* Parent Information */}
-              <div className="col-lg-6">
-                <div className="sec-title mb-10">
-                  <h4 className="heading">Parent <span className="color2">Information</span></h4>
-                </div>
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Register Now
+          </Typography>
+          <Typography variant="body1">
+            Use this page to register for any type of program (
+            <Link href="/test-preparation" target="_blank" color="primary">
+              Test Preparation- SAT/PSAT and ACT
+            </Link>{" "}
+            and
+            <Link href="/engineering-circle" target="_blank" color="primary">
+              Engineering circle - Data Science, Game Development and Artificial
+              Intelligence
+            </Link>
+            ), with the exception of existing students registering for a new
+            semester at math circle. Please carefully choose the course and
+            location. After you submit your application, we will review and
+            decide based on the availability of space and eligibility.
+          </Typography>
+        </Alert>
 
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>First Name</label>
-                  <input
-                    type="text"
-                    name="parentFirstName"
-                    value={formData.parentFirstName}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.parentFirstName ? 'error' : ''}`}
-                    tabIndex="1"
-                  />
-                  {errors.parentFirstName && (
-                    <span className="errormessage">{errors.parentFirstName}</span>
-                  )}
-                </div>
+        <Alert severity="error" sx={{ mb: 4 }}>
+          <Typography variant="h6" gutterBottom>
+            Engineering Circle
+          </Typography>
+          <Typography variant="body1">
+            Before you apply for Agoura Engineering Circle, please review the
+            <Link href="/test-preparation" target="_blank" color="primary">
+              {" "}
+              curriculum
+            </Link>
+            and the criteria for eligibility and make an informed decision to
+            see if this is the right class for you. Due to the limited available
+            space and the challenging material, we will conduct an assessment.
+            We will email details regarding this assessment. Based on the
+            eligibility and performance of the student on the exam, we will
+            decide on the student's enrollment.
+          </Typography>
+        </Alert>
 
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>Last Name</label>
-                  <input
-                    type="text"
-                    name="parentLastName"
-                    value={formData.parentLastName}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.parentLastName ? 'error' : ''}`}
-                    tabIndex="2"
-                  />
-                  {errors.parentLastName && (
-                    <span className="errormessage">{errors.parentLastName}</span>
-                  )}
-                </div>
+        {/* Error Alert */}
+        {submitError && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {submitError}
+          </Alert>
+        )}
 
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>Email ID</label>
-                  <input
-                    type="email"
-                    name="parentEmail"
-                    value={formData.parentEmail}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.parentEmail ? 'error' : ''}`}
-                    tabIndex="3"
-                  />
-                  {errors.parentEmail && (
-                    <span className="errormessage">{errors.parentEmail}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>Phone (999-999-9999)</label>
-                  <input
-                    type="tel"
-                    name="parentPhone"
-                    value={formData.parentPhone}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.parentPhone ? 'error' : ''}`}
-                    tabIndex="4"
-                  />
-                  {errors.parentPhone && (
-                    <span className="errormessage">{errors.parentPhone}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>City</label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.city ? 'error' : ''}`}
-                    tabIndex="5"
-                  />
-                  {errors.city && (
-                    <span className="errormessage">{errors.city}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>State</label>
-                  <input
-                    type="text"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.state ? 'error' : ''}`}
-                    tabIndex="6"
-                  />
-                  {errors.state && (
-                    <span className="errormessage">{errors.state}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>Country</label>
-                  <select
-                    name="country"
-                    value={formData.country}
-                    onChange={handleInputChange}
-                    className="form-control"
-                    tabIndex="7"
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={4}>
+            {/* Parent Information */}
+            <Grid item xs={12} md={6}>
+              <Card elevation={2}>
+                <CardContent>
+                  <Typography
+                    variant="h5"
+                    component="h2"
+                    gutterBottom
+                    color="primary"
                   >
-                    {countries.map(country => (
-                      <option key={country.value} value={country.value}>
-                        {country.text}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    Parent Information
+                  </Typography>
 
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>User Name</label>
-                  <div className="radio-group">
-                    <label>
-                      <input
-                        type="radio"
-                        name="userNameType"
-                        value="P"
-                        checked={formData.userNameType === "P"}
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="First Name"
+                        name="parentFirstName"
+                        value={formData.parentFirstName}
                         onChange={handleInputChange}
+                        error={!!errors.parentFirstName}
+                        helperText={errors.parentFirstName}
+                        margin="normal"
+                        required
                       />
-                      Parent Email as User Name Or
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="userNameType"
-                        value="S"
-                        checked={formData.userNameType === "S"}
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Last Name"
+                        name="parentLastName"
+                        value={formData.parentLastName}
                         onChange={handleInputChange}
+                        error={!!errors.parentLastName}
+                        helperText={errors.parentLastName}
+                        margin="normal"
+                        required
                       />
-                      Student Email as User Name
-                    </label>
-                  </div>
-                </div>
-              </div>
+                    </Grid>
 
-              {/* Student Information */}
-              <div className="col-lg-6">
-                <div className="sec-title mb-10">
-                  <h4 className="heading">Student <span className="color2">Information</span></h4>
-                </div>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Email ID"
+                        name="parentEmail"
+                        type="email"
+                        value={formData.parentEmail}
+                        onChange={handleInputChange}
+                        error={!!errors.parentEmail}
+                        helperText={errors.parentEmail}
+                        margin="normal"
+                        required
+                      />
+                    </Grid>
 
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>Student First Name</label>
-                  <input
-                    type="text"
-                    name="studentFirstName"
-                    value={formData.studentFirstName}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.studentFirstName ? 'error' : ''}`}
-                    tabIndex="8"
-                  />
-                  {errors.studentFirstName && (
-                    <span className="errormessage">{errors.studentFirstName}</span>
-                  )}
-                </div>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Phone (999-999-9999)"
+                        name="parentPhone"
+                        value={formData.parentPhone}
+                        onChange={handleInputChange}
+                        error={!!errors.parentPhone}
+                        helperText={errors.parentPhone}
+                        margin="normal"
+                        required
+                      />
+                    </Grid>
 
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>Student Last Name</label>
-                  <input
-                    type="text"
-                    name="studentLastName"
-                    value={formData.studentLastName}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.studentLastName ? 'error' : ''}`}
-                    tabIndex="9"
-                  />
-                  {errors.studentLastName && (
-                    <span className="errormessage">{errors.studentLastName}</span>
-                  )}
-                </div>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="City"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        error={!!errors.city}
+                        helperText={errors.city}
+                        margin="normal"
+                        required
+                      />
+                    </Grid>
 
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>Student Email ID</label>
-                  <input
-                    type="email"
-                    name="studentEmail"
-                    value={formData.studentEmail}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.studentEmail ? 'error' : ''}`}
-                    tabIndex="10"
-                  />
-                  {errors.studentEmail && (
-                    <span className="errormessage">{errors.studentEmail}</span>
-                  )}
-                </div>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="State"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        error={!!errors.state}
+                        helperText={errors.state}
+                        margin="normal"
+                        required
+                      />
+                    </Grid>
 
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>School</label>
-                  <input
-                    type="text"
-                    name="school"
-                    value={formData.school}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.school ? 'error' : ''}`}
-                    tabIndex="11"
-                  />
-                  {errors.school && (
-                    <span className="errormessage">{errors.school}</span>
-                  )}
-                </div>
+                    <Grid item xs={12}>
+                      <FormControl fullWidth margin="normal">
+                        <InputLabel>Country</InputLabel>
+                        <Select
+                          name="country"
+                          value={formData.country}
+                          onChange={handleInputChange}
+                          label="Country"
+                        >
+                          {countries.map((country) => (
+                            <MenuItem key={country.value} value={country.value}>
+                              {country.text}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
 
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>Grade</label>
-                  <select
-                    name="grade"
-                    value={formData.grade}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.grade ? 'error' : ''}`}
-                    style={{ width: "200px" }}
-                    tabIndex="12"
+                    <Grid item xs={12}>
+                      <FormControl component="fieldset" margin="normal">
+                        <FormLabel component="legend">User Name</FormLabel>
+                        <RadioGroup
+                          name="userNameType"
+                          value={formData.userNameType}
+                          onChange={handleInputChange}
+                        >
+                          <FormControlLabel
+                            value="P"
+                            control={<Radio />}
+                            label="Parent Email as User Name"
+                          />
+                          <FormControlLabel
+                            value="S"
+                            control={<Radio />}
+                            label="Student Email as User Name"
+                          />
+                        </RadioGroup>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Student Information */}
+            <Grid item xs={12} md={6}>
+              <Card elevation={2}>
+                <CardContent>
+                  <Typography
+                    variant="h5"
+                    component="h2"
+                    gutterBottom
+                    color="primary"
                   >
-                    {grades.map(grade => (
-                      <option key={grade.value} value={grade.value}>
-                        {grade.text}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.grade && (
-                    <span className="errormessage">{errors.grade}</span>
-                  )}
-                </div>
+                    Student Information
+                  </Typography>
 
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>Register For</label>
-                  <select
-                    name="session"
-                    value={formData.session}
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Student First Name"
+                        name="studentFirstName"
+                        value={formData.studentFirstName}
+                        onChange={handleInputChange}
+                        error={!!errors.studentFirstName}
+                        helperText={errors.studentFirstName}
+                        margin="normal"
+                        required
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Student Last Name"
+                        name="studentLastName"
+                        value={formData.studentLastName}
+                        onChange={handleInputChange}
+                        error={!!errors.studentLastName}
+                        helperText={errors.studentLastName}
+                        margin="normal"
+                        required
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Student Email ID"
+                        name="studentEmail"
+                        type="email"
+                        value={formData.studentEmail}
+                        onChange={handleInputChange}
+                        error={!!errors.studentEmail}
+                        helperText={errors.studentEmail}
+                        margin="normal"
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="School"
+                        name="school"
+                        value={formData.school}
+                        onChange={handleInputChange}
+                        error={!!errors.school}
+                        helperText={errors.school}
+                        margin="normal"
+                        required
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <FormControl
+                        fullWidth
+                        margin="normal"
+                        error={!!errors.grade}
+                      >
+                        <InputLabel>Grade</InputLabel>
+                        <Select
+                          name="grade"
+                          value={formData.grade}
+                          onChange={handleInputChange}
+                          label="Grade"
+                        >
+                          {grades.map((grade) => (
+                            <MenuItem key={grade.value} value={grade.value}>
+                              {grade.text}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {errors.grade && (
+                          <FormHelperText>{errors.grade}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <FormControl
+                        fullWidth
+                        margin="normal"
+                        error={!!errors.session}
+                      >
+                        <InputLabel>Register For</InputLabel>
+                        <Select
+                          name="session"
+                          value={formData.session}
+                          onChange={handleInputChange}
+                          label="Register For"
+                        >
+                          {sessions.map((session) => (
+                            <MenuItem key={session.value} value={session.value}>
+                              {session.text}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {errors.session && (
+                          <FormHelperText>{errors.session}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <FormControl
+                        fullWidth
+                        margin="normal"
+                        error={!!errors.location}
+                      >
+                        <InputLabel>Course/Location</InputLabel>
+                        <Select
+                          name="location"
+                          value={formData.location}
+                          onChange={handleInputChange}
+                          label="Course/Location"
+                        >
+                          {locations.map((location) => (
+                            <MenuItem
+                              key={location.value}
+                              value={location.value}
+                            >
+                              {location.text}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {errors.location && (
+                          <FormHelperText>{errors.location}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+
+          {/* Terms and Signatures */}
+          <Card elevation={2} sx={{ mt: 4 }}>
+            <CardContent>
+              <Typography
+                variant="h5"
+                component="h2"
+                gutterBottom
+                color="primary"
+              >
+                Terms and Signatures
+              </Typography>
+
+              <Typography variant="body1" paragraph>
+                Pressing the "Submit" button I agree the Agoura Math Circle
+                <Button
+                  variant="text"
+                  color="primary"
+                  onClick={() => window.open("#terms-modal", "_blank")}
+                  sx={{ mx: 1 }}
+                >
+                  Terms
+                </Button>{" "}
+                and
+                <Button
+                  variant="text"
+                  color="primary"
+                  onClick={() => window.open("#rules-modal", "_blank")}
+                  sx={{ mx: 1 }}
+                >
+                  Rules
+                </Button>
+              </Typography>
+
+              <TextField
+                fullWidth
+                label="Waiver Signature (Liability Signature)*"
+                name="waiverSignature"
+                value={formData.waiverSignature}
+                onChange={handleInputChange}
+                error={!!errors.waiverSignature}
+                helperText={
+                  errors.waiverSignature ||
+                  "DO NOT SIGN WITHOUT READING. I HAVE READ THIS ASSUMPTION OF RISK, WAIVER OF LIABILITY AND INDEMNITY AGREEMENT AND AGREE TO ITS TERMS."
+                }
+                margin="normal"
+                required
+              />
+
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                By printing your name in the box and pressing the submit button,
+                I acknowledge that I have read and am electronically signing the
+                Waiver of Liability, Assumption of Risk and Indemnity Agreement
+                on behalf of myself or my dependent minor participant.
+              </Typography>
+
+              <TextField
+                fullWidth
+                label="Rules Signature*"
+                name="ruleSignature"
+                value={formData.ruleSignature}
+                onChange={handleInputChange}
+                error={!!errors.ruleSignature}
+                helperText={
+                  errors.ruleSignature ||
+                  "By printing your name in the box and pressing the submit button, I acknowledge that I have read and am electronically signing the Agoura Math Circle Rules and Expectations on behalf of myself or my dependent minor participant."
+                }
+                margin="normal"
+                required
+              />
+
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    name="picturePermission"
+                    checked={formData.picturePermission}
                     onChange={handleInputChange}
-                    className={`form-control ${errors.session ? 'error' : ''}`}
-                    style={{ width: "500px" }}
-                    tabIndex="13"
-                  >
-                    {sessions.map(session => (
-                      <option key={session.value} value={session.value}>
-                        {session.text}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.session && (
-                    <span className="errormessage">{errors.session}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label style={{ color: "#174a10", fontWeight: "bold" }}>Course/Location</label>
-                  <select
-                    name="location"
-                    value={formData.location}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.location ? 'error' : ''}`}
-                    style={{ width: "500px" }}
-                    tabIndex="14"
-                  >
-                    {locations.map(location => (
-                      <option key={location.value} value={location.value}>
-                        {location.text}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.location && (
-                    <span className="errormessage">{errors.location}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Terms and Signatures */}
-            <div className="row row-reg">
-              <div className="col-sm-12 mt-20">
-                <p>
-                  Pressing the "Submit" button I agree the Agoura Math Circle 
-                  <button type="button" className="active" onClick={() => window.open('#terms-modal', '_blank')}>
-                    Terms
-                  </button> and 
-                  <button type="button" className="active" onClick={() => window.open('#rules-modal', '_blank')}>
-                    Rules
-                  </button>
-                </p>
-
-                <div className="form-group">
-                  <label htmlFor="waiverSignature">
-                    Please sign the waiver (Liability Signature)* . DO NOT SIGN WITHOUT READING. 
-                    I HAVE READ THIS ASSUMPTION OF RISK, WAIVER OF LIABILITY AND INDEMNITY AGREEMENT 
-                    AND AGREE TO ITS TERMS.
-                  </label>
-                  <input
-                    type="text"
-                    name="waiverSignature"
-                    value={formData.waiverSignature}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.waiverSignature ? 'error' : ''}`}
                   />
-                  {errors.waiverSignature && (
-                    <span className="errormessage">{errors.waiverSignature}</span>
-                  )}
-                  <br />
-                  <p>
-                    By printing your name in the box and pressing the submit button, I acknowledge 
-                    that I have read and am electronically signing the Waiver of Liability, Assumption 
-                    of Risk and Indemnity Agreement on behalf of myself or my dependent minor participant.
-                  </p>
-                </div>
+                }
+                label="I give permission to use the pictures/videos"
+                sx={{ mt: 2 }}
+              />
 
-                <div className="form-group">
-                  <label htmlFor="ruleSignature">Signature</label>
-                  <input
-                    type="text"
-                    name="ruleSignature"
-                    value={formData.ruleSignature}
-                    onChange={handleInputChange}
-                    className={`form-control ${errors.ruleSignature ? 'error' : ''}`}
-                  />
-                  {errors.ruleSignature && (
-                    <span className="errormessage">{errors.ruleSignature}</span>
-                  )}
-                  <br />
-                  <p>
-                    By printing your name in the box and pressing the submit button, I acknowledge 
-                    that I have read and am electronically signing the Agoura Math Circle Rules and 
-                    Expectations on behalf of myself or my dependent minor participant.
-                  </p>
-                </div>
+              <Typography variant="body2" color="text.secondary">
+                Occasionally, we take pictures at AMC meetings, which may be
+                used for publicity purposes [e.g.: posted on our web site or
+                used in a brochure about AMC.] Do you give us permission to
+                include you in such photographs?
+              </Typography>
 
-                <div className="form-group">
-                  <p>
-                    Occasionally, we take pictures at AMC meetings, which may be used for publicity 
-                    purposes [e.g.: posted on our web site or used in a brochure about AMC.] Do you 
-                    give us permission to include you in such photographs?
-                  </p>
-                  <label>
-                    <input
-                      type="checkbox"
-                      name="picturePermission"
-                      checked={formData.picturePermission}
-                      onChange={handleInputChange}
-                    />
-                    I give permission to use the pictures/videos
-                  </label>
-                  <p style={{ fontSize: "12px" }}>
-                    I give permission to use the pictures/videos.
-                  </p>
-                </div>
+              <Box sx={{ mt: 3, textAlign: "center" }}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={isLoading}
+                  sx={{ minWidth: 200 }}
+                >
+                  {isLoading ? "Submitting..." : "Submit Registration"}
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </form>
 
-                <button type="submit" className="btn btn-common" tabIndex="15">
-                  Submit
-                </button>
-              </div>
-            </div>
-          </form>
-
-          {/* Animated Arrows */}
-          <div className="animated-arrow-1 animated-arrow left-right-new">
-            <img src={arrow1Img} alt="" />
-          </div>
-          <div className="animated-arrow-2 animated-arrow up-down-new">
-            <img src={arrow2Img} alt="" />
-          </div>
-          <div className="animated-arrow-3 animated-arrow up-down-new">
-            <img src={arrow3Img} alt="" />
-          </div>
-          <div className="animated-arrow-4 animated-arrow left-right-new">
-            <img src={arrow3Img} alt="" />
-          </div>
-        </div>
-      </div>
+        {/* Related Links */}
+        <Box sx={{ mt: 4, textAlign: "center" }}>
+          <Typography variant="h6" gutterBottom>
+            Related Links
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 2,
+              justifyContent: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <Button
+              variant="outlined"
+              onClick={() => navigate("/volunteerregistration")}
+            >
+              Volunteer Registration
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => navigate("/test-preparation")}
+            >
+              Test Preparation
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => navigate("/engineering-circle")}
+            >
+              Engineering Circle
+            </Button>
+          </Box>
+        </Box>
+      </Container>
     </div>
   );
 };
 
-export default StudentRegistration; 
+export default StudentRegistration;

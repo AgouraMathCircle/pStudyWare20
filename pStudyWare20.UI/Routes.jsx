@@ -11,6 +11,8 @@ import Contact from "./src/components/Contact";
 import Gallery from "./src/components/Gallery";
 import Donate from "./src/components/Donate";
 import StudentRegistration from "./src/components/StudentRegistration";
+import VolunteerRegistration from "./src/components/VolunteerRegistration";
+
 import FAQ from "./src/components/FAQ";
 import Resources from "./src/components/Resources";
 import Login from "./src/components/Login";
@@ -41,8 +43,12 @@ const AppRoutes = () => {
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/donate" element={<Donate />} />
           <Route
-            path="/registration/student"
+            path="/studentregistration"
             element={<StudentRegistration />}
+          />
+          <Route
+            path="/volunteerregistration"
+            element={<VolunteerRegistration />}
           />
           <Route path="/faq" element={<FAQ />} />
           <Route path="/resources" element={<Resources />} />

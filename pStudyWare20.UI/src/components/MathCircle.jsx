@@ -486,7 +486,7 @@ const MathCircle = () => {
                   <Button
                     variant="contained"
                     className="readon"
-                    onClick={() => handleNavigation("/registration/student")}
+                    onClick={() => handleNavigation("/studentregistration")}
                     sx={{
                       backgroundColor: theme.palette.primary.main,
                       color: "white",

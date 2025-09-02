@@ -147,8 +147,8 @@ const Navbar = () => {
       href: "/registration",
       icon: <RegisterIcon fontSize="small" />,
       submenu: [
-        { label: "Student Registration", href: "/registration/student" },
-        { label: "Volunteer Registration", href: "/registration/volunteer" },
+        { label: "Student Registration", href: "/studentregistration" },
+        { label: "Volunteer Registration", href: "/volunteerregistration" },
       ],
     },
     {

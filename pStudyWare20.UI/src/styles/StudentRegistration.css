@@ -1,407 +1,248 @@
-/* Student Registration Page Styles */
-.student-registration-page {
-  font-family: 'Poppins', sans-serif;
+.student-registration {
+  background-color: #ffffff;
+  min-height: 100vh;
+  padding: 20px 0;
 }
 
-/* Breadcrumbs Section */
-.student-registration-page .sc-breadcrumbs {
-  position: relative;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  padding: 120px 0 80px;
-  margin-bottom: 0;
-}
-
-.student-registration-page .breadcrumbs-img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-}
-
-.student-registration-page .breadcrumbs-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.student-registration-page .breadcrumbs-overlay::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: -1;
-}
-
-.student-registration-page .breadcrumbs-text {
-  position: relative;
-  z-index: 1;
-}
-
-.student-registration-page .page-title {
-  font-size: 48px;
+.student-registration .MuiTypography-h2 {
   font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  color: #174a10;
   margin-bottom: 20px;
-  color: #ffffff;
 }
 
-.student-registration-page .breadcrumbs-text ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.student-registration .MuiTypography-h5 {
+  color: #174a10;
+  font-weight: 600;
+  margin-bottom: 20px;
 }
 
-.student-registration-page .breadcrumbs-text ul li {
-  color: #ffffff;
-  font-size: 16px;
+.student-registration .MuiCard {
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
-.student-registration-page .breadcrumbs-text ul li a {
-  color: #ffffff;
+.student-registration .MuiCard:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.student-registration .MuiCardContent {
+  padding: 24px;
+}
+
+.student-registration .MuiTextField-root {
+  margin-bottom: 8px;
+}
+
+.student-registration .MuiFormControl-root {
+  margin-bottom: 8px;
+}
+
+.student-registration .MuiButton-contained {
+  background: linear-gradient(135deg, #174a10 0%, #2d7d32 100%);
+  color: white;
+  font-weight: 600;
+  text-transform: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.student-registration .MuiButton-contained:hover {
+  background: linear-gradient(135deg, #0d3a0a 0%, #1b5e20 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(23, 74, 16, 0.3);
+}
+
+.student-registration .MuiButton-outlined {
+  border-color: #174a10;
+  color: #174a10;
+  font-weight: 600;
+  text-transform: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.student-registration .MuiButton-outlined:hover {
+  background-color: rgba(23, 74, 16, 0.1);
+  border-color: #0d3a0a;
+  color: #0d3a0a;
+}
+
+.student-registration .MuiButton-text {
+  color: #174a10;
+  font-weight: 600;
+  text-transform: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.student-registration .MuiButton-text:hover {
+  background-color: rgba(23, 74, 16, 0.1);
+  color: #0d3a0a;
+}
+
+.student-registration .MuiAlert-root {
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.student-registration .MuiBreadcrumbs-root {
+  margin-bottom: 24px;
+}
+
+.student-registration .MuiBreadcrumbs-root .MuiLink-root {
+  color: #666;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
-.student-registration-page .breadcrumbs-text ul li a:hover {
-  color: #ffd700;
-}
-
-/* Registration Form Section */
-.student-registration-page .sc-about {
-  background: #f8f9fa;
-  position: relative;
-}
-
-.student-registration-page .heading {
-  font-size: 36px;
-  font-weight: 600;
-  color: #174a10;
-  margin-bottom: 30px;
-}
-
-.student-registration-page .color2 {
-  color: #ff6b35;
-}
-
-/* Important Notice Styles */
-.student-registration-page .important-notice {
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.student-registration-page .register-now {
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.student-registration-page .engineering-notice {
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-/* Form Styles */
-.student-registration-page .form-group {
-  margin-bottom: 20px;
-}
-
-.student-registration-page .form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
+.student-registration .MuiBreadcrumbs-root .MuiLink-root:hover {
   color: #174a10;
 }
 
-.student-registration-page .form-control {
-  width: 100%;
-  padding: 12px 15px;
-  border: 2px solid #e9ecef;
-  border-radius: 6px;
-  font-size: 16px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  background-color: #ffffff;
-}
-
-.student-registration-page .form-control:focus {
-  outline: none;
-  border-color: #174a10;
-  box-shadow: 0 0 0 3px rgba(23, 74, 16, 0.1);
-}
-
-.student-registration-page .form-control.error {
-  border-color: #dc3545;
-  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
-}
-
-.student-registration-page .errormessage {
-  color: #dc3545;
-  font-size: 14px;
-  margin-top: 5px;
-  display: block;
-}
-
-/* Radio Group Styles */
-.student-registration-page .radio-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.student-registration-page .radio-group label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: normal;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
-}
-
-.student-registration-page .radio-group label:hover {
-  background-color: #f8f9fa;
-}
-
-.student-registration-page .radio-group input[type="radio"] {
-  margin: 0;
-  cursor: pointer;
-}
-
-/* Button Styles */
-.student-registration-page .btn {
-  display: inline-block;
-  padding: 12px 30px;
-  font-size: 16px;
-  font-weight: 600;
-  text-align: center;
-  text-decoration: none;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: linear-gradient(135deg, #174a10 0%, #2d5a1f 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 15px rgba(23, 74, 16, 0.2);
-}
-
-.student-registration-page .btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(23, 74, 16, 0.3);
-  background: linear-gradient(135deg, #2d5a1f 0%, #174a10 100%);
-}
-
-.student-registration-page .btn:active {
-  transform: translateY(0);
-}
-
-.student-registration-page .btn.active {
-  background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
-  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.2);
-}
-
-.student-registration-page .btn.active:hover {
-  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
-  background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
-}
-
-/* Terms and Rules Section */
-.student-registration-page .row-reg {
-  background: #ffffff;
-  padding: 30px;
-  border-radius: 10px;
+.student-registration .MuiPaper-root {
+  border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  margin-top: 30px;
 }
 
-.student-registration-page .row-reg p {
-  margin-bottom: 20px;
-  line-height: 1.6;
-  color: #333;
+.student-registration .MuiFormControlLabel-root {
+  margin-top: 16px;
 }
 
-/* Checkbox Styles */
-.student-registration-page input[type="checkbox"] {
-  margin-right: 10px;
-  transform: scale(1.2);
-  cursor: pointer;
+.student-registration .MuiCheckbox-root {
+  color: #174a10;
 }
 
-.student-registration-page input[type="checkbox"] + label {
-  cursor: pointer;
-  font-weight: normal;
+.student-registration .MuiCheckbox-root.Mui-checked {
+  color: #2d7d32;
 }
 
-/* Animated Arrows */
-.student-registration-page .animated-arrow {
-  position: absolute;
-  z-index: 1;
+.student-registration .MuiRadio-root {
+  color: #174a10;
 }
 
-.student-registration-page .animated-arrow img {
-  max-width: 60px;
-  height: auto;
+.student-registration .MuiRadio-root.Mui-checked {
+  color: #2d7d32;
 }
 
-.student-registration-page .animated-arrow-1 {
-  top: 20%;
-  left: 5%;
-  animation: leftRight 6s ease-in-out infinite;
+.student-registration .MuiFormLabel-root {
+  color: #174a10;
+  font-weight: 600;
 }
 
-.student-registration-page .animated-arrow-2 {
-  top: 40%;
-  right: 10%;
-  animation: upDown 8s ease-in-out infinite;
+.student-registration .MuiInputLabel-root {
+  color: #666;
+  font-weight: 500;
 }
 
-.student-registration-page .animated-arrow-3 {
-  bottom: 30%;
-  left: 15%;
-  animation: upDown 7s ease-in-out infinite reverse;
+.student-registration .MuiInputLabel-root.Mui-focused {
+  color: #174a10;
 }
 
-.student-registration-page .animated-arrow-4 {
-  bottom: 20%;
-  right: 5%;
-  animation: leftRight 5s ease-in-out infinite reverse;
+.student-registration .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #174a10;
 }
 
-@keyframes leftRight {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(20px); }
+.student-registration .MuiFormHelperText-root {
+  color: #d32f2f;
+  font-size: 0.75rem;
+  margin-top: 4px;
 }
 
-@keyframes upDown {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-20px); }
-}
-
-/* Success Message Styles */
-.student-registration-page .success-message {
-  background: #d4edda;
-  border: 1px solid #c3e6cb;
-  color: #155724;
-  padding: 20px;
-  border-radius: 8px;
-  text-align: center;
-  margin: 20px 0;
+.student-registration .MuiFormHelperText-root.Mui-error {
+  color: #d32f2f;
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
-  .student-registration-page .page-title {
-    font-size: 32px;
+@media (max-width: 960px) {
+  .student-registration .MuiContainer-root {
+    padding: 0 16px;
   }
   
-  .student-registration-page .heading {
-    font-size: 28px;
+  .student-registration .MuiCardContent {
+    padding: 16px;
   }
   
-  .student-registration-page .breadcrumbs-text ul {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
+  .student-registration .MuiTypography-h2 {
+    font-size: 2rem;
   }
   
-  .student-registration-page .form-control {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-  
-  .student-registration-page .radio-group {
-    gap: 15px;
-  }
-  
-  .student-registration-page .radio-group label {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
-  }
-  
-  .student-registration-page .animated-arrow {
-    display: none; /* Hide arrows on mobile for better performance */
+  .student-registration .MuiTypography-h5 {
+    font-size: 1.25rem;
   }
 }
 
-@media (max-width: 576px) {
-  .student-registration-page .sc-breadcrumbs {
-    padding: 80px 0 60px;
+@media (max-width: 600px) {
+  .student-registration {
+    padding: 10px 0;
   }
   
-  .student-registration-page .page-title {
-    font-size: 24px;
+  .student-registration .MuiContainer-root {
+    padding: 0 12px;
   }
   
-  .student-registration-page .heading {
-    font-size: 22px;
+  .student-registration .MuiCardContent {
+    padding: 12px;
   }
   
-  .student-registration-page .row-reg {
-    padding: 20px;
+  .student-registration .MuiTypography-h2 {
+    font-size: 1.75rem;
   }
   
-  .student-registration-page .btn {
+  .student-registration .MuiTypography-h5 {
+    font-size: 1.1rem;
+  }
+  
+  .student-registration .MuiButton-contained,
+  .student-registration .MuiButton-outlined {
     width: 100%;
-    padding: 15px;
+    margin-bottom: 8px;
+  }
+  
+  .student-registration .MuiBox-root {
+    flex-direction: column;
+    gap: 8px;
   }
 }
 
-/* Utility Classes */
-.student-registration-page .mt-20 {
-  margin-top: 20px;
+/* Success State Styling */
+.student-registration .MuiPaper-root.success-paper {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid #28a745;
 }
 
-.student-registration-page .mb-10 {
-  margin-bottom: 10px;
+.student-registration .MuiTypography-root.success-title {
+  color: #28a745;
+  font-weight: 700;
 }
 
-.student-registration-page .mb-20 {
-  margin-bottom: 20px;
+.student-registration .MuiTypography-root.success-subtitle {
+  color: #155724;
+  font-weight: 600;
 }
 
-.student-registration-page .text-center {
-  text-align: center;
+/* Error State Styling */
+.student-registration .MuiAlert-root.error-alert {
+  border-left: 4px solid #dc3545;
 }
 
-/* Focus Styles for Accessibility */
-.student-registration-page .form-control:focus,
-.student-registration-page .btn:focus,
-.student-registration-page input[type="radio"]:focus,
-.student-registration-page input[type="checkbox"]:focus {
-  outline: 2px solid #174a10;
-  outline-offset: 2px;
-}
-
-/* Loading State */
-.student-registration-page .btn:disabled {
-  opacity: 0.6;
+/* Loading State Styling */
+.student-registration .MuiButton-root:disabled {
+  background: #cccccc;
+  color: #666666;
   cursor: not-allowed;
-  transform: none;
 }
 
-.student-registration-page .btn:disabled:hover {
-  transform: none;
-  box-shadow: 0 4px 15px rgba(23, 74, 16, 0.2);
+/* Focus States */
+.student-registration .MuiTextField-root .MuiOutlinedInput-root:focus-within {
+  box-shadow: 0 0 0 2px rgba(23, 74, 16, 0.2);
+}
+
+.student-registration .MuiFormControl-root .MuiOutlinedInput-root:focus-within {
+  box-shadow: 0 0 0 2px rgba(23, 74, 16, 0.2);
 } 

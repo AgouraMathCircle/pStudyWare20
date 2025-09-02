@@ -1,0 +1,203 @@
+.volunteer-registration {
+  background-color: #ffffff;
+}
+
+.volunteer-registration .MuiTypography-h2 {
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.volunteer-registration .MuiTypography-h4 {
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.volunteer-registration .MuiTextField-root,
+.volunteer-registration .MuiFormControl-root {
+  margin-bottom: 1rem;
+}
+
+.volunteer-registration .MuiTextField-root .MuiInputLabel-root,
+.volunteer-registration .MuiFormControl-root .MuiInputLabel-root {
+  color: #174a10;
+  font-weight: 600;
+}
+
+.volunteer-registration .MuiTextField-root .MuiInputLabel-root.Mui-focused,
+.volunteer-registration .MuiFormControl-root .MuiInputLabel-root.Mui-focused {
+  color: #53b50a;
+}
+
+.volunteer-registration .MuiOutlinedInput-root {
+  border-radius: 8px;
+}
+
+.volunteer-registration .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #53b50a;
+  border-width: 2px;
+}
+
+.volunteer-registration .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #174a10;
+}
+
+.volunteer-registration .MuiButton-contained {
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(23, 74, 16, 0.3);
+  transition: all 0.3s ease;
+}
+
+.volunteer-registration .MuiButton-contained:hover {
+  box-shadow: 0 6px 12px rgba(23, 74, 16, 0.4);
+  transform: translateY(-2px);
+}
+
+.volunteer-registration .MuiPaper-root {
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.volunteer-registration .MuiAlert-root {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.volunteer-registration .MuiBreadcrumbs-root {
+  font-size: 0.9rem;
+}
+
+.volunteer-registration .MuiBreadcrumbs-root .MuiLink-root {
+  color: #666;
+  text-decoration: none;
+}
+
+.volunteer-registration .MuiBreadcrumbs-root .MuiLink-root:hover {
+  color: #53b50a;
+}
+
+.volunteer-registration .MuiBreadcrumbs-root .MuiTypography-root {
+  color: #174a10;
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  .volunteer-registration .MuiContainer-root {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  .volunteer-registration .MuiPaper-root {
+    padding: 24px 16px;
+  }
+  
+  .volunteer-registration .MuiTypography-h2 {
+    font-size: 2rem;
+  }
+  
+  .volunteer-registration .MuiTypography-h4 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .volunteer-registration .MuiTypography-h2 {
+    font-size: 1.75rem;
+  }
+  
+  .volunteer-registration .MuiTypography-h4 {
+    font-size: 1.25rem;
+  }
+  
+  .volunteer-registration .MuiButton-contained {
+    width: 100%;
+    padding: 12px 24px;
+  }
+}
+
+/* Form validation styles */
+.volunteer-registration .MuiFormHelperText-root.Mui-error {
+  color: #d32f2f;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.volunteer-registration .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline {
+  border-color: #d32f2f;
+}
+
+.volunteer-registration .MuiOutlinedInput-root.Mui-error:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #d32f2f;
+}
+
+/* Select dropdown styles */
+.volunteer-registration .MuiSelect-select {
+  padding: 12px 14px;
+}
+
+.volunteer-registration .MuiMenuItem-root {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+}
+
+.volunteer-registration .MuiMenuItem-root:hover {
+  background-color: rgba(83, 181, 10, 0.08);
+}
+
+.volunteer-registration .MuiMenuItem-root.Mui-selected {
+  background-color: rgba(83, 181, 10, 0.12);
+  color: #174a10;
+}
+
+/* Success and error message animations */
+.volunteer-registration .MuiAlert-root {
+  animation: slideInDown 0.3s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading state styles */
+.volunteer-registration .MuiButton-contained:disabled {
+  background-color: #cccccc !important;
+  color: #666666 !important;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Focus styles for accessibility */
+.volunteer-registration .MuiTextField-root .MuiOutlinedInput-root:focus-within,
+.volunteer-registration .MuiFormControl-root .MuiOutlinedInput-root:focus-within {
+  outline: 2px solid #53b50a;
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar for textarea */
+.volunteer-registration .MuiTextField-root textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.volunteer-registration .MuiTextField-root textarea::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.volunteer-registration .MuiTextField-root textarea::-webkit-scrollbar-thumb {
+  background: #53b50a;
+  border-radius: 4px;
+}
+
+.volunteer-registration .MuiTextField-root textarea::-webkit-scrollbar-thumb:hover {
+  background: #174a10;
+}
