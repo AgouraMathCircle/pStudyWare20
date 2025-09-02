@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\pStudyWare20.Entity\pStudyWare20.Entity.csproj" />
     <ProjectReference Include="..\pStudyWare20.Repository\pStudyWare20.Repository.csproj" />
+    <ProjectReference Include="..\pStudyWare20.Shared\pStudyWare20.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -64,7 +64,7 @@ namespace pStudyWare20.API.Controllers
         }
 
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        public IActionResult ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
             try
             {
@@ -79,7 +79,7 @@ namespace pStudyWare20.API.Controllers
         }
 
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+        public IActionResult RefreshToken([FromBody] RefreshTokenRequest request)
         {
             try
             {

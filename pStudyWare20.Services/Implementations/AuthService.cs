@@ -93,27 +93,27 @@ namespace pStudyWare20.Services.Implementations
                         return "User";
                 }
             }
-            
+
             return "User";
         }
 
         private string GetClientIpAddress()
         {
             var httpContext = _httpContextAccessor.HttpContext;
-            if (httpContext == null)
+            if (httpContext?.Request == null)
                 return "Unknown";
 
             // Try to get the real IP address
             var forwardedHeader = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
             if (!string.IsNullOrEmpty(forwardedHeader))
             {
-                return forwardedHeader.Split(',')[0].Trim();
+                var ips = forwardedHeader.Split(',');
+                return ips.Length > 0 ? ips[0].Trim() : "Unknown";
             }
 
             var remoteIpAddress = httpContext.Connection.RemoteIpAddress;
             return remoteIpAddress?.ToString() ?? "Unknown";
         }
-
         public Task<bool> ValidateTokenAsync(string token)
         {
             try
@@ -127,4 +127,4 @@ namespace pStudyWare20.Services.Implementations
             }
         }
     }
-} 
+}

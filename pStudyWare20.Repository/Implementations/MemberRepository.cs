@@ -4,18 +4,76 @@ using pStudyWare20.Repository.Interfaces;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using System.Linq.Expressions;
 
 namespace pStudyWare20.Repository.Implementations
 {
-    public class MemberRepository : Repository<MemberMaster>, IMemberRepository
+    public class MemberRepository : IMemberRepository
     {
-        private readonly string _connectionString;
+        private readonly string? _connectionString;
+        private readonly AMC_DBContext _context;
+        private readonly DbSet<MemberMaster> _dbSet;
 
-        public MemberRepository(AMC_DBContext context, IConfiguration configuration) : base(context)
+        public MemberRepository(AMC_DBContext context, IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
+            _context = context;
+            _dbSet = context.Set<MemberMaster>();
+            _connectionString = configuration.GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException("DefaultConnection connection string not found in configuration.");
         }
 
+        // Basic CRUD operations
+        public async Task<MemberMaster?> GetByIdAsync(int id)
+        {
+            return await _dbSet.FindAsync(id);
+        }
+
+        public async Task<IEnumerable<MemberMaster>> GetAllAsync()
+        {
+            return await _dbSet.ToListAsync();
+        }
+
+        public async Task<IEnumerable<MemberMaster>> FindAsync(Expression<Func<MemberMaster, bool>> predicate)
+        {
+            return await _dbSet.Where(predicate).ToListAsync();
+        }
+
+        public async Task<MemberMaster?> FirstOrDefaultAsync(Expression<Func<MemberMaster, bool>> predicate)
+        {
+            return await _dbSet.FirstOrDefaultAsync(predicate);
+        }
+
+        public async Task AddAsync(MemberMaster entity)
+        {
+            await _dbSet.AddAsync(entity);
+        }
+
+        public async Task AddRangeAsync(IEnumerable<MemberMaster> entities)
+        {
+            await _dbSet.AddRangeAsync(entities);
+        }
+
+        public void Update(MemberMaster entity)
+        {
+            _dbSet.Update(entity);
+        }
+
+        public void Remove(MemberMaster entity)
+        {
+            _dbSet.Remove(entity);
+        }
+
+        public void RemoveRange(IEnumerable<MemberMaster> entities)
+        {
+            _dbSet.RemoveRange(entities);
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        // Member-specific operations
         public async Task<MemberMaster?> GetByEmailOrUsernameAsync(string emailOrUsername)
         {
             // Convert to lowercase for case-insensitive comparison
