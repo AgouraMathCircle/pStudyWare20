@@ -23,13 +23,8 @@
     <ProjectReference Include="..\pStudyWare20.Data\pStudyWare20.Data.csproj" />
     <ProjectReference Include="..\pStudyWare20.Entity\pStudyWare20.Entity.csproj" />
     <ProjectReference Include="..\pStudyWare20.Services\pStudyWare20.Services.csproj" />
+    <ProjectReference Include="..\pStudyWare20.Shared\pStudyWare20.Shared.csproj" />
     <ProjectReference Include="..\pStudyWare20.Repository\pStudyWare20.Repository.csproj" />
   </ItemGroup>
-
-  <!-- Copy appsettings.json.example to appsettings.json on build if it doesn't exist -->
-  <Target Name="CopyAppSettings" BeforeTargets="Build" Condition="!Exists('$(ProjectDir)appsettings.json')">
-    <Copy SourceFiles="$(ProjectDir)appsettings.json.example" DestinationFiles="$(ProjectDir)appsettings.json" />
-    <Message Text="Copied appsettings.json.example to appsettings.json" Importance="high" />
-  </Target>
 
 </Project>

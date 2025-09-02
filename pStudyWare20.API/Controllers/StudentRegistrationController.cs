@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Cors;
-using pStudyWare20.Entity;
 using pStudyWare20.Services.Interfaces;
+using pStudyWare20.Shared;
 
 namespace pStudyWare20.API.Controllers
 {
@@ -13,222 +10,235 @@ namespace pStudyWare20.API.Controllers
     [EnableCors("AllowReactApp")]
     public class StudentRegistrationController : ControllerBase
     {
-        private readonly IStudentRegistrationService _service;
+        private readonly IStudentService _studentService;
 
-        public StudentRegistrationController(IStudentRegistrationService service)
+        public StudentRegistrationController(IStudentService studentService)
         {
-            _service = service;
+            _studentService = studentService;
         }
 
         /// <summary>
-        /// Register a new student
+        /// Register a new student (matches legacy controller exactly)
         /// </summary>
-        /// <param name="request">Student registration request</param>
-        /// <returns>Registration response</returns>
+        /// <param name="studentDetails">Student registration details</param>
+        /// <returns>Registration result</returns>
+        [HttpPost]        
+        public object StudentRegistration([FromBody] RegistrationStudentModel studentDetails)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                var response = _studentService.StudentRegistration(studentDetails);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred during student registration", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get students list (matches legacy controller exactly)
+        /// </summary>
+        /// <param name="studentlist">Student list request</param>
+        /// <returns>Students list result</returns>
         [HttpPost]
-        public async Task<ActionResult<StudentRegistrationResponse>> RegisterStudent([FromBody] StudentRegistrationRequest request)
+        [Route("GetStudentsList")]
+        public object GetStudentsList([FromBody] Studentlist studentlist)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                var response = await _service.RegisterStudentAsync(request);
-                
-                if (response.IsSuccess)
-                {
-                    return Ok(response);
-                }
-                else
-                {
-                    return BadRequest(response);
-                }
+                var response = _studentService.GetStudentsList(studentlist);
+                return response;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new StudentRegistrationResponse
-                {
-                    IsSuccess = false,
-                    Message = $"Internal server error: {ex.Message}"
-                });
+                return StatusCode(500, new { message = "An error occurred while getting students list", error = ex.Message });
             }
         }
 
         /// <summary>
-        /// Get registration by ID
+        /// Get student report card (matches legacy controller exactly)
         /// </summary>
-        /// <param name="id">Registration ID</param>
-        /// <returns>Registration details</returns>
-        [HttpGet("{id}")]
-        public async Task<ActionResult<StudentRegistration>> GetRegistration(int id)
-        {
-            try
-            {
-                var registration = await _service.GetRegistrationByIdAsync(id);
-                
-                if (registration == null)
-                {
-                    return NotFound();
-                }
-
-                return Ok(registration);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Get all registrations
-        /// </summary>
-        /// <returns>List of all registrations</returns>
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<StudentRegistration>>> GetAllRegistrations()
-        {
-            try
-            {
-                var registrations = await _service.GetAllRegistrationsAsync();
-                return Ok(registrations);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Update registration
-        /// </summary>
-        /// <param name="id">Registration ID</param>
-        /// <param name="request">Updated registration data</param>
-        /// <returns>Updated registration</returns>
-        [HttpPut("{id}")]
-        public async Task<ActionResult<StudentRegistration>> UpdateRegistration(int id, [FromBody] StudentRegistrationRequest request)
+        /// <param name="userName">Username request</param>
+        /// <returns>Report card result</returns>
+        [HttpPost]
+        [Route("GetStudentsReportCard")]
+        public object GetStudentsReportCard([FromBody] UserName userName)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                var registration = await _service.UpdateRegistrationAsync(id, request);
-                
-                if (registration == null)
+                var response = _studentService.GetStudentsReportCard(userName);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while getting student report card", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Update student report card (matches legacy controller exactly)
+        /// </summary>
+        /// <param name="studentsReportCard">Report card update details</param>
+        /// <returns>Update result</returns>
+        [HttpPost]
+        [Route("UpdateStudentsReportCard")]
+        public object UpdateStudentsReportCard([FromBody] StudentsReportCard studentsReportCard)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
                 {
-                    return NotFound();
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                return Ok(registration);
+                var response = _studentService.UpdateStudentsReportCard(studentsReportCard);
+                return response;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { message = "An error occurred while updating student report card", error = ex.Message });
             }
         }
 
         /// <summary>
-        /// Delete registration
+        /// Get meeting schedule (matches legacy controller exactly)
         /// </summary>
-        /// <param name="id">Registration ID</param>
-        /// <returns>Success status</returns>
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteRegistration(int id)
+        /// <param name="userName">Username request</param>
+        /// <returns>Meeting schedule result</returns>
+        [HttpPost]
+        [Route("GetMeetingSchedule")]
+        public object GetMeetingSchedule([FromBody] UserName userName)
         {
             try
             {
-                var success = await _service.DeleteRegistrationAsync(id);
-                
-                if (!success)
+                if (!ModelState.IsValid)
                 {
-                    return NotFound();
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                return NoContent();
+                var response = _studentService.GetMeetingSchedule(userName);
+                return response;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { message = "An error occurred while getting meeting schedule", error = ex.Message });
             }
         }
 
         /// <summary>
-        /// Get registrations by parent email
+        /// Get dashboard message (matches legacy controller exactly)
         /// </summary>
-        /// <param name="email">Parent email</param>
-        /// <returns>List of registrations</returns>
-        [HttpGet("parent/{email}")]
-        public async Task<ActionResult<IEnumerable<StudentRegistration>>> GetRegistrationsByParentEmail(string email)
+        /// <param name="chapterID">Chapter ID request</param>
+        /// <returns>Dashboard message result</returns>
+        [HttpPost]
+        [Route("GetDashboardMessage")]
+        public object GetDashboardMessage([FromBody] Chapter chapterID)
         {
             try
             {
-                var registrations = await _service.GetRegistrationsByParentEmailAsync(email);
-                return Ok(registrations);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                var response = _studentService.GetDashboardMessage(chapterID);
+                return response;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { message = "An error occurred while getting dashboard message", error = ex.Message });
             }
         }
 
         /// <summary>
-        /// Get registrations by student email
+        /// Get student detail (matches legacy controller exactly)
         /// </summary>
-        /// <param name="email">Student email</param>
-        /// <returns>List of registrations</returns>
-        [HttpGet("student/{email}")]
-        public async Task<ActionResult<IEnumerable<StudentRegistration>>> GetRegistrationsByStudentEmail(string email)
+        /// <param name="studentID">Student ID request</param>
+        /// <returns>Student detail result</returns>
+        [HttpPost]
+        [Route("GetStudentDetail")]
+        public object GetStudentDetail([FromBody] StudentID studentID)
         {
             try
             {
-                var registrations = await _service.GetRegistrationsByStudentEmailAsync(email);
-                return Ok(registrations);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                var response = _studentService.GetStudentDetail(studentID);
+                return response;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { message = "An error occurred while getting student detail", error = ex.Message });
             }
         }
 
         /// <summary>
-        /// Get registrations by session
+        /// Update student detail (matches legacy controller exactly)
         /// </summary>
-        /// <param name="session">Session name</param>
-        /// <returns>List of registrations</returns>
-        [HttpGet("session/{session}")]
-        public async Task<ActionResult<IEnumerable<StudentRegistration>>> GetRegistrationsBySession(string session)
+        /// <param name="studentDetail">Student detail update</param>
+        /// <returns>Update result</returns>
+        [HttpPost]
+        [Route("UpdateStudentDetail")]
+        public object UpdateStudentDetail([FromBody] StudentDetail studentDetail)
         {
             try
             {
-                var registrations = await _service.GetRegistrationsBySessionAsync(session);
-                return Ok(registrations);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                var response = _studentService.UpdateStudentDetail(studentDetail);
+                return response;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { message = "An error occurred while updating student detail", error = ex.Message });
             }
         }
 
         /// <summary>
-        /// Get registrations by location
+        /// Get report card with additional details (matches legacy controller exactly)
         /// </summary>
-        /// <param name="location">Location ID</param>
-        /// <returns>List of registrations</returns>
-        [HttpGet("location/{location}")]
-        public async Task<ActionResult<IEnumerable<StudentRegistration>>> GetRegistrationsByLocation(int location)
+        /// <param name="studentlist">Student list dropdown request</param>
+        /// <returns>Report card details result</returns>
+        [HttpPost]
+        [Route("GetReportcard")]
+        public object GetReportcard([FromBody] StudentlistDropdown studentlist)
         {
             try
             {
-                var registrations = await _service.GetRegistrationsByLocationAsync(location);
-                return Ok(registrations);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                var response = _studentService.GetReportcard(studentlist);
+                return response;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { message = "An error occurred while getting report card", error = ex.Message });
             }
         }
     }
-} 
+}

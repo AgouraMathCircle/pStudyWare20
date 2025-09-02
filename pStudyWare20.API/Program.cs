@@ -76,16 +76,20 @@ builder.Services.AddDbContext<AMC_DBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Register Repositories
-builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
-builder.Services.AddScoped<IStudentRegistrationRepository, StudentRegistrationRepository>();
-builder.Services.AddScoped<IDonorRepository, DonorRepository>();
+builder.Services.AddScoped<IVolunteerRepository, VolunteerRepository>();
+builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+builder.Services.AddScoped<ITimesheetRepository, TimesheetRepository>();
 
 // Register Services
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IStudentRegistrationService, StudentRegistrationService>();
-builder.Services.AddScoped<IDonorService, DonorService>();
+builder.Services.AddScoped<IVolunteerService, VolunteerService>();
+builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<ITimesheetService, TimesheetService>();
+builder.Services.AddScoped<IEmailUtility, EmailUtility>();
 
 // Configure Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -95,7 +99,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "pStudyWare20 API",
         Version = "v1",
-        Description = "API for pStudyWare20 - Student Registration, Authentication, and Donor Management System",
+        Description = "API for pStudyWare20 - Student Registration, Authentication, Donor Management, and Volunteer Management System",
         Contact = new OpenApiContact
         {
             Name = "pStudyWare20 Team",
@@ -133,7 +137,7 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-        // Include XML comments if available
+    // Include XML comments if available
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
