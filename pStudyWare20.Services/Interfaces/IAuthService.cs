@@ -6,5 +6,6 @@ namespace pStudyWare20.Services.Interfaces
     {
         Task<LoginResponse?> AuthenticateAsync(LoginRequest request);
         Task<bool> ValidateTokenAsync(string token);
+        Task<ForgotPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request);
     }
-} 
+}

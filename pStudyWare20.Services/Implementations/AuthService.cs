@@ -3,6 +3,7 @@ using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using pStudyWare20.Data.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace pStudyWare20.Services.Implementations
 {
@@ -11,19 +12,21 @@ namespace pStudyWare20.Services.Implementations
         private readonly IMemberRepository _memberRepository;
         private readonly IJwtService _jwtService;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEmailUtility _emailUtility;
 
-        public AuthService(IMemberRepository memberRepository, IJwtService jwtService, IHttpContextAccessor httpContextAccessor)
+        public AuthService(IMemberRepository memberRepository, IJwtService jwtService, IHttpContextAccessor httpContextAccessor, IEmailUtility emailUtility)
         {
             _memberRepository = memberRepository;
             _jwtService = jwtService;
             _httpContextAccessor = httpContextAccessor;
+            _emailUtility = emailUtility;
         }
 
+        //HP
         public async Task<LoginResponse?> AuthenticateAsync(LoginRequest request)
         {
             try
             {
-                // Validate credentials using stored procedure (same as btnSubmit_Click logic)
                 var user = await _memberRepository.ValidateUserWithStoredProcedureAsync(request.Email, request.Password);
 
                 if (user == null)
@@ -124,6 +127,54 @@ namespace pStudyWare20.Services.Implementations
             catch
             {
                 return Task.FromResult(false);
+            }
+        }
+
+        public async Task<ForgotPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request)
+        {
+            try
+            {
+                // Get user by email using the same stored procedure as the original
+                // The original code uses mode="GetPassword" to get the password
+                var user = await _memberRepository.GetUserPasswordByEmailAsync(request.Email);
+
+                if (user == null)
+                {
+                    return new ForgotPasswordResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Email Address not found.",
+                        ErrorMessage = "User not found with the provided email address."
+                    };
+                }
+
+                // Send password reset email using EmailUtility
+                var emailResult = _emailUtility.SendForgotPasswordEmail(user);
+
+                if (emailResult.Contains("Error"))
+                {
+                    return new ForgotPasswordResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Sorry, there was an error sending the email.",
+                        ErrorMessage = emailResult
+                    };
+                }
+
+                return new ForgotPasswordResponse
+                {
+                    IsSuccess = true,
+                    Message = "Your password has been sent to your email address."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ForgotPasswordResponse
+                {
+                    IsSuccess = false,
+                    Message = "Email Address not found.",
+                    ErrorMessage = ex.Message
+                };
             }
         }
     }

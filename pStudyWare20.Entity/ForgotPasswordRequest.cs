@@ -8,4 +8,4 @@ namespace pStudyWare20.Entity
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
     }
-} 
+}

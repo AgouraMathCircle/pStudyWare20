@@ -1,101 +1,113 @@
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using pStudyWare20.Data.Models;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Shared;
 using System.Data;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
 
 namespace pStudyWare20.Repository.Implementations
 {
     /// <summary>
-    /// Implementation of timesheet data access operations using stored procedures (matches legacy controller)
+    /// Repository implementation for timesheet data access operations
     /// </summary>
     public class TimesheetRepository : ITimesheetRepository
     {
-        private readonly string? _connectionString;
+        private readonly AMC_DBContext _context;
+        private readonly string _connectionString;
 
-        public TimesheetRepository(IConfiguration configuration)
+        public TimesheetRepository(AMC_DBContext context, IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection")
-                ?? throw new InvalidOperationException("DefaultConnection connection string not found in configuration.");
+            _context = context;
+            _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         /// <summary>
-        /// Remove timesheet entry using AMC_spDeleteTimeTracking stored procedure
+        /// Remove timesheet entry using stored procedure
         /// </summary>
         public async Task<string> TimeSheetEntryRemoveAsync(TimeSheetID request)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            try
             {
+                using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using (var command = new SqlCommand("AMC_spDeleteTimeTracking", connection))
+                using var command = new SqlCommand("AMC_spTimeSheetEntryRemove", connection)
                 {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.Add(new SqlParameter("@LogID", request.Logid));
+                    CommandType = CommandType.StoredProcedure
+                };
 
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        var dataTable = new DataTable();
-                        dataTable.Load(reader);
-                        return System.Text.Json.JsonSerializer.Serialize(dataTable);
-                    }
-                }
+                command.Parameters.Add(new SqlParameter("@LogID", request.Logid));
+
+                var dataTable = new DataTable();
+                using var adapter = new SqlDataAdapter(command);
+                adapter.Fill(dataTable);
+
+                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error removing timesheet entry: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// Get timesheet list using AMC_spSelectTimeTracking stored procedure
+        /// Get timesheet list using stored procedure
         /// </summary>
         public async Task<string> GetTimesheetListAsync(UserName request)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            try
             {
+                using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using (var command = new SqlCommand("AMC_spSelectTimeTracking", connection))
+                using var command = new SqlCommand("AMC_spGetTimesheetList", connection)
                 {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.Add(new SqlParameter("@Username", request.userName));
+                    CommandType = CommandType.StoredProcedure
+                };
 
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        var dataTable = new DataTable();
-                        dataTable.Load(reader);
-                        return System.Text.Json.JsonSerializer.Serialize(dataTable);
-                    }
-                }
+                command.Parameters.Add(new SqlParameter("@Username", request.userName ?? ""));
+
+                var dataTable = new DataTable();
+                using var adapter = new SqlDataAdapter(command);
+                adapter.Fill(dataTable);
+
+                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting timesheet list: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// Add timesheet entry using AMC_spAddTimeTracking stored procedure
+        /// Add timesheet entry using stored procedure
         /// </summary>
         public async Task<bool> TimeSheetEntryAsync(TimeSheetEntry request)
         {
-            using (var connection = new SqlConnection(_connectionString))
+            try
             {
+                using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using (var command = new SqlCommand("AMC_spAddTimeTracking", connection))
+                using var command = new SqlCommand("AMC_spTimeSheetEntry", connection)
                 {
-                    command.CommandType = CommandType.StoredProcedure;
+                    CommandType = CommandType.StoredProcedure
+                };
 
-                    // Add parameters matching the legacy controller exactly
-                    command.Parameters.Add(new SqlParameter("@LogID", request.LogID));
-                    command.Parameters.Add(new SqlParameter("@Username", request.UserName));
-                    command.Parameters.Add(new SqlParameter("@TaskName", request.TaskName));
-                    command.Parameters.Add(new SqlParameter("@VolunteerDate", request.VolunteerDate));
-                    command.Parameters.Add(new SqlParameter("@StartHour", request.StartHour));
-                    command.Parameters.Add(new SqlParameter("@Startmin", request.Startmin));
-                    command.Parameters.Add(new SqlParameter("@StartType", request.StartType));
-                    command.Parameters.Add(new SqlParameter("@EndHour", request.EndHour));
-                    command.Parameters.Add(new SqlParameter("@Endmin", request.Endmin));
-                    command.Parameters.Add(new SqlParameter("@EndType", request.EndType));
-                    command.Parameters.Add(new SqlParameter("@TaskDescription", request.TaskDescription));
+                command.Parameters.Add(new SqlParameter("@LogID", request.LogID ?? ""));
+                command.Parameters.Add(new SqlParameter("@UserName", request.UserName ?? ""));
+                command.Parameters.Add(new SqlParameter("@TaskName", request.TaskName ?? ""));
+                command.Parameters.Add(new SqlParameter("@VolunteerDate", request.VolunteerDate));
+                command.Parameters.Add(new SqlParameter("@StartHour", request.StartHour ?? ""));
+                command.Parameters.Add(new SqlParameter("@Startmin", request.Startmin ?? ""));
+                command.Parameters.Add(new SqlParameter("@StartType", request.StartType ?? ""));
 
-                    await command.ExecuteNonQueryAsync();
-                    return true;
-                }
+                var result = await command.ExecuteNonQueryAsync();
+                return result > 0;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error adding timesheet entry: {ex.Message}", ex);
             }
         }
     }

@@ -81,6 +81,21 @@ builder.Services.AddScoped<IVolunteerRepository, VolunteerRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<ITimesheetRepository, TimesheetRepository>();
+builder.Services.AddScoped<IFinalExamRepository, FinalExamRepository>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IInstructorDashboardRepository, InstructorDashboardRepository>();
+builder.Services.AddScoped<IMeetingDetailsRepository, MeetingDetailsRepository>();
+builder.Services.AddScoped<IInstructorRepository, InstructorRepository>();
+builder.Services.AddScoped<IOnlineExamRepository, OnlineExamRepository>();
+builder.Services.AddScoped<IPostMessageRepository, PostMessageRepository>();
+builder.Services.AddScoped<ISentEmailRepository, SentEmailRepository>();
+builder.Services.AddScoped<IRegisteredStudentListRepository, RegisteredStudentListRepository>();
+builder.Services.AddScoped<IReportCardRepository, ReportCardRepository>();
+builder.Services.AddScoped<ISpecialEventsRegistrationRepository, SpecialEventsRegistrationRepository>();
+builder.Services.AddScoped<ITimeSheetTrackingRepository, TimeSheetTrackingRepository>();
+builder.Services.AddScoped<IVolunteerDashboardRepository, VolunteerDashboardRepository>();
+builder.Services.AddScoped<IDonateRepository, DonateRepository>();
+builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardRepository>();
 
 // Register Services
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -89,6 +104,21 @@ builder.Services.AddScoped<IVolunteerService, VolunteerService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<ITimesheetService, TimesheetService>();
+builder.Services.AddScoped<IFinalExamService, FinalExamService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IInstructorDashboardService, InstructorDashboardService>();
+builder.Services.AddScoped<IMeetingDetailsService, MeetingDetailsService>();
+builder.Services.AddScoped<IInstructorService, InstructorService>();
+builder.Services.AddScoped<IOnlineExamService, OnlineExamService>();
+builder.Services.AddScoped<IPostMessageService, PostMessageService>();
+builder.Services.AddScoped<ISentEmailService, SentEmailService>();
+builder.Services.AddScoped<IRegisteredStudentListService, RegisteredStudentListService>();
+builder.Services.AddScoped<IReportCardService, ReportCardService>();
+builder.Services.AddScoped<ISpecialEventsRegistrationService, SpecialEventsRegistrationService>();
+builder.Services.AddScoped<ITimeSheetTrackingService, TimeSheetTrackingService>();
+builder.Services.AddScoped<IVolunteerDashboardService, VolunteerDashboardService>();
+builder.Services.AddScoped<IDonateService, DonateService>();
+builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
 builder.Services.AddScoped<IEmailUtility, EmailUtility>();
 
 // Configure Swagger

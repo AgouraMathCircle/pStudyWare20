@@ -62,19 +62,32 @@ namespace pStudyWare20.API.Controllers
         {
             return Ok(new { message = "Token is valid", user = User.Identity?.Name });
         }
-
+ 
         [HttpPost("forgot-password")]
-        public IActionResult ForgotPassword([FromBody] ForgotPasswordRequest request)
+        [AllowAnonymous] // Allow anonymous access for forgot password
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
             try
             {
-                // For now, just return a success message
-                // In a real implementation, you would send an email with reset instructions
-                return Ok(new { message = "Password reset email sent successfully" });
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                var response = await _authService.ForgotPasswordAsync(request);
+
+                if (response.IsSuccess)
+                {
+                    return Ok(response);
+                }
+                else
+                {
+                    return BadRequest(response);
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while processing the request" });
+                return StatusCode(500, new { message = "An error occurred while processing forgot password request", error = ex.Message });
             }
         }
 
