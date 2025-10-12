@@ -17,710 +17,618 @@ import {
   Paper,
   Breadcrumbs,
   Link,
+  CircularProgress,
+  Snackbar,
+  Divider,
 } from "@mui/material";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import volunteerService from "../services/volunteerService";
 import "../styles/VolunteerRegistration.css";
 
+// Validation schema
+const validationSchema = yup.object({
+  firstName: yup
+    .string()
+    .required("First name is required")
+    .min(2, "First name must be at least 2 characters")
+    .max(50, "First name must be less than 50 characters"),
+  lastName: yup
+    .string()
+    .required("Last name is required")
+    .min(2, "Last name must be at least 2 characters")
+    .max(50, "Last name must be less than 50 characters"),
+  email: yup
+    .string()
+    .required("Email is required")
+    .email("Please enter a valid email address"),
+  phoneNo: yup
+    .string()
+    .required("Phone number is required")
+    .matches(
+      /^[01]?[- .]?(\([2-9]\d{2}\)|[2-9]\d{2})[- .]?\d{3}[- .]?\d{4}$/,
+      "Please enter a valid phone number"
+    ),
+  city: yup
+    .string()
+    .required("City is required")
+    .min(2, "City must be at least 2 characters"),
+  state: yup
+    .string()
+    .required("State is required")
+    .min(2, "State must be at least 2 characters"),
+  country: yup.string().required("Country is required"),
+  schoolName: yup
+    .string()
+    .required("School/University name is required")
+    .min(2, "School/University name must be at least 2 characters"),
+  grade: yup.string().required("Grade/Degree is required"),
+  sessionId: yup.string().required("Register For is required"),
+  locationId: yup
+    .number()
+    .required("Course/Location is required")
+    .min(1, "Please select a course/location"),
+  interestedFor: yup
+    .string()
+    .required("Please select an area of interest")
+    .notOneOf(["0"], "Please select an area of interest"),
+  aboutyourself: yup
+    .string()
+    .max(500, "About yourself must be less than 500 characters"),
+});
+
 const VolunteerRegistration = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    city: "",
-    state: "",
-    country: "",
-    schoolName: "",
-    grade: "",
-    sessionId: "F2024",
-    locationId: "",
-    locationName: "",
-    sessionName: "Fall Session 2024",
-    interestedFor: "",
-    aboutYourself: "",
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [locations, setLocations] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  const [grades, setGrades] = useState([]);
+  const [interestedOptions, setInterestedOptions] = useState([]);
+  const [countries, setCountries] = useState([]);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: yupResolver(validationSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phoneNo: "",
+      city: "",
+      state: "",
+      country: "",
+      schoolName: "",
+      grade: "",
+      sessionId: "",
+      locationId: 0,
+      interestedFor: "0",
+      aboutyourself: "",
+    },
   });
 
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState(null);
-  const [locations, setLocations] = useState([]);
-
-  // Load locations on component mount
+  // Load dropdown data
   useEffect(() => {
-    const loadLocations = async () => {
+    const loadDropdownData = async () => {
       try {
-        const locationData = await volunteerService.getLocations();
-        setLocations(locationData);
+        const [
+          locationsData,
+          sessionsData,
+          gradesData,
+          interestedData,
+          countriesData,
+        ] = await Promise.all([
+          volunteerService.getLocations(),
+          volunteerService.getSessions(),
+          volunteerService.getGrades(),
+          volunteerService.getInterestedOptions(),
+          volunteerService.getCountries(),
+        ]);
+
+        setLocations(locationsData);
+        setSessions(sessionsData);
+        setGrades(gradesData);
+        setInterestedOptions(interestedData);
+        setCountries(countriesData);
       } catch (error) {
-        console.error("Error loading locations:", error);
+        console.error("Error loading dropdown data:", error);
+        showSnackbar(
+          "Error loading form data. Please refresh the page.",
+          "error"
+        );
       }
     };
-    loadLocations();
+
+    loadDropdownData();
   }, []);
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }));
-    }
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Required field validation
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "Please enter your First name.";
-    }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Please enter your Last name.";
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = "Please enter your Email Address.";
-    } else if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid Email ID.";
-    }
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Please enter your Phone Number.";
-    } else if (!/^[01]?[- .]?(\([2-9]\d{2}\)|[2-9]\d{2})[- .]?\d{3}[- .]?\d{4}$/.test(formData.phone)) {
-      newErrors.phone = "Please enter a valid Phone No.";
-    }
-    if (!formData.city.trim()) {
-      newErrors.city = "Please enter City Name.";
-    }
-    if (!formData.state.trim()) {
-      newErrors.state = "Please enter State Name.";
-    }
-    if (!formData.country) {
-      newErrors.country = "Please select a country.";
-    }
-    if (!formData.schoolName.trim()) {
-      newErrors.schoolName = "Please enter School/University Name.";
-    }
-    if (!formData.grade) {
-      newErrors.grade = "Please select Grade/Degree.";
-    }
-    if (!formData.locationId) {
-      newErrors.locationId = "Please select Course/Location.";
-    }
-    if (!formData.interestedFor || formData.interestedFor === "0") {
-      newErrors.interestedFor = "Please select Interested For.";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleCloseSnackbar = () => {
+    setSnackbar({
+      ...snackbar,
+      open: false,
+    });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsSubmitting(true);
+  const onSubmit = async (data) => {
+    setLoading(true);
     try {
-      const response = await volunteerService.registerVolunteer(formData);
-      
-      if (response.isSuccess) {
-        setSubmitStatus({
-          type: "success",
-          message: `${formData.firstName} has successfully added into AMC volunteer list.`
-        });
-        // Reset form after successful submission
-        setFormData({
-          firstName: "",
-          lastName: "",
-          email: "",
-          phone: "",
-          city: "",
-          state: "",
-          country: "",
-          schoolName: "",
-          grade: "",
-          sessionId: "F2024",
-          locationId: "",
-          locationName: "",
-          sessionName: "Fall Session 2024",
-          interestedFor: "",
-          aboutYourself: "",
-        });
-      } else {
-        setSubmitStatus({
-          type: "error",
-          message: response.errorMessage || "Registration failed. Please try again."
-        });
-      }
+      // Prepare the data for API submission - matching the DTO structure
+      const volunteerData = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phoneNo: data.phoneNo,
+        city: data.city,
+        state: data.state,
+        country: data.country,
+        schoolName: data.schoolName,
+        grade: data.grade,
+        sessionId: data.sessionId,
+        locationId: data.locationId,
+        interestedFor: data.interestedFor,
+        aboutyourself: data.aboutyourself || "",
+      };
+
+      const response = await volunteerService.registerVolunteer(volunteerData);
+
+      showSnackbar(
+        "Volunteer registration submitted successfully! We will contact you soon.",
+        "success"
+      );
+
+      // Reset form after successful submission
+      reset();
+
+      // Optionally redirect after a delay
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
     } catch (error) {
-      setSubmitStatus({
-        type: "error",
-        message: "An error occurred during registration. Please try again."
-      });
+      console.error("Registration error:", error);
+      showSnackbar(
+        error.message || "Failed to submit registration. Please try again.",
+        "error"
+      );
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
-
-  const countries = [
-    { value: "US", label: "United States" },
-    { value: "CA", label: "Canada" },
-    { value: "GB", label: "United Kingdom" },
-    { value: "CN", label: "China" },
-    { value: "IN", label: "India" },
-    { value: "SG", label: "Singapore" },
-    { value: "MX", label: "Mexico" },
-    { value: "MY", label: "Malaysia" },
-    { value: "AF", label: "Afghanistan" },
-    { value: "AL", label: "Albania" },
-    { value: "DZ", label: "Algeria" },
-    { value: "AS", label: "American Samoa" },
-    { value: "AD", label: "Andorra" },
-    { value: "AO", label: "Angola" },
-    { value: "AI", label: "Anguilla" },
-    { value: "AQ", label: "Antarctica" },
-    { value: "AG", label: "Antigua And Barbuda" },
-    { value: "AR", label: "Argentina" },
-    { value: "AM", label: "Armenia" },
-    { value: "AW", label: "Aruba" },
-    { value: "AU", label: "Australia" },
-    { value: "AT", label: "Austria" },
-    { value: "AZ", label: "Azerbaijan" },
-    { value: "BS", label: "Bahamas" },
-    { value: "BH", label: "Bahrain" },
-    { value: "BD", label: "Bangladesh" },
-    { value: "BB", label: "Barbados" },
-    { value: "BY", label: "Belarus" },
-    { value: "BE", label: "Belgium" },
-    { value: "BZ", label: "Belize" },
-    { value: "BJ", label: "Benin" },
-    { value: "BM", label: "Bermuda" },
-    { value: "BT", label: "Bhutan" },
-    { value: "BO", label: "Bolivia" },
-    { value: "BA", label: "Bosnia And Herzegowina" },
-    { value: "BW", label: "Botswana" },
-    { value: "BV", label: "Bouvet Island" },
-    { value: "BR", label: "Brazil" },
-    { value: "IO", label: "British Indian Ocean Territory" },
-    { value: "BN", label: "Brunei Darussalam" },
-    { value: "BG", label: "Bulgaria" },
-    { value: "BF", label: "Burkina Faso" },
-    { value: "BI", label: "Burundi" },
-    { value: "KH", label: "Cambodia" },
-    { value: "CM", label: "Cameroon" },
-    { value: "CV", label: "Cape Verde" },
-    { value: "KY", label: "Cayman Islands" },
-    { value: "CF", label: "Central African Republic" },
-    { value: "TD", label: "Chad" },
-    { value: "CL", label: "Chile" },
-    { value: "CX", label: "Christmas Island" },
-    { value: "CC", label: "Cocos (Keeling) Islands" },
-    { value: "CO", label: "Colombia" },
-    { value: "KM", label: "Comoros" },
-    { value: "CG", label: "Congo" },
-    { value: "CK", label: "Cook Islands" },
-    { value: "CR", label: "Costa Rica" },
-    { value: "CI", label: "Cote D'Ivoire" },
-    { value: "HR", label: "Croatia (Local Name: Hrvatska)" },
-    { value: "CU", label: "Cuba" },
-    { value: "CY", label: "Cyprus" },
-    { value: "CZ", label: "Czech Republic" },
-    { value: "DK", label: "Denmark" },
-    { value: "DJ", label: "Djibouti" },
-    { value: "DM", label: "Dominica" },
-    { value: "DO", label: "Dominican Republic" },
-    { value: "TP", label: "East Timor" },
-    { value: "EC", label: "Ecuador" },
-    { value: "EG", label: "Egypt" },
-    { value: "SV", label: "El Salvador" },
-    { value: "GQ", label: "Equatorial Guinea" },
-    { value: "ER", label: "Eritrea" },
-    { value: "EE", label: "Estonia" },
-    { value: "ET", label: "Ethiopia" },
-    { value: "FK", label: "Falkland Islands (Malvinas)" },
-    { value: "FO", label: "Faroe Islands" },
-    { value: "FJ", label: "Fiji" },
-    { value: "FI", label: "Finland" },
-    { value: "FR", label: "France" },
-    { value: "GF", label: "French Guiana" },
-    { value: "PF", label: "French Polynesia" },
-    { value: "TF", label: "French Southern Territories" },
-    { value: "GA", label: "Gabon" },
-    { value: "GM", label: "Gambia" },
-    { value: "GE", label: "Georgia" },
-    { value: "DE", label: "Germany" },
-    { value: "GH", label: "Ghana" },
-    { value: "GI", label: "Gibraltar" },
-    { value: "GR", label: "Greece" },
-    { value: "GL", label: "Greenland" },
-    { value: "GD", label: "Grenada" },
-    { value: "GP", label: "Guadeloupe" },
-    { value: "GU", label: "Guam" },
-    { value: "GT", label: "Guatemala" },
-    { value: "GN", label: "Guinea" },
-    { value: "GW", label: "Guinea-Bissau" },
-    { value: "GY", label: "Guyana" },
-    { value: "HT", label: "Haiti" },
-    { value: "HM", label: "Heard And Mc Donald Islands" },
-    { value: "VA", label: "Holy See (Vatican City State)" },
-    { value: "HN", label: "Honduras" },
-    { value: "HK", label: "Hong Kong" },
-    { value: "HU", label: "Hungary" },
-    { value: "IS", label: "Icel And" },
-    { value: "ID", label: "Indonesia" },
-    { value: "IR", label: "Iran (Islamic Republic Of)" },
-    { value: "IQ", label: "Iraq" },
-    { value: "IE", label: "Ireland" },
-    { value: "IL", label: "Israel" },
-    { value: "IT", label: "Italy" },
-    { value: "JM", label: "Jamaica" },
-    { value: "JP", label: "Japan" },
-    { value: "JO", label: "Jordan" },
-    { value: "KZ", label: "Kazakhstan" },
-    { value: "KE", label: "Kenya" },
-    { value: "KI", label: "Kiribati" },
-    { value: "KP", label: "Korea, Dem People'S Republic" },
-    { value: "KR", label: "Korea, Republic Of" },
-    { value: "KW", label: "Kuwait" },
-    { value: "KG", label: "Kyrgyzstan" },
-    { value: "LA", label: "Lao People'S Dem Republic" },
-    { value: "LV", label: "Latvia" },
-    { value: "LB", label: "Lebanon" },
-    { value: "LS", label: "Lesotho" },
-    { value: "LR", label: "Liberia" },
-    { value: "LY", label: "Libyan Arab Jamahiriya" },
-    { value: "LI", label: "Liechtenstein" },
-    { value: "LT", label: "Lithuania" },
-    { value: "LU", label: "Luxembourg" },
-    { value: "MO", label: "Macau" },
-    { value: "MK", label: "Macedonia" },
-    { value: "MG", label: "Madagascar" },
-    { value: "MW", label: "Malawi" },
-    { value: "MV", label: "Maldives" },
-    { value: "ML", label: "Mali" },
-    { value: "MT", label: "Malta" },
-    { value: "MH", label: "Marshall Islands" },
-    { value: "MQ", label: "Martinique" },
-    { value: "MR", label: "Mauritania" },
-    { value: "MU", label: "Mauritius" },
-    { value: "YT", label: "Mayotte" },
-    { value: "FM", label: "Micronesia, Federated States" },
-    { value: "MD", label: "Moldova, Republic Of" },
-    { value: "MC", label: "Monaco" },
-    { value: "MN", label: "Mongolia" },
-    { value: "MS", label: "Montserrat" },
-    { value: "MA", label: "Morocco" },
-    { value: "MZ", label: "Mozambique" },
-    { value: "MM", label: "Myanmar" },
-    { value: "NA", label: "Namibia" },
-    { value: "NR", label: "Nauru" },
-    { value: "NP", label: "Nepal" },
-    { value: "NL", label: "Netherlands" },
-    { value: "AN", label: "Netherlands Ant Illes" },
-    { value: "NC", label: "New Caledonia" },
-    { value: "NZ", label: "New Zealand" },
-    { value: "NI", label: "Nicaragua" },
-    { value: "NE", label: "Niger" },
-    { value: "NG", label: "Nigeria" },
-    { value: "NU", label: "Niue" },
-    { value: "NF", label: "Norfolk Island" },
-    { value: "MP", label: "Northern Mariana Islands" },
-    { value: "NO", label: "Norway" },
-    { value: "OM", label: "Oman" },
-    { value: "PK", label: "Pakistan" },
-    { value: "PW", label: "Palau" },
-    { value: "PA", label: "Panama" },
-    { value: "PG", label: "Papua New Guinea" },
-    { value: "PY", label: "Paraguay" },
-    { value: "PE", label: "Peru" },
-    { value: "PH", label: "Philippines" },
-    { value: "PN", label: "Pitcairn" },
-    { value: "PL", label: "Poland" },
-    { value: "PT", label: "Portugal" },
-    { value: "PR", label: "Puerto Rico" },
-    { value: "QA", label: "Qatar" },
-    { value: "RE", label: "Reunion" },
-    { value: "RO", label: "Romania" },
-    { value: "RU", label: "Russian Federation" },
-    { value: "RW", label: "Rwanda" },
-    { value: "KN", label: "Saint K Itts And Nevis" },
-    { value: "LC", label: "Saint Lucia" },
-    { value: "VC", label: "Saint Vincent, The Grenadines" },
-    { value: "WS", label: "Samoa" },
-    { value: "SM", label: "San Marino" },
-    { value: "ST", label: "Sao Tome And Principe" },
-    { value: "SA", label: "Saudi Arabia" },
-    { value: "SN", label: "Senegal" },
-    { value: "SC", label: "Seychelles" },
-    { value: "SL", label: "Sierra Leone" },
-    { value: "SK", label: "Slovakia (Slovak Republic)" },
-    { value: "SI", label: "Slovenia" },
-    { value: "SB", label: "Solomon Islands" },
-    { value: "SO", label: "Somalia" },
-    { value: "ZA", label: "South Africa" },
-    { value: "GS", label: "South Georgia , S Sandwich Is." },
-    { value: "ES", label: "Spain" },
-    { value: "LK", label: "Sri Lanka" },
-    { value: "SH", label: "St. Helena" },
-    { value: "PM", label: "St. Pierre And Miquelon" },
-    { value: "SD", label: "Sudan" },
-    { value: "SR", label: "Suriname" },
-    { value: "SJ", label: "Svalbard, Jan Mayen Islands" },
-    { value: "SZ", label: "Sw Aziland" },
-    { value: "SE", label: "Sweden" },
-    { value: "CH", label: "Switzerland" },
-    { value: "SY", label: "Syrian Arab Republic" },
-    { value: "TW", label: "Taiwan" },
-    { value: "TJ", label: "Tajikistan" },
-    { value: "TZ", label: "Tanzania, United Republic Of" },
-    { value: "TH", label: "Thailand" },
-    { value: "TG", label: "Togo" },
-    { value: "TK", label: "Tokelau" },
-    { value: "TO", label: "Tonga" },
-    { value: "TT", label: "Trinidad And Tobago" },
-    { value: "TN", label: "Tunisia" },
-    { value: "TR", label: "Turkey" },
-    { value: "TM", label: "Turkmenistan" },
-    { value: "TC", label: "Turks And Caicos Islands" },
-    { value: "TV", label: "Tuvalu" },
-    { value: "UG", label: "Uganda" },
-    { value: "UA", label: "Ukraine" },
-    { value: "AE", label: "United Arab Emirates" },
-    { value: "UM", label: "United States Minor Is." },
-    { value: "UY", label: "Uruguay" },
-    { value: "UZ", label: "Uzbekistan" },
-    { value: "VU", label: "Vanuatu" },
-    { value: "VE", label: "Venezuela" },
-    { value: "VN", label: "Viet Nam" },
-    { value: "VG", label: "Virgin Islands (British)" },
-    { value: "VI", label: "Virgin Islands (U.S.)" },
-    { value: "WF", label: "Wallis And Futuna Islands" },
-    { value: "EH", label: "Western Sahara" },
-    { value: "YE", label: "Yemen" },
-    { value: "ZR", label: "Zaire" },
-    { value: "ZM", label: "Zambia" },
-    { value: "ZW", label: "Zimbabwe" },
-  ];
-
-  const grades = [
-    { value: "High School Freshman", label: "9" },
-    { value: "10", label: "10" },
-    { value: "11", label: "11" },
-    { value: "12", label: "12" },
-    { value: "UG", label: "UG" },
-    { value: "Graduate", label: "Graduate" },
-    { value: "PhD", label: "PhD" },
-    { value: "Others", label: "Others" },
-  ];
-
-  const interestedOptions = [
-    { value: "0", label: "--Select--" },
-    { value: "Tutoring", label: "Tutoring" },
-    { value: "Document Review", label: "Document Reviewer" },
-    { value: "Class Coordinator", label: "Class Coordinator" },
-    { value: "Facility Inspection", label: "Facility Inspection" },
-    { value: "Grading", label: "Grading" },
-    { value: "Yard Duty", label: "Yard Duty" },
-    { value: "Others", label: "Others" },
-  ];
 
   return (
-    <div className="volunteer-registration">
+    <div className="volunteer-registration-container">
       {/* Breadcrumbs */}
-      <Box sx={{ p: 2, backgroundColor: "#f5f5f5" }}>
-        <Container maxWidth="lg">
-          <Breadcrumbs aria-label="breadcrumb">
-            <Link color="inherit" href="/" underline="hover">
+      <div className="sc-breadcrumbs breadcrumbs-overlay">
+        <div className="breadcrumbs-img">
+          <img
+            src="/assets/images/about/page-header.jpg"
+            alt="Breadcrumbs Image"
+          />
+        </div>
+        <div className="breadcrumbs-text white-color">
+          <h1 className="page-title">VOLUNTEER REGISTRATION</h1>
+          <nav className="breadcrumb-nav">
+            <Link to="/" className="breadcrumb-link">
               Home
             </Link>
-            <Link color="inherit" href="/registration" underline="hover">
+            <span className="breadcrumb-separator"> &gt; </span>
+            <Link to="/registration" className="breadcrumb-link">
               Registration
             </Link>
-            <Typography color="text.primary">Volunteer Registration</Typography>
-          </Breadcrumbs>
-        </Container>
-      </Box>
+            <span className="breadcrumb-separator"> &gt; </span>
+            <span className="breadcrumb-current">Volunteer Registration</span>
+          </nav>
+        </div>
+      </div>
 
-      {/* Page Header */}
-      <Box
-        sx={{
-          backgroundImage: "url('/src/assets/images/about/page-header.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          color: "white",
-          py: 8,
-          position: "relative",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.5)",
-          },
-        }}
-      >
-        <Container maxWidth="lg">
-          <Typography variant="h2" component="h1" sx={{ position: "relative", zIndex: 1 }}>
-            VOLUNTEER REGISTRATION
-          </Typography>
-          <Box sx={{ position: "relative", zIndex: 1, mt: 2 }}>
-            <Typography variant="body1">
-              Home &gt; Registration &gt; Volunteer Registration
-            </Typography>
-          </Box>
-        </Container>
-      </Box>
+      {/* Main Content */}
+      <div className="main-content">
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          {/* Main Form - Vertical Layout */}
+          <Paper elevation={3} sx={{ p: 4 }}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <Grid container spacing={4}>
+                {/* Personal Information Section - Full Width */}
+                <Grid item xs={12}>
+                  <Card sx={{ p: 2 }}>
+                    <CardContent>
+                      <Typography
+                        variant="h5"
+                        gutterBottom
+                        sx={{
+                          color: "#174a10",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          mb: 3,
+                        }}
+                      >
+                        Personal{" "}
+                        <span style={{ color: "#1976d2" }}>Information</span>
+                      </Typography>
 
-      {/* Success Message */}
-      {submitStatus?.type === "success" && (
-        <Container maxWidth="lg" sx={{ mt: 4 }}>
-          <Alert severity="success" sx={{ mb: 3 }}>
-            <Typography variant="h6" component="span">
-              {submitStatus.message}
-            </Typography>
-          </Alert>
-        </Container>
-      )}
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="firstName"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="First Name *"
+                                error={!!errors.firstName}
+                                helperText={errors.firstName?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
 
-      {/* Error Message */}
-      {submitStatus?.type === "error" && (
-        <Container maxWidth="lg" sx={{ mt: 4 }}>
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {submitStatus.message}
-          </Alert>
-        </Container>
-      )}
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="lastName"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Last Name *"
+                                error={!!errors.lastName}
+                                helperText={errors.lastName?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
 
-      {/* Main Form */}
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <form onSubmit={handleSubmit}>
-            <Grid container spacing={4}>
-              {/* Personal Information */}
-              <Grid item xs={12} lg={6}>
-                <Typography variant="h4" component="h2" sx={{ mb: 3, color: "#174a10" }}>
-                  Personal <span style={{ color: "#53b50a" }}>Information</span>
-                </Typography>
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="email"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Email ID *"
+                                type="email"
+                                error={!!errors.email}
+                                helperText={errors.email?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
 
-                <TextField
-                  fullWidth
-                  label="First Name"
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange("firstName", e.target.value)}
-                  error={!!errors.firstName}
-                  helperText={errors.firstName}
-                  sx={{ mb: 2 }}
-                  required
-                />
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="phoneNo"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Phone (999-999-9999) *"
+                                placeholder="999-999-9999"
+                                error={!!errors.phoneNo}
+                                helperText={errors.phoneNo?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
 
-                <TextField
-                  fullWidth
-                  label="Last Name"
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange("lastName", e.target.value)}
-                  error={!!errors.lastName}
-                  helperText={errors.lastName}
-                  sx={{ mb: 2 }}
-                  required
-                />
+                        <Grid item xs={12} sm={4}>
+                          <Controller
+                            name="city"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="City *"
+                                error={!!errors.city}
+                                helperText={errors.city?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
 
-                <TextField
-                  fullWidth
-                  label="Email ID"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  error={!!errors.email}
-                  helperText={errors.email}
-                  sx={{ mb: 2 }}
-                  required
-                />
+                        <Grid item xs={12} sm={4}>
+                          <Controller
+                            name="state"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="State *"
+                                error={!!errors.state}
+                                helperText={errors.state?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
 
-                <TextField
-                  fullWidth
-                  label="Phone (999-999-9999)"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
-                  error={!!errors.phone}
-                  helperText={errors.phone}
-                  sx={{ mb: 2 }}
-                  required
-                />
+                        <Grid item xs={12} sm={4}>
+                          <Controller
+                            name="country"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControl fullWidth error={!!errors.country}>
+                                <InputLabel>Country *</InputLabel>
+                                <Select {...field} label="Country *">
+                                  {countries.map((country) => (
+                                    <MenuItem
+                                      key={country.value}
+                                      value={country.value}
+                                    >
+                                      {country.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                {errors.country && (
+                                  <FormHelperText>
+                                    {errors.country.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
 
-                <TextField
-                  fullWidth
-                  label="City"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange("city", e.target.value)}
-                  error={!!errors.city}
-                  helperText={errors.city}
-                  sx={{ mb: 2 }}
-                  required
-                />
+                {/* Educational Information Section - Full Width */}
+                <Grid item xs={12}>
+                  <Card sx={{ p: 2 }}>
+                    <CardContent>
+                      <Typography
+                        variant="h5"
+                        gutterBottom
+                        sx={{
+                          color: "#174a10",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          mb: 3,
+                        }}
+                      >
+                        Educational{" "}
+                        <span style={{ color: "#1976d2" }}>Information</span>
+                      </Typography>
 
-                <TextField
-                  fullWidth
-                  label="State"
-                  value={formData.state}
-                  onChange={(e) => handleInputChange("state", e.target.value)}
-                  error={!!errors.state}
-                  helperText={errors.state}
-                  sx={{ mb: 2 }}
-                  required
-                />
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="schoolName"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="School/University *"
+                                error={!!errors.schoolName}
+                                helperText={errors.schoolName?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
 
-                <FormControl fullWidth sx={{ mb: 2 }} required>
-                  <InputLabel>Country</InputLabel>
-                  <Select
-                    value={formData.country}
-                    label="Country"
-                    onChange={(e) => handleInputChange("country", e.target.value)}
-                    error={!!errors.country}
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="grade"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControl fullWidth error={!!errors.grade}>
+                                <InputLabel>Grade/Degree *</InputLabel>
+                                <Select {...field} label="Grade/Degree *">
+                                  {grades.map((grade) => (
+                                    <MenuItem
+                                      key={grade.value}
+                                      value={grade.value}
+                                    >
+                                      {grade.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                {errors.grade && (
+                                  <FormHelperText>
+                                    {errors.grade.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="sessionId"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControl fullWidth error={!!errors.sessionId}>
+                                <InputLabel>Register For *</InputLabel>
+                                <Select {...field} label="Register For *">
+                                  {sessions.map((session) => (
+                                    <MenuItem
+                                      key={session.id}
+                                      value={session.id}
+                                    >
+                                      {session.name}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                {errors.sessionId && (
+                                  <FormHelperText>
+                                    {errors.sessionId.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="locationId"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControl
+                                fullWidth
+                                error={!!errors.locationId}
+                              >
+                                <InputLabel>Course/Location *</InputLabel>
+                                <Select {...field} label="Course/Location *">
+                                  <MenuItem value={0}>
+                                    <em>--Select--</em>
+                                  </MenuItem>
+                                  {locations.map((location) => (
+                                    <MenuItem
+                                      key={location.id}
+                                      value={location.id}
+                                    >
+                                      {location.name}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                {errors.locationId && (
+                                  <FormHelperText>
+                                    {errors.locationId.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Controller
+                            name="interestedFor"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControl
+                                fullWidth
+                                error={!!errors.interestedFor}
+                              >
+                                <InputLabel>Interested For *</InputLabel>
+                                <Select {...field} label="Interested For *">
+                                  <MenuItem value="0">
+                                    <em>--Select--</em>
+                                  </MenuItem>
+                                  {interestedOptions.map((option) => (
+                                    <MenuItem
+                                      key={option.value}
+                                      value={option.value}
+                                    >
+                                      {option.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                {errors.interestedFor && (
+                                  <FormHelperText>
+                                    {errors.interestedFor.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Controller
+                            name="aboutyourself"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="About Yourself (Achievements, Merits, etc)"
+                                multiline
+                                rows={4}
+                                error={!!errors.aboutyourself}
+                                helperText={errors.aboutyourself?.message}
+                                variant="outlined"
+                                placeholder="Tell us about your achievements, merits, and any additional information..."
+                              />
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Submit Button - Full Width */}
+                <Grid item xs={12}>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "center", mt: 4 }}
                   >
-                    {countries.map((country) => (
-                      <MenuItem key={country.value} value={country.value}>
-                        {country.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.country && (
-                    <FormHelperText error>{errors.country}</FormHelperText>
-                  )}
-                </FormControl>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      size="large"
+                      disabled={loading}
+                      sx={{
+                        minWidth: 250,
+                        py: 1.5,
+                        fontSize: "1.1rem",
+                        fontWeight: "bold",
+                        backgroundColor: "#1976d2",
+                        "&:hover": {
+                          backgroundColor: "#1565c0",
+                        },
+                      }}
+                    >
+                      {loading ? (
+                        <CircularProgress size={24} color="inherit" />
+                      ) : (
+                        "Submit"
+                      )}
+                    </Button>
+                  </Box>
+                </Grid>
               </Grid>
+            </form>
+          </Paper>
 
-              {/* Educational Information */}
-              <Grid item xs={12} lg={6}>
-                <Typography variant="h4" component="h2" sx={{ mb: 3, color: "#174a10" }}>
-                  Educational <span style={{ color: "#53b50a" }}>Information</span>
-                </Typography>
-
-                <TextField
-                  fullWidth
-                  label="School/University Name"
-                  value={formData.schoolName}
-                  onChange={(e) => handleInputChange("schoolName", e.target.value)}
-                  error={!!errors.schoolName}
-                  helperText={errors.schoolName}
-                  sx={{ mb: 2 }}
-                  required
-                />
-
-                <FormControl fullWidth sx={{ mb: 2 }} required>
-                  <InputLabel>Grade/Degree</InputLabel>
-                  <Select
-                    value={formData.grade}
-                    label="Grade/Degree"
-                    onChange={(e) => handleInputChange("grade", e.target.value)}
-                    error={!!errors.grade}
-                  >
-                    {grades.map((grade) => (
-                      <MenuItem key={grade.value} value={grade.value}>
-                        {grade.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.grade && (
-                    <FormHelperText error>{errors.grade}</FormHelperText>
-                  )}
-                </FormControl>
-
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>Register For</InputLabel>
-                  <Select
-                    value={formData.sessionId}
-                    label="Register For"
-                    onChange={(e) => handleInputChange("sessionId", e.target.value)}
-                  >
-                    <MenuItem value="F2024">Fall Session 2024</MenuItem>
-                  </Select>
-                </FormControl>
-
-                <FormControl fullWidth sx={{ mb: 2 }} required>
-                  <InputLabel>Course/Location</InputLabel>
-                  <Select
-                    value={formData.locationId}
-                    label="Course/Location"
-                    onChange={(e) => {
-                      const location = locations.find(loc => loc.id === e.target.value);
-                      handleInputChange("locationId", e.target.value);
-                      handleInputChange("locationName", location?.name || "");
-                    }}
-                    error={!!errors.locationId}
-                  >
-                    {locations.map((location) => (
-                      <MenuItem key={location.id} value={location.id}>
-                        {location.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.locationId && (
-                    <FormHelperText error>{errors.locationId}</FormHelperText>
-                  )}
-                </FormControl>
-
-                <FormControl fullWidth sx={{ mb: 2 }} required>
-                  <InputLabel>Interested For</InputLabel>
-                  <Select
-                    value={formData.interestedFor}
-                    label="Interested For"
-                    onChange={(e) => handleInputChange("interestedFor", e.target.value)}
-                    error={!!errors.interestedFor}
-                  >
-                    {interestedOptions.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.interestedFor && (
-                    <FormHelperText error>{errors.interestedFor}</FormHelperText>
-                  )}
-                </FormControl>
-
-                <TextField
-                  fullWidth
-                  label="About Yourself (Achievements, Merits, etc)"
-                  multiline
-                  rows={8}
-                  value={formData.aboutYourself}
-                  onChange={(e) => handleInputChange("aboutYourself", e.target.value)}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-            </Grid>
-
-            {/* Submit Button */}
-            <Box sx={{ mt: 4, textAlign: "center" }}>
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                disabled={isSubmitting}
-                sx={{
-                  backgroundColor: "#174a10",
-                  color: "white",
-                  px: 6,
-                  py: 2,
-                  fontSize: "1.1rem",
-                  "&:hover": {
-                    backgroundColor: "#0d2e0a",
-                  },
-                  "&:disabled": {
-                    backgroundColor: "#cccccc",
-                  },
-                }}
-              >
-                {isSubmitting ? "Submitting..." : "Submit"}
-              </Button>
-            </Box>
-          </form>
-        </Paper>
-      </Container>
+          {/* Success/Error Snackbar */}
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={6000}
+            onClose={handleCloseSnackbar}
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          >
+            <Alert
+              onClose={handleCloseSnackbar}
+              severity={snackbar.severity}
+              sx={{ width: "100%" }}
+            >
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
+        </Container>
+      </div>
     </div>
   );
 };

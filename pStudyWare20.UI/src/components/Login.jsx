@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { authService } from "../services";
+import { useAuth } from "../contexts/AuthContext";
 import {
   TextField,
   Button,
@@ -33,6 +33,14 @@ import pageHeaderImg from "../assets/images/about/page-header.jpg";
 
 const Login = () => {
   const navigate = useNavigate();
+  const {
+    user,
+    isAuthenticated,
+    isLoading: authLoading,
+    isRedirecting,
+    login,
+    setRedirecting,
+  } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -41,6 +49,82 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [submitMessage, setSubmitMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoginSuccess, setIsLoginSuccess] = useState(false);
+  const redirectTimeoutRef = useRef(null);
+
+  // Check if user is already authenticated and redirect
+  useEffect(() => {
+    if (authLoading) return; // Wait for auth context to load
+
+    if (isRedirecting) {
+      console.log("Login: Already redirecting, skipping check");
+      return;
+    }
+
+    if (isAuthenticated && user) {
+      console.log("Login: User is authenticated, redirecting...", user);
+      setRedirecting(true);
+
+      if (user.memberType) {
+        const memberType = user.memberType.toUpperCase();
+        switch (memberType) {
+          case "A":
+            navigate("/admin/dashboard", { replace: true });
+            break;
+          case "I":
+            navigate("/instructor/dashboard", { replace: true });
+            break;
+          case "S":
+            navigate("/pstudyware/student/dashboard", { replace: true });
+            break;
+          case "V":
+            navigate("/volunteer/dashboard", { replace: true });
+            break;
+          default:
+            navigate("/dashboard", { replace: true });
+            break;
+        }
+      } else if (user.role) {
+        switch (user.role) {
+          case "Admin":
+            navigate("/admin/dashboard", { replace: true });
+            break;
+          case "Instructor":
+            navigate("/instructor/dashboard", { replace: true });
+            break;
+          case "Student":
+            navigate("/pstudyware/student/dashboard", { replace: true });
+            break;
+          case "Volunteer":
+            navigate("/volunteer/dashboard", { replace: true });
+            break;
+          default:
+            navigate("/dashboard", { replace: true });
+            break;
+        }
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    } else {
+      console.log("Login: User is not authenticated");
+    }
+  }, [
+    isAuthenticated,
+    user,
+    authLoading,
+    isRedirecting,
+    navigate,
+    setRedirecting,
+  ]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleChange = (field) => (event) => {
     setFormData({
@@ -89,55 +173,19 @@ const Login = () => {
       setSubmitMessage("");
 
       try {
-        const response = await authService.login(
-          formData.email,
-          formData.password
-        );
+        const response = await login(formData.email, formData.password);
 
         setSubmitMessage("Login successful! Redirecting...");
+        setIsLoginSuccess(true);
 
-        // Store user data in localStorage (already done in authService)
+        // Clear form data
+        setFormData({
+          email: "",
+          password: "",
+        });
+
+        // The redirect will be handled by the useEffect above
         console.log("Login successful:", response);
-
-        // Trigger storage event to update other components
-        window.dispatchEvent(new Event("storage"));
-
-        // Check user MemberType and redirect accordingly (same logic as login.aspx.cs)
-        const user = authService.getCurrentUser();
-        if (user && user.memberType) {
-          const memberType = user.memberType.toUpperCase();
-
-          setTimeout(() => {
-            switch (memberType) {
-              case "A":
-                navigate("/admin/dashboard");
-                break;
-              case "I":
-                navigate("/instructor/dashboard");
-                break;
-              case "S":
-                navigate("/student/dashboard");
-                break;
-              case "V":
-                navigate("/volunteer/dashboard");
-                break;
-              default:
-                navigate("/dashboard");
-                break;
-            }
-          }, 1500);
-        } else {
-          // Fallback to role-based redirection if MemberType is not available
-          if (user && user.role === "Student") {
-            setTimeout(() => {
-              navigate("/student/dashboard");
-            }, 1500);
-          } else {
-            setTimeout(() => {
-              navigate("/dashboard");
-            }, 1500);
-          }
-        }
       } catch (error) {
         // Display error message (same as lblMessage.Text in login.aspx.cs)
         setSubmitMessage("Invalid email Id or password. Please try again.");
@@ -160,6 +208,7 @@ const Login = () => {
     setSubmitMessage("");
 
     try {
+      const { authService } = await import("../services/authService");
       await authService.forgotPassword(formData.email);
       setSubmitMessage("Password reset email sent! Please check your inbox.");
     } catch (error) {
@@ -171,6 +220,64 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
+  // Don't render the form if we're redirecting
+  if (isRedirecting) {
+    return (
+      <div className="main-content">
+        <div className="sc-breadcrumbs breadcrumbs-overlay">
+          <div className="breadcrumbs-img">
+            <img src={pageHeaderImg} alt="Breadcrumbs Image" />
+          </div>
+          <div className="breadcrumbs-text white-color">
+            <h1 className="page-title">LOGIN</h1>
+            <ul>
+              <li>
+                <a className="active" href="/">
+                  Home &gt;
+                </a>
+              </li>
+              <li className="active">Login</li>
+            </ul>
+          </div>
+        </div>
+        <div className="sc-about pt-80 pb-70 md-pt-40 position-relative arrow-animation-1">
+          <div className="login-title text-center">
+            <h2 className="title">LOGIN HERE!</h2>
+          </div>
+          <Container maxWidth="lg">
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={7}>
+                <Paper
+                  elevation={3}
+                  className="login-form-container"
+                  sx={{
+                    padding: 4,
+                    borderRadius: 2,
+                    backgroundColor: "rgba(255, 255, 255, 0.95)",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  <Box sx={{ textAlign: "center", py: 4 }}>
+                    <Typography
+                      variant="h5"
+                      color="success.main"
+                      sx={{ mb: 2 }}
+                    >
+                      Login Successful!
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
+                      Redirecting to your dashboard...
+                    </Typography>
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Container>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="main-content">
@@ -216,62 +323,25 @@ const Login = () => {
                   backdropFilter: "blur(10px)",
                 }}
               >
-                <form onSubmit={handleSubmit} className="login-form">
-                  {/* Email Field */}
-                  <TextField
-                    fullWidth
-                    label="User Name"
-                    variant="outlined"
-                    value={formData.email}
-                    onChange={handleChange("email")}
-                    error={!!errors.email}
-                    helperText={errors.email}
-                    margin="normal"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Email color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&:hover fieldset": {
-                          borderColor: "#53b50a",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: "#53b50a",
-                        },
-                      },
-                    }}
-                  />
-
-                  {/* Password Field */}
-                  <FormControl fullWidth margin="normal" variant="outlined">
-                    <InputLabel htmlFor="password">Password</InputLabel>
-                    <OutlinedInput
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={handleChange("password")}
-                      error={!!errors.password}
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <Lock color="action" />
-                        </InputAdornment>
-                      }
-                      endAdornment={
-                        <InputAdornment position="end">
-                          <IconButton
-                            aria-label="toggle password visibility"
-                            onClick={handleClickShowPassword}
-                            edge="end"
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      }
-                      label="Password"
+                {!isLoginSuccess ? (
+                  <form onSubmit={handleSubmit} className="login-form">
+                    {/* Email Field */}
+                    <TextField
+                      fullWidth
+                      label="User Name"
+                      variant="outlined"
+                      value={formData.email}
+                      onChange={handleChange("email")}
+                      error={!!errors.email}
+                      helperText={errors.email}
+                      margin="normal"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Email color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
                       sx={{
                         "& .MuiOutlinedInput-root": {
                           "&:hover fieldset": {
@@ -283,84 +353,140 @@ const Login = () => {
                         },
                       }}
                     />
-                    {errors.password && (
-                      <Typography
-                        variant="caption"
-                        color="error"
-                        sx={{ mt: 1 }}
+
+                    {/* Password Field */}
+                    <FormControl fullWidth margin="normal" variant="outlined">
+                      <InputLabel htmlFor="password">Password</InputLabel>
+                      <OutlinedInput
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={handleChange("password")}
+                        error={!!errors.password}
+                        startAdornment={
+                          <InputAdornment position="start">
+                            <Lock color="action" />
+                          </InputAdornment>
+                        }
+                        endAdornment={
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label="toggle password visibility"
+                              onClick={handleClickShowPassword}
+                              edge="end"
+                            >
+                              {showPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
+                            </IconButton>
+                          </InputAdornment>
+                        }
+                        label="Password"
+                        sx={{
+                          "& .MuiOutlinedInput-root": {
+                            "&:hover fieldset": {
+                              borderColor: "#53b50a",
+                            },
+                            "&.Mui-focused fieldset": {
+                              borderColor: "#53b50a",
+                            },
+                          },
+                        }}
+                      />
+                      {errors.password && (
+                        <Typography
+                          variant="caption"
+                          color="error"
+                          sx={{ mt: 1 }}
+                        >
+                          {errors.password}
+                        </Typography>
+                      )}
+                    </FormControl>
+
+                    {/* Submit Button */}
+                    <Box sx={{ mt: 3, mb: 2 }}>
+                      <Button
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        size="large"
+                        disabled={isLoading}
+                        sx={{
+                          backgroundColor: "#53b50a",
+                          "&:hover": {
+                            backgroundColor: "#4a7c59",
+                          },
+                          "&:disabled": {
+                            backgroundColor: "#cccccc",
+                            color: "#666666",
+                          },
+                          py: 1.5,
+                          fontSize: "1.1rem",
+                          fontWeight: 600,
+                        }}
                       >
-                        {errors.password}
-                      </Typography>
+                        {isLoading ? "Logging in..." : "Submit"}
+                      </Button>
+                    </Box>
+
+                    {/* Forgot Password Button */}
+                    <Box sx={{ mb: 2 }}>
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        size="large"
+                        onClick={handleForgotPassword}
+                        disabled={isLoading}
+                        sx={{
+                          borderColor: "#53b50a",
+                          color: "#53b50a",
+                          "&:hover": {
+                            borderColor: "#4a7c59",
+                            backgroundColor: "rgba(83, 181, 10, 0.1)",
+                          },
+                          "&:disabled": {
+                            borderColor: "#cccccc",
+                            color: "#666666",
+                          },
+                          py: 1.5,
+                          fontSize: "1rem",
+                        }}
+                      >
+                        {isLoading ? "Sending..." : "Forgot Password"}
+                      </Button>
+                    </Box>
+
+                    {/* Message Display */}
+                    {submitMessage && (
+                      <Alert
+                        severity={
+                          submitMessage.includes("successful")
+                            ? "success"
+                            : "error"
+                        }
+                        sx={{ mt: 2 }}
+                      >
+                        {submitMessage}
+                      </Alert>
                     )}
-                  </FormControl>
-
-                  {/* Submit Button */}
-                  <Box sx={{ mt: 3, mb: 2 }}>
-                    <Button
-                      type="submit"
-                      fullWidth
-                      variant="contained"
-                      size="large"
-                      disabled={isLoading}
-                      sx={{
-                        backgroundColor: "#53b50a",
-                        "&:hover": {
-                          backgroundColor: "#4a7c59",
-                        },
-                        "&:disabled": {
-                          backgroundColor: "#cccccc",
-                          color: "#666666",
-                        },
-                        py: 1.5,
-                        fontSize: "1.1rem",
-                        fontWeight: 600,
-                      }}
+                  </form>
+                ) : (
+                  <Box sx={{ textAlign: "center", py: 4 }}>
+                    <Typography
+                      variant="h5"
+                      color="success.main"
+                      sx={{ mb: 2 }}
                     >
-                      {isLoading ? "Logging in..." : "Submit"}
-                    </Button>
+                      Login Successful!
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
+                      Redirecting to your dashboard...
+                    </Typography>
                   </Box>
-
-                  {/* Forgot Password Button */}
-                  <Box sx={{ mb: 2 }}>
-                    <Button
-                      fullWidth
-                      variant="outlined"
-                      size="large"
-                      onClick={handleForgotPassword}
-                      disabled={isLoading}
-                      sx={{
-                        borderColor: "#53b50a",
-                        color: "#53b50a",
-                        "&:hover": {
-                          borderColor: "#4a7c59",
-                          backgroundColor: "rgba(83, 181, 10, 0.1)",
-                        },
-                        "&:disabled": {
-                          borderColor: "#cccccc",
-                          color: "#666666",
-                        },
-                        py: 1.5,
-                        fontSize: "1rem",
-                      }}
-                    >
-                      {isLoading ? "Sending..." : "Forgot Password"}
-                    </Button>
-                  </Box>
-
-                  {/* Message Display */}
-                  {submitMessage && (
-                    <Alert
-                      severity={
-                        submitMessage.includes("successful")
-                          ? "success"
-                          : "error"
-                      }
-                      sx={{ mt: 2 }}
-                    >
-                      {submitMessage}
-                    </Alert>
-                  )}
-                </form>
+                )}
               </Paper>
             </Grid>
 

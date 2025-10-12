@@ -45,13 +45,13 @@ class AuthService {
   // Logout user
   logout() {
     console.log("Logout called - clearing authentication state");
-    
+
     // Clear all authentication data immediately
     localStorage.removeItem(config.auth.tokenKey);
     localStorage.removeItem(config.auth.userDataKey);
-    
+
     console.log("Authentication data cleared from localStorage");
-    
+
     // Force immediate state update by dispatching events synchronously
     try {
       window.dispatchEvent(new Event("storage"));
@@ -60,7 +60,7 @@ class AuthService {
     } catch (error) {
       console.error("Error dispatching events:", error);
     }
-    
+
     // Force a complete page reload to ensure all state is reset
     console.log("Forcing page reload to login page");
     window.location.replace("/login");
@@ -101,7 +101,62 @@ class AuthService {
 
   // Check if user is authenticated
   isAuthenticated() {
-    return !!localStorage.getItem(config.auth.tokenKey);
+    const token = localStorage.getItem(config.auth.tokenKey);
+    if (!token) return false;
+
+    // Check token expiration
+    if (this.isTokenExpired()) {
+      this.logout();
+      return false;
+    }
+
+    return true;
+  }
+
+  // Check if token is expired
+  isTokenExpired() {
+    try {
+      const user = this.getCurrentUser();
+      if (!user || !user.expiresAt) return true;
+
+      const expiryTime = new Date(user.expiresAt).getTime();
+      const currentTime = new Date().getTime();
+
+      return currentTime >= expiryTime;
+    } catch (error) {
+      console.error("Error checking token expiration:", error);
+      return true;
+    }
+  }
+
+  // Check if user is a student
+  isStudent() {
+    const user = this.getCurrentUser();
+    if (!user) return false;
+
+    return (
+      user.role === "Student" ||
+      (user.memberType && user.memberType.toUpperCase() === "S")
+    );
+  }
+
+  // Check if user has specific role
+  hasRole(role) {
+    const user = this.getCurrentUser();
+    if (!user) return false;
+
+    return user.role === role;
+  }
+
+  // Check if user has specific member type
+  hasMemberType(memberType) {
+    const user = this.getCurrentUser();
+    if (!user) return false;
+
+    return (
+      user.memberType &&
+      user.memberType.toUpperCase() === memberType.toUpperCase()
+    );
   }
 
   // Get auth token

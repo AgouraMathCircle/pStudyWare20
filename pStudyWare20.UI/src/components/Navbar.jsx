@@ -62,6 +62,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../services";
+import { useAuth } from "../contexts/AuthContext";
 import useNavigation from "../hooks/useNavigation";
 import "../styles/Navbar.css";
 // Import images from src/assets
@@ -72,48 +73,10 @@ const Navbar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState({});
-  const [user, setUser] = useState(null);
-
-  // Initialize authentication state on component mount
-  useEffect(() => {
-    const initializeAuthState = () => {
-      const currentUser = authService.getCurrentUser();
-      setUser(currentUser);
-    };
-
-    initializeAuthState();
-  }, []);
-
-  // Listen for authentication changes
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const currentUser = authService.getCurrentUser();
-      setUser(currentUser);
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("userLoggedIn", handleStorageChange);
-    window.addEventListener("userLoggedOut", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("userLoggedIn", handleStorageChange);
-      window.removeEventListener("userLoggedOut", handleStorageChange);
-    };
-  }, []);
-
-  // Listen for logout events
-  useEffect(() => {
-    const handleLogoutEvent = () => {
-      setUser(null);
-    };
-
-    window.addEventListener("userLoggedOut", handleLogoutEvent);
-    return () => window.removeEventListener("userLoggedOut", handleLogoutEvent);
-  }, []);
 
   // Logo image - updated path to use src/assets/images/
   const logoUrl = logoImg; // Updated path
@@ -176,13 +139,18 @@ const Navbar = () => {
       href: "/contact",
       icon: <ContactIcon fontSize="small" />,
     },
+    {
+      label: "Login",
+      href: "/login",
+      icon: <LockIcon fontSize="small" />,
+    },
   ];
 
   // Student menu items for authenticated students
   const studentMenuItems = [
     {
       label: "Dashboard",
-      href: "/student/dashboard",
+      href: "/pstudyware/student/dashboard",
       icon: <DashboardIcon fontSize="small" />,
     },
     {
@@ -215,13 +183,21 @@ const Navbar = () => {
       href: "/student/change-password",
       icon: <LockIcon fontSize="small" />,
     },
+    {
+      label: "Sign Out",
+      href: "#",
+      icon: <LogoutIcon fontSize="small" />,
+      action: "logout",
+    },
   ];
 
   // Use student menu items if user is authenticated and is a student
-  const menuItems =
-    user && (user.role === "Student" || user.MemberType === "S")
-      ? studentMenuItems
-      : regularMenuItems;
+  const isStudent =
+    isAuthenticated &&
+    user &&
+    (user.memberType?.toUpperCase() === "S" || user.role === "Student");
+
+  const menuItems = isStudent ? studentMenuItems : regularMenuItems;
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -236,7 +212,17 @@ const Navbar = () => {
 
   const { navigateTo } = useNavigation();
 
-  const handleNavigation = (href, external = false) => {
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+    setMobileOpen(false);
+  };
+
+  const handleNavigation = (href, external = false, action = null) => {
+    if (action === "logout") {
+      handleLogout();
+      return;
+    }
     navigateTo(href, external);
     setMobileOpen(false);
   };
@@ -262,7 +248,7 @@ const Navbar = () => {
               if (hasSubmenu) {
                 handleMenuExpand(item.label);
               } else {
-                handleNavigation(item.href, item.external);
+                handleNavigation(item.href, item.external, item.action);
               }
             }}
             sx={{
@@ -307,7 +293,11 @@ const Navbar = () => {
                     className="mobile-menu-item"
                     sx={{ pl: 4 }}
                     onClick={() =>
-                      handleNavigation(subItem.href, subItem.external)
+                      handleNavigation(
+                        subItem.href,
+                        subItem.external,
+                        subItem.action
+                      )
                     }
                   >
                     <ListItemText
@@ -342,7 +332,7 @@ const Navbar = () => {
           className="navbar-menu-item menu-item-ripple"
           onClick={() => {
             if (!hasSubmenu) {
-              handleNavigation(item.href, item.external);
+              handleNavigation(item.href, item.external, item.action);
             }
           }}
           sx={{
@@ -380,7 +370,13 @@ const Navbar = () => {
               <Button
                 key={subItem.label}
                 className="submenu-item"
-                onClick={() => handleNavigation(subItem.href, subItem.external)}
+                onClick={() =>
+                  handleNavigation(
+                    subItem.href,
+                    subItem.external,
+                    subItem.action
+                  )
+                }
                 sx={{
                   display: "block",
                   width: "100%",

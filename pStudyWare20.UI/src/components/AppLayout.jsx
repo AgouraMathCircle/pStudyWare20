@@ -75,7 +75,7 @@ const AppLayout = ({ children }) => {
   // Check if current route is a dashboard route
   const isDashboardRoute = () => {
     return (
-      location.pathname.startsWith("/student/") ||
+      location.pathname.startsWith("/pstudyware/student/") ||
       location.pathname.startsWith("/admin/") ||
       location.pathname.startsWith("/instructor/") ||
       location.pathname.startsWith("/volunteer/") ||

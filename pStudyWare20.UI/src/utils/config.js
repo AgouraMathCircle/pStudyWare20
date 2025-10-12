@@ -2,7 +2,7 @@
 const config = {
   // API Configuration
   api: {
-    url: import.meta.env.VITE_API_URL || "https://localhost:7146/api",
+    url: import.meta.env.VITE_API_URL || "http://localhost:5281/api",
     timeout: parseInt(import.meta.env.VITE_API_TIMEOUT) || 10000,
   },
 
