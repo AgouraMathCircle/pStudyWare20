@@ -1,0 +1,233 @@
+using pStudyWare20.Repository.Interfaces;
+using pStudyWare20.Services.Interfaces;
+using pStudyWare20.Shared;
+using System.Data;
+
+namespace pStudyWare20.Services.Implementations
+{
+    /// <summary>
+    /// Service implementation for meeting details business logic
+    /// </summary>
+    public class MeetingDetailsService : IMeetingDetailsService
+    {
+        private readonly IMeetingDetailsRepository _meetingDetailsRepository;
+
+        public MeetingDetailsService(IMeetingDetailsRepository meetingDetailsRepository)
+        {
+            _meetingDetailsRepository = meetingDetailsRepository;
+        }
+
+        /// <summary>
+        /// Get meeting schedule list
+        /// </summary>
+        public async Task<MeetingScheduleListResponse> GetMeetingScheduleListAsync(MeetingScheduleListRequest request)
+        {
+            try
+            {
+                var meetingSchedules = await _meetingDetailsRepository.GetMeetingScheduleListAsync(request.RowId);
+
+                return new MeetingScheduleListResponse
+                {
+                    IsSuccess = true,
+                    MeetingSchedules = meetingSchedules
+                };
+            }
+            catch (Exception ex)
+            {
+                return new MeetingScheduleListResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
+        /// Get specific meeting schedule by ID
+        /// </summary>
+        public async Task<GetMeetingScheduleResponse> GetMeetingScheduleByIdAsync(GetMeetingScheduleRequest request)
+        {
+            try
+            {
+                var meetingScheduleData = await _meetingDetailsRepository.GetMeetingScheduleByIdAsync(request.RowId);
+                MeetingSchedule? meetingSchedule = null;
+
+                if (meetingScheduleData is DataTable dataTable && dataTable.Rows.Count > 0)
+                {
+                    var row = dataTable.Rows[0];
+                    meetingSchedule = new MeetingSchedule
+                    {
+                        RowId = Convert.ToInt32(row["RowID"]),
+                        ChapterId = row["ChapterID"].ToString() ?? "",
+                        Class = row["Class"].ToString() ?? "",
+                        Section = row["Section"].ToString() ?? "",
+                        MeetingProviderUrl = row["MeetingProviderURL"].ToString() ?? "",
+                        MeetingUrl = row["MeetingURL"].ToString() ?? "",
+                        MeetingId = row["MeetingID"].ToString() ?? "",
+                        Passcode = row["Passcode"].ToString() ?? "",
+                        AdminLogin = row["AdminLogin"].ToString() ?? "",
+                        AdminPassCode = row["AdminPassCode"].ToString() ?? "",
+                        IncludeSection = row["IncludeSection"].ToString() == "True",
+                        Active = row["Active"].ToString() == "True",
+                        MeetingTime = row["MeetingTime"].ToString() ?? "",
+                        MeetingDate = row["MeetingDate"].ToString() ?? ""
+                    };
+                }
+
+                return new GetMeetingScheduleResponse
+                {
+                    IsSuccess = true,
+                    MeetingSchedule = meetingSchedule
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GetMeetingScheduleResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
+        /// Insert or update meeting schedule
+        /// </summary>
+        public async Task<UpsertMeetingScheduleResponse> UpsertMeetingScheduleAsync(UpsertMeetingScheduleRequest request)
+        {
+            try
+            {
+                var meetingSchedule = new MeetingSchedule
+                {
+                    RowId = Convert.ToInt32(request.RowId),
+                    ChapterId = request.ChapterId,
+                    Class = request.Class,
+                    Section = request.Section,
+                    MeetingProviderUrl = request.MeetingProviderUrl,
+                    MeetingUrl = request.MeetingUrl,
+                    MeetingId = request.MeetingId,
+                    Passcode = request.Passcode,
+                    AdminLogin = request.AdminLogin,
+                    AdminPassCode = request.AdminPassCode,
+                    IncludeSection = request.IncludeSection == "1",
+                    Active = request.Active == "1",
+                    MeetingTime = request.MeetingTime,
+                    MeetingDate = request.MeetingDate
+                };
+
+                await _meetingDetailsRepository.UpsertMeetingScheduleAsync(meetingSchedule);
+
+                return new UpsertMeetingScheduleResponse
+                {
+                    IsSuccess = true,
+                    Message = "Data updated successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new UpsertMeetingScheduleResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
+        /// Get chapter locations
+        /// </summary>
+        public async Task<ChapterLocationResponse> GetChapterLocationsAsync(GetChapterLocationRequest request)
+        {
+            try
+            {
+                var chapterLocations = await _meetingDetailsRepository.GetChapterLocationsAsync(request.Mode);
+
+                return new ChapterLocationResponse
+                {
+                    IsSuccess = true,
+                    ChapterLocations = (List<ChapterLocation>)chapterLocations
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ChapterLocationResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
+        /// Prepare new meeting form data
+        /// </summary>
+        public async Task<PrepareNewMeetingResponse> PrepareNewMeetingAsync(PrepareNewMeetingRequest request)
+        {
+            try
+            {
+                // Create a new empty meeting schedule with default values
+                var formData = new MeetingSchedule
+                {
+                    RowId = 0,
+                    ChapterId = "",
+                    Class = "",
+                    Section = "",
+                    MeetingProviderUrl = "",
+                    MeetingUrl = "",
+                    MeetingId = "",
+                    Passcode = "",
+                    AdminLogin = "",
+                    AdminPassCode = "",
+                    IncludeSection = false,
+                    Active = false,
+                    MeetingTime = "",
+                    MeetingDate = ""
+                };
+
+                return new PrepareNewMeetingResponse
+                {
+                    IsSuccess = true,
+                    FormData = formData
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PrepareNewMeetingResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
+        /// Get meeting details dashboard data
+        /// </summary>
+        public async Task<MeetingDetailsDashboardResponse> GetDashboardDataAsync(MeetingDetailsDashboardRequest request)
+        {
+            try
+            {
+                // Get meeting schedules and chapter locations in parallel
+                var meetingSchedulesTask = _meetingDetailsRepository.GetMeetingScheduleListAsync("0");
+                var chapterLocationsTask = _meetingDetailsRepository.GetChapterLocationsAsync("Y");
+
+                await Task.WhenAll(meetingSchedulesTask, chapterLocationsTask);
+
+                return new MeetingDetailsDashboardResponse
+                {
+                    IsSuccess = true,
+                    MeetingSchedules = await meetingSchedulesTask,
+                    ChapterLocations = await chapterLocationsTask
+                };
+            }
+            catch (Exception ex)
+            {
+                return new MeetingDetailsDashboardResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+    }
+}
