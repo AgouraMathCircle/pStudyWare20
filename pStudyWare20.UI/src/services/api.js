@@ -10,11 +10,32 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token and check expiration
 api.interceptors.request.use(
   (requestConfig) => {
     const token = localStorage.getItem(config.auth.tokenKey);
     if (token) {
+      // Check if token is expired before making request
+      const userData = localStorage.getItem(config.auth.userDataKey);
+      if (userData) {
+        try {
+          const user = JSON.parse(userData);
+          if (user.expiresAt) {
+            const expiryTime = new Date(user.expiresAt).getTime();
+            const currentTime = new Date().getTime();
+
+            if (currentTime >= expiryTime) {
+              // Token expired - clear storage and redirect
+              localStorage.removeItem(config.auth.tokenKey);
+              localStorage.removeItem(config.auth.userDataKey);
+              window.location.href = "/login";
+              return Promise.reject(new Error("Token expired"));
+            }
+          }
+        } catch (error) {
+          console.error("Error parsing user data:", error);
+        }
+      }
       requestConfig.headers.Authorization = `Bearer ${token}`;
     }
     return requestConfig;

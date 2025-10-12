@@ -1,24 +1,29 @@
-import api from './api';
+import api from "./api";
 
 class StudentService {
-  constructor() {
-    this.baseURL = '/api/StudentRegistration';
-  }
-
   // Register a new student
   async registerStudent(studentData) {
     try {
-      const response = await api.post(`${this.baseURL}/StudentRegistration`, studentData);
+      console.log("Submitting student registration:", studentData);
+      const response = await api.post(
+        "/StudentRegistration",
+        studentData
+      );
+      console.log("Student registration response:", response.data);
       return response.data;
     } catch (error) {
+      console.error("Student registration error:", error);
       throw this.handleError(error);
     }
   }
 
   // Get students list
-  async getStudentsList(request) {
+  async getStudentsList(studentlist) {
     try {
-      const response = await api.post(`${this.baseURL}/GetStudentsList`, request);
+      const response = await api.post(
+        "/StudentRegistration/GetStudentsList",
+        studentlist
+      );
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -26,9 +31,12 @@ class StudentService {
   }
 
   // Get student report card
-  async getStudentsReportCard(request) {
+  async getStudentsReportCard(userName) {
     try {
-      const response = await api.post(`${this.baseURL}/GetStudentsReportCard`, request);
+      const response = await api.post(
+        "/StudentRegistration/GetStudentsReportCard",
+        userName
+      );
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -36,9 +44,12 @@ class StudentService {
   }
 
   // Update student report card
-  async updateStudentsReportCard(request) {
+  async updateStudentsReportCard(studentsReportCard) {
     try {
-      const response = await api.post(`${this.baseURL}/UpdateStudentsReportCard`, request);
+      const response = await api.post(
+        "/StudentRegistration/UpdateStudentsReportCard",
+        studentsReportCard
+      );
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -46,9 +57,12 @@ class StudentService {
   }
 
   // Get meeting schedule
-  async getMeetingSchedule(request) {
+  async getMeetingSchedule(userName) {
     try {
-      const response = await api.post(`${this.baseURL}/GetMeetingSchedule`, request);
+      const response = await api.post(
+        "/StudentRegistration/GetMeetingSchedule",
+        userName
+      );
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -56,9 +70,12 @@ class StudentService {
   }
 
   // Get dashboard message
-  async getDashboardMessage(request) {
+  async getDashboardMessage(chapterID) {
     try {
-      const response = await api.post(`${this.baseURL}/GetDashboardMessage`, request);
+      const response = await api.post(
+        "/StudentRegistration/GetDashboardMessage",
+        chapterID
+      );
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -66,9 +83,12 @@ class StudentService {
   }
 
   // Get student detail
-  async getStudentDetail(request) {
+  async getStudentDetail(studentID) {
     try {
-      const response = await api.post(`${this.baseURL}/GetStudentDetail`, request);
+      const response = await api.post(
+        "/StudentRegistration/GetStudentDetail",
+        studentID
+      );
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -76,19 +96,25 @@ class StudentService {
   }
 
   // Update student detail
-  async updateStudentDetail(request) {
+  async updateStudentDetail(studentDetail) {
     try {
-      const response = await api.post(`${this.baseURL}/UpdateStudentDetail`, request);
+      const response = await api.post(
+        "/StudentRegistration/UpdateStudentDetail",
+        studentDetail
+      );
       return response.data;
     } catch (error) {
       throw this.handleError(error);
     }
   }
 
-  // Get report card with additional details
-  async getReportcard(request) {
+  // Get report card
+  async getReportcard(studentlist) {
     try {
-      const response = await api.post(`${this.baseURL}/GetReportcard`, request);
+      const response = await api.post(
+        "/StudentRegistration/GetReportcard",
+        studentlist
+      );
       return response.data;
     } catch (error) {
       throw this.handleError(error);
@@ -99,85 +125,324 @@ class StudentService {
   async getLocations() {
     // Mock data - replace with actual API call when backend is ready
     return [
-      { value: "0", text: "--Select--" },
-      { value: "1", text: "Agoura Math Circle - El Camino Real High School, Woodland Hills" },
-      { value: "2", text: "VIRTUAL Math Circle - Internet" },
-      { value: "3", text: "Irvine Math Circle - Beacon Park School, Irvine" },
-      { value: "4", text: "Introduction to Artificial Intelligence - Internet , Agoura Hills" },
-      { value: "6", text: "ACT - Internet , Agoura Hills" }
+      { id: 1, name: "Math Circle - Onsite (Agoura)" },
+      { id: 2, name: "Math Circle - Virtual Training" },
+      { id: 3, name: "Engineering Circle - Virtual Training" },
+      { id: 4, name: "SAT/PSAT - Virtual Training" },
+      { id: 5, name: "ACT - Virtual Training" },
+      { id: 6, name: "Math Circle - Hybrid (Agoura + Virtual)" },
+      { id: 7, name: "Engineering Circle - Onsite (Agoura)" },
+      { id: 8, name: "Test Preparation - Onsite (Agoura)" },
     ];
   }
 
   // Get session options (mock data for now)
   async getSessions() {
     return [
-      { value: "0", text: "--Select--" },
-      { value: "S2025", text: "Spring Semester 2025" }
+      { id: "S2025", name: "Spring Semester 2025" },
+      { id: "F2025", name: "Fall Semester 2025" },
     ];
   }
 
   // Get grade options (mock data for now)
   async getGrades() {
     return [
-      { value: "0", text: "--Select--" },
-      { value: "1", text: "1" },
-      { value: "2", text: "2" },
-      { value: "3", text: "3" },
-      { value: "4", text: "4" },
-      { value: "5", text: "5" },
-      { value: "6", text: "6" },
-      { value: "7", text: "7" },
-      { value: "8", text: "8" },
-      { value: "9", text: "9" },
-      { value: "10", text: "10" },
-      { value: "11", text: "11" },
-      { value: "12", text: "12" }
+      { value: "1", label: "1" },
+      { value: "2", label: "2" },
+      { value: "3", label: "3" },
+      { value: "4", label: "4" },
+      { value: "5", label: "5" },
+      { value: "6", label: "6" },
+      { value: "7", label: "7" },
+      { value: "8", label: "8" },
+      { value: "9", label: "9" },
+      { value: "10", label: "10" },
+      { value: "11", label: "11" },
+      { value: "12", label: "12" },
     ];
   }
 
   // Get countries (mock data for now)
   async getCountries() {
     return [
-      { value: "US", text: "United States" },
-      { value: "CA", text: "Canada" },
-      { value: "GB", text: "United Kingdom" },
-      { value: "CN", text: "China" },
-      { value: "IN", text: "India" },
-      { value: "SG", text: "Singapore" },
-      { value: "MX", text: "Mexico" },
-      { value: "MY", text: "Malaysia" },
-      // Add more countries as needed
+      { value: "US", label: "United States" },
+      { value: "CA", label: "Canada" },
+      { value: "GB", label: "United Kingdom" },
+      { value: "CN", label: "China" },
+      { value: "IN", label: "India" },
+      { value: "SG", label: "Singapore" },
+      { value: "MX", label: "Mexico" },
+      { value: "MY", label: "Malaysia" },
+      { value: "AF", label: "Afghanistan" },
+      { value: "AL", label: "Albania" },
+      { value: "DZ", label: "Algeria" },
+      { value: "AS", label: "American Samoa" },
+      { value: "AD", label: "Andorra" },
+      { value: "AO", label: "Angola" },
+      { value: "AI", label: "Anguilla" },
+      { value: "AQ", label: "Antarctica" },
+      { value: "AG", label: "Antigua And Barbuda" },
+      { value: "AR", label: "Argentina" },
+      { value: "AM", label: "Armenia" },
+      { value: "AW", label: "Aruba" },
+      { value: "AU", label: "Australia" },
+      { value: "AT", label: "Austria" },
+      { value: "AZ", label: "Azerbaijan" },
+      { value: "BS", label: "Bahamas" },
+      { value: "BH", label: "Bahrain" },
+      { value: "BD", label: "Bangladesh" },
+      { value: "BB", label: "Barbados" },
+      { value: "BY", label: "Belarus" },
+      { value: "BE", label: "Belgium" },
+      { value: "BZ", label: "Belize" },
+      { value: "BJ", label: "Benin" },
+      { value: "BM", label: "Bermuda" },
+      { value: "BT", label: "Bhutan" },
+      { value: "BO", label: "Bolivia" },
+      { value: "BA", label: "Bosnia And Herzegowina" },
+      { value: "BW", label: "Botswana" },
+      { value: "BV", label: "Bouvet Island" },
+      { value: "BR", label: "Brazil" },
+      { value: "IO", label: "British Indian Ocean Territory" },
+      { value: "BN", label: "Brunei Darussalam" },
+      { value: "BG", label: "Bulgaria" },
+      { value: "BF", label: "Burkina Faso" },
+      { value: "BI", label: "Burundi" },
+      { value: "KH", label: "Cambodia" },
+      { value: "CM", label: "Cameroon" },
+      { value: "CV", label: "Cape Verde" },
+      { value: "KY", label: "Cayman Islands" },
+      { value: "CF", label: "Central African Republic" },
+      { value: "TD", label: "Chad" },
+      { value: "CL", label: "Chile" },
+      { value: "CX", label: "Christmas Island" },
+      { value: "CC", label: "Cocos (Keeling) Islands" },
+      { value: "CO", label: "Colombia" },
+      { value: "KM", label: "Comoros" },
+      { value: "CG", label: "Congo" },
+      { value: "CK", label: "Cook Islands" },
+      { value: "CR", label: "Costa Rica" },
+      { value: "CI", label: "Cote D'Ivoire" },
+      { value: "HR", label: "Croatia (Local Name: Hrvatska)" },
+      { value: "CU", label: "Cuba" },
+      { value: "CY", label: "Cyprus" },
+      { value: "CZ", label: "Czech Republic" },
+      { value: "DK", label: "Denmark" },
+      { value: "DJ", label: "Djibouti" },
+      { value: "DM", label: "Dominica" },
+      { value: "DO", label: "Dominican Republic" },
+      { value: "TP", label: "East Timor" },
+      { value: "EC", label: "Ecuador" },
+      { value: "EG", label: "Egypt" },
+      { value: "SV", label: "El Salvador" },
+      { value: "GQ", label: "Equatorial Guinea" },
+      { value: "ER", label: "Eritrea" },
+      { value: "EE", label: "Estonia" },
+      { value: "ET", label: "Ethiopia" },
+      { value: "FK", label: "Falkland Islands (Malvinas)" },
+      { value: "FO", label: "Faroe Islands" },
+      { value: "FJ", label: "Fiji" },
+      { value: "FI", label: "Finland" },
+      { value: "FR", label: "France" },
+      { value: "GF", label: "French Guiana" },
+      { value: "PF", label: "French Polynesia" },
+      { value: "TF", label: "French Southern Territories" },
+      { value: "GA", label: "Gabon" },
+      { value: "GM", label: "Gambia" },
+      { value: "GE", label: "Georgia" },
+      { value: "DE", label: "Germany" },
+      { value: "GH", label: "Ghana" },
+      { value: "GI", label: "Gibraltar" },
+      { value: "GR", label: "Greece" },
+      { value: "GL", label: "Greenland" },
+      { value: "GD", label: "Grenada" },
+      { value: "GP", label: "Guadeloupe" },
+      { value: "GU", label: "Guam" },
+      { value: "GT", label: "Guatemala" },
+      { value: "GN", label: "Guinea" },
+      { value: "GW", label: "Guinea-Bissau" },
+      { value: "GY", label: "Guyana" },
+      { value: "HT", label: "Haiti" },
+      { value: "HM", label: "Heard And Mc Donald Islands" },
+      { value: "VA", label: "Holy See (Vatican City State)" },
+      { value: "HN", label: "Honduras" },
+      { value: "HK", label: "Hong Kong" },
+      { value: "HU", label: "Hungary" },
+      { value: "IS", label: "Icel And" },
+      { value: "ID", label: "Indonesia" },
+      { value: "IR", label: "Iran (Islamic Republic Of)" },
+      { value: "IQ", label: "Iraq" },
+      { value: "IE", label: "Ireland" },
+      { value: "IL", label: "Israel" },
+      { value: "IT", label: "Italy" },
+      { value: "JM", label: "Jamaica" },
+      { value: "JP", label: "Japan" },
+      { value: "JO", label: "Jordan" },
+      { value: "KZ", label: "Kazakhstan" },
+      { value: "KE", label: "Kenya" },
+      { value: "KI", label: "Kiribati" },
+      { value: "KP", label: "Korea, Dem People'S Republic" },
+      { value: "KR", label: "Korea, Republic Of" },
+      { value: "KW", label: "Kuwait" },
+      { value: "KG", label: "Kyrgyzstan" },
+      { value: "LA", label: "Lao People'S Dem Republic" },
+      { value: "LV", label: "Latvia" },
+      { value: "LB", label: "Lebanon" },
+      { value: "LS", label: "Lesotho" },
+      { value: "LR", label: "Liberia" },
+      { value: "LY", label: "Libyan Arab Jamahiriya" },
+      { value: "LI", label: "Liechtenstein" },
+      { value: "LT", label: "Lithuania" },
+      { value: "LU", label: "Luxembourg" },
+      { value: "MO", label: "Macau" },
+      { value: "MK", label: "Macedonia" },
+      { value: "MG", label: "Madagascar" },
+      { value: "MW", label: "Malawi" },
+      { value: "MV", label: "Maldives" },
+      { value: "ML", label: "Mali" },
+      { value: "MT", label: "Malta" },
+      { value: "MH", label: "Marshall Islands" },
+      { value: "MQ", label: "Martinique" },
+      { value: "MR", label: "Mauritania" },
+      { value: "MU", label: "Mauritius" },
+      { value: "YT", label: "Mayotte" },
+      { value: "FM", label: "Micronesia, Federated States" },
+      { value: "MD", label: "Moldova, Republic Of" },
+      { value: "MC", label: "Monaco" },
+      { value: "MN", label: "Mongolia" },
+      { value: "MS", label: "Montserrat" },
+      { value: "MA", label: "Morocco" },
+      { value: "MZ", label: "Mozambique" },
+      { value: "MM", label: "Myanmar" },
+      { value: "NA", label: "Namibia" },
+      { value: "NR", label: "Nauru" },
+      { value: "NP", label: "Nepal" },
+      { value: "NL", label: "Netherlands" },
+      { value: "AN", label: "Netherlands Ant Illes" },
+      { value: "NC", label: "New Caledonia" },
+      { value: "NZ", label: "New Zealand" },
+      { value: "NI", label: "Nicaragua" },
+      { value: "NE", label: "Niger" },
+      { value: "NG", label: "Nigeria" },
+      { value: "NU", label: "Niue" },
+      { value: "NF", label: "Norfolk Island" },
+      { value: "MP", label: "Northern Mariana Islands" },
+      { value: "NO", label: "Norway" },
+      { value: "OM", label: "Oman" },
+      { value: "PK", label: "Pakistan" },
+      { value: "PW", label: "Palau" },
+      { value: "PA", label: "Panama" },
+      { value: "PG", label: "Papua New Guinea" },
+      { value: "PY", label: "Paraguay" },
+      { value: "PE", label: "Peru" },
+      { value: "PH", label: "Philippines" },
+      { value: "PN", label: "Pitcairn" },
+      { value: "PL", label: "Poland" },
+      { value: "PT", label: "Portugal" },
+      { value: "PR", label: "Puerto Rico" },
+      { value: "QA", label: "Qatar" },
+      { value: "RE", label: "Reunion" },
+      { value: "RO", label: "Romania" },
+      { value: "RU", label: "Russian Federation" },
+      { value: "RW", label: "Rwanda" },
+      { value: "KN", label: "Saint K Itts And Nevis" },
+      { value: "LC", label: "Saint Lucia" },
+      { value: "VC", label: "Saint Vincent, The Grenadines" },
+      { value: "WS", label: "Samoa" },
+      { value: "SM", label: "San Marino" },
+      { value: "ST", label: "Sao Tome And Principe" },
+      { value: "SA", label: "Saudi Arabia" },
+      { value: "SN", label: "Senegal" },
+      { value: "SC", label: "Seychelles" },
+      { value: "SL", label: "Sierra Leone" },
+      { value: "SK", label: "Slovakia (Slovak Republic)" },
+      { value: "SI", label: "Slovenia" },
+      { value: "SB", label: "Solomon Islands" },
+      { value: "SO", label: "Somalia" },
+      { value: "ZA", label: "South Africa" },
+      { value: "GS", label: "South Georgia , S Sandwich Is." },
+      { value: "ES", label: "Spain" },
+      { value: "LK", label: "Sri Lanka" },
+      { value: "SH", label: "St. Helena" },
+      { value: "PM", label: "St. Pierre And Miquelon" },
+      { value: "SD", label: "Sudan" },
+      { value: "SR", label: "Suriname" },
+      { value: "SJ", label: "Svalbard, Jan Mayen Islands" },
+      { value: "SZ", label: "Sw Aziland" },
+      { value: "SE", label: "Sweden" },
+      { value: "CH", label: "Switzerland" },
+      { value: "SY", label: "Syrian Arab Republic" },
+      { value: "TW", label: "Taiwan" },
+      { value: "TJ", label: "Tajikistan" },
+      { value: "TZ", label: "Tanzania, United Republic Of" },
+      { value: "TH", label: "Thailand" },
+      { value: "TG", label: "Togo" },
+      { value: "TK", label: "Tokelau" },
+      { value: "TO", label: "Tonga" },
+      { value: "TT", label: "Trinidad And Tobago" },
+      { value: "TN", label: "Tunisia" },
+      { value: "TR", label: "Turkey" },
+      { value: "TM", label: "Turkmenistan" },
+      { value: "TC", label: "Turks And Caicos Islands" },
+      { value: "TV", label: "Tuvalu" },
+      { value: "UG", label: "Uganda" },
+      { value: "UA", label: "Ukraine" },
+      { value: "AE", label: "United Arab Emirates" },
+      { value: "UM", label: "United States Minor Is." },
+      { value: "UY", label: "Uruguay" },
+      { value: "UZ", label: "Uzbekistan" },
+      { value: "VU", label: "Vanuatu" },
+      { value: "VE", label: "Venezuela" },
+      { value: "VN", label: "Viet Nam" },
+      { value: "VG", label: "Virgin Islands (British)" },
+      { value: "VI", label: "Virgin Islands (U.S.)" },
+      { value: "WF", label: "Wallis And Futuna Islands" },
+      { value: "EH", label: "Western Sahara" },
+      { value: "YE", label: "Yemen" },
+      { value: "ZR", label: "Zaire" },
+      { value: "ZM", label: "Zambia" },
+      { value: "ZW", label: "Zimbabwe" },
     ];
   }
 
   // Handle API errors
   handleError(error) {
+    console.error("API Error Details:", {
+      message: error.message,
+      response: error.response,
+      request: error.request,
+      config: error.config,
+    });
+
     if (error.response) {
       // Server responded with error status
       const { status, data } = error.response;
+      console.error(`API Error ${status}:`, data);
       
       switch (status) {
         case 400:
-          return new Error(data.message || 'Invalid request data');
+          return new Error(data.message || "Invalid request data. Please check your input.");
         case 401:
-          return new Error(data.message || 'Unauthorized access');
+          return new Error(data.message || "Unauthorized access. Please login again.");
         case 403:
-          return new Error(data.message || 'Access denied');
+          return new Error(data.message || "Access denied. You don't have permission.");
         case 404:
-          return new Error(data.message || 'Resource not found');
+          return new Error(data.message || "API endpoint not found. Please check the URL.");
         case 422:
-          return new Error(data.message || 'Validation failed');
+          return new Error(data.message || "Validation failed. Please check your input data.");
         case 500:
-          return new Error(data.message || 'Internal server error');
+          return new Error(data.message || "Internal server error. Please try again later.");
         default:
-          return new Error(data.message || 'An error occurred');
+          return new Error(data.message || `Server error (${status}). Please try again.`);
       }
     } else if (error.request) {
       // Network error
-      return new Error('Network error. Please check your connection.');
+      console.error("Network Error:", error.request);
+      return new Error("Network error. Please check your internet connection and try again.");
     } else {
       // Other error
-      return new Error(error.message || 'An unexpected error occurred');
+      console.error("Unexpected Error:", error);
+      return new Error(error.message || "An unexpected error occurred. Please try again.");
     }
   }
 }

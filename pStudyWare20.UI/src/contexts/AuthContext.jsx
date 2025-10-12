@@ -1,122 +1,110 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { authService } from "../services";
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    // Check if user is logged in on app start
-    const checkAuthStatus = async () => {
-      const storedToken = localStorage.getItem('token');
-      if (storedToken) {
-        try {
-          const response = await fetch('http://localhost:5281/api/auth/me', {
-            headers: {
-              'Authorization': `Bearer ${storedToken}`
-            }
-          });
-          
-          if (response.ok) {
-            const userData = await response.json();
-            setUser(userData);
-            setToken(storedToken);
-          } else {
-            // Token is invalid, remove it
-            localStorage.removeItem('token');
-            setToken(null);
-          }
-        } catch (error) {
-          console.error('Auth check failed:', error);
-          localStorage.removeItem('token');
-          setToken(null);
-        }
+    const initializeAuth = () => {
+      try {
+        const currentUser = authService.getCurrentUser();
+        const authenticated = authService.isAuthenticated();
+
+        console.log("AuthContext: Initializing auth", {
+          currentUser,
+          authenticated,
+        });
+
+        setUser(currentUser);
+        setIsAuthenticated(authenticated);
+      } catch (error) {
+        console.error("AuthContext: Error initializing auth", error);
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
       }
-      setLoading(false);
     };
 
-    checkAuthStatus();
+    initializeAuth();
+
+    // Periodic token expiration check (every minute)
+    const tokenCheckInterval = setInterval(() => {
+      if (authService.isAuthenticated()) {
+        if (authService.isTokenExpired()) {
+          console.log("AuthContext: Token expired, logging out");
+          logout();
+        }
+      }
+    }, 60000); // Check every 60 seconds
+
+    return () => {
+      clearInterval(tokenCheckInterval);
+    };
   }, []);
 
   const login = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:5281/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password })
-      });
+      setIsLoading(true);
+      const response = await authService.login(email, password);
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.token);
-        setToken(data.token);
-        setUser(data.user);
-        return { success: true };
-      } else {
-        const errorData = await response.json();
-        return { success: false, error: errorData.message || 'Login failed' };
-      }
+      const currentUser = authService.getCurrentUser();
+      const authenticated = authService.isAuthenticated();
+
+      setUser(currentUser);
+      setIsAuthenticated(authenticated);
+
+      // Trigger storage event to update other components
+      window.dispatchEvent(new Event("storage"));
+
+      return response;
     } catch (error) {
-      return { success: false, error: 'Network error' };
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setUser(null);
+    try {
+      authService.logout();
+      setUser(null);
+      setIsAuthenticated(false);
+      setIsRedirecting(false);
+
+      // Trigger storage event to update other components
+      window.dispatchEvent(new Event("storage"));
+    } catch (error) {
+      console.error("AuthContext: Error during logout", error);
+    }
   };
 
-  const register = async (userData) => {
-    try {
-      const response = await fetch('http://localhost:5281/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.token);
-        setToken(data.token);
-        setUser(data.user);
-        return { success: true };
-      } else {
-        const errorData = await response.json();
-        return { success: false, error: errorData.message || 'Registration failed' };
-      }
-    } catch (error) {
-      return { success: false, error: 'Network error' };
-    }
+  const setRedirecting = (redirecting) => {
+    setIsRedirecting(redirecting);
   };
 
   const value = {
     user,
-    token,
-    loading,
+    isAuthenticated,
+    isLoading,
+    isRedirecting,
     login,
     logout,
-    register,
-    isAuthenticated: !!token
+    setRedirecting,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

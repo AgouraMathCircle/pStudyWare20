@@ -241,7 +241,7 @@ const Footer = () => {
   return (
     <StyledFooter component="footer" id="sc-footer">
       <Container>
-        {/* <NewsletterSection>
+        <NewsletterSection>
           <Grid container alignItems="center" spacing={3}>
             <Grid item xs={12} lg={6}>
               <Typography
@@ -287,7 +287,7 @@ const Footer = () => {
               </Box>
             </Grid>
           </Grid>
-        </NewsletterSection> */}
+        </NewsletterSection>
 
         <FooterContent>
           <Grid container spacing={3}>

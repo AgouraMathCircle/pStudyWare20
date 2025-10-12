@@ -36,8 +36,8 @@ const Overview = () => {
         className="sc-about pt-80 pb-70 md-pt-40 position-relative arrow-animation-1"
       >
         <div className="container">
-          {/* History Section */}
-          <div className="row">
+          {/* History Section - ADDED ID */}
+          <div id="sc-history" className="row">
             <div className="col-lg-5 md-mb-115 img-p">
               <div className="img-part position-relative">
                 <img
@@ -69,8 +69,8 @@ const Overview = () => {
 
           <br />
 
-          {/* Overview Image Section */}
-          <div className="row text-center">
+          {/* Overview Image Section - ADDED ID */}
+          <div id="sc-overview" className="row text-center">
             <div className="col-lg-12 text-center">
               <center>
                 <h2 className="title mb-20">Overview</h2>
@@ -139,3 +139,7 @@ const Overview = () => {
 };
 
 export default Overview;
+
+
+
+

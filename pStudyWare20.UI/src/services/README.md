@@ -81,7 +81,7 @@ All services include comprehensive error handling:
 Set the following environment variables:
 
 ```env
-REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_API_URL=http://localhost:5281/api
 ```
 
 ## Example Usage

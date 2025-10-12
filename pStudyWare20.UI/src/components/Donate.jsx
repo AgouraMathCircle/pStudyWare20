@@ -6,62 +6,50 @@ import {
   Grid,
   Card,
   CardContent,
+  Button,
+  Link,
+  Paper,
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
-  Button,
   Chip,
   Avatar,
   CircularProgress,
   Alert,
-  Paper,
-  TextField,
+  IconButton,
   keyframes,
 } from "@mui/material";
 import {
-  Diamond,
-  WorkspacePremium,
-  EmojiEvents,
-  Star,
-  MilitaryTech,
-  Favorite,
   AttachMoney,
-  People,
-  ExpandMore,
-  CheckCircle,
-  CardGiftcard,
-  Event,
-  School,
-  Public,
-  Description,
+  Payment,
   AccountBalance,
-  Receipt,
+  Description,
+  ExpandMore,
+  Diamond,
+  Star,
+  EmojiEvents,
+  WorkspacePremium,
+  MilitaryTech,
+  KeyboardArrowUp,
+  ChevronLeft,
+  ChevronRight,
 } from "@mui/icons-material";
-import { paypalService } from "../services";
-import donorService from "../services/donorService";
+import { useNavigate } from "react-router-dom";
+import { donateService } from "../services";
+import "../styles/Donate.css";
 // Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
+import donateButtonImg from "../assets/images/donate_button.jpg";
 import boxImg from "../assets/images/box.jpg";
+// Import sponsor images
 import client1Img from "../assets/images/clients/clients-1.png";
-import client3Img from "../assets/images/clients/clients-3.jpg";
+import client2Img from "../assets/images/clients/clients-2.png";
+import client3Img from "../assets/images/clients/clients-3.png";
 import client4Img from "../assets/images/clients/clients-4.png";
 import client5Img from "../assets/images/clients/clients-5.png";
-import client7Img from "../assets/images/clients/clients-7.jpg";
 import client6Img from "../assets/images/clients/clients-6.png";
+import client7Img from "../assets/images/clients/clients-7.png";
 import client8Img from "../assets/images/clients/clients-8.png";
-import client2Img from "../assets/images/clients/clients-2.png";
-import teamMember1 from "../assets/images/team/1.jpg";
-import teamMember2 from "../assets/images/team/2.jpg";
-import teamMember3 from "../assets/images/team/3.jpg";
-import teamMember4 from "../assets/images/team/4.jpg";
-import teamMember5 from "../assets/images/team/5.jpg";
-import teamMember6 from "../assets/images/team/6.jpg";
-import teamMember7 from "../assets/images/team/7.jpg";
-import teamMember8 from "../assets/images/team/8.jpg";
 
 // Keyframe animations
 const fadeInAnimation = keyframes`
@@ -75,117 +63,17 @@ const fadeInAnimation = keyframes`
   }
 `;
 
-const slideInAnimation = keyframes`
-  0% {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-`;
-
 const Donate = () => {
-  const [donors, setDonors] = useState([]);
-  const [pastDonors, setPastDonors] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [expandedAccordion, setExpandedAccordion] = useState("current");
-  const [donationAmount, setDonationAmount] = useState("");
-  const [donorName, setDonorName] = useState("");
-  const [donorEmail, setDonorEmail] = useState("");
-  const [selectedLevel, setSelectedLevel] = useState("");
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-
-  // Donation levels with their details
-  const donationLevels = [
-    {
-      name: "Diamond",
-      icon: <Diamond sx={{ fontSize: 40, color: "#B9F2FF" }} />,
-      amount: "$10,000+",
-      color: "#B9F2FF",
-      bgColor: "#E3F2FD",
-      borderColor: "#B9F2FF",
-      benefits: [
-        { icon: <CardGiftcard />, text: "Naming rights for a program" },
-        { icon: <Event />, text: "VIP event invitations" },
-        { icon: <People />, text: "Personal consultation" },
-        { icon: <Public />, text: "Recognition on website" },
-        { icon: <School />, text: "Annual report feature" },
-      ],
-      description:
-        "Our highest level of support, providing comprehensive recognition and exclusive benefits for major donors.",
-    },
-    {
-      name: "Platinum",
-      icon: <WorkspacePremium sx={{ fontSize: 40, color: "#E5E4E2" }} />,
-      amount: "$5,000 - $9,999",
-      color: "#E5E4E2",
-      bgColor: "#F5F5F5",
-      borderColor: "#E5E4E2",
-      benefits: [
-        { icon: <CardGiftcard />, text: "Program sponsorship" },
-        { icon: <Event />, text: "Event invitations" },
-        { icon: <Public />, text: "Newsletter recognition" },
-        { icon: <Public />, text: "Social media shoutout" },
-        { icon: <CardGiftcard />, text: "Thank you plaque" },
-      ],
-      description:
-        "Premium support level with significant recognition and special event access.",
-    },
-    {
-      name: "Gold",
-      icon: <EmojiEvents sx={{ fontSize: 40, color: "#FFD700" }} />,
-      amount: "$2,500 - $4,999",
-      color: "#FFD700",
-      bgColor: "#FFF8E1",
-      borderColor: "#FFD700",
-      benefits: [
-        { icon: <School />, text: "Classroom sponsorship" },
-        { icon: <Event />, text: "Event invitations" },
-        { icon: <Public />, text: "Newsletter recognition" },
-        { icon: <Public />, text: "Social media mention" },
-        { icon: <CardGiftcard />, text: "Thank you certificate" },
-      ],
-      description:
-        "Gold level support with classroom sponsorship and event participation opportunities.",
-    },
-    {
-      name: "Silver",
-      icon: <Star sx={{ fontSize: 40, color: "#C0C0C0" }} />,
-      amount: "$1,000 - $2,499",
-      color: "#C0C0C0",
-      bgColor: "#FAFAFA",
-      borderColor: "#C0C0C0",
-      benefits: [
-        { icon: <School />, text: "Student scholarship" },
-        { icon: <Event />, text: "Event invitations" },
-        { icon: <Public />, text: "Newsletter recognition" },
-        { icon: <CardGiftcard />, text: "Thank you letter" },
-        { icon: <Public />, text: "Donor wall listing" },
-      ],
-      description:
-        "Silver level support providing student scholarships and community recognition.",
-    },
-    {
-      name: "Bronze",
-      icon: <MilitaryTech sx={{ fontSize: 40, color: "#CD7F32" }} />,
-      amount: "$500 - $999",
-      color: "#CD7F32",
-      bgColor: "#FDF5E6",
-      borderColor: "#CD7F32",
-      benefits: [
-        { icon: <School />, text: "General support" },
-        { icon: <Public />, text: "Newsletter recognition" },
-        { icon: <CardGiftcard />, text: "Thank you letter" },
-        { icon: <Public />, text: "Donor wall listing" },
-        { icon: <AttachMoney />, text: "Tax deduction" },
-      ],
-      description:
-        "Bronze level support with basic recognition and tax benefits.",
-    },
-  ];
+  const navigate = useNavigate();
+  const [donorsData, setDonorsData] = useState({
+    currentYearDonors: [],
+    pastYearDonors: {},
+    statistics: null,
+  });
+  const [donorsLoading, setDonorsLoading] = useState(true);
+  const [donorsError, setDonorsError] = useState(null);
+  const [expandedYear, setExpandedYear] = useState("2020");
+  const [currentSponsorIndex, setCurrentSponsorIndex] = useState(0);
 
   // Financial reports data
   const financialReports = [
@@ -202,642 +90,564 @@ const Donate = () => {
   // Sponsors data
   const sponsors = [
     {
+      id: 1,
       name: "Alapio",
       image: client1Img,
       link: "https://www.alapio.org",
     },
-    { name: "Client 3", image: client3Img },
     {
+      id: 2,
+      name: "Dr.Bharat Patel & Dr.Ninna Patel Family Foundation",
+      image: client2Img,
+      link: null,
+    },
+    {
+      id: 3,
       name: "NextPhase Recruiting",
-      image: client4Img,
+      image: client3Img,
       link: "https://nextphase-recruiting.com",
     },
-    { name: "Client 5", image: client5Img },
-    { name: "Client 7", image: client7Img },
     {
+      id: 4,
+      name: "ANDREW XU FAMILY FOUNDATION",
+      image: client4Img,
+      link: null,
+    },
+    {
+      id: 5,
       name: "Spring Info Services",
-      image: client6Img,
+      image: client5Img,
       link: "http://springinfoservices.com",
     },
     {
+      id: 6,
+      name: "Camreal",
+      image: client6Img,
+      link: "https://www.camreal.com",
+    },
+    {
+      id: 7,
       name: "Bits Informatics",
-      image: client8Img,
+      image: client7Img,
       link: "https://bitsi.in",
     },
-    { name: "Client 2", image: client2Img },
+    {
+      id: 8,
+      name: "Dr.Daksha Jain & Mr.Sudhir Kapadia Family Foundation",
+      image: client8Img,
+      link: null,
+    },
   ];
 
-  // Fetch donors data from API using axios
+  const sponsorsPerView = 5; // Show 5 sponsors per view on desktop
+  const totalSlides = Math.ceil(sponsors.length / sponsorsPerView);
+
+  // Donor level configurations
+  const donorLevels = {
+    DIAMOND: { icon: Diamond, color: "#e3f2fd", textColor: "#1976d2" },
+    PLATINUM: { icon: Star, color: "#f3e5f5", textColor: "#7b1fa2" },
+    GOLD: { icon: EmojiEvents, color: "#fff8e1", textColor: "#f57c00" },
+    SILVER: { icon: WorkspacePremium, color: "#f1f8e9", textColor: "#388e3c" },
+    BRONZE: { icon: MilitaryTech, color: "#fce4ec", textColor: "#c2185b" },
+  };
+
+  // Fetch donors data from API
   useEffect(() => {
-    const fetchDonors = async () => {
+    const fetchDonorsData = async () => {
       try {
-        setLoading(true);
-        const currentYear = new Date().getFullYear();
+        setDonorsLoading(true);
+        setDonorsError(null);
 
-        // Fetch current year donors using the new API
-        const currentDonors = await fetchCurrentYearDonors(currentYear);
+        const response = await donateService.getDashboardData();
 
-        // Transform API data to match component structure
-        const transformedDonors = currentDonors.map((donor) => ({
-          id: donor.id,
-          name: donor.name,
-          level: donor.donationLevel,
-          amount: getDonationAmountByLevel(donor.donationLevel),
-          image: getDonorImage(donor.id),
-          message: getDonorMessage(donor.donationLevel),
-        }));
-
-        setDonors(transformedDonors);
-
-        // Fetch past year donors (last 3 years)
-        const pastYears = [currentYear - 1, currentYear - 2, currentYear - 3];
-        const pastDonorsData = {};
-
-        for (const year of pastYears) {
-          try {
-            const pastDonors = await fetchPastYearDonors(year);
-            if (pastDonors && pastDonors.length > 0) {
-              pastDonorsData[year] = pastDonors.map((donor) => ({
-                id: donor.id,
-                name: donor.name,
-                level: donor.donationLevel,
-                amount: getDonationAmountByLevel(donor.donationLevel),
-                image: getDonorImage(donor.id),
-                message: getDonorMessage(donor.donationLevel),
-              }));
-            }
-          } catch (err) {
-            console.warn(`Could not fetch donors for year ${year}:`, err);
-          }
-        }
-
-        setPastDonors(pastDonorsData);
-      } catch (err) {
-        console.error("Error fetching donors:", err);
-        setError("Failed to load donors. Please try again later.");
-
-        // Fallback data for demonstration
-        setDonors([
-          {
-            id: 1,
-            name: "John Smith",
-            level: "Diamond",
-            amount: 15000,
-            image: teamMember1,
-            message: "Supporting education for future generations",
-          },
-          {
-            id: 2,
-            name: "Sarah Johnson",
-            level: "Platinum",
-            amount: 7500,
-            image: teamMember2,
-            message: "Investing in our children's future",
-          },
-          {
-            id: 3,
-            name: "Michael Chen",
-            level: "Gold",
-            amount: 3500,
-            image: teamMember3,
-            message: "Math education is the foundation of innovation",
-          },
-          {
-            id: 4,
-            name: "Emily Davis",
-            level: "Silver",
-            amount: 1800,
-            image: teamMember4,
-            message: "Every child deserves quality education",
-          },
-          {
-            id: 5,
-            name: "David Wilson",
-            level: "Bronze",
-            amount: 750,
-            image: teamMember5,
-            message: "Supporting local education initiatives",
-          },
-          {
-            id: 6,
-            name: "Lisa Brown",
-            level: "Gold",
-            amount: 3000,
-            image: teamMember6,
-            message: "Building a stronger community through education",
-          },
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDonors();
-  }, []);
-
-  // Handle PayPal return URLs and pending donations
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const paymentId = urlParams.get("paymentId");
-    const payerId = urlParams.get("PayerID");
-    const token = urlParams.get("token");
-
-    // Check if this is a PayPal return
-    if (paymentId && payerId && token) {
-      // This is a successful PayPal return
-      handleSuccessfulPayment(paymentId, payerId);
-    } else if (urlParams.get("canceled") === "true") {
-      // This is a canceled PayPal return
-      alert("Donation was canceled. You can try again anytime.");
-      sessionStorage.removeItem("pendingDonation");
-    }
-
-    // Check for pending donation in sessionStorage
-    const pendingDonation = sessionStorage.getItem("pendingDonation");
-    if (pendingDonation && !paymentId && !payerId) {
-      // There's a pending donation but no PayPal return - clear it
-      sessionStorage.removeItem("pendingDonation");
-    }
-  }, []);
-
-  // Helper function to get donation amount by level
-  const getDonationAmountByLevel = (level) => {
-    const levelAmounts = {
-      Diamond: 15000,
-      Platinum: 7500,
-      Gold: 3500,
-      Silver: 1800,
-      Bronze: 750,
-    };
-    return levelAmounts[level] || 1000;
-  };
-
-  // Helper function to get donor image
-  const getDonorImage = (donorId) => {
-    const teamImages = [
-      teamMember1,
-      teamMember2,
-      teamMember3,
-      teamMember4,
-      teamMember5,
-      teamMember6,
-      teamMember7,
-      teamMember8,
-    ];
-    return teamImages[(donorId - 1) % teamImages.length];
-  };
-
-  // Helper function to get donor message
-  const getDonorMessage = (level) => {
-    const messages = {
-      Diamond: "Supporting education for future generations",
-      Platinum: "Investing in our children's future",
-      Gold: "Math education is the foundation of innovation",
-      Silver: "Every child deserves quality education",
-      Bronze: "Supporting local education initiatives",
-    };
-    return messages[level] || "Making a difference through education";
-  };
-
-  const getLevelColor = (level) => {
-    const levelData = donationLevels.find((l) => l.name === level);
-    return levelData ? levelData.color : "#666";
-  };
-
-  const getLevelIcon = (level) => {
-    const levelData = donationLevels.find((l) => l.name === level);
-    return levelData ? levelData.icon : <AttachMoney />;
-  };
-
-  const handleAccordionChange = (panel) => (event, isExpanded) => {
-    setExpandedAccordion(isExpanded ? panel : false);
-  };
-
-  const handleDonate = async (level) => {
-    try {
-      setIsProcessingPayment(true);
-      setError(null);
-
-      // Validate required fields
-      if (!donorName.trim()) {
-        setError("Please enter your name");
-        return;
-      }
-
-      if (!donorEmail.trim()) {
-        setError("Please enter your email");
-        return;
-      }
-
-      if (!donationAmount || !paypalService.validateAmount(donationAmount)) {
-        setError("Please enter a valid donation amount");
-        return;
-      }
-
-      // Validate amount matches level
-      if (!paypalService.isAmountValidForLevel(donationAmount, level)) {
-        const range = paypalService.getLevelAmountRange(level);
-        setError(
-          `For ${level} level, amount must be between $${range.min} and $${range.max}`
-        );
-        return;
-      }
-
-      // Create PayPal payment
-      const paymentData = {
-        amount: paypalService.formatAmount(donationAmount),
-        level: level,
-        donorName: donorName.trim(),
-        donorEmail: donorEmail.trim(),
-        description: `AMC ${level} Level Donation - ${donorName.trim()}`,
-      };
-
-      const paymentResponse = await paypalService.createPayment(paymentData);
-
-      // Redirect to PayPal for payment
-      if (paymentResponse.approvalUrl) {
-        // Store donation data in sessionStorage for retrieval after PayPal redirect
-        sessionStorage.setItem(
-          "pendingDonation",
-          JSON.stringify({
-            donorName: donorName.trim(),
-            donorEmail: donorEmail.trim(),
-            amount: donationAmount,
-            level: level,
-            paymentId: paymentResponse.paymentId,
-          })
-        );
-
-        window.location.href = paymentResponse.approvalUrl;
-      } else {
-        setError("Failed to create PayPal payment. Please try again.");
-      }
-    } catch (err) {
-      console.error("Error processing donation:", err);
-      setError(err.message || "Failed to process donation. Please try again.");
-    } finally {
-      setIsProcessingPayment(false);
-    }
-  };
-
-  // Function to handle successful PayPal payment and add donor to database
-  const handleSuccessfulPayment = async (paymentId, payerId) => {
-    try {
-      // Execute PayPal payment
-      const executeResponse = await paypalService.executePayment(
-        paymentId,
-        payerId
-      );
-
-      if (executeResponse.status === "COMPLETED") {
-        // Get stored donation data
-        const storedDonation = sessionStorage.getItem("pendingDonation");
-        if (storedDonation) {
-          const donationData = JSON.parse(storedDonation);
-
-          // Add donor to database
-          const newDonor = {
-            name: donationData.donorName,
-            year: new Date().getFullYear(),
-            donationLevel: donationData.level,
-            postedBy: "PayPal Donation",
-            semester: "Online",
-          };
-
-          await addDonor(newDonor);
-
-          // Clear stored data
-          sessionStorage.removeItem("pendingDonation");
-
-          // Refresh donors list
-          const currentYear = new Date().getFullYear();
-          const currentDonors = await fetchCurrentYearDonors(currentYear);
-          const transformedDonors = currentDonors.map((donor) => ({
-            id: donor.id,
-            name: donor.name,
-            level: donor.donationLevel,
-            amount: getDonationAmountByLevel(donor.donationLevel),
-            image: getDonorImage(donor.id),
-            message: getDonorMessage(donor.donationLevel),
-          }));
-          setDonors(transformedDonors);
-
-          // Show success message
-          alert(
-            "Thank you for your donation! Your payment has been processed successfully."
+        if (response.isSuccess) {
+          setDonorsData({
+            currentYearDonors: response.currentYearDonors || [],
+            pastYearDonors: response.pastYearDonors || {},
+            statistics: response.statistics,
+          });
+        } else {
+          setDonorsError(
+            response.errorMessage || "Failed to load donors data."
           );
         }
+      } catch (err) {
+        console.error("Error fetching donors:", err);
+        setDonorsError("Failed to load donors. Please try again later.");
+      } finally {
+        setDonorsLoading(false);
       }
-    } catch (error) {
-      console.error("Error handling successful payment:", error);
-      alert(
-        "Payment was successful, but there was an issue recording your donation. Please contact us."
-      );
-    }
-  };
-
-  const handleLevelSelect = (level) => {
-    setSelectedLevel(level);
-    const range = paypalService.getLevelAmountRange(level);
-    setDonationAmount(range.min.toString());
-  };
-
-  const handleAmountChange = (event) => {
-    const value = event.target.value;
-    setDonationAmount(value);
-
-    // Auto-select level based on amount
-    const numAmount = parseFloat(value);
-    if (!isNaN(numAmount)) {
-      const levels = ["Diamond", "Platinum", "Gold", "Silver", "Bronze"];
-      for (const level of levels) {
-        if (paypalService.isAmountValidForLevel(numAmount, level)) {
-          setSelectedLevel(level);
-          break;
-        }
-      }
-    }
-  };
-
-  // API functions for donor management
-  const fetchCurrentYearDonors = async (year) => {
-    try {
-      return await donorService.getCurrentYearDonors(year);
-    } catch (error) {
-      console.error(`Error fetching current year donors for ${year}:`, error);
-      throw error;
-    }
-  };
-
-  const fetchPastYearDonors = async (year) => {
-    try {
-      return await donorService.getPastYearDonors(year);
-    } catch (error) {
-      console.error(`Error fetching past year donors for ${year}:`, error);
-      throw error;
-    }
-  };
-
-  const addDonor = async (donorData) => {
-    try {
-      return await donorService.createDonor(donorData);
-    } catch (error) {
-      console.error("Error adding donor:", error);
-      throw error;
-    }
-  };
-
-  const updateDonor = async (id, donorData) => {
-    try {
-      return await donorService.updateDonor(id, donorData);
-    } catch (error) {
-      console.error(`Error updating donor ${id}:`, error);
-      throw error;
-    }
-  };
-
-  const deleteDonor = async (id) => {
-    try {
-      return await donorService.deleteDonor(id);
-    } catch (error) {
-      console.error(`Error deleting donor ${id}:`, error);
-      throw error;
-    }
-  };
-
-  const getDonorById = async (id) => {
-    try {
-      return await donorService.getDonorById(id);
-    } catch (error) {
-      console.error(`Error fetching donor ${id}:`, error);
-      throw error;
-    }
-  };
-
-  const getDonorsByLevel = async (level) => {
-    try {
-      return await donorService.getDonorsByLevel(level);
-    } catch (error) {
-      console.error(`Error fetching donors for level ${level}:`, error);
-      throw error;
-    }
-  };
-
-  const getDonorStatistics = async () => {
-    try {
-      return await donorService.getDonorStatistics();
-    } catch (error) {
-      console.error("Error fetching donor statistics:", error);
-      throw error;
-    }
-  };
-
-  // Admin functions for donor management (could be used in admin panel)
-  const handleAddDonor = async (donorData) => {
-    try {
-      const newDonor = await addDonor(donorData);
-      console.log("Donor added successfully:", newDonor);
-
-      // Refresh current year donors
-      const currentYear = new Date().getFullYear();
-      const currentDonors = await fetchCurrentYearDonors(currentYear);
-      const transformedDonors = currentDonors.map((donor) => ({
-        id: donor.id,
-        name: donor.name,
-        level: donor.donationLevel,
-        amount: getDonationAmountByLevel(donor.donationLevel),
-        image: getDonorImage(donor.id),
-        message: getDonorMessage(donor.donationLevel),
-      }));
-      setDonors(transformedDonors);
-
-      return newDonor;
-    } catch (error) {
-      console.error("Error adding donor:", error);
-      throw error;
-    }
-  };
-
-  const handleUpdateDonor = async (id, donorData) => {
-    try {
-      const updatedDonor = await updateDonor(id, donorData);
-      console.log("Donor updated successfully:", updatedDonor);
-
-      // Refresh current year donors
-      const currentYear = new Date().getFullYear();
-      const currentDonors = await fetchCurrentYearDonors(currentYear);
-      const transformedDonors = currentDonors.map((donor) => ({
-        id: donor.id,
-        name: donor.name,
-        level: donor.donationLevel,
-        amount: getDonationAmountByLevel(donor.donationLevel),
-        image: getDonorImage(donor.id),
-        message: getDonorMessage(donor.donationLevel),
-      }));
-      setDonors(transformedDonors);
-
-      return updatedDonor;
-    } catch (error) {
-      console.error("Error updating donor:", error);
-      throw error;
-    }
-  };
-
-  const handleDeleteDonor = async (id) => {
-    try {
-      const success = await deleteDonor(id);
-      if (success) {
-        console.log("Donor deleted successfully");
-
-        // Refresh current year donors
-        const currentYear = new Date().getFullYear();
-        const currentDonors = await fetchCurrentYearDonors(currentYear);
-        const transformedDonors = currentDonors.map((donor) => ({
-          id: donor.id,
-          name: donor.name,
-          level: donor.donationLevel,
-          amount: getDonationAmountByLevel(donor.donationLevel),
-          image: getDonorImage(donor.id),
-          message: getDonorMessage(donor.donationLevel),
-        }));
-        setDonors(transformedDonors);
-      }
-      return success;
-    } catch (error) {
-      console.error("Error deleting donor:", error);
-      throw error;
-    }
-  };
-
-  const groupDonorsByLevel = (donors) => {
-    const grouped = {
-      Diamond: [],
-      Platinum: [],
-      Gold: [],
-      Silver: [],
-      Bronze: [],
     };
 
-    donors.forEach((donor) => {
-      if (grouped[donor.level]) {
-        grouped[donor.level].push(donor);
-      }
-    });
+    fetchDonorsData();
+  }, []);
 
-    return grouped;
+  // Auto-advance carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      nextSponsorSlide();
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [currentSponsorIndex]);
+
+  const handlePayPalSubmit = () => {
+    // The form will submit to PayPal
+    // No need to prevent default as we want the form to submit
   };
 
-  const groupedDonors = groupDonorsByLevel(donors);
-
-  // Helper function to render donor list
-  const renderDonorList = (donors) => {
-    const grouped = groupDonorsByLevel(donors);
-
-    return Object.entries(grouped).map(
-      ([level, levelDonors]) =>
-        levelDonors.length > 0 && (
-          <Box key={level} sx={{ marginBottom: "20px" }}>
-            <Typography
-              variant="h6"
-              sx={{
-                color: "#102d47",
-                fontWeight: 600,
-                marginBottom: "10px",
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-              }}
-            >
-              {getLevelIcon(level)}
-              {level} Level Donors
-            </Typography>
-            <List sx={{ padding: 0 }}>
-              {levelDonors.map((donor) => (
-                <ListItem
-                  key={donor.id}
-                  sx={{
-                    padding: "8px 0",
-                    borderBottom: "1px solid #f0f0f0",
-                  }}
-                >
-                  <ListItemIcon>
-                    <CheckCircle sx={{ color: getLevelColor(level) }} />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={donor.name}
-                    sx={{
-                      "& .MuiListItemText-primary": {
-                        color: "#102d47",
-                        fontWeight: 500,
-                      },
-                    }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        )
+  // Carousel functions
+  const nextSponsorSlide = () => {
+    setCurrentSponsorIndex((prevIndex) =>
+      prevIndex === totalSlides - 1 ? 0 : prevIndex + 1
     );
   };
 
+  const prevSponsorSlide = () => {
+    setCurrentSponsorIndex((prevIndex) =>
+      prevIndex === 0 ? totalSlides - 1 : prevIndex - 1
+    );
+  };
+
+  const getCurrentSponsors = () => {
+    const startIndex = currentSponsorIndex * sponsorsPerView;
+    const currentSponsors = sponsors.slice(
+      startIndex,
+      startIndex + sponsorsPerView
+    );
+
+    // If we don't have exactly 5 sponsors, fill with the first sponsors to avoid blanks
+    if (currentSponsors.length < sponsorsPerView) {
+      const remainingSlots = sponsorsPerView - currentSponsors.length;
+      const additionalSponsors = sponsors.slice(0, remainingSlots);
+      return [...currentSponsors, ...additionalSponsors];
+    }
+
+    return currentSponsors;
+  };
+
+  const handleYearChange = (year) => {
+    setExpandedYear(expandedYear === year ? null : year);
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Group donors by level
+  const groupDonorsByLevel = (donors) => {
+    const grouped = {};
+    donors.forEach((donor) => {
+      const level = donor.donorLevel || "BRONZE";
+      console.log("Donor:", donor.donorName, "Level:", level);
+      if (!grouped[level]) {
+        grouped[level] = [];
+      }
+      grouped[level].push(donor);
+    });
+    console.log("Grouped Donors:", grouped);
+    return grouped;
+  };
+
   return (
-    <Box
-      sx={{
-        backgroundColor: "#f8f9fa",
-        minHeight: "100vh",
-        padding: { xs: "40px 0", md: "80px 0" },
-      }}
-    >
-      <Container maxWidth="lg">
-        {/* Header Section */}
+    <div className="main-content">
+      {/* Breadcrumbs Start */}
+      <div className="sc-breadcrumbs breadcrumbs-overlay">
+        <div className="breadcrumbs-img">
+          <img src={pageHeaderImg} alt="Breadcrumbs Image" />
+        </div>
+        <div className="breadcrumbs-text white-color">
+          <h1 className="page-title">DONATIONS</h1>
+          <ul>
+            <li>
+              <a className="active" href="/">
+                Home &gt;
+              </a>
+            </li>
+            <li className="active">Donations</li>
+          </ul>
+        </div>
+      </div>
+      {/* Breadcrumbs End */}
+
+      {/* Main Content */}
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <Grid container spacing={6}>
+          {/* Left Column - Donate to AMC Section */}
+          <Grid item xs={12} md={8}>
+            <Card
+              elevation={0}
+              sx={{
+                backgroundColor: "white",
+                borderRadius: 0,
+                boxShadow: "none",
+                border: "none",
+              }}
+            >
+              <CardContent sx={{ p: 0 }}>
+                {/* Title */}
+                <Typography
+                  variant="h2"
+                  sx={{
+                    color: "#2c3e50",
+                    fontWeight: 700,
+                    fontSize: { xs: "2rem", md: "2.5rem" },
+                    mb: 3,
+                  }}
+                >
+                  Donate to <span style={{ color: "#53b50a" }}>AMC</span>
+                </Typography>
+
+                {/* Description Text */}
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: "#666",
+                    lineHeight: 1.8,
+                    mb: 2,
+                    fontSize: "1.1rem",
+                  }}
+                >
+                  The Agoura Math Circle is a student run nonprofit, tax exempt
+                  501(c) community service organization and needs your help to
+                  maintain the various events that we hold. Please note that
+                  donations are tax-deductible. We graciously accept donations
+                  at our events.
+                </Typography>
+
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: "#666",
+                    lineHeight: 1.8,
+                    mb: 2,
+                    fontSize: "1.1rem",
+                  }}
+                >
+                  Please make the payment to Agoura Math Circle using Credit
+                  Card.
+                </Typography>
+
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: "#53b50a",
+                    fontWeight: 600,
+                    mb: 4,
+                    fontSize: "1.2rem",
+                  }}
+                >
+                  Our Tax ID: 81-1050140
+                </Typography>
+
+                {/* PayPal Donate Button */}
+                <Box sx={{ mb: 3, textAlign: "center" }}>
+                  <Box
+                    component="form"
+                    action="https://www.paypal.com/cgi-bin/webscr"
+                    method="post"
+                    target="_blank"
+                    onSubmit={handlePayPalSubmit}
+                    sx={{
+                      display: "inline-block",
+                      "&:hover": {
+                        transform: "scale(1.02)",
+                      },
+                      transition: "transform 0.3s ease",
+                    }}
+                  >
+                    <input type="hidden" name="cmd" value="_s-xclick" />
+                    <input
+                      type="hidden"
+                      name="hosted_button_id"
+                      value="HS272WGLNXDTN"
+                    />
+
+                    <Button
+                      type="submit"
+                      sx={{
+                        p: 0,
+                        minWidth: "auto",
+                        "&:hover": {
+                          opacity: 0.9,
+                        },
+                      }}
+                    >
+                      <img
+                        src={donateButtonImg}
+                        alt="PayPal - The safer, easier way to pay online!"
+                        style={{
+                          maxWidth: "100%",
+                          height: "auto",
+                          borderRadius: "8px",
+                          boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+                        }}
+                      />
+                    </Button>
+
+                    <img
+                      alt=""
+                      src="https://www.paypal.com/en_US/i/scr/pixel.gif"
+                      width="1"
+                      height="1"
+                      style={{ display: "none" }}
+                    />
+                  </Box>
+                </Box>
+
+                {/* Payment Method Logos */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    flexWrap: "wrap",
+                    mt: 2,
+                  }}
+                >
+                  <Typography variant="body2" sx={{ color: "#666", mr: 1 }}>
+                    We accept:
+                  </Typography>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                    }}
+                  >
+                    {/* Payment method icons/logos would go here */}
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 25,
+                        backgroundColor: "#f0f0f0",
+                        borderRadius: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "0.8rem",
+                        fontWeight: "bold",
+                        color: "#666",
+                      }}
+                    >
+                      VISA
+                    </Box>
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 25,
+                        backgroundColor: "#f0f0f0",
+                        borderRadius: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "0.8rem",
+                        fontWeight: "bold",
+                        color: "#666",
+                      }}
+                    >
+                      MC
+                    </Box>
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 25,
+                        backgroundColor: "#f0f0f0",
+                        borderRadius: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "0.8rem",
+                        fontWeight: "bold",
+                        color: "#666",
+                      }}
+                    >
+                      AMEX
+                    </Box>
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 25,
+                        backgroundColor: "#f0f0f0",
+                        borderRadius: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "0.8rem",
+                        fontWeight: "bold",
+                        color: "#666",
+                      }}
+                    >
+                      DISC
+                    </Box>
+                    <Box
+                      sx={{
+                        width: 50,
+                        height: 25,
+                        backgroundColor: "#f0f0f0",
+                        borderRadius: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "0.8rem",
+                        fontWeight: "bold",
+                        color: "#666",
+                      }}
+                    >
+                      PayPal
+                    </Box>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Right Column - Illustration and Financial Reports */}
+          <Grid item xs={12} md={4}>
+            {/* Donation Illustration */}
+            <Box
+              sx={{
+                textAlign: "center",
+                mb: 4,
+                position: "relative",
+              }}
+            >
+              <Box
+                sx={{
+                  width: "100%",
+                  maxWidth: 300,
+                  height: 200,
+                  margin: "0 auto",
+                  background:
+                    "linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)",
+                  borderRadius: "15px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                {/* Decorative waves */}
+                <Box
+                  sx={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: "30%",
+                    background:
+                      "linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%)",
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      top: "-10px",
+                      left: 0,
+                      right: 0,
+                      height: "20px",
+                      background:
+                        "linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)",
+                      borderRadius: "50%",
+                    },
+                  }}
+                />
+
+                {/* Donation box illustration */}
+                <img
+                  src={boxImg}
+                  alt="Donation Box"
+                  style={{
+                    maxWidth: "100%",
+                    height: "150px",
+                    verticalAlign: "middle",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </Box>
+            </Box>
+
+            {/* Financial Reports Section */}
+            <Card
+              elevation={2}
+              sx={{
+                backgroundColor: "white",
+                borderRadius: "12px",
+                overflow: "hidden",
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    color: "#2c3e50",
+                    fontWeight: 700,
+                    textAlign: "center",
+                    mb: 3,
+                    fontSize: "1.5rem",
+                  }}
+                >
+                  FINANCIAL REPORTS
+                </Typography>
+
+                <Box sx={{ mt: 2 }}>
+                  {financialReports.map((report, index) => (
+                    <Box
+                      key={report.year}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        py: 1.5,
+                        borderBottom:
+                          index < financialReports.length - 1
+                            ? "1px solid #e0e0e0"
+                            : "none",
+                        cursor: "pointer",
+                        "&:hover": {
+                          backgroundColor: "#f8f9fa",
+                        },
+                      }}
+                    >
+                      <Description
+                        sx={{
+                          color: "#53b50a",
+                          mr: 2,
+                          fontSize: "1.2rem",
+                        }}
+                      />
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          color: "#2c3e50",
+                          fontWeight: 500,
+                          flex: 1,
+                        }}
+                      >
+                        {report.year} Statement
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
+        {/* Our Sponsors Section */}
         <Box
           sx={{
-            textAlign: "center",
-            marginBottom: { xs: "40px", md: "60px" },
-            animation: `${fadeInAnimation} 0.8s ease-out`,
+            backgroundColor: "#e3f8f1",
+            padding: { xs: "40px 0", md: "70px 0 100px 0" },
+            mt: 8,
+            mb: 6,
           }}
         >
-          <Typography
-            variant="h2"
-            sx={{
-              color: "#102d47",
-              fontWeight: 700,
-              marginBottom: "20px",
-              "@media (max-width: 600px)": {
-                fontSize: "32px",
-              },
-            }}
-          >
-            DONATIONS
-          </Typography>
-          <Typography
-            variant="h5"
-            sx={{
-              color: "#666",
-              maxWidth: "800px",
-              margin: "0 auto",
-              lineHeight: 1.6,
-            }}
-          >
-            Support Agoura Math Circle - A student-run nonprofit, tax-exempt
-            501(c) community service organization
-          </Typography>
-        </Box>
-
-        {/* Main Content Section */}
-        <Grid
-          container
-          spacing={4}
-          sx={{ marginBottom: { xs: "40px", md: "60px" } }}
-        >
-          {/* Left Column - Donation Information */}
-          <Grid item xs={12} lg={8}>
-            <Card
+          <Container maxWidth="lg">
+            {/* Section Header */}
+            <Box
               sx={{
-                padding: { xs: "20px", md: "30px" },
-                borderRadius: "15px",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                animation: `${fadeInAnimation} 0.8s ease-out 0.2s both`,
+                textAlign: "center",
+                marginBottom: { xs: "30px", md: "50px" },
+                animation: `${fadeInAnimation} 0.8s ease-out`,
               }}
             >
               <Typography
@@ -845,519 +655,423 @@ const Donate = () => {
                 sx={{
                   color: "#102d47",
                   fontWeight: 700,
-                  marginBottom: "20px",
+                  marginBottom: 0,
+                  "@media (max-width: 600px)": {
+                    fontSize: "28px",
+                  },
                 }}
               >
-                Donate to <span style={{ color: "#53b50a" }}>AMC</span>
+                OUR SPONSORS
               </Typography>
+            </Box>
 
-              <Typography
-                variant="body1"
-                sx={{
-                  color: "#666",
-                  lineHeight: 1.8,
-                  marginBottom: "20px",
-                }}
+            {/* Sponsors Carousel */}
+            <Box
+              sx={{
+                position: "relative",
+                animation: `${fadeInAnimation} 0.8s ease-out 0.2s both`,
+                maxWidth: "1200px",
+                margin: "0 auto",
+              }}
+            >
+              {/* Sponsors Grid */}
+              <Grid
+                container
+                spacing={3}
+                justifyContent="center"
+                alignItems="center"
               >
-                The Agoura Math Circle is a student run nonprofit, tax exempt
-                501(c) community service organization and needs your help to
-                maintain the various events that we hold. Please note that
-                donations are tax-deductible. We graciously accept donations at
-                our events.
-              </Typography>
-
-              <Typography
-                variant="body1"
-                sx={{
-                  color: "#666",
-                  lineHeight: 1.8,
-                  marginBottom: "20px",
-                }}
-              >
-                Please make the payment to Agoura Math Circle using Credit Card.
-              </Typography>
-
-              <Typography
-                variant="h6"
-                sx={{
-                  color: "#53b50a",
-                  fontWeight: 600,
-                  marginBottom: "30px",
-                }}
-              >
-                Our Tax ID: 81-1050140
-              </Typography>
-
-              {/* PayPal Integration */}
-              <Box
-                sx={{
-                  border: "2px solid #e0e0e0",
-                  borderRadius: "10px",
-                  padding: "20px",
-                  backgroundColor: "#fafafa",
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{
-                    color: "#102d47",
-                    marginBottom: "20px",
-                    textAlign: "center",
-                  }}
-                >
-                  Make a Donation
-                </Typography>
-
-                {error && (
-                  <Alert severity="error" sx={{ marginBottom: "20px" }}>
-                    {error}
-                  </Alert>
-                )}
-
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Your Name"
-                      value={donorName}
-                      onChange={(e) => setDonorName(e.target.value)}
-                      required
-                      sx={{ marginBottom: "15px" }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Your Email"
-                      type="email"
-                      value={donorEmail}
-                      onChange={(e) => setDonorEmail(e.target.value)}
-                      required
-                      sx={{ marginBottom: "15px" }}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Donation Amount ($)"
-                      type="number"
-                      value={donationAmount}
-                      onChange={handleAmountChange}
-                      required
-                      inputProps={{ min: "1", step: "0.01" }}
-                      sx={{ marginBottom: "15px" }}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography
-                      variant="body2"
+                {getCurrentSponsors().map((sponsor, index) => (
+                  <Grid
+                    xs={6}
+                    sm={4}
+                    md={2.4}
+                    key={`${sponsor.id}-${currentSponsorIndex}-${index}`}
+                  >
+                    <Box
                       sx={{
-                        color: "#666",
-                        marginBottom: "10px",
-                        textAlign: "center",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        padding: "20px",
+                        backgroundColor: "#ffffff",
+                        borderRadius: "10px",
+                        boxShadow: "0px 0px 16px rgba(4, 59, 80, 0.1)",
+                        transition: "all 0.3s ease",
+                        animation: `${fadeInAnimation} 0.8s ease-out ${
+                          0.3 + index * 0.1
+                        }s both`,
+                        height: "120px",
+                        "&:hover": {
+                          transform: "translateY(-5px)",
+                          boxShadow: "0px 8px 25px rgba(4, 59, 80, 0.15)",
+                        },
                       }}
                     >
-                      Select Donation Level:
-                    </Typography>
-                    <Grid container spacing={1} justifyContent="center">
-                      {donationLevels.map((level) => (
-                        <Grid item key={level.name}>
-                          <Chip
-                            label={level.name}
-                            onClick={() => handleLevelSelect(level.name)}
+                      {sponsor.link ? (
+                        <Box
+                          component="a"
+                          href={sponsor.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            width: "100%",
+                            height: "100%",
+                            textDecoration: "none",
+                            "&:hover": {
+                              opacity: 0.8,
+                            },
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={sponsor.image}
+                            alt={sponsor.name}
                             sx={{
-                              backgroundColor:
-                                selectedLevel === level.name
-                                  ? level.color
-                                  : "#e0e0e0",
-                              color:
-                                selectedLevel === level.name ? "#fff" : "#666",
-                              cursor: "pointer",
+                              maxWidth: "100%",
+                              maxHeight: "80px",
+                              objectFit: "contain",
+                              filter: "grayscale(100%)",
+                              transition: "filter 0.3s ease",
                               "&:hover": {
-                                backgroundColor:
-                                  selectedLevel === level.name
-                                    ? level.color
-                                    : "#d0d0d0",
+                                filter: "grayscale(0%)",
                               },
                             }}
                           />
-                        </Grid>
-                      ))}
-                    </Grid>
+                        </Box>
+                      ) : (
+                        <Box
+                          component="img"
+                          src={sponsor.image}
+                          alt={sponsor.name}
+                          sx={{
+                            maxWidth: "100%",
+                            maxHeight: "80px",
+                            objectFit: "contain",
+                            filter: "grayscale(100%)",
+                            transition: "filter 0.3s ease",
+                            "&:hover": {
+                              filter: "grayscale(0%)",
+                            },
+                          }}
+                        />
+                      )}
+                    </Box>
                   </Grid>
-                  <Grid item xs={12}>
-                    <Button
-                      variant="contained"
-                      size="large"
-                      startIcon={<AttachMoney />}
-                      onClick={() => handleDonate(selectedLevel || "Bronze")}
-                      disabled={
-                        isProcessingPayment ||
-                        !donorName ||
-                        !donorEmail ||
-                        !donationAmount
-                      }
-                      fullWidth
-                      sx={{
-                        backgroundColor: "#53b50a",
-                        color: "#fff",
-                        fontWeight: 600,
-                        textTransform: "none",
-                        borderRadius: "25px",
-                        padding: "12px 30px",
-                        fontSize: "18px",
-                        marginTop: "10px",
-                        "&:hover": {
-                          backgroundColor: "#45a049",
-                        },
-                        "&:disabled": {
-                          backgroundColor: "#ccc",
-                          color: "#666",
-                        },
-                      }}
-                    >
-                      {isProcessingPayment
-                        ? "Processing..."
-                        : "Donate with PayPal"}
-                    </Button>
-                  </Grid>
-                </Grid>
-              </Box>
-            </Card>
-          </Grid>
+                ))}
+              </Grid>
 
-          {/* Right Column - Financial Reports */}
-          <Grid item xs={12} lg={4}>
-            <Card
-              sx={{
-                padding: { xs: "20px", md: "30px" },
-                borderRadius: "15px",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                animation: `${fadeInAnimation} 0.8s ease-out 0.3s both`,
-              }}
-            >
+              {/* Navigation Arrows */}
+              <IconButton
+                onClick={prevSponsorSlide}
+                sx={{
+                  position: "absolute",
+                  left: "-60px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  backgroundColor: "#ffffff",
+                  color: "#40c1ec",
+                  width: "50px",
+                  height: "50px",
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+                  "&:hover": {
+                    backgroundColor: "#40c1ec",
+                    color: "#ffffff",
+                  },
+                  "@media (max-width: 1200px)": {
+                    left: "-40px",
+                  },
+                  "@media (max-width: 768px)": {
+                    left: "10px",
+                    top: "auto",
+                    bottom: "-60px",
+                    transform: "none",
+                  },
+                }}
+              >
+                <ChevronLeft />
+              </IconButton>
+
+              <IconButton
+                onClick={nextSponsorSlide}
+                sx={{
+                  position: "absolute",
+                  right: "-60px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  backgroundColor: "#ffffff",
+                  color: "#40c1ec",
+                  width: "50px",
+                  height: "50px",
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+                  "&:hover": {
+                    backgroundColor: "#40c1ec",
+                    color: "#ffffff",
+                  },
+                  "@media (max-width: 1200px)": {
+                    right: "-40px",
+                  },
+                  "@media (max-width: 768px)": {
+                    right: "10px",
+                    top: "auto",
+                    bottom: "-60px",
+                    transform: "none",
+                  },
+                }}
+              >
+                <ChevronRight />
+              </IconButton>
+
+              {/* Dots Indicator */}
               <Box
                 sx={{
-                  textAlign: "center",
-                  marginBottom: "20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  marginTop: "40px",
+                  gap: "8px",
                 }}
               >
-                <img
-                  src={boxImg}
-                  alt="Donation Box"
-                  style={{
-                    width: "100%",
-                    maxWidth: "150px",
-                    height: "auto",
-                    borderRadius: "10px",
-                  }}
-                />
-              </Box>
-
-              <Typography
-                variant="h4"
-                sx={{
-                  color: "#102d47",
-                  fontWeight: 700,
-                  textAlign: "center",
-                  marginBottom: "20px",
-                }}
-              >
-                FINANCIAL REPORTS
-              </Typography>
-
-              <List sx={{ padding: 0 }}>
-                {financialReports.map((report, index) => (
-                  <ListItem
-                    key={report.year}
+                {Array.from({ length: totalSlides }, (_, index) => (
+                  <Box
+                    key={index}
+                    onClick={() => setCurrentSponsorIndex(index)}
                     sx={{
-                      padding: "8px 0",
-                      borderBottom:
-                        index < financialReports.length - 1
-                          ? "1px solid #e0e0e0"
-                          : "none",
-                    }}
-                  >
-                    <ListItemIcon>
-                      <Description sx={{ color: "#53b50a" }} />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={`${report.year} Statement`}
-                      sx={{
-                        "& .MuiListItemText-primary": {
-                          color: "#102d47",
-                          fontWeight: 500,
-                        },
-                      }}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </Card>
-          </Grid>
-        </Grid>
-
-        {/* Sponsors Section */}
-        <Box
-          sx={{
-            marginBottom: { xs: "40px", md: "60px" },
-            animation: `${fadeInAnimation} 0.8s ease-out 0.4s both`,
-          }}
-        >
-          <Typography
-            variant="h3"
-            sx={{
-              textAlign: "center",
-              color: "#102d47",
-              fontWeight: 600,
-              marginBottom: "40px",
-            }}
-          >
-            OUR SPONSORS
-          </Typography>
-
-          <Grid container spacing={3} justifyContent="center">
-            {sponsors.map((sponsor, index) => (
-              <Grid item xs={6} sm={4} md={3} lg={2} key={sponsor.name}>
-                <Card
-                  sx={{
-                    padding: "15px",
-                    textAlign: "center",
-                    borderRadius: "10px",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      transform: "translateY(-5px)",
-                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                    },
-                  }}
-                >
-                  <img
-                    src={sponsor.image}
-                    alt={sponsor.name}
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      maxHeight: "80px",
-                      objectFit: "contain",
+                      width: "12px",
+                      height: "12px",
+                      borderRadius: "50%",
+                      backgroundColor:
+                        index === currentSponsorIndex
+                          ? "#40c1ec"
+                          : "rgba(64, 193, 236, 0.3)",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease",
+                      "&:hover": {
+                        backgroundColor:
+                          index === currentSponsorIndex
+                            ? "#40c1ec"
+                            : "rgba(64, 193, 236, 0.6)",
+                      },
                     }}
                   />
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+                ))}
+              </Box>
+            </Box>
+          </Container>
         </Box>
 
-        {/* Donors Section */}
-        <Box
-          sx={{
-            animation: `${fadeInAnimation} 0.8s ease-out 0.5s both`,
-          }}
-        >
+        {/* Donors of AMC Section */}
+        <Box sx={{ mt: 8, mb: 6 }}>
           <Typography
             variant="h3"
             sx={{
+              color: "#2c3e50",
+              fontWeight: 700,
               textAlign: "center",
-              color: "#102d47",
-              fontWeight: 600,
-              marginBottom: "20px",
+              mb: 2,
+              fontSize: { xs: "2rem", md: "2.5rem" },
             }}
           >
             DONORS OF AMC
           </Typography>
+
           <Typography
-            variant="h6"
+            variant="body1"
             sx={{
-              textAlign: "center",
               color: "#666",
-              marginBottom: "40px",
+              textAlign: "center",
+              mb: 4,
+              fontSize: "1.1rem",
+              maxWidth: 600,
+              mx: "auto",
             }}
           >
             Agoura Math Circle thanks the following donors for their generous
             support of our organization.
           </Typography>
 
-          {loading ? (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                padding: "60px 0",
-              }}
-            >
-              <CircularProgress size={60} />
+          {donorsLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress />
             </Box>
-          ) : error ? (
-            <Alert severity="error" sx={{ marginBottom: "20px" }}>
-              {error}
+          ) : donorsError ? (
+            <Alert severity="error" sx={{ maxWidth: 600, mx: "auto" }}>
+              {donorsError}
             </Alert>
           ) : (
-            <Box sx={{ maxWidth: "1000px", margin: "0 auto" }}>
+            <Box sx={{ maxWidth: 800, mx: "auto" }}>
               {/* Current Year Donors */}
-              <Accordion
-                expanded={expandedAccordion === "current"}
-                onChange={handleAccordionChange("current")}
-                sx={{
-                  marginBottom: "16px",
-                  borderRadius: "12px",
-                  border: "2px solid #53b50a",
-                  backgroundColor: "#f8fff8",
-                  "&:before": {
-                    display: "none",
-                  },
-                  "&.Mui-expanded": {
-                    margin: "16px 0",
-                    boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                  },
-                }}
-              >
-                <AccordionSummary
-                  expandIcon={
-                    <ExpandMore sx={{ color: "#53b50a", fontSize: 28 }} />
-                  }
-                  sx={{
-                    padding: "20px 24px",
-                    "& .MuiAccordionSummary-content": {
-                      margin: 0,
-                    },
-                  }}
-                >
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      fontWeight: 700,
-                      color: "#102d47",
-                    }}
-                  >
-                    {new Date().getFullYear()} Donors
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails
-                  sx={{
-                    padding: "0 24px 24px",
-                    backgroundColor: "rgba(255,255,255,0.8)",
-                  }}
-                >
-                  {renderDonorList(donors)}
-                </AccordionDetails>
-              </Accordion>
-
-              {/* Historical Donors */}
-              {Object.keys(pastDonors).map((year) => (
+              {donorsData.currentYearDonors.length > 0 && (
                 <Accordion
-                  key={year}
-                  expanded={expandedAccordion === year}
-                  onChange={handleAccordionChange(year)}
-                  sx={{
-                    marginBottom: "16px",
-                    borderRadius: "12px",
-                    border: "2px solid #e0e0e0",
-                    backgroundColor: "#fafafa",
-                    "&:before": {
-                      display: "none",
-                    },
-                    "&.Mui-expanded": {
-                      margin: "16px 0",
-                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                    },
-                  }}
+                  expanded={expandedYear === "current"}
+                  onChange={() => handleYearChange("current")}
+                  sx={{ mb: 2 }}
                 >
                   <AccordionSummary
-                    expandIcon={
-                      <ExpandMore sx={{ color: "#666", fontSize: 28 }} />
-                    }
+                    expandIcon={<ExpandMore />}
                     sx={{
-                      padding: "20px 24px",
-                      "& .MuiAccordionSummary-content": {
-                        margin: 0,
+                      backgroundColor: "#53b50a",
+                      color: "white",
+                      "&:hover": {
+                        backgroundColor: "#4a9d0a",
                       },
                     }}
                   >
-                    <Typography
-                      variant="h5"
-                      sx={{
-                        fontWeight: 700,
-                        color: "#102d47",
-                      }}
-                    >
-                      {year} Donors
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      {donorsData.statistics?.currentYear ||
+                        new Date().getFullYear()}{" "}
+                      Donors
                     </Typography>
                   </AccordionSummary>
-                  <AccordionDetails
-                    sx={{
-                      padding: "0 24px 24px",
-                      backgroundColor: "rgba(255,255,255,0.8)",
-                    }}
-                  >
-                    {renderDonorList(pastDonors[year])}
-                  </AccordionDetails>
-                </Accordion>
-              ))}
-
-              {/* Show message if no past donors */}
-              {Object.keys(pastDonors).length === 0 && (
-                <Accordion
-                  expanded={expandedAccordion === "historical"}
-                  onChange={handleAccordionChange("historical")}
-                  sx={{
-                    marginBottom: "16px",
-                    borderRadius: "12px",
-                    border: "2px solid #e0e0e0",
-                    backgroundColor: "#fafafa",
-                    "&:before": {
-                      display: "none",
-                    },
-                    "&.Mui-expanded": {
-                      margin: "16px 0",
-                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                    },
-                  }}
-                >
-                  <AccordionSummary
-                    expandIcon={
-                      <ExpandMore sx={{ color: "#666", fontSize: 28 }} />
-                    }
-                    sx={{
-                      padding: "20px 24px",
-                      "& .MuiAccordionSummary-content": {
-                        margin: 0,
-                      },
-                    }}
-                  >
-                    <Typography
-                      variant="h5"
-                      sx={{
-                        fontWeight: 700,
-                        color: "#102d47",
-                      }}
-                    >
-                      Historical Donors
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails
-                    sx={{
-                      padding: "0 24px 24px",
-                      backgroundColor: "rgba(255,255,255,0.8)",
-                    }}
-                  >
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: "#666",
-                        textAlign: "center",
-                        fontStyle: "italic",
-                      }}
-                    >
-                      Historical donor data will be displayed here when
-                      available.
-                    </Typography>
+                  <AccordionDetails sx={{ p: 0 }}>
+                    {Object.entries(
+                      groupDonorsByLevel(donorsData.currentYearDonors)
+                    ).map(([level, donors]) => (
+                      <Box key={level} sx={{ mb: 2 }}>
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            color: "#2c3e50",
+                            fontWeight: 600,
+                            mb: 1,
+                            pl: 2,
+                            pt: 2,
+                          }}
+                        >
+                          {level} Level Donors
+                        </Typography>
+                        <Grid container spacing={1} sx={{ px: 2, pb: 2 }}>
+                          {donors.map((donor, index) => (
+                            <Grid item xs={12} sm={6} md={4} key={index}>
+                              <Chip
+                                label={donor.donorName || "Anonymous"}
+                                sx={{
+                                  backgroundColor:
+                                    donorLevels[level]?.color || "#f5f5f5",
+                                  color:
+                                    donorLevels[level]?.textColor || "#666",
+                                  fontWeight: 500,
+                                  width: "100%",
+                                  justifyContent: "flex-start",
+                                }}
+                                icon={
+                                  donorLevels[level]?.icon
+                                    ? React.createElement(
+                                        donorLevels[level].icon
+                                      )
+                                    : undefined
+                                }
+                              />
+                            </Grid>
+                          ))}
+                        </Grid>
+                      </Box>
+                    ))}
                   </AccordionDetails>
                 </Accordion>
               )}
+
+              {/* Past Year Donors */}
+              {Object.keys(donorsData.pastYearDonors).map((year) => (
+                <Accordion
+                  key={year}
+                  expanded={expandedYear === year}
+                  onChange={() => handleYearChange(year)}
+                  sx={{ mb: 2 }}
+                >
+                  <AccordionSummary
+                    expandIcon={<ExpandMore />}
+                    sx={{
+                      backgroundColor: "#53b50a",
+                      color: "white",
+                      "&:hover": {
+                        backgroundColor: "#4a9d0a",
+                      },
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      {year} Donors
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ p: 0 }}>
+                    {Object.entries(
+                      groupDonorsByLevel(donorsData.pastYearDonors[year] || [])
+                    ).map(([level, donors]) => (
+                      <Box key={level} sx={{ mb: 2 }}>
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            color: "#2c3e50",
+                            fontWeight: 600,
+                            mb: 1,
+                            pl: 2,
+                            pt: 2,
+                          }}
+                        >
+                          {level} Level Donors
+                        </Typography>
+                        <Grid container spacing={1} sx={{ px: 2, pb: 2 }}>
+                          {donors.map((donor, index) => (
+                            <Grid item xs={12} sm={6} md={4} key={index}>
+                              <Chip
+                                label={donor.donorName || "Anonymous"}
+                                sx={{
+                                  backgroundColor:
+                                    donorLevels[level]?.color || "#f5f5f5",
+                                  color:
+                                    donorLevels[level]?.textColor || "#666",
+                                  fontWeight: 500,
+                                  width: "100%",
+                                  justifyContent: "flex-start",
+                                }}
+                                icon={
+                                  donorLevels[level]?.icon
+                                    ? React.createElement(
+                                        donorLevels[level].icon
+                                      )
+                                    : undefined
+                                }
+                              />
+                            </Grid>
+                          ))}
+                        </Grid>
+                      </Box>
+                    ))}
+                  </AccordionDetails>
+                </Accordion>
+              ))}
             </Box>
           )}
         </Box>
       </Container>
-    </Box>
+
+      {/* Scroll to Top Button */}
+      <Button
+        onClick={scrollToTop}
+        sx={{
+          position: "fixed",
+          bottom: 20,
+          right: 20,
+          minWidth: "auto",
+          width: 50,
+          height: 50,
+          borderRadius: "50%",
+          backgroundColor: "#53b50a",
+          color: "white",
+          boxShadow: "0 4px 15px rgba(83, 181, 10, 0.3)",
+          "&:hover": {
+            backgroundColor: "#4a9d0a",
+            transform: "translateY(-2px)",
+            boxShadow: "0 6px 20px rgba(83, 181, 10, 0.4)",
+          },
+          zIndex: 1000,
+        }}
+      >
+        <KeyboardArrowUp />
+      </Button>
+    </div>
   );
 };
 

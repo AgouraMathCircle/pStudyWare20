@@ -17,786 +17,878 @@ import {
   Paper,
   Breadcrumbs,
   Link,
+  CircularProgress,
+  Snackbar,
   FormControlLabel,
-  Checkbox,
-  Radio,
   RadioGroup,
-  FormLabel,
+  Radio,
+  Checkbox,
+  Divider,
 } from "@mui/material";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import studentService from "../services/studentService";
 import "../styles/StudentRegistration.css";
-// Import images from src/assets
-import pageHeaderImg from "../assets/images/about/page-header.jpg";
-import arrow1Img from "../assets/images/arrow-1.png";
-import arrow2Img from "../assets/images/arrow-2.png";
-import arrow3Img from "../assets/images/arrow-3.png";
+
+// Validation schema
+const validationSchema = yup.object({
+  parentFirstName: yup
+    .string()
+    .required("Parent first name is required")
+    .min(2, "Parent first name must be at least 2 characters")
+    .max(50, "Parent first name must be less than 50 characters"),
+  parentLastName: yup
+    .string()
+    .required("Parent last name is required")
+    .min(2, "Parent last name must be at least 2 characters")
+    .max(50, "Parent last name must be less than 50 characters"),
+  parentEmail: yup
+    .string()
+    .required("Parent email is required")
+    .email("Please enter a valid parent email address"),
+  parentPhoneNo: yup
+    .string()
+    .required("Parent phone number is required")
+    .matches(
+      /^[01]?[- .]?(\([2-9]\d{2}\)|[2-9]\d{2})[- .]?\d{3}[- .]?\d{4}$/,
+      "Please enter a valid phone number"
+    ),
+  city: yup
+    .string()
+    .required("City is required")
+    .min(2, "City must be at least 2 characters"),
+  state: yup
+    .string()
+    .required("State is required")
+    .min(2, "State must be at least 2 characters"),
+  country: yup.string().required("Country is required"),
+  studentFirstName: yup
+    .string()
+    .required("Student first name is required")
+    .min(2, "Student first name must be at least 2 characters")
+    .max(50, "Student first name must be less than 50 characters"),
+  studentLastName: yup
+    .string()
+    .required("Student last name is required")
+    .min(2, "Student last name must be at least 2 characters")
+    .max(50, "Student last name must be less than 50 characters"),
+  studentEmail: yup.string().when("userName", {
+    is: "S",
+    then: (schema) =>
+      schema
+        .required(
+          "Student email is required when using student email as username"
+        )
+        .email("Please enter a valid student email address"),
+    otherwise: (schema) =>
+      schema.email("Please enter a valid student email address"),
+  }),
+  studentSchoolName: yup
+    .string()
+    .required("Student school name is required")
+    .min(2, "Student school name must be at least 2 characters"),
+  studentGrade: yup
+    .string()
+    .required("Student grade is required")
+    .notOneOf(["0"], "Please select a grade"),
+  sessionId: yup
+    .string()
+    .required("Session is required")
+    .notOneOf(["0"], "Please select a session"),
+  locationId: yup
+    .number()
+    .required("Course/Location is required")
+    .min(1, "Please select a course/location"),
+  userName: yup.string().required("Please select username option"),
+  liabilitySignature: yup
+    .string()
+    .required("Liability signature is required")
+    .min(2, "Please enter your full name"),
+  ruleSignature: yup
+    .string()
+    .required("Rule signature is required")
+    .min(2, "Please enter your full name"),
+  picturePermission: yup.boolean(),
+});
 
 const StudentRegistration = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    // Parent Information
-    parentFirstName: "",
-    parentLastName: "",
-    parentEmail: "",
-    parentPhone: "",
-    city: "",
-    state: "",
-    country: "US",
-
-    // Student Information
-    studentFirstName: "",
-    studentLastName: "",
-    studentEmail: "",
-    school: "",
-    grade: "0",
-    session: "0",
-    location: "0",
-
-    // User Name Selection
-    userNameType: "P", // P for Parent, S for Student
-
-    // Signatures
-    waiverSignature: "",
-    ruleSignature: "",
-    picturePermission: true,
-
-    // Validation
-    validEmailAddress: "",
+  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
   });
-
-  const [errors, setErrors] = useState({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [submitError, setSubmitError] = useState("");
   const [locations, setLocations] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [grades, setGrades] = useState([]);
   const [countries, setCountries] = useState([]);
 
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    watch,
+  } = useForm({
+    resolver: yupResolver(validationSchema),
+    defaultValues: {
+      parentFirstName: "",
+      parentLastName: "",
+      parentEmail: "",
+      parentPhoneNo: "",
+      city: "",
+      state: "",
+      country: "",
+      studentFirstName: "",
+      studentLastName: "",
+      studentEmail: "",
+      studentSchoolName: "",
+      studentGrade: "0",
+      sessionId: "0",
+      locationId: 0,
+      userName: "P",
+      liabilitySignature: "",
+      ruleSignature: "",
+      picturePermission: true,
+    },
+  });
+
+  const userNameOption = watch("userName");
+
+  // Load dropdown data
   useEffect(() => {
-    // Load all data from services
-    loadFormData();
+    const loadDropdownData = async () => {
+      try {
+        const [locationsData, sessionsData, gradesData, countriesData] =
+          await Promise.all([
+            studentService.getLocations(),
+            studentService.getSessions(),
+            studentService.getGrades(),
+            studentService.getCountries(),
+          ]);
+
+        setLocations(locationsData);
+        setSessions(sessionsData);
+        setGrades(gradesData);
+        setCountries(countriesData);
+      } catch (error) {
+        console.error("Error loading dropdown data:", error);
+        showSnackbar(
+          "Error loading form data. Please refresh the page.",
+          "error"
+        );
+      }
+    };
+
+    loadDropdownData();
   }, []);
 
-  const loadFormData = async () => {
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({
+      ...snackbar,
+      open: false,
+    });
+  };
+
+  const onSubmit = async (data) => {
+    setLoading(true);
     try {
-      const [locationsData, sessionsData, gradesData, countriesData] =
-        await Promise.all([
-          studentService.getLocations(),
-          studentService.getSessions(),
-          studentService.getGrades(),
-          studentService.getCountries(),
-        ]);
+      // Prepare the data for API submission - matching the DTO structure exactly
+      const studentData = {
+        ParentFirstName: data.parentFirstName,
+        ParentLastName: data.parentLastName,
+        ParentEmail: data.parentEmail,
+        ParentPhoneNo: data.parentPhoneNo,
+        City: data.city,
+        State: data.state,
+        Country: data.country,
+        StudentFirstName: data.studentFirstName,
+        StudentLastName: data.studentLastName,
+        StudentEmail: data.studentEmail || "",
+        StudentSchoolName: data.studentSchoolName,
+        StudentGrade: data.studentGrade,
+        SessionId: data.sessionId,
+        LocationId: data.locationId,
+        UserName: data.userName,
+        LiabilitySignature: data.liabilitySignature,
+        RuleSignature: data.ruleSignature,
+        PicturePermission: data.picturePermission,
+        Address: "", // Add if needed
+      };
 
-      setLocations(locationsData);
-      setSessions(sessionsData);
-      setGrades(gradesData);
-      setCountries(countriesData);
+      console.log("Prepared student data for API:", studentData);
+
+      const response = await studentService.registerStudent(studentData);
+
+      console.log("API Response:", response);
+
+      // Check if the response indicates success
+      if (response && response.isSuccess !== false) {
+        showSnackbar(
+          "Student registration submitted successfully! We will review it and update your enrollment status by email.",
+          "success"
+        );
+
+        // Reset form after successful submission
+        reset();
+
+        // Optionally redirect after a delay
+        setTimeout(() => {
+          navigate("/");
+        }, 3000);
+      } else {
+        showSnackbar(
+          response?.ErrorMessage || "Registration failed. Please try again.",
+          "error"
+        );
+      }
     } catch (error) {
-      console.error("Error loading form data:", error);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Parent Information Validation
-    if (!formData.parentFirstName.trim()) {
-      newErrors.parentFirstName = "Please enter your First name.";
-    }
-    if (!formData.parentLastName.trim()) {
-      newErrors.parentLastName = "Please enter your Last name.";
-    }
-    if (!formData.parentEmail.trim()) {
-      newErrors.parentEmail = "Please enter your Email Address.";
-    } else if (
-      !/^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(
-        formData.parentEmail
-      )
-    ) {
-      newErrors.parentEmail = "Please enter a valid Parent Email ID.";
-    }
-    if (!formData.parentPhone.trim()) {
-      newErrors.parentPhone = "Please enter your Phone Number.";
-    } else if (
-      !/^[01]?[- .]?(\([2-9]\d{2}\)|[2-9]\d{2})[- .]?\d{3}[- .]?\d{4}$/.test(
-        formData.parentPhone
-      )
-    ) {
-      newErrors.parentPhone = "Please enter a valid Phone No.";
-    }
-    if (!formData.city.trim()) {
-      newErrors.city = "Please enter City Name.";
-    }
-    if (!formData.state.trim()) {
-      newErrors.state = "Please enter State Name.";
-    }
-
-    // Student Information Validation
-    if (!formData.studentFirstName.trim()) {
-      newErrors.studentFirstName = "Please enter Student First name.";
-    }
-    if (!formData.studentLastName.trim()) {
-      newErrors.studentLastName = "Please enter Student Last name.";
-    }
-    if (!formData.school.trim()) {
-      newErrors.school = "Please enter Student School Name.";
-    }
-    if (formData.grade === "0") {
-      newErrors.grade = "Please select Grade.";
-    }
-    if (formData.session === "0") {
-      newErrors.session = "Please select Session.";
-    }
-    if (formData.location === "0") {
-      newErrors.location = "Please select Course/Location.";
-    }
-
-    // Student Email Validation
-    if (formData.userNameType === "S" && !formData.studentEmail.trim()) {
-      newErrors.studentEmail = "Please enter student email";
-    } else if (
-      formData.studentEmail.trim() &&
-      !/^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(
-        formData.studentEmail
-      )
-    ) {
-      newErrors.studentEmail = "Please enter a valid Student Email ID.";
-    }
-
-    // Signature Validation
-    if (!formData.waiverSignature.trim()) {
-      newErrors.waiverSignature = "Please sign the waiver";
-    }
-    if (!formData.ruleSignature.trim()) {
-      newErrors.ruleSignature = "Please Sign.";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-    setSubmitError("");
-
-    try {
-      const response = await studentService.registerStudent(formData);
-      setIsSubmitted(true);
-    } catch (error) {
-      setSubmitError(error.message || "Registration failed. Please try again.");
+      console.error("Registration error:", error);
+      showSnackbar(
+        error.message || "Failed to submit registration. Please try again.",
+        "error"
+      );
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
-
-  if (isSubmitted) {
-    return (
-      <div className="student-registration">
-        <Container maxWidth="lg">
-          {/* Breadcrumbs */}
-          <Box sx={{ mb: 3 }}>
-            <Breadcrumbs aria-label="breadcrumb">
-              <Link color="inherit" href="/" underline="hover">
-                Home
-              </Link>
-              <Link color="inherit" href="/registration" underline="hover">
-                Registration
-              </Link>
-              <Typography color="text.primary">Student Registration</Typography>
-            </Breadcrumbs>
-          </Box>
-
-          <Paper elevation={3} sx={{ p: 4, textAlign: "center" }}>
-            <Typography
-              variant="h4"
-              component="h1"
-              gutterBottom
-              color="primary"
-            >
-              Registration Successful!
-            </Typography>
-            <Typography variant="h6" gutterBottom>
-              {formData.studentFirstName} {formData.studentLastName}'s
-              application has successfully been submitted.
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              We will review it and update your enrollment status by email.
-            </Typography>
-            <Box sx={{ mt: 3 }}>
-              <Button
-                variant="contained"
-                onClick={() => navigate("/")}
-                sx={{ mr: 2 }}
-              >
-                Go Home
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => window.location.reload()}
-              >
-                Register Another Student
-              </Button>
-            </Box>
-          </Paper>
-        </Container>
-      </div>
-    );
-  }
 
   return (
-    <div className="student-registration">
-      <Container maxWidth="lg">
-        {/* Breadcrumbs */}
-        <Box sx={{ mb: 3 }}>
-          <Breadcrumbs aria-label="breadcrumb">
-            <Link color="inherit" href="/" underline="hover">
+    <div className="student-registration-container">
+      {/* Breadcrumbs */}
+      <div className="sc-breadcrumbs breadcrumbs-overlay">
+        <div className="breadcrumbs-img">
+          <img
+            src="/assets/images/about/page-header.jpg"
+            alt="Breadcrumbs Image"
+          />
+        </div>
+        <div className="breadcrumbs-text white-color">
+          <h1 className="page-title">STUDENT REGISTRATION</h1>
+          <nav className="breadcrumb-nav">
+            <Link to="/" className="breadcrumb-link">
               Home
             </Link>
-            <Link color="inherit" href="/registration" underline="hover">
+            <span className="breadcrumb-separator"> &gt; </span>
+            <Link to="/registration" className="breadcrumb-link">
               Registration
             </Link>
-            <Typography color="text.primary">Student Registration</Typography>
-          </Breadcrumbs>
-        </Box>
+            <span className="breadcrumb-separator"> &gt; </span>
+            <span className="breadcrumb-current">Student Registration</span>
+          </nav>
+        </div>
+      </div>
 
-        {/* Page Header */}
-        <Box sx={{ mb: 4, textAlign: "center" }}>
-          <Typography variant="h2" component="h1" gutterBottom>
-            STUDENT REGISTRATION
-          </Typography>
-          <Typography variant="h5" color="text.secondary">
-            Register for New Student
-          </Typography>
-        </Box>
-
-        {/* Important Notice */}
-        <Alert severity="warning" sx={{ mb: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Important Notice
-          </Typography>
-          <Typography variant="body1" paragraph>
-            Registration for the Fall 2024 Semester is now closed due to full
-            capacity. Unfortunately, no more spots are available. We invite you
-            to register for our upcoming Spring 2025 Semester. Thank you for
-            your interest in Agoura Math Circle!
-          </Typography>
-          <Typography variant="body1" paragraph>
-            <strong>
-              Existing students, please do not use this page to register for
-              ONLINE or ONSITE Math Circle classes. Instead, follow the separate
-              registration instructions provided for returning students. This
-              page is for new students only.
-            </strong>
-          </Typography>
-        </Alert>
-
-        <Alert severity="info" sx={{ mb: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Register Now
-          </Typography>
-          <Typography variant="body1">
-            Use this page to register for any type of program (
-            <Link href="/test-preparation" target="_blank" color="primary">
-              Test Preparation- SAT/PSAT and ACT
-            </Link>{" "}
-            and
-            <Link href="/engineering-circle" target="_blank" color="primary">
+      {/* Main Content */}
+      <div className="main-content">
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          {/* Important Notice */}
+          <Paper elevation={2} sx={{ p: 3, mb: 4, backgroundColor: "#fff3cd" }}>
+            <Typography variant="h6" color="error" gutterBottom>
+              <strong>Important:</strong>
+            </Typography>
+            <Typography variant="body2" paragraph>
+              Registration for the Fall 2024 Semester is now closed due to full
+              capacity. Unfortunately, no more spots are available. We invite
+              you to register for our upcoming Spring 2025 Semester. Thank you
+              for your interest in Agoura Math Circle!
+            </Typography>
+            <Typography variant="body2" paragraph color="error">
+              <strong>
+                Existing students, please do not use this page to register for
+                ONLINE or ONSITE Math Circle classes. Instead, follow the
+                separate registration instructions provided for returning
+                students. This page is for new students only.
+              </strong>
+            </Typography>
+            <Typography variant="body2" paragraph color="success.main">
+              <strong>Register Now:</strong> Use this page to register for any
+              type of program (Test Preparation- SAT/PSAT and ACT and
               Engineering circle - Data Science, Game Development and Artificial
-              Intelligence
-            </Link>
-            ), with the exception of existing students registering for a new
-            semester at math circle. Please carefully choose the course and
-            location. After you submit your application, we will review and
-            decide based on the availability of space and eligibility.
-          </Typography>
-        </Alert>
+              Intelligence), with the exception of existing students registering
+              for a new semester at math circle. Please carefully choose the
+              course and location.
+            </Typography>
+          </Paper>
 
-        <Alert severity="error" sx={{ mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Engineering Circle
-          </Typography>
-          <Typography variant="body1">
-            Before you apply for Agoura Engineering Circle, please review the
-            <Link href="/test-preparation" target="_blank" color="primary">
-              {" "}
-              curriculum
-            </Link>
-            and the criteria for eligibility and make an informed decision to
-            see if this is the right class for you. Due to the limited available
-            space and the challenging material, we will conduct an assessment.
-            We will email details regarding this assessment. Based on the
-            eligibility and performance of the student on the exam, we will
-            decide on the student's enrollment.
-          </Typography>
-        </Alert>
+          {/* Main Form - Vertical Layout */}
+          <Paper elevation={3} sx={{ p: 4 }}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <Grid container spacing={4}>
+                {/* Parent Information Section - Full Width */}
+                <Grid item xs={12}>
+                  <Card sx={{ p: 2 }}>
+                    <CardContent>
+                      <Typography
+                        variant="h5"
+                        gutterBottom
+                        sx={{
+                          color: "#174a10",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          mb: 3,
+                        }}
+                      >
+                        Parent{" "}
+                        <span style={{ color: "#1976d2" }}>Information</span>
+                      </Typography>
 
-        {/* Error Alert */}
-        {submitError && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {submitError}
-          </Alert>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={4}>
-            {/* Parent Information */}
-            <Grid item xs={12} md={6}>
-              <Card elevation={2}>
-                <CardContent>
-                  <Typography
-                    variant="h5"
-                    component="h2"
-                    gutterBottom
-                    color="primary"
-                  >
-                    Parent Information
-                  </Typography>
-
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="First Name"
-                        name="parentFirstName"
-                        value={formData.parentFirstName}
-                        onChange={handleInputChange}
-                        error={!!errors.parentFirstName}
-                        helperText={errors.parentFirstName}
-                        margin="normal"
-                        required
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Last Name"
-                        name="parentLastName"
-                        value={formData.parentLastName}
-                        onChange={handleInputChange}
-                        error={!!errors.parentLastName}
-                        helperText={errors.parentLastName}
-                        margin="normal"
-                        required
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Email ID"
-                        name="parentEmail"
-                        type="email"
-                        value={formData.parentEmail}
-                        onChange={handleInputChange}
-                        error={!!errors.parentEmail}
-                        helperText={errors.parentEmail}
-                        margin="normal"
-                        required
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Phone (999-999-9999)"
-                        name="parentPhone"
-                        value={formData.parentPhone}
-                        onChange={handleInputChange}
-                        error={!!errors.parentPhone}
-                        helperText={errors.parentPhone}
-                        margin="normal"
-                        required
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="City"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        error={!!errors.city}
-                        helperText={errors.city}
-                        margin="normal"
-                        required
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="State"
-                        name="state"
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        error={!!errors.state}
-                        helperText={errors.state}
-                        margin="normal"
-                        required
-                      />
-                    </Grid>
-
-                    <Grid item xs={12}>
-                      <FormControl fullWidth margin="normal">
-                        <InputLabel>Country</InputLabel>
-                        <Select
-                          name="country"
-                          value={formData.country}
-                          onChange={handleInputChange}
-                          label="Country"
-                        >
-                          {countries.map((country) => (
-                            <MenuItem key={country.value} value={country.value}>
-                              {country.text}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-
-                    <Grid item xs={12}>
-                      <FormControl component="fieldset" margin="normal">
-                        <FormLabel component="legend">User Name</FormLabel>
-                        <RadioGroup
-                          name="userNameType"
-                          value={formData.userNameType}
-                          onChange={handleInputChange}
-                        >
-                          <FormControlLabel
-                            value="P"
-                            control={<Radio />}
-                            label="Parent Email as User Name"
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="parentFirstName"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="First Name *"
+                                error={!!errors.parentFirstName}
+                                helperText={errors.parentFirstName?.message}
+                                variant="outlined"
+                              />
+                            )}
                           />
-                          <FormControlLabel
-                            value="S"
-                            control={<Radio />}
-                            label="Student Email as User Name"
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="parentLastName"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Last Name *"
+                                error={!!errors.parentLastName}
+                                helperText={errors.parentLastName?.message}
+                                variant="outlined"
+                              />
+                            )}
                           />
-                        </RadioGroup>
-                      </FormControl>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
+                        </Grid>
 
-            {/* Student Information */}
-            <Grid item xs={12} md={6}>
-              <Card elevation={2}>
-                <CardContent>
-                  <Typography
-                    variant="h5"
-                    component="h2"
-                    gutterBottom
-                    color="primary"
+                        <Grid item xs={12}>
+                          <Controller
+                            name="parentEmail"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Email ID *"
+                                type="email"
+                                error={!!errors.parentEmail}
+                                helperText={errors.parentEmail?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Controller
+                            name="parentPhoneNo"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Phone (999-999-9999) *"
+                                placeholder="999-999-9999"
+                                error={!!errors.parentPhoneNo}
+                                helperText={errors.parentPhoneNo?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={4}>
+                          <Controller
+                            name="city"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="City *"
+                                error={!!errors.city}
+                                helperText={errors.city?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={4}>
+                          <Controller
+                            name="state"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="State *"
+                                error={!!errors.state}
+                                helperText={errors.state?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={4}>
+                          <Controller
+                            name="country"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControl fullWidth error={!!errors.country}>
+                                <InputLabel>Country *</InputLabel>
+                                <Select {...field} label="Country *">
+                                  {countries.map((country) => (
+                                    <MenuItem
+                                      key={country.value}
+                                      value={country.value}
+                                    >
+                                      {country.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                {errors.country && (
+                                  <FormHelperText>
+                                    {errors.country.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Controller
+                            name="userName"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControl
+                                component="fieldset"
+                                error={!!errors.userName}
+                              >
+                                <Typography variant="subtitle2" gutterBottom>
+                                  User Name *
+                                </Typography>
+                                <RadioGroup {...field} row>
+                                  <FormControlLabel
+                                    value="P"
+                                    control={<Radio />}
+                                    label="Parent Email as User Name"
+                                  />
+                                  <FormControlLabel
+                                    value="S"
+                                    control={<Radio />}
+                                    label="Student Email as User Name"
+                                  />
+                                </RadioGroup>
+                                {errors.userName && (
+                                  <FormHelperText>
+                                    {errors.userName.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Student Information Section - Full Width */}
+                <Grid item xs={12}>
+                  <Card sx={{ p: 2 }}>
+                    <CardContent>
+                      <Typography
+                        variant="h5"
+                        gutterBottom
+                        sx={{
+                          color: "#174a10",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          mb: 3,
+                        }}
+                      >
+                        Student{" "}
+                        <span style={{ color: "#1976d2" }}>Information</span>
+                      </Typography>
+
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="studentFirstName"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Student First Name *"
+                                error={!!errors.studentFirstName}
+                                helperText={errors.studentFirstName?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="studentLastName"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Student Last Name *"
+                                error={!!errors.studentLastName}
+                                helperText={errors.studentLastName?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Controller
+                            name="studentEmail"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Student Email ID"
+                                type="email"
+                                error={!!errors.studentEmail}
+                                helperText={
+                                  errors.studentEmail?.message ||
+                                  (userNameOption === "S"
+                                    ? "Required when using student email as username"
+                                    : "Optional")
+                                }
+                                variant="outlined"
+                                required={userNameOption === "S"}
+                              />
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Controller
+                            name="studentSchoolName"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="School *"
+                                error={!!errors.studentSchoolName}
+                                helperText={errors.studentSchoolName?.message}
+                                variant="outlined"
+                              />
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="studentGrade"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControl
+                                fullWidth
+                                error={!!errors.studentGrade}
+                              >
+                                <InputLabel>Grade *</InputLabel>
+                                <Select {...field} label="Grade *">
+                                  <MenuItem value="0">
+                                    <em>--Select--</em>
+                                  </MenuItem>
+                                  {grades.map((grade) => (
+                                    <MenuItem
+                                      key={grade.value}
+                                      value={grade.value}
+                                    >
+                                      {grade.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                {errors.studentGrade && (
+                                  <FormHelperText>
+                                    {errors.studentGrade.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="sessionId"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControl fullWidth error={!!errors.sessionId}>
+                                <InputLabel>Register For *</InputLabel>
+                                <Select {...field} label="Register For *">
+                                  <MenuItem value="0">
+                                    <em>--Select--</em>
+                                  </MenuItem>
+                                  {sessions.map((session) => (
+                                    <MenuItem
+                                      key={session.id}
+                                      value={session.id}
+                                    >
+                                      {session.name}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                {errors.sessionId && (
+                                  <FormHelperText>
+                                    {errors.sessionId.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                            )}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Controller
+                            name="locationId"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControl
+                                fullWidth
+                                error={!!errors.locationId}
+                              >
+                                <InputLabel>Course/Location *</InputLabel>
+                                <Select {...field} label="Course/Location *">
+                                  <MenuItem value={0}>
+                                    <em>--Select--</em>
+                                  </MenuItem>
+                                  {locations.map((location) => (
+                                    <MenuItem
+                                      key={location.id}
+                                      value={location.id}
+                                    >
+                                      {location.name}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                {errors.locationId && (
+                                  <FormHelperText>
+                                    {errors.locationId.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Signatures and Agreements Section - Full Width */}
+                <Grid item xs={12}>
+                  <Card sx={{ p: 2, mt: 2 }}>
+                    <CardContent>
+                      <Typography
+                        variant="h5"
+                        gutterBottom
+                        sx={{
+                          color: "#174a10",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          mb: 3,
+                        }}
+                      >
+                        Agreements &{" "}
+                        <span style={{ color: "#1976d2" }}>Signatures</span>
+                      </Typography>
+
+                      <Grid container spacing={3}>
+                        <Grid item xs={12}>
+                          <Typography variant="body2" paragraph>
+                            Pressing the "Submit" button I agree the Agoura Math
+                            Circle{" "}
+                            <Link href="#" color="primary">
+                              Terms
+                            </Link>{" "}
+                            and{" "}
+                            <Link href="#" color="primary">
+                              Rules
+                            </Link>
+                          </Typography>
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="liabilitySignature"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Liability Signature *"
+                                error={!!errors.liabilitySignature}
+                                helperText={errors.liabilitySignature?.message}
+                                variant="outlined"
+                                placeholder="Enter your full name"
+                              />
+                            )}
+                          />
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ mt: 1, display: "block" }}
+                          >
+                            DO NOT SIGN WITHOUT READING. I HAVE READ THIS
+                            ASSUMPTION OF RISK, WAIVER OF LIABILITY AND
+                            INDEMNITY AGREEMENT AND AGREE TO ITS TERMS.
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ mt: 1, display: "block" }}
+                          >
+                            By printing your name in the box and pressing the
+                            submit button, I acknowledge that I have read and am
+                            electronically signing the Waiver of Liability,
+                            Assumption of Risk and Indemnity Agreement on behalf
+                            of myself or my dependent minor participant.
+                          </Typography>
+                        </Grid>
+
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name="ruleSignature"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Rule Signature *"
+                                error={!!errors.ruleSignature}
+                                helperText={errors.ruleSignature?.message}
+                                variant="outlined"
+                                placeholder="Enter your full name"
+                              />
+                            )}
+                          />
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ mt: 1, display: "block" }}
+                          >
+                            By printing your name in the box and pressing the
+                            submit button, I acknowledge that I have read and am
+                            electronically signing the Agoura Math Circle Rules
+                            and Expectations on behalf of myself or my dependent
+                            minor participant.
+                          </Typography>
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Controller
+                            name="picturePermission"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    {...field}
+                                    checked={field.value}
+                                    color="primary"
+                                  />
+                                }
+                                label={
+                                  <Typography variant="body2">
+                                    I give permission to use the
+                                    pictures/videos. Occasionally, we take
+                                    pictures at AMC meetings, which may be used
+                                    for publicity purposes [e.g.: posted on our
+                                    web site or used in a brochure about AMC.]
+                                  </Typography>
+                                }
+                              />
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Submit Button - Full Width */}
+                <Grid item xs={12}>
+                  <Box
+                    sx={{ display: "flex", justifyContent: "center", mt: 4 }}
                   >
-                    Student Information
-                  </Typography>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      size="large"
+                      disabled={loading}
+                      sx={{
+                        minWidth: 250,
+                        py: 1.5,
+                        fontSize: "1.1rem",
+                        fontWeight: "bold",
+                        backgroundColor: "#1976d2",
+                        "&:hover": {
+                          backgroundColor: "#1565c0",
+                        },
+                      }}
+                    >
+                      {loading ? (
+                        <CircularProgress size={24} color="inherit" />
+                      ) : (
+                        "Submit"
+                      )}
+                    </Button>
+                  </Box>
+                </Grid>
+              </Grid>
+            </form>
+          </Paper>
 
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Student First Name"
-                        name="studentFirstName"
-                        value={formData.studentFirstName}
-                        onChange={handleInputChange}
-                        error={!!errors.studentFirstName}
-                        helperText={errors.studentFirstName}
-                        margin="normal"
-                        required
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Student Last Name"
-                        name="studentLastName"
-                        value={formData.studentLastName}
-                        onChange={handleInputChange}
-                        error={!!errors.studentLastName}
-                        helperText={errors.studentLastName}
-                        margin="normal"
-                        required
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Student Email ID"
-                        name="studentEmail"
-                        type="email"
-                        value={formData.studentEmail}
-                        onChange={handleInputChange}
-                        error={!!errors.studentEmail}
-                        helperText={errors.studentEmail}
-                        margin="normal"
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="School"
-                        name="school"
-                        value={formData.school}
-                        onChange={handleInputChange}
-                        error={!!errors.school}
-                        helperText={errors.school}
-                        margin="normal"
-                        required
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <FormControl
-                        fullWidth
-                        margin="normal"
-                        error={!!errors.grade}
-                      >
-                        <InputLabel>Grade</InputLabel>
-                        <Select
-                          name="grade"
-                          value={formData.grade}
-                          onChange={handleInputChange}
-                          label="Grade"
-                        >
-                          {grades.map((grade) => (
-                            <MenuItem key={grade.value} value={grade.value}>
-                              {grade.text}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                        {errors.grade && (
-                          <FormHelperText>{errors.grade}</FormHelperText>
-                        )}
-                      </FormControl>
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <FormControl
-                        fullWidth
-                        margin="normal"
-                        error={!!errors.session}
-                      >
-                        <InputLabel>Register For</InputLabel>
-                        <Select
-                          name="session"
-                          value={formData.session}
-                          onChange={handleInputChange}
-                          label="Register For"
-                        >
-                          {sessions.map((session) => (
-                            <MenuItem key={session.value} value={session.value}>
-                              {session.text}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                        {errors.session && (
-                          <FormHelperText>{errors.session}</FormHelperText>
-                        )}
-                      </FormControl>
-                    </Grid>
-
-                    <Grid item xs={12}>
-                      <FormControl
-                        fullWidth
-                        margin="normal"
-                        error={!!errors.location}
-                      >
-                        <InputLabel>Course/Location</InputLabel>
-                        <Select
-                          name="location"
-                          value={formData.location}
-                          onChange={handleInputChange}
-                          label="Course/Location"
-                        >
-                          {locations.map((location) => (
-                            <MenuItem
-                              key={location.value}
-                              value={location.value}
-                            >
-                              {location.text}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                        {errors.location && (
-                          <FormHelperText>{errors.location}</FormHelperText>
-                        )}
-                      </FormControl>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-
-          {/* Terms and Signatures */}
-          <Card elevation={2} sx={{ mt: 4 }}>
-            <CardContent>
-              <Typography
-                variant="h5"
-                component="h2"
-                gutterBottom
-                color="primary"
-              >
-                Terms and Signatures
-              </Typography>
-
-              <Typography variant="body1" paragraph>
-                Pressing the "Submit" button I agree the Agoura Math Circle
-                <Button
-                  variant="text"
-                  color="primary"
-                  onClick={() => window.open("#terms-modal", "_blank")}
-                  sx={{ mx: 1 }}
-                >
-                  Terms
-                </Button>{" "}
-                and
-                <Button
-                  variant="text"
-                  color="primary"
-                  onClick={() => window.open("#rules-modal", "_blank")}
-                  sx={{ mx: 1 }}
-                >
-                  Rules
-                </Button>
-              </Typography>
-
-              <TextField
-                fullWidth
-                label="Waiver Signature (Liability Signature)*"
-                name="waiverSignature"
-                value={formData.waiverSignature}
-                onChange={handleInputChange}
-                error={!!errors.waiverSignature}
-                helperText={
-                  errors.waiverSignature ||
-                  "DO NOT SIGN WITHOUT READING. I HAVE READ THIS ASSUMPTION OF RISK, WAIVER OF LIABILITY AND INDEMNITY AGREEMENT AND AGREE TO ITS TERMS."
-                }
-                margin="normal"
-                required
-              />
-
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                By printing your name in the box and pressing the submit button,
-                I acknowledge that I have read and am electronically signing the
-                Waiver of Liability, Assumption of Risk and Indemnity Agreement
-                on behalf of myself or my dependent minor participant.
-              </Typography>
-
-              <TextField
-                fullWidth
-                label="Rules Signature*"
-                name="ruleSignature"
-                value={formData.ruleSignature}
-                onChange={handleInputChange}
-                error={!!errors.ruleSignature}
-                helperText={
-                  errors.ruleSignature ||
-                  "By printing your name in the box and pressing the submit button, I acknowledge that I have read and am electronically signing the Agoura Math Circle Rules and Expectations on behalf of myself or my dependent minor participant."
-                }
-                margin="normal"
-                required
-              />
-
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    name="picturePermission"
-                    checked={formData.picturePermission}
-                    onChange={handleInputChange}
-                  />
-                }
-                label="I give permission to use the pictures/videos"
-                sx={{ mt: 2 }}
-              />
-
-              <Typography variant="body2" color="text.secondary">
-                Occasionally, we take pictures at AMC meetings, which may be
-                used for publicity purposes [e.g.: posted on our web site or
-                used in a brochure about AMC.] Do you give us permission to
-                include you in such photographs?
-              </Typography>
-
-              <Box sx={{ mt: 3, textAlign: "center" }}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  disabled={isLoading}
-                  sx={{ minWidth: 200 }}
-                >
-                  {isLoading ? "Submitting..." : "Submit Registration"}
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
-        </form>
-
-        {/* Related Links */}
-        <Box sx={{ mt: 4, textAlign: "center" }}>
-          <Typography variant="h6" gutterBottom>
-            Related Links
-          </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              gap: 2,
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
+          {/* Success/Error Snackbar */}
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={6000}
+            onClose={handleCloseSnackbar}
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
           >
-            <Button
-              variant="outlined"
-              onClick={() => navigate("/volunteerregistration")}
+            <Alert
+              onClose={handleCloseSnackbar}
+              severity={snackbar.severity}
+              sx={{ width: "100%" }}
             >
-              Volunteer Registration
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => navigate("/test-preparation")}
-            >
-              Test Preparation
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => navigate("/engineering-circle")}
-            >
-              Engineering Circle
-            </Button>
-          </Box>
-        </Box>
-      </Container>
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
+        </Container>
+      </div>
     </div>
   );
 };
