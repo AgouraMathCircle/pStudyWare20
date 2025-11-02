@@ -126,5 +126,29 @@ namespace pStudyWare20.Repository.Implementations
                 throw new Exception($"Error adding user tracking: {ex.Message}", ex);
             }
         }
+
+        public async Task<bool> UpdatePasswordAsync(string username, string password)
+        {
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand("AMC_spPasswordUpdate", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                command.Parameters.Add(new SqlParameter("@username", username));
+                command.Parameters.Add(new SqlParameter("@Password", password));
+
+                var rowsAffected = await command.ExecuteNonQueryAsync();
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error updating password: {ex.Message}", ex);
+            }
+        }
     }
 }

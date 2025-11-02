@@ -19,6 +19,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useParams } from "react-router-dom";
 import studentDashboardService from "../../../services/studentDashboardService";
 import { countries } from "../../../constants/countries";
+import StudentHeader from "./StudentHeader";
 
 const UpdateProfile = () => {
   const { user } = useAuth();
@@ -161,182 +162,187 @@ const UpdateProfile = () => {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-        <PersonIcon sx={{ fontSize: 28, color: "#1976d2" }} />
-        <Typography variant="h5" sx={{ fontWeight: 600, color: "#1976d2" }}>
-          Update Your Profile
-        </Typography>
-      </Box>
+    <Box>
+      <StudentHeader user={user} />
+      {/* Spacer to account for fixed StudentHeader */}
+      <Box sx={{ height: "40px" }} />
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        {/* Header */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
+          <PersonIcon sx={{ fontSize: 28, color: "#1976d2" }} />
+          <Typography variant="h5" sx={{ fontWeight: 600, color: "#1976d2" }}>
+            Update Your Profile
+          </Typography>
+        </Box>
 
-      {/* Success Message */}
-      {success && (
-        <Alert severity="success" sx={{ mb: 3 }}>
-          You have updated your profile successfully!
-        </Alert>
-      )}
+        {/* Success Message */}
+        {success && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            You have updated your profile successfully!
+          </Alert>
+        )}
 
-      {/* Error Message */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
+        {/* Error Message */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
 
-      {/* Form */}
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            {/* Student First Name */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Student First Name"
-                name="studentFName"
-                value={formData.studentFName}
-                onChange={handleInputChange}
-                required
-                variant="outlined"
-              />
-            </Grid>
-
-            {/* Student Last Name */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Student Last Name"
-                name="studentLName"
-                value={formData.studentLName}
-                onChange={handleInputChange}
-                required
-                variant="outlined"
-              />
-            </Grid>
-
-            {/* Student Email */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Student Email Address"
-                name="studentEmail"
-                type="email"
-                value={formData.studentEmail}
-                onChange={handleInputChange}
-                required
-                variant="outlined"
-              />
-            </Grid>
-
-            {/* School */}
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="School"
-                name="school"
-                value={formData.school}
-                onChange={handleInputChange}
-                variant="outlined"
-              />
-            </Grid>
-
-            {/* Grade */}
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth variant="outlined">
-                <InputLabel>Grade</InputLabel>
-                <Select
-                  name="grade"
-                  value={formData.grade}
+        {/* Form */}
+        <Paper elevation={3} sx={{ p: 4 }}>
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={3}>
+              {/* Student First Name */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Student First Name"
+                  name="studentFName"
+                  value={formData.studentFName}
                   onChange={handleInputChange}
-                  label="Grade"
-                >
-                  {grades.map((grade) => (
-                    <MenuItem key={grade} value={grade}>
-                      {grade}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
+                  required
+                  variant="outlined"
+                />
+              </Grid>
 
-            {/* Parent Contact Phone */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Parent Contact Phone"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                variant="outlined"
-              />
-            </Grid>
-
-            {/* City */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="City"
-                name="city"
-                value={formData.city}
-                onChange={handleInputChange}
-                variant="outlined"
-              />
-            </Grid>
-
-            {/* State */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="State"
-                name="state"
-                value={formData.state}
-                onChange={handleInputChange}
-                variant="outlined"
-              />
-            </Grid>
-
-            {/* Country */}
-            <Grid item xs={12}>
-              <FormControl fullWidth variant="outlined">
-                <InputLabel>Country</InputLabel>
-                <Select
-                  name="country"
-                  value={formData.country}
+              {/* Student Last Name */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Student Last Name"
+                  name="studentLName"
+                  value={formData.studentLName}
                   onChange={handleInputChange}
-                  label="Country"
-                >
-                  {countries.map((country) => (
-                    <MenuItem key={country.value} value={country.value}>
-                      {country.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
+                  required
+                  variant="outlined"
+                />
+              </Grid>
 
-            {/* Submit Button */}
-            <Grid item xs={12}>
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  disabled={submitting}
-                  sx={{
-                    minWidth: 200,
-                    height: 45,
-                    fontSize: "1rem",
-                  }}
-                >
-                  {submitting ? <CircularProgress size={24} /> : "Submit"}
-                </Button>
-              </Box>
+              {/* Student Email */}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Student Email Address"
+                  name="studentEmail"
+                  type="email"
+                  value={formData.studentEmail}
+                  onChange={handleInputChange}
+                  required
+                  variant="outlined"
+                />
+              </Grid>
+
+              {/* School */}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="School"
+                  name="school"
+                  value={formData.school}
+                  onChange={handleInputChange}
+                  variant="outlined"
+                />
+              </Grid>
+
+              {/* Grade */}
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth variant="outlined">
+                  <InputLabel>Grade</InputLabel>
+                  <Select
+                    name="grade"
+                    value={formData.grade}
+                    onChange={handleInputChange}
+                    label="Grade"
+                  >
+                    {grades.map((grade) => (
+                      <MenuItem key={grade} value={grade}>
+                        {grade}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Parent Contact Phone */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Parent Contact Phone"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                  variant="outlined"
+                />
+              </Grid>
+
+              {/* City */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="City"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  variant="outlined"
+                />
+              </Grid>
+
+              {/* State */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="State"
+                  name="state"
+                  value={formData.state}
+                  onChange={handleInputChange}
+                  variant="outlined"
+                />
+              </Grid>
+
+              {/* Country */}
+              <Grid item xs={12}>
+                <FormControl fullWidth variant="outlined">
+                  <InputLabel>Country</InputLabel>
+                  <Select
+                    name="country"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                    label="Country"
+                  >
+                    {countries.map((country) => (
+                      <MenuItem key={country.value} value={country.value}>
+                        {country.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Submit Button */}
+              <Grid item xs={12}>
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    disabled={submitting}
+                    sx={{
+                      minWidth: 200,
+                      height: 45,
+                      fontSize: "1rem",
+                    }}
+                  >
+                    {submitting ? <CircularProgress size={24} /> : "Submit"}
+                  </Button>
+                </Box>
+              </Grid>
             </Grid>
-          </Grid>
-        </form>
-      </Paper>
-    </Container>
+          </form>
+        </Paper>
+      </Container>
+    </Box>
   );
 };
 

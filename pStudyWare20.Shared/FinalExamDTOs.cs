@@ -55,6 +55,19 @@ namespace pStudyWare20.Shared
 
 
     /// <summary>
+    /// Model for student list request
+    /// </summary>
+    public class StudentListRequest
+    {
+        [Display(Name = "Username")]
+        [Required(ErrorMessage = "Username is required")]
+        public string Username { get; set; } = string.Empty;
+
+        [Display(Name = "Mode")]
+        public string Mode { get; set; } = string.Empty;
+    }
+
+    /// <summary>
     /// Model for exam questions request
     /// </summary>
     public class ExamQuestionsRequest
@@ -248,5 +261,20 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Message")]
         public string Message { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Model for student list response
+    /// </summary>
+    public class StudentListResponse
+    {
+        [Display(Name = "Is Success")]
+        public bool IsSuccess { get; set; }
+
+        [Display(Name = "Error Message")]
+        public string ErrorMessage { get; set; } = string.Empty;
+
+        [Display(Name = "Students")]
+        public List<StudentListItem> Students { get; set; } = new List<StudentListItem>();
     }
 }

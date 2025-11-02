@@ -177,5 +177,54 @@ namespace pStudyWare20.Services.Implementations
                 };
             }
         }
+
+        public async Task<UpdatePasswordResponse> UpdatePasswordAsync(UpdatePasswordRequest request)
+        {
+            try
+            {
+                // Update password using stored procedure AMC_spPasswordUpdate
+                var updateResult = await _memberRepository.UpdatePasswordAsync(request.Username, request.Password);
+
+                if (!updateResult)
+                {
+                    return new UpdatePasswordResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Failed to update password. User not found.",
+                        Username = request.Username
+                    };
+                }
+
+                // Send password changed notification email
+                var emailResult = _emailUtility.SendPasswordChangedEmail(request.Username, request.Password);
+
+                if (emailResult.Contains("Error"))
+                {
+                    // Password was updated but email failed - still return success
+                    return new UpdatePasswordResponse
+                    {
+                        IsSuccess = true,
+                        Message = "You have changed your password successfully, but the email notification failed to send.",
+                        Username = request.Username
+                    };
+                }
+
+                return new UpdatePasswordResponse
+                {
+                    IsSuccess = true,
+                    Message = "You have changed your password successfully",
+                    Username = request.Username
+                };
+            }
+            catch (Exception ex)
+            {
+                return new UpdatePasswordResponse
+                {
+                    IsSuccess = false,
+                    Message = $"An error occurred while updating password: {ex.Message}",
+                    Username = request.Username
+                };
+            }
+        }
     }
 }

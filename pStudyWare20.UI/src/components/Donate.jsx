@@ -77,14 +77,14 @@ const Donate = () => {
 
   // Financial reports data
   const financialReports = [
-    { year: "2023", link: "/documents/Statements/AMC PnL 2023.pdf" },
-    { year: "2022", link: "/documents/Statements/AMC PnL 2022.pdf" },
-    { year: "2021", link: "/documents/Statements/AMC PnL 2021.pdf" },
-    { year: "2020", link: "/documents/Statements/AMC PnL 2020.pdf" },
-    { year: "2019", link: "/documents/Statements/AMC PnL 2019.pdf" },
-    { year: "2018", link: "/documents/Statements/AMC PnL 2018.pdf" },
-    { year: "2017", link: "/documents/Statements/AMC PnL 2017.pdf" },
-    { year: "2016", link: "/documents/Statements/AMC PnL 2016.pdf" },
+    { year: "2023", link: "/pstudyware/Documents/Statements/AMC PnL 2023.pdf" },
+    { year: "2022", link: "/pstudyware/Documents/Statements/AMC PnL 2022.pdf" },
+    { year: "2021", link: "/pstudyware/Documents/Statements/AMC PnL 2021.pdf" },
+    { year: "2020", link: "/pstudyware/Documents/Statements/AMC PnL 2020.pdf" },
+    { year: "2019", link: "/pstudyware/Documents/Statements/AMC PnL 2019.pdf" },
+    { year: "2018", link: "/pstudyware/Documents/Statements/AMC PnL 2018.pdf" },
+    { year: "2017", link: "/pstudyware/Documents/Statements/AMC PnL 2017.pdf" },
+    { year: "2016", link: "/pstudyware/Documents/Statements/AMC PnL 2016.pdf" },
   ];
 
   // Sponsors data
@@ -593,10 +593,15 @@ const Donate = () => {
                   {financialReports.map((report, index) => (
                     <Box
                       key={report.year}
+                      component="a"
+                      href={report.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       sx={{
                         display: "flex",
                         alignItems: "center",
                         py: 1.5,
+                        textDecoration: "none",
                         borderBottom:
                           index < financialReports.length - 1
                             ? "1px solid #e0e0e0"

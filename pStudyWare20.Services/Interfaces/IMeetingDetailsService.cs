@@ -41,12 +41,5 @@ namespace pStudyWare20.Services.Interfaces
         /// <param name="request">Prepare new meeting request</param>
         /// <returns>Prepare new meeting response</returns>
         Task<PrepareNewMeetingResponse> PrepareNewMeetingAsync(PrepareNewMeetingRequest request);
-
-        /// <summary>
-        /// Get meeting details dashboard data
-        /// </summary>
-        /// <param name="request">Meeting details dashboard request</param>
-        /// <returns>Meeting details dashboard response</returns>
-        Task<MeetingDetailsDashboardResponse> GetDashboardDataAsync(MeetingDetailsDashboardRequest request);
     }
 }

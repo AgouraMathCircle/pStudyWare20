@@ -29,6 +29,12 @@ namespace pStudyWare20.Shared
         public DateTime? DateCreated { get; set; }
         public DateTime? LastUpdated { get; set; }
         public bool IsActive { get; set; }
+
+        // Additional fields for dashboard display (matching old ASPX system)
+        public string Program { get; set; } = string.Empty;
+        public string Class { get; set; } = string.Empty;
+        public string EventSession { get; set; } = string.Empty;
+        public string EventLocation { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -38,6 +44,8 @@ namespace pStudyWare20.Shared
     {
         public int ReportCardID { get; set; }
         public int StudentID { get; set; }
+        public string StudentName { get; set; } = string.Empty;
+        public string Group { get; set; } = string.Empty;
         public string Subject { get; set; } = string.Empty;
         public string Grade { get; set; } = string.Empty;
         public decimal? Score { get; set; }
@@ -46,6 +54,10 @@ namespace pStudyWare20.Shared
         public string Comments { get; set; } = string.Empty;
         public DateTime? ExamDate { get; set; }
         public string ExamType { get; set; } = string.Empty;
+        public decimal? TotalCredit { get; set; }
+        public decimal? HighestScore { get; set; }
+        public decimal? ClassAverage { get; set; }
+        public decimal? ReceivedCredit { get; set; }
         public DateTime? DateCreated { get; set; }
     }
 
@@ -103,6 +115,27 @@ namespace pStudyWare20.Shared
         public bool IsSuccess { get; set; }
         public string Message { get; set; } = string.Empty;
         public StudentProfile? StudentProfile { get; set; }
+    }
+
+    /// <summary>
+    /// Request to get multiple student profiles
+    /// </summary>
+    public class GetStudentProfilesRequest
+    {
+        [Required]
+        public string Username { get; set; } = string.Empty;
+        [Required]
+        public int ChapterID { get; set; }
+    }
+
+    /// <summary>
+    /// Response for multiple student profiles
+    /// </summary>
+    public class GetStudentProfilesResponse
+    {
+        public bool IsSuccess { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public List<StudentProfile> StudentProfiles { get; set; } = new List<StudentProfile>();
     }
 
     /// <summary>

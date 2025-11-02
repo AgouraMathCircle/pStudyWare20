@@ -82,6 +82,9 @@ namespace pStudyWare20.Shared
         [Required(ErrorMessage = "Publish status is required")]
         public string Publish { get; set; } = string.Empty;
 
+        [Display(Name = "Video URL")]
+        public string VideoURL { get; set; } = string.Empty;
+
         [Display(Name = "Doc Type")]
         public string DocType { get; set; } = "W";
 
@@ -131,6 +134,9 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Publish")]
         public string Publish { get; set; } = string.Empty;
+
+        [Display(Name = "Video URL")]
+        public string VideoURL { get; set; } = string.Empty;
 
         [Display(Name = "Doc Type")]
         public string DocType { get; set; } = string.Empty;

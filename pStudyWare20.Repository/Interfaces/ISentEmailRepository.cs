@@ -1,24 +1,24 @@
-using pStudyWare20.Shared;
+using System.Data;
 
 namespace pStudyWare20.Repository.Interfaces
 {
     /// <summary>
-    /// Interface for sent email data access operations (matches legacy controller endpoints)
+    /// Repository interface for sent email operations
     /// </summary>
     public interface ISentEmailRepository
     {
         /// <summary>
-        /// Get sent messages using stored procedure
+        /// Get sent messages for a user
         /// </summary>
-        /// <param name="request">Get sent messages request</param>
-        /// <returns>Sent messages data as JSON string</returns>
-        Task<string> GetSentMessagesAsync(GetSentMessagesRequest request);
+        /// <param name="username">Username</param>
+        /// <returns>DataTable with sent messages</returns>
+        Task<DataTable> GetSentMessagesAsync(string username);
 
         /// <summary>
-        /// Get message using stored procedure
+        /// Get specific message details by email ID
         /// </summary>
-        /// <param name="request">Get message request</param>
-        /// <returns>Message data as JSON string</returns>
-        Task<string> GetMessageAsync(GetMessageRequest request);
+        /// <param name="emailId">Email ID</param>
+        /// <returns>DataTable with message details</returns>
+        Task<DataTable> GetMessageDetailsAsync(int emailId);
     }
 }

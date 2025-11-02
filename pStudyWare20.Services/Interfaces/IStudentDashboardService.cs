@@ -22,6 +22,13 @@ namespace pStudyWare20.Services.Interfaces
         Task<GetStudentProfileResponse> GetStudentProfileByIdAsync(int studentID);
 
         /// <summary>
+        /// Gets multiple student profiles for a given username and chapter
+        /// </summary>
+        /// <param name="request">Request containing username and chapter ID</param>
+        /// <returns>Multiple student profiles response</returns>
+        Task<GetStudentProfilesResponse> GetStudentProfilesAsync(GetStudentProfilesRequest request);
+
+        /// <summary>
         /// Gets student report card/grades
         /// </summary>
         /// <param name="request">Request containing username</param>

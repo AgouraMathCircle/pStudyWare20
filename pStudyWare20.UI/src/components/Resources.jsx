@@ -19,6 +19,8 @@ import {
   Business as BusinessIcon,
   Engineering as EngineeringIcon,
   ArrowForward as ArrowIcon,
+  Calculate as MathIcon,
+  MenuBook as BookIcon,
 } from "@mui/icons-material";
 import { Link as RouterLink } from "react-router-dom";
 import "../styles/Resources.css";
@@ -105,7 +107,11 @@ const Resources = () => {
 
           <Grid container className="row row-res">
             <Grid item xs={12}>
-              <Typography variant="h3" className="heading">
+              <Typography
+                variant="h3"
+                className="heading"
+                sx={{ marginBottom: "40px" }}
+              >
                 Helpful{" "}
                 <Box component="span" className="color2">
                   Resources
@@ -116,21 +122,71 @@ const Resources = () => {
 
           <Grid container className="row row-res">
             <Grid item xs={12} lg={8}>
+              <Box className="img-part" sx={{ textAlign: "center", mb: 4 }}>
+                <img src={aboutImage} alt="About AMC" />
+              </Box>
+            </Grid>
+          </Grid>
+
+          <Grid container className="row row-res">
+            <Grid item xs={12} lg={8}>
+              <Typography variant="h4" className="heading">
+                <Box component="span" className="color2">
+                  Research Internships and Volunteering Opportunities
+                </Box>
+              </Typography>
+              <List
+                className="list-styled"
+                sx={{
+                  "& .MuiListItem-root": {
+                    paddingTop: "2px",
+                    paddingBottom: "2px",
+                  },
+                }}
+              >
+                <ListItem>
+                  <ListItemIcon>
+                    <ArrowIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="/pstudyware/Documents/Research_Internships_Volunteering.pdf"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Research Internships and Volunteering Opportunities
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+              </List>
+            </Grid>
+          </Grid>
+
+          <Grid container className="row row-res">
+            <Grid item xs={12} lg={8}>
               <Typography variant="h4" className="heading">
                 <Box component="span" className="color2">
                   College Application Process
                 </Box>
               </Typography>
-              <List className="list-styled">
+              <List
+                className="list-styled"
+                sx={{
+                  "& .MuiListItem-root": {
+                    paddingTop: "2px",
+                    paddingBottom: "2px",
+                  },
+                }}
+              >
                 <ListItem>
                   <ListItemIcon>
                     <DocumentIcon />
                   </ListItemIcon>
                   <ListItemText>
                     <Link
-                      href="documents/CollegeApplication_BragSheet_Template.docx"
+                      href="/pstudyware/Documents/CollegeApplication_BragSheet_Template.docx"
                       target="_blank"
-                      sx={{ color: "primary.main", textDecoration: "none" }}
+                      sx={{ color: "#000000", textDecoration: "none" }}
                     >
                       College Brag Sheet
                     </Link>
@@ -142,9 +198,9 @@ const Resources = () => {
                   </ListItemIcon>
                   <ListItemText>
                     <Link
-                      href="documents/CollegeApplication_Tracker_Template.xlsx"
+                      href="/pstudyware/Documents/CollegeApplication_Tracker_Template.xlsx"
                       target="_blank"
-                      sx={{ color: "primary.main", textDecoration: "none" }}
+                      sx={{ color: "#000000", textDecoration: "none" }}
                     >
                       College Application Tracking
                     </Link>
@@ -161,18 +217,26 @@ const Resources = () => {
                   Medical Pathway
                 </Box>
               </Typography>
-              <List className="list-styled">
+              <List
+                className="list-styled"
+                sx={{
+                  "& .MuiListItem-root": {
+                    paddingTop: "2px",
+                    paddingBottom: "2px",
+                  },
+                }}
+              >
                 <ListItem>
                   <ListItemIcon>
                     <ScienceIcon />
                   </ListItemIcon>
                   <ListItemText>
                     <Link
-                      href="documents/MedicalPathway_Guide.pdf"
+                      href="/pstudyware/Documents/Medical_Pathway_Overview.pdf"
                       target="_blank"
-                      sx={{ color: "primary.main", textDecoration: "none" }}
+                      sx={{ color: "#000000", textDecoration: "none" }}
                     >
-                      Medical School Application Guide
+                      Medical Pathway - Overview
                     </Link>
                   </ListItemText>
                 </ListItem>
@@ -182,11 +246,25 @@ const Resources = () => {
                   </ListItemIcon>
                   <ListItemText>
                     <Link
-                      href="documents/PreMed_Checklist.pdf"
+                      href="/pstudyware/Documents/BSMD_BAMD_Program.pdf"
                       target="_blank"
-                      sx={{ color: "primary.main", textDecoration: "none" }}
+                      sx={{ color: "#000000", textDecoration: "none" }}
                     >
-                      Pre-Med Checklist
+                      BSMD and BAMD Program
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <ScienceIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="/pstudyware/Documents/BSDO_BADO_Program.pdf"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      BSDO and BADO Program
                     </Link>
                   </ListItemText>
                 </ListItem>
@@ -198,35 +276,297 @@ const Resources = () => {
             <Grid item xs={12} lg={8}>
               <Typography variant="h4" className="heading">
                 <Box component="span" className="color2">
-                  Engineering Pathway
+                  Mathematics Guidelines for Study
                 </Box>
               </Typography>
-              <List className="list-styled">
+              <List
+                className="list-styled"
+                sx={{
+                  "& .MuiListItem-root": {
+                    paddingTop: "2px",
+                    paddingBottom: "2px",
+                  },
+                }}
+              >
                 <ListItem>
                   <ListItemIcon>
-                    <EngineeringIcon />
+                    <MathIcon />
                   </ListItemIcon>
                   <ListItemText>
                     <Link
-                      href="documents/Engineering_Application_Guide.pdf"
+                      href="https://www.amazon.com"
                       target="_blank"
-                      sx={{ color: "primary.main", textDecoration: "none" }}
+                      sx={{ color: "#000000", textDecoration: "none" }}
                     >
-                      Engineering School Application Guide
+                      Complete Kumon Workbooks (Computation, Geometry and Word
+                      Problems) until Grade 6th. Buy ONLINE
                     </Link>
                   </ListItemText>
                 </ListItem>
                 <ListItem>
                   <ListItemIcon>
-                    <EngineeringIcon />
+                    <MathIcon />
                   </ListItemIcon>
                   <ListItemText>
                     <Link
-                      href="documents/Engineering_Projects_Portfolio.pdf"
+                      href="https://www.amazon.com"
                       target="_blank"
-                      sx={{ color: "primary.main", textDecoration: "none" }}
+                      sx={{ color: "#000000", textDecoration: "none" }}
                     >
-                      Engineering Projects Portfolio Guide
+                      Complete CliffsStudySolver Basic Math and Pre-Algebra. Buy
+                      ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Complete The Art of Problem Solving, Pre-Algebra. Buy
+                      ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Complete CliffsStudySolver Algebra I. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Complete CliffsStudySolver Algebra II. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Complete CliffsStudySolver Geometry. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Complete CliffsStudySolver Trigonometry. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Complete The Art of Problem Solving, Introduction to
+                      Counting & Probability. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Complete The Art of Problem Solving, Precalculus. Buy
+                      ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      The Geometry Problem Solver. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Algebra & Trigonometry Problem Solver. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Pre-Calculus Problem Solver. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+              </List>
+            </Grid>
+            <Grid item xs={12} lg={4}>
+              <Box className="img-part" sx={{ textAlign: "center", mt: 2 }}>
+                <img src={mathImage} alt="Mathematics" className="img-small" />
+              </Box>
+            </Grid>
+          </Grid>
+
+          <Grid container className="row row-res">
+            <Grid item xs={12} lg={8}>
+              <Typography variant="h4" className="heading">
+                <Box component="span" className="color2">
+                  Mathematics Competitions Guides
+                </Box>
+              </Typography>
+              <List
+                className="list-styled"
+                sx={{
+                  "& .MuiListItem-root": {
+                    paddingTop: "2px",
+                    paddingBottom: "2px",
+                  },
+                }}
+              >
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Competition Math for Middle School. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      American Mathematics Competitions 8 Practice. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      American Mathematics Competitions 10 Practice. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Problem-Solving Strategies. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      The Art and Craft of Problem Solving. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <MathIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      First Steps for Math Olympians. Buy ONLINE
                     </Link>
                   </ListItemText>
                 </ListItem>
@@ -238,181 +578,421 @@ const Resources = () => {
             <Grid item xs={12} lg={8}>
               <Typography variant="h4" className="heading">
                 <Box component="span" className="color2">
-                  Business Pathway
+                  SAT/ACT Prep Books
                 </Box>
               </Typography>
-              <List className="list-styled">
+              <List
+                className="list-styled"
+                sx={{
+                  "& .MuiListItem-root": {
+                    paddingTop: "2px",
+                    paddingBottom: "2px",
+                  },
+                }}
+              >
                 <ListItem>
                   <ListItemIcon>
-                    <BusinessIcon />
+                    <BookIcon />
                   </ListItemIcon>
                   <ListItemText>
                     <Link
-                      href="documents/Business_School_Guide.pdf"
+                      href="https://www.amazon.com"
                       target="_blank"
-                      sx={{ color: "primary.main", textDecoration: "none" }}
+                      sx={{ color: "#000000", textDecoration: "none" }}
                     >
-                      Business School Application Guide
+                      SAT Prep Black Book. Buy ONLINE
                     </Link>
                   </ListItemText>
                 </ListItem>
                 <ListItem>
                   <ListItemIcon>
-                    <BusinessIcon />
+                    <BookIcon />
                   </ListItemIcon>
                   <ListItemText>
                     <Link
-                      href="documents/Entrepreneurship_Resources.pdf"
+                      href="https://www.amazon.com"
                       target="_blank"
-                      sx={{ color: "primary.main", textDecoration: "none" }}
+                      sx={{ color: "#000000", textDecoration: "none" }}
                     >
-                      Entrepreneurship Resources
+                      The Complete Guide to SAT Reading. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <BookIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      The College Panda's SAT Writing. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <BookIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Dr. Jang's SAT 800 Math Workbook. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <BookIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      The College Panda's SAT Essay. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <BookIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      ACT Prep Black Book. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <BookIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      The Official ACT Prep Guide. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <BookIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      For the Love of ACT Science. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <BookIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      The College Panda's ACT English. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <BookIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Dr. Jang's SAT* 800 Physics Subject Test. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <BookIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Dr. Jang's SAT 800 Chemistry Subject. Buy ONLINE
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <BookIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.amazon.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      SAT II Mathematics level 2. Buy ONLINE
                     </Link>
                   </ListItemText>
                 </ListItem>
               </List>
             </Grid>
+            <Grid item xs={12} lg={4}>
+              <Box className="img-part" sx={{ textAlign: "center", mt: 2 }}>
+                <img src={satImage} alt="SAT/ACT Prep" className="img-small" />
+              </Box>
+            </Grid>
           </Grid>
 
+          {/* Reference Links Section */}
           <Grid container className="row row-res">
             <Grid item xs={12} lg={8}>
               <Typography variant="h4" className="heading">
                 <Box component="span" className="color2">
-                  Test Preparation
+                  Reference Links
                 </Box>
               </Typography>
-              <List className="list-styled">
+              <List
+                className="list-styled"
+                sx={{
+                  "& .MuiListItem-root": {
+                    paddingTop: "2px",
+                    paddingBottom: "2px",
+                  },
+                }}
+              >
                 <ListItem>
                   <ListItemIcon>
-                    <SchoolIcon />
+                    <ArrowIcon />
                   </ListItemIcon>
                   <ListItemText>
                     <Link
-                      href="documents/SAT_Study_Guide.pdf"
+                      href="https://ocw.mit.edu"
                       target="_blank"
-                      sx={{ color: "primary.main", textDecoration: "none" }}
+                      sx={{ color: "#000000", textDecoration: "none" }}
                     >
-                      SAT Study Guide
+                      MIT Free Math Course
                     </Link>
                   </ListItemText>
                 </ListItem>
                 <ListItem>
                   <ListItemIcon>
-                    <SchoolIcon />
+                    <ArrowIcon />
                   </ListItemIcon>
                   <ListItemText>
                     <Link
-                      href="documents/ACT_Study_Guide.pdf"
+                      href="https://www.khanacademy.org"
                       target="_blank"
-                      sx={{ color: "primary.main", textDecoration: "none" }}
+                      sx={{ color: "#000000", textDecoration: "none" }}
                     >
-                      ACT Study Guide
+                      You can learn anything
                     </Link>
                   </ListItemText>
                 </ListItem>
                 <ListItem>
                   <ListItemIcon>
-                    <SchoolIcon />
+                    <ArrowIcon />
                   </ListItemIcon>
                   <ListItemText>
                     <Link
-                      href="documents/AP_Exam_Resources.pdf"
+                      href="https://artofproblemsolving.com"
                       target="_blank"
-                      sx={{ color: "primary.main", textDecoration: "none" }}
+                      sx={{ color: "#000000", textDecoration: "none" }}
                     >
-                      AP Exam Resources
+                      Art of Problem Solving
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <ArrowIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.nasa.gov"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Science (NASA)
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <ArrowIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.khanacademy.org"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Free Learning Tools
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <ArrowIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.khanacademy.org/math"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Free Math Tutorial
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <ArrowIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.powerprep.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Math Blog
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <ArrowIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.collegeconfidential.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      College Confidential
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <ArrowIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.commonapp.org"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Apply College- Common Application
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <ArrowIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="https://www.magoosh.com"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      SAT Training/Prep-Magoosh
                     </Link>
                   </ListItemText>
                 </ListItem>
               </List>
             </Grid>
+            <Grid item xs={12} lg={4}>
+              <Box className="img-part" sx={{ textAlign: "center", mt: 2 }}>
+                <img src={referenceImage} alt="Reference Links" className="img-small" />
+              </Box>
+            </Grid>
           </Grid>
 
-          {/* Additional Resources Section */}
-          <Grid container spacing={4} sx={{ mt: 4 }}>
-            <Grid item xs={12} md={6}>
-              <Card sx={{ height: "100%", p: 3 }}>
-                <CardContent>
-                  <Typography
-                    variant="h5"
-                    sx={{ mb: 2, color: "primary.main" }}
-                  >
-                    Math Resources
-                  </Typography>
-                  <List>
-                    <ListItem>
-                      <ListItemIcon>
-                        <ArrowIcon />
-                      </ListItemIcon>
-                      <ListItemText>
-                        <Link
-                          href="documents/AMC_Study_Materials.pdf"
-                          target="_blank"
-                          sx={{ color: "primary.main", textDecoration: "none" }}
-                        >
-                          AMC Study Materials
-                        </Link>
-                      </ListItemText>
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <ArrowIcon />
-                      </ListItemIcon>
-                      <ListItemText>
-                        <Link
-                          href="documents/Problem_Solving_Strategies.pdf"
-                          target="_blank"
-                          sx={{ color: "primary.main", textDecoration: "none" }}
-                        >
-                          Problem Solving Strategies
-                        </Link>
-                      </ListItemText>
-                    </ListItem>
-                  </List>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card sx={{ height: "100%", p: 3 }}>
-                <CardContent>
-                  <Typography
-                    variant="h5"
-                    sx={{ mb: 2, color: "primary.main" }}
-                  >
-                    Reference Materials
-                  </Typography>
-                  <List>
-                    <ListItem>
-                      <ListItemIcon>
-                        <ArrowIcon />
-                      </ListItemIcon>
-                      <ListItemText>
-                        <Link
-                          href="documents/College_Application_Timeline.pdf"
-                          target="_blank"
-                          sx={{ color: "primary.main", textDecoration: "none" }}
-                        >
-                          College Application Timeline
-                        </Link>
-                      </ListItemText>
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <ArrowIcon />
-                      </ListItemIcon>
-                      <ListItemText>
-                        <Link
-                          href="documents/Scholarship_Resources.pdf"
-                          target="_blank"
-                          sx={{ color: "primary.main", textDecoration: "none" }}
-                        >
-                          Scholarship Resources
-                        </Link>
-                      </ListItemText>
-                    </ListItem>
-                  </List>
-                </CardContent>
-              </Card>
+          {/* Articles Section */}
+          <Grid container className="row row-res">
+            <Grid item xs={12} lg={8}>
+              <Typography variant="h4" className="heading">
+                <Box component="span" className="color2">
+                  Articles
+                </Box>
+              </Typography>
+              <List
+                className="list-styled"
+                sx={{
+                  "& .MuiListItem-root": {
+                    paddingTop: "2px",
+                    paddingBottom: "2px",
+                  },
+                }}
+              >
+                <ListItem>
+                  <ListItemIcon>
+                    <BookIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="/pstudyware/Documents/10_Steps_to_Improving_Your_Study_Skills.pdf"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      10 Steps to Improving Your Study Skills
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <BookIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="/pstudyware/Documents/Why_would_a_high_school_senior_choose_MIT_over_Caltech.pdf"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Why would a high school senior choose MIT over Caltech?
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon>
+                    <BookIcon />
+                  </ListItemIcon>
+                  <ListItemText>
+                    <Link
+                      href="/pstudyware/Documents/Caltech_secrets_of_the_worlds_number_one_university.pdf"
+                      target="_blank"
+                      sx={{ color: "#000000", textDecoration: "none" }}
+                    >
+                      Caltech: secrets of the worlds number one university
+                    </Link>
+                  </ListItemText>
+                </ListItem>
+              </List>
             </Grid>
           </Grid>
         </Container>

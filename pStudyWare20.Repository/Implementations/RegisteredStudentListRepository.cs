@@ -124,10 +124,19 @@ namespace pStudyWare20.Repository.Implementations
         {
             try
             {
-                // This would typically call a stored procedure to get chapter locations
-                // For now, returning empty result as the original code uses Utils.BindChapterLocation
-                await Task.Delay(100); // Simulate async operation
-                return new DataTable();
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand("AMC_spSelectChapter", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                var dataTable = new DataTable();
+                using var adapter = new SqlDataAdapter(command);
+                adapter.Fill(dataTable);
+
+                return dataTable;
             }
             catch (Exception ex)
             {

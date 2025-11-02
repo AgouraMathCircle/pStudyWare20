@@ -2,13 +2,12 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using pStudyWare20.Data.Models;
 using pStudyWare20.Repository.Interfaces;
-using pStudyWare20.Shared;
 using System.Data;
 
 namespace pStudyWare20.Repository.Implementations
 {
     /// <summary>
-    /// Repository implementation for sent email data access operations
+    /// Repository implementation for sent email operations
     /// </summary>
     public class SentEmailRepository : ISentEmailRepository
     {
@@ -18,65 +17,74 @@ namespace pStudyWare20.Repository.Implementations
         public SentEmailRepository(AMC_DBContext context, IConfiguration configuration)
         {
             _context = context;
-            _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new ArgumentNullException(nameof(configuration));
+            _connectionString = configuration.GetConnectionString("DefaultConnection")
+                ?? throw new ArgumentNullException(nameof(configuration), "DefaultConnection is not configured");
         }
 
         /// <summary>
-        /// Get sent messages using stored procedure
+        /// Get sent messages for a user
         /// </summary>
-        public async Task<string> GetSentMessagesAsync(GetSentMessagesRequest request)
+        public async Task<DataTable> GetSentMessagesAsync(string username)
         {
+            var dataTable = new DataTable();
+
             try
             {
-                using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
-
-                using var command = new SqlCommand("AMC_spGetSentMessages", connection)
+                using (var connection = new SqlConnection(_connectionString))
                 {
-                    CommandType = CommandType.StoredProcedure
-                };
+                    await connection.OpenAsync();
 
-                command.Parameters.Add(new SqlParameter("@Username", request.Username ?? ""));
+                    using (var command = new SqlCommand("AMC_spGetSentMessages", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@Username", username);
 
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
-
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                        using (var adapter = new SqlDataAdapter(command))
+                        {
+                            adapter.Fill(dataTable);
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error getting sent messages: {ex.Message}", ex);
+                throw new Exception($"Error retrieving sent messages: {ex.Message}", ex);
             }
+
+            return dataTable;
         }
 
         /// <summary>
-        /// Get message using stored procedure
+        /// Get specific message details by email ID
         /// </summary>
-        public async Task<string> GetMessageAsync(GetMessageRequest request)
+        public async Task<DataTable> GetMessageDetailsAsync(int emailId)
         {
+            var dataTable = new DataTable();
+
             try
             {
-                using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
-
-                using var command = new SqlCommand("AMC_spGetMessage", connection)
+                using (var connection = new SqlConnection(_connectionString))
                 {
-                    CommandType = CommandType.StoredProcedure
-                };
+                    await connection.OpenAsync();
 
-                command.Parameters.Add(new SqlParameter("@EmailId", request.EmailId ?? ""));
+                    using (var command = new SqlCommand("AMC_spGetMessageCenter_Message", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@EmailID", emailId);
 
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
-
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                        using (var adapter = new SqlDataAdapter(command))
+                        {
+                            adapter.Fill(dataTable);
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error getting message: {ex.Message}", ex);
+                throw new Exception($"Error retrieving message details: {ex.Message}", ex);
             }
+
+            return dataTable;
         }
     }
 }

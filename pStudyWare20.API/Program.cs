@@ -14,7 +14,11 @@ using System.Reflection;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 
 // Add HttpContextAccessor for IP address tracking
 builder.Services.AddHttpContextAccessor();
@@ -96,6 +100,7 @@ builder.Services.AddScoped<ITimeSheetTrackingRepository, TimeSheetTrackingReposi
 builder.Services.AddScoped<IVolunteerDashboardRepository, VolunteerDashboardRepository>();
 builder.Services.AddScoped<IDonateRepository, DonateRepository>();
 builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardRepository>();
+builder.Services.AddScoped<IEmailManagerRepository, EmailManagerRepository>();
 
 // Register Services
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -120,6 +125,7 @@ builder.Services.AddScoped<IVolunteerDashboardService, VolunteerDashboardService
 builder.Services.AddScoped<IDonateService, DonateService>();
 builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
 builder.Services.AddScoped<IEmailUtility, EmailUtility>();
+builder.Services.AddScoped<IEmailManagerService, EmailManagerService>();
 
 // Configure Swagger
 builder.Services.AddEndpointsApiExplorer();

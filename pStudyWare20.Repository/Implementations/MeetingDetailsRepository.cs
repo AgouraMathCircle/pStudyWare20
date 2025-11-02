@@ -22,7 +22,7 @@ namespace pStudyWare20.Repository.Implementations
         }
 
         /// <summary>
-        /// Get meeting schedule list
+        /// Get meeting schedule list (matches legacy - pass "0" as string for all records)
         /// </summary>
         public async Task<object> GetMeetingScheduleListAsync(string rowId)
         {
@@ -36,6 +36,7 @@ namespace pStudyWare20.Repository.Implementations
                     CommandType = CommandType.StoredProcedure
                 };
 
+                // Legacy passes "0" as string to get all records (MeetingDetails.aspx.cs line 57)
                 command.Parameters.Add(new SqlParameter("@RowID", rowId));
 
                 var dataTable = new DataTable();
@@ -120,16 +121,44 @@ namespace pStudyWare20.Repository.Implementations
         }
 
         /// <summary>
-        /// Get chapter locations
+        /// Get chapter locations (uses AMC_spSelectChapter stored procedure)
         /// </summary>
         public async Task<object> GetChapterLocationsAsync(string activeOnly)
         {
             try
             {
-                // This would typically call a stored procedure to get chapter locations
-                // For now, returning empty result as the original code uses Utils.BindChapterLocation
-                await Task.Delay(100); // Simulate async operation
-                return new DataTable();
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand("AMC_spSelectChapter", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                // Add parameter if needed (check stored procedure definition)
+                // command.Parameters.Add(new SqlParameter("@ActiveOnly", activeOnly));
+
+                var dataTable = new DataTable();
+                using var adapter = new SqlDataAdapter(command);
+                adapter.Fill(dataTable);
+
+                // Convert DataTable to List<ChapterLocation> for better structure
+                var chapterLocations = new List<ChapterLocation>();
+
+                if (dataTable.Rows.Count > 0)
+                {
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        chapterLocations.Add(new ChapterLocation
+                        {
+                            ChapterID = row["ChapterID"]?.ToString() ?? "",
+                            ChapterName = row["ChapterName"]?.ToString() ?? "",
+                            Location = row.Table.Columns.Contains("Location") ? row["Location"]?.ToString() ?? "" : ""
+                        });
+                    }
+                }
+
+                return chapterLocations;
             }
             catch (Exception ex)
             {

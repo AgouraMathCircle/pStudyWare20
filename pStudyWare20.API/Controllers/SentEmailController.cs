@@ -1,13 +1,16 @@
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
+using System.Security.Claims;
 
 namespace pStudyWare20.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [EnableCors("AllowReactApp")]
+    [Authorize] // Require authentication for all endpoints
     public class SentEmailController : ControllerBase
     {
         private readonly ISentEmailService _sentEmailService;
@@ -18,23 +21,34 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Get sent messages (matches legacy controller exactly)
+        /// Get sent messages for the current user
         /// </summary>
-        /// <param name="request">Get sent messages request</param>
-        /// <returns>Sent messages list result</returns>
-        [HttpPost]
-        [Route("GetSentMessages")]
-        public object GetSentMessages([FromBody] GetSentMessagesRequest request)
+        /// <param name="username">Username (optional, will use JWT token if not provided)</param>
+        /// <returns>List of sent messages</returns>
+        [HttpGet("GetSentMessages")]
+        public async Task<IActionResult> GetSentMessages([FromQuery] string? username = null)
         {
             try
             {
-                if (!ModelState.IsValid)
+                // Get username from JWT token if not provided
+                var userUsername = username ?? User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+
+                if (string.IsNullOrEmpty(userUsername))
                 {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                    return BadRequest(new { message = "Username is required" });
                 }
 
-                var response = _sentEmailService.GetSentMessages(request);
-                return response;
+                var response = await _sentEmailService.GetSentMessagesAsync(new GetSentMessagesRequest
+                {
+                    Username = userUsername
+                });
+
+                if (!response.IsSuccess)
+                {
+                    return BadRequest(new { message = response.ErrorMessage });
+                }
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -43,52 +57,30 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Get message (matches legacy controller exactly)
+        /// Get specific message details by email ID
         /// </summary>
-        /// <param name="request">Get message request</param>
-        /// <returns>Message detail result</returns>
-        [HttpPost]
-        [Route("GetMessage")]
-        public object GetMessage([FromBody] GetMessageRequest request)
+        /// <param name="emailId">Email ID</param>
+        /// <returns>Message details</returns>
+        [HttpGet("GetMessageDetails/{emailId}")]
+        public async Task<IActionResult> GetMessageDetails(int emailId)
         {
             try
             {
-                if (!ModelState.IsValid)
+                var response = await _sentEmailService.GetMessageDetailsAsync(new GetMessageDetailsRequest
                 {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                    EmailID = emailId
+                });
+
+                if (!response.IsSuccess)
+                {
+                    return BadRequest(new { message = response.ErrorMessage });
                 }
 
-                var response = _sentEmailService.GetMessage(request);
-                return response;
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while getting message", error = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// View email (matches legacy controller exactly)
-        /// </summary>
-        /// <param name="request">View email request</param>
-        /// <returns>View email result</returns>
-        [HttpPost]
-        [Route("ViewEmail")]
-        public object ViewEmail([FromBody] ViewEmailRequest request)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = _sentEmailService.ViewEmail(request);
-                return response;
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while viewing email", error = ex.Message });
+                return StatusCode(500, new { message = "An error occurred while getting message details", error = ex.Message });
             }
         }
     }

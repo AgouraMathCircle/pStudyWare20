@@ -1,0 +1,51 @@
+import React from "react";
+import { Container, Box, Card, CardContent, Typography } from "@mui/material";
+import { VolunteerActivism as VolunteerIcon } from "@mui/icons-material";
+import { useAuth } from "../../../contexts/AuthContext";
+import AdminHeader from "./AdminHeader";
+
+const AdminVolunteers = () => {
+  const { user } = useAuth();
+
+  return (
+    <Box>
+      <AdminHeader user={user} />
+      <Box sx={{ height: "72px" }} />
+      <Container maxWidth="xl" sx={{ mb: 4 }}>
+        <Card elevation={3}>
+          <CardContent sx={{ textAlign: "center", py: 8 }}>
+            <VolunteerIcon
+              sx={{ fontSize: 80, color: "primary.main", mb: 2 }}
+            />
+            <Typography variant="h4" gutterBottom>
+              Volunteers Management
+            </Typography>
+            <Typography variant="body1" color="textSecondary">
+              This page is under development. It will include volunteer
+              management features such as:
+            </Typography>
+            <Box sx={{ mt: 3, textAlign: "left", maxWidth: 600, mx: "auto" }}>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                • View all volunteers
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                • Approve/Reject volunteer applications
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                • Manage volunteer assignments
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                • Track volunteer hours
+              </Typography>
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                • Generate volunteer reports
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      </Container>
+    </Box>
+  );
+};
+
+export default AdminVolunteers;

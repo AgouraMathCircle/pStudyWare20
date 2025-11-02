@@ -1,0 +1,8 @@
+// Student Components
+export { default as StudentDashboard } from "./StudentDashboard";
+export { default as ClassMaterial } from "./ClassMaterial";
+export { default as StudentDocumentList } from "./StudentDocumentList";
+export { default as StudentDocuments } from "./StudentDocuments";
+export { default as UpdateProfile } from "./UpdateProfile";
+export { default as OnlineExam } from "./OnlineExam";
+export { default as ReportCard } from "./ReportCard";

@@ -45,7 +45,7 @@ namespace pStudyWare20.Services.Implementations
                             });
                         }
                     }
-                    response.StudentList = studentList;
+                    response.Students = studentList;
                 }
 
                 response.IsSuccess = true;

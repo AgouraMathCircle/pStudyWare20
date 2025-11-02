@@ -20,12 +20,16 @@ const StudentHeader = ({ user }) => {
       sx={{
         backgroundColor: "#ffffff",
         borderBottom: "2px solid #e9ecef",
-        py: 1,
-        position: "sticky",
-        top: "64px", // Account for Navbar height
+        pt: 2,
+        pb: 0.5,
+        position: "fixed",
+        top: "64px", // Position directly below Navbar
+        left: 0,
+        right: 0,
         zIndex: 1000,
         boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
         backdropFilter: "blur(8px)",
+        width: "100%",
       }}
     >
       <Container maxWidth="xl">
@@ -33,6 +37,7 @@ const StudentHeader = ({ user }) => {
           sx={{
             display: "flex",
             alignItems: "center",
+            justifyContent: "flex-end",
             gap: 2,
           }}
         >
@@ -41,14 +46,19 @@ const StudentHeader = ({ user }) => {
               display: "flex",
               alignItems: "center",
               gap: 1,
+              backgroundColor: "#e3f2fd",
+              px: 2,
+              py: 0.75,
+              borderRadius: 2,
+              boxShadow: "0 2px 4px rgba(25, 118, 210, 0.1)",
             }}
           >
-            <PersonIcon sx={{ fontSize: 16, color: "#6c757d" }} />
+            <PersonIcon sx={{ fontSize: 18, color: "#1976d2" }} />
             <Typography
               variant="body2"
               sx={{
-                color: "#495057",
-                fontWeight: 500,
+                color: "#1565c0",
+                fontWeight: 600,
                 display: { xs: "none", sm: "block" },
               }}
             >
@@ -61,17 +71,27 @@ const StudentHeader = ({ user }) => {
               display: "flex",
               alignItems: "center",
               gap: 1,
+              backgroundColor: "#fff3e0",
+              px: 2,
+              py: 0.75,
+              borderRadius: 2,
+              boxShadow: "0 2px 4px rgba(255, 152, 0, 0.1)",
             }}
           >
-            <CalendarIcon sx={{ fontSize: 16, color: "#6c757d" }} />
+            <CalendarIcon sx={{ fontSize: 18, color: "#f57c00" }} />
             <Typography
               variant="body2"
               sx={{
-                color: "#6c757d",
+                color: "#e65100",
+                fontWeight: 600,
                 display: { xs: "none", sm: "block" },
               }}
             >
-              {new Date().toLocaleDateString()}
+              {new Date().toLocaleDateString('en-US', { 
+                month: 'numeric', 
+                day: 'numeric', 
+                year: 'numeric' 
+              })}
             </Typography>
           </Box>
         </Box>

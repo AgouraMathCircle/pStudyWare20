@@ -368,5 +368,31 @@ namespace pStudyWare20.Services.Implementations
                 return $"Error sending forgot password email: {ex.Message}";
             }
         }
+
+        public string SendPasswordChangedEmail(string email, string newPassword)
+        {
+            try
+            {
+                string adminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
+
+                // Email subject and body matching the original UpdatePassword.aspx.cs
+                string emailSubject = "Agoura Math Circle : Your Password changed.";
+                string emailBody = "You have successfully changed your password<br/>"
+                                + " Your New Password: " + newPassword + "<br/> "
+                                + " Regards<br/>Agoura Math Circle<br/><br/>www.agouramathcircle.org";
+
+                string emailResult = SendEmail(email, adminEmailID, emailSubject, emailBody);
+                if (emailResult.Contains("Error"))
+                {
+                    return emailResult;
+                }
+
+                return "Email sent successfully";
+            }
+            catch (Exception ex)
+            {
+                return $"Error sending password changed email: {ex.Message}";
+            }
+        }
     }
 }

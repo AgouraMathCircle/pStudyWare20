@@ -31,7 +31,7 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spGetInstructorList", connection)
+                using var command = new SqlCommand("AMC_spSelectInstructorList", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
@@ -42,7 +42,19 @@ namespace pStudyWare20.Repository.Implementations
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                // Convert DataTable to a list of dictionaries for proper serialization
+                var rows = new List<Dictionary<string, object>>();
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    var dict = new Dictionary<string, object>();
+                    foreach (DataColumn col in dataTable.Columns)
+                    {
+                        dict[col.ColumnName] = row[col] == DBNull.Value ? null : row[col];
+                    }
+                    rows.Add(dict);
+                }
+
+                return System.Text.Json.JsonSerializer.Serialize(rows);
             }
             catch (Exception ex)
             {
@@ -60,20 +72,21 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spAddOrUpdateInstructor", connection)
+                using var command = new SqlCommand("AMC_spAddInstructor", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
 
                 command.Parameters.Add(new SqlParameter("@InstructorID", request.InstructorID));
-                command.Parameters.Add(new SqlParameter("@FirstName", request.FirstName ?? ""));
-                command.Parameters.Add(new SqlParameter("@LastName", request.LastName ?? ""));
-                command.Parameters.Add(new SqlParameter("@EmailID", request.EmailID ?? ""));
-                command.Parameters.Add(new SqlParameter("@ContactPhone", request.ContactPhone ?? ""));
+                command.Parameters.Add(new SqlParameter("@firstname", request.FirstName ?? ""));
+                command.Parameters.Add(new SqlParameter("@lastname", request.LastName ?? ""));
+                command.Parameters.Add(new SqlParameter("@emailId", request.EmailID ?? ""));
+                command.Parameters.Add(new SqlParameter("@Phone", request.ContactPhone ?? ""));
                 command.Parameters.Add(new SqlParameter("@ChapterID", request.ChapterID ?? ""));
-                command.Parameters.Add(new SqlParameter("@InstructorType", request.InstructorType ?? ""));
+                command.Parameters.Add(new SqlParameter("@Type", request.InstructorType ?? ""));
                 command.Parameters.Add(new SqlParameter("@Class", request.Class ?? ""));
                 command.Parameters.Add(new SqlParameter("@Section", request.Section ?? ""));
+                command.Parameters.Add(new SqlParameter("@MemberStatus", request.MemberStatus ?? "1"));
 
                 var result = await command.ExecuteNonQueryAsync();
                 return result > 0;
@@ -120,7 +133,7 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spExportInstructorListToExcel", connection)
+                using var command = new SqlCommand("AMC_spSelectInstructorList", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };

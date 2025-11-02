@@ -62,7 +62,45 @@ namespace pStudyWare20.Services.Implementations
         }
 
 
-    /// <summary>
+        /// <summary>
+        /// Gets student profile information
+        /// </summary>
+        public async Task<GetStudentProfileResponse> GetStudentProfileAsync(GetStudentProfileRequest request)
+        {
+            try
+            {
+                var dataTable = await _repository.GetStudentProfileAsync(request.Username, request.ChapterID);
+
+                if (dataTable.Rows.Count == 0)
+                {
+                    return new GetStudentProfileResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Student profile not found"
+                    };
+                }
+
+                var studentProfile = MapDataRowToStudentProfile(dataTable.Rows[0]);
+
+                return new GetStudentProfileResponse
+                {
+                    IsSuccess = true,
+                    Message = "Student profile retrieved successfully",
+                    StudentProfile = studentProfile
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GetStudentProfileResponse
+                {
+                    IsSuccess = false,
+                    Message = $"Error retrieving student profile: {ex.Message}"
+                };
+            }
+        }
+
+
+        /// <summary>
         /// Gets student profile information by StudentID
         /// </summary>
         public async Task<GetStudentProfileResponse> GetStudentProfileByIdAsync(int studentID)
@@ -95,6 +133,55 @@ namespace pStudyWare20.Services.Implementations
                 {
                     IsSuccess = false,
                     Message = $"Error retrieving student profile: {ex.Message}"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Gets multiple student profiles for a given username and chapter
+        /// </summary>
+        public async Task<GetStudentProfilesResponse> GetStudentProfilesAsync(GetStudentProfilesRequest request)
+        {
+            try
+            {
+                var dataTable = await _repository.GetStudentProfileAsync(request.Username, request.ChapterID);
+
+                Console.WriteLine($"GetStudentProfilesAsync: Retrieved {dataTable.Rows.Count} rows for username={request.Username}, chapterID={request.ChapterID}");
+
+                if (dataTable.Rows.Count == 0)
+                {
+                    return new GetStudentProfilesResponse
+                    {
+                        IsSuccess = false,
+                        Message = "No student profiles found"
+                    };
+                }
+
+                var studentProfiles = new List<StudentProfile>();
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    var profile = MapDataRowToStudentProfile(row);
+                    Console.WriteLine($"Mapped profile: ID={profile.StudentID}, Name={profile.StudentName}, Program={profile.Program}, Email={profile.Email}");
+                    studentProfiles.Add(profile);
+                }
+
+                Console.WriteLine($"Returning {studentProfiles.Count} student profiles");
+
+                return new GetStudentProfilesResponse
+                {
+                    IsSuccess = true,
+                    Message = "Student profiles retrieved successfully",
+                    StudentProfiles = studentProfiles
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetStudentProfilesAsync: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return new GetStudentProfilesResponse
+                {
+                    IsSuccess = false,
+                    Message = $"Error retrieving student profiles: {ex.Message}"
                 };
             }
         }
@@ -306,43 +393,6 @@ namespace pStudyWare20.Services.Implementations
         }
 
 
-        /// <summary>
-        /// Gets student profile information
-        /// </summary>
-        public async Task<GetStudentProfileResponse> GetStudentProfileAsync(GetStudentProfileRequest request)
-        {
-            try
-            {
-                var dataTable = await _repository.GetStudentProfileAsync(request.Username, request.ChapterID);
-
-                if (dataTable.Rows.Count == 0)
-                {
-                    return new GetStudentProfileResponse
-                    {
-                        IsSuccess = false,
-                        Message = "Student profile not found"
-                    };
-                }
-
-                var studentProfile = MapDataRowToStudentProfile(dataTable.Rows[0]);
-
-                return new GetStudentProfileResponse
-                {
-                    IsSuccess = true,
-                    Message = "Student profile retrieved successfully",
-                    StudentProfile = studentProfile
-                };
-            }
-            catch (Exception ex)
-            {
-                return new GetStudentProfileResponse
-                {
-                    IsSuccess = false,
-                    Message = $"Error retrieving student profile: {ex.Message}"
-                };
-            }
-        }
-
 
         ///// <summary>
         ///// Gets complete dashboard data for student
@@ -400,16 +450,59 @@ namespace pStudyWare20.Services.Implementations
 
         private static StudentProfile MapDataRowToStudentProfile(DataRow row)
         {
+            // Debug: Log available columns
+            var availableColumns = new List<string>();
+            foreach (System.Data.DataColumn column in row.Table.Columns)
+            {
+                availableColumns.Add(column.ColumnName);
+            }
+            Console.WriteLine($"Available columns in DataTable: {string.Join(", ", availableColumns)}");
+
+            // Try multiple possible email column names
+            string email = string.Empty;
+            string parentEmail = string.Empty;
+            string studentEmail = string.Empty;
+
+            // Check various possible email column names
+            if (row.Table.Columns.Contains("EmailAddress"))
+                email = row["EmailAddress"]?.ToString() ?? string.Empty;
+            else if (row.Table.Columns.Contains("Email"))
+                email = row["Email"]?.ToString() ?? string.Empty;
+            else if (row.Table.Columns.Contains("EmailID"))
+                email = row["EmailID"]?.ToString() ?? string.Empty;
+            else if (row.Table.Columns.Contains("email"))
+                email = row["email"]?.ToString() ?? string.Empty;
+
+            if (row.Table.Columns.Contains("ParentEmailAddress"))
+                parentEmail = row["ParentEmailAddress"]?.ToString() ?? string.Empty;
+            else if (row.Table.Columns.Contains("ParentEmail"))
+                parentEmail = row["ParentEmail"]?.ToString() ?? string.Empty;
+            else if (row.Table.Columns.Contains("ParentEmailID"))
+                parentEmail = row["ParentEmailID"]?.ToString() ?? string.Empty;
+            else if (row.Table.Columns.Contains("Parent_Email"))
+                parentEmail = row["Parent_Email"]?.ToString() ?? string.Empty;
+
+            if (row.Table.Columns.Contains("StudentEmailAddress"))
+                studentEmail = row["StudentEmailAddress"]?.ToString() ?? string.Empty;
+            else if (row.Table.Columns.Contains("StudentEmail"))
+                studentEmail = row["StudentEmail"]?.ToString() ?? string.Empty;
+            else if (row.Table.Columns.Contains("StudentEmailID"))
+                studentEmail = row["StudentEmailID"]?.ToString() ?? string.Empty;
+            else if (row.Table.Columns.Contains("Student_Email"))
+                studentEmail = row["Student_Email"]?.ToString() ?? string.Empty;
+
+            Console.WriteLine($"Email fields found - Email: '{email}', ParentEmail: '{parentEmail}', StudentEmail: '{studentEmail}'");
+
             return new StudentProfile
             {
                 StudentID = row.Table.Columns.Contains("StudentID") ? Convert.ToInt32(row["StudentID"]) : 0,
                 StudentFName = row.Table.Columns.Contains("StudentFName") ? row["StudentFName"]?.ToString() ?? string.Empty : string.Empty,
                 StudentLName = row.Table.Columns.Contains("StudentLName") ? row["StudentLName"]?.ToString() ?? string.Empty : string.Empty,
                 StudentName = row.Table.Columns.Contains("StudentName") ? row["StudentName"]?.ToString() ?? string.Empty : string.Empty,
-                StudentEmail = row.Table.Columns.Contains("StudentEmail") ? row["StudentEmail"]?.ToString() ?? string.Empty : string.Empty,
+                StudentEmail = studentEmail,
                 Grade = row.Table.Columns.Contains("Grade") ? row["Grade"]?.ToString() ?? string.Empty : string.Empty,
                 School = row.Table.Columns.Contains("School") ? row["School"]?.ToString() ?? string.Empty : string.Empty,
-                Email = row.Table.Columns.Contains("Email") ? row["Email"]?.ToString() ?? string.Empty : string.Empty,
+                Email = email,
                 Phone = row.Table.Columns.Contains("Phone") ? row["Phone"]?.ToString() ?? string.Empty : string.Empty,
                 PhoneNumber = row.Table.Columns.Contains("PhoneNumber") ? row["PhoneNumber"]?.ToString() ?? string.Empty : string.Empty,
                 Address = row.Table.Columns.Contains("Address") ? row["Address"]?.ToString() ?? string.Empty : string.Empty,
@@ -419,11 +512,16 @@ namespace pStudyWare20.Services.Implementations
                 ZipCode = row.Table.Columns.Contains("ZipCode") ? row["ZipCode"]?.ToString() ?? string.Empty : string.Empty,
                 DateOfBirth = row.Table.Columns.Contains("DateOfBirth") && row["DateOfBirth"] != DBNull.Value ? Convert.ToDateTime(row["DateOfBirth"]) : null,
                 ParentName = row.Table.Columns.Contains("ParentName") ? row["ParentName"]?.ToString() ?? string.Empty : string.Empty,
-                ParentEmail = row.Table.Columns.Contains("ParentEmail") ? row["ParentEmail"]?.ToString() ?? string.Empty : string.Empty,
+                ParentEmail = parentEmail,
                 ParentPhone = row.Table.Columns.Contains("ParentPhone") ? row["ParentPhone"]?.ToString() ?? string.Empty : string.Empty,
                 DateCreated = row.Table.Columns.Contains("DateCreated") && row["DateCreated"] != DBNull.Value ? Convert.ToDateTime(row["DateCreated"]) : null,
                 LastUpdated = row.Table.Columns.Contains("LastUpdated") && row["LastUpdated"] != DBNull.Value ? Convert.ToDateTime(row["LastUpdated"]) : null,
-                IsActive = row.Table.Columns.Contains("IsActive") ? Convert.ToBoolean(row["IsActive"]) : true
+                IsActive = row.Table.Columns.Contains("IsActive") ? Convert.ToBoolean(row["IsActive"]) : true,
+                // Additional fields for dashboard display
+                Program = row.Table.Columns.Contains("Program") ? row["Program"]?.ToString() ?? string.Empty : string.Empty,
+                Class = row.Table.Columns.Contains("Class") ? row["Class"]?.ToString() ?? string.Empty : string.Empty,
+                EventSession = row.Table.Columns.Contains("EventSession") ? row["EventSession"]?.ToString() ?? string.Empty : string.Empty,
+                EventLocation = row.Table.Columns.Contains("EventLocation") ? row["EventLocation"]?.ToString() ?? string.Empty : string.Empty
             };
         }
 
@@ -433,6 +531,8 @@ namespace pStudyWare20.Services.Implementations
             {
                 ReportCardID = row.Table.Columns.Contains("ReportCardID") ? Convert.ToInt32(row["ReportCardID"]) : 0,
                 StudentID = row.Table.Columns.Contains("StudentID") ? Convert.ToInt32(row["StudentID"]) : 0,
+                StudentName = row.Table.Columns.Contains("StudentName") ? row["StudentName"]?.ToString() ?? string.Empty : string.Empty,
+                Group = row.Table.Columns.Contains("Group") ? row["Group"]?.ToString() ?? string.Empty : string.Empty,
                 Subject = row.Table.Columns.Contains("Subject") ? row["Subject"]?.ToString() ?? string.Empty : string.Empty,
                 Grade = row.Table.Columns.Contains("Grade") ? row["Grade"]?.ToString() ?? string.Empty : string.Empty,
                 Score = row.Table.Columns.Contains("Score") && row["Score"] != DBNull.Value ? Convert.ToDecimal(row["Score"]) : null,
@@ -441,6 +541,10 @@ namespace pStudyWare20.Services.Implementations
                 Comments = row.Table.Columns.Contains("Comments") ? row["Comments"]?.ToString() ?? string.Empty : string.Empty,
                 ExamDate = row.Table.Columns.Contains("ExamDate") && row["ExamDate"] != DBNull.Value ? Convert.ToDateTime(row["ExamDate"]) : null,
                 ExamType = row.Table.Columns.Contains("ExamType") ? row["ExamType"]?.ToString() ?? string.Empty : string.Empty,
+                TotalCredit = row.Table.Columns.Contains("TotalCredit") && row["TotalCredit"] != DBNull.Value ? Convert.ToDecimal(row["TotalCredit"]) : null,
+                HighestScore = row.Table.Columns.Contains("HighestScore") && row["HighestScore"] != DBNull.Value ? Convert.ToDecimal(row["HighestScore"]) : null,
+                ClassAverage = row.Table.Columns.Contains("ClassAverage") && row["ClassAverage"] != DBNull.Value ? Convert.ToDecimal(row["ClassAverage"]) : null,
+                ReceivedCredit = row.Table.Columns.Contains("ReceivedCredit") && row["ReceivedCredit"] != DBNull.Value ? Convert.ToDecimal(row["ReceivedCredit"]) : null,
                 DateCreated = row.Table.Columns.Contains("DateCreated") && row["DateCreated"] != DBNull.Value ? Convert.ToDateTime(row["DateCreated"]) : null
             };
         }

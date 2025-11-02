@@ -21,30 +21,6 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Get meeting schedule list (matches BindGridView method)
-        /// </summary>
-        /// <param name="request">Meeting schedule list request</param>
-        /// <returns>Meeting schedule list response</returns>
-        [HttpPost("GetMeetingScheduleList")]
-        public async Task<IActionResult> GetMeetingScheduleList([FromBody] MeetingScheduleListRequest request)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = await _meetingDetailsService.GetMeetingScheduleListAsync(request);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while getting meeting schedule list", error = ex.Message });
-            }
-        }
-
-        /// <summary>
         /// Get specific meeting schedule by ID (matches btnEdit_Click method)
         /// </summary>
         /// <param name="request">Get meeting schedule request</param>
@@ -143,25 +119,6 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Get meeting details dashboard data (combines multiple data sources for efficiency)
-        /// </summary>
-        /// <returns>Meeting details dashboard response</returns>
-        [HttpGet("GetDashboardData")]
-        public async Task<IActionResult> GetDashboardData()
-        {
-            try
-            {
-                var request = new MeetingDetailsDashboardRequest();
-                var response = await _meetingDetailsService.GetDashboardDataAsync(request);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while getting meeting details dashboard data", error = ex.Message });
-            }
-        }
-
-        /// <summary>
         /// Check if user has meeting details privileges
         /// </summary>
         /// <returns>Meeting details privilege status</returns>
@@ -231,6 +188,25 @@ namespace pStudyWare20.API.Controllers
                 };
 
                 var response = await _meetingDetailsService.GetMeetingScheduleListAsync(request);
+
+                // Remove admin credentials for non-admin users
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+                var memberType = User.FindFirst("MemberType")?.Value ?? "";
+                var isAdmin = userRole == "Admin" || userRole == "SystemAdmin" || memberType == "A";
+
+                if (!isAdmin && response.IsSuccess && response.MeetingSchedules != null)
+                {
+                    // Clear admin credentials for students/non-admins
+                    if (response.MeetingSchedules is List<MeetingSchedule> scheduleList)
+                    {
+                        foreach (var schedule in scheduleList)
+                        {
+                            schedule.AdminLogin = "";
+                            schedule.AdminPassCode = "";
+                        }
+                    }
+                }
+
                 return Ok(response);
             }
             catch (Exception ex)
