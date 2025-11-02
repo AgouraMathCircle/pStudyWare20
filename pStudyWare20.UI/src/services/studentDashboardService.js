@@ -59,6 +59,25 @@ const studentDashboardService = {
   },
 
   /**
+   * Gets multiple student profiles
+   * @param {string} username - Student username
+   * @param {number} chapterId - Chapter ID
+   * @returns {Promise<object>} Multiple student profiles data
+   */
+  getStudentProfiles: async (username, chapterId) => {
+    try {
+      const response = await api.get(
+        `${STUDENT_DASHBOARD_API_BASE_URL}/GetStudentProfiles/${username}/${chapterId}`
+      );
+      console.log("API Response (multiple profiles):", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching student profiles:", error);
+      throw error;
+    }
+  },
+
+  /**
    * Gets student report card/grades
    * @param {string} username - Student username
    * @returns {Promise<object>} Report card data

@@ -66,8 +66,25 @@ namespace pStudyWare20.Shared
         [Display(Name = "Error Message")]
         public string ErrorMessage { get; set; } = string.Empty;
 
-        [Display(Name = "Student List")]
-        public object StudentList { get; set; } = new object();
+        [Display(Name = "Students")]
+        public List<StudentInfo> Students { get; set; } = new List<StudentInfo>();
+    }
+
+    /// <summary>
+    /// Model for student information
+    /// </summary>
+    public class StudentInfo
+    {
+        public int StudentID { get; set; }
+        public string StudentName { get; set; } = string.Empty;
+        public string Class { get; set; } = string.Empty;
+        public string Grade { get; set; } = string.Empty;
+        public string School { get; set; } = string.Empty;
+        public string ParentName { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string EmailAddress { get; set; } = string.Empty;
+        public string EventSession { get; set; } = string.Empty;
+        public string EventLocation { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -81,8 +98,19 @@ namespace pStudyWare20.Shared
         [Display(Name = "Error Message")]
         public string ErrorMessage { get; set; } = string.Empty;
 
-        [Display(Name = "Tracking Summary")]
-        public object TrackingSummary { get; set; } = new object();
+        [Display(Name = "Tracking Data")]
+        public List<UserTrackingData> TrackingData { get; set; } = new List<UserTrackingData>();
+    }
+
+    /// <summary>
+    /// Model for user tracking data
+    /// </summary>
+    public class UserTrackingData
+    {
+        public DateTime VisitedDate { get; set; }
+        public int WebCount { get; set; }
+        public int AppCount { get; set; }
+        public int UpdateScoreCnt { get; set; }
     }
 
     /// <summary>
@@ -96,8 +124,14 @@ namespace pStudyWare20.Shared
         [Display(Name = "Error Message")]
         public string ErrorMessage { get; set; } = string.Empty;
 
+        [Display(Name = "Message")]
+        public string Message { get; set; } = string.Empty;
+
         [Display(Name = "Student Counts")]
-        public StudentCounts StudentCounts { get; set; } = new StudentCounts();
+        public Dictionary<string, int> StudentCounts { get; set; } = new Dictionary<string, int>();
+
+        [Display(Name = "Waiting List Counts")]
+        public Dictionary<string, int> WaitingListCounts { get; set; } = new Dictionary<string, int>();
     }
 
     /// <summary>

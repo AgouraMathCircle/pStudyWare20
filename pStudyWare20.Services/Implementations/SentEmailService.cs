@@ -1,139 +1,146 @@
-using Microsoft.Extensions.Configuration;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
-using System.Text.Json;
+using System.Data;
 
 namespace pStudyWare20.Services.Implementations
 {
     /// <summary>
-    /// Implementation of sent email business logic operations (matches legacy controller)
+    /// Service implementation for sent email business logic
     /// </summary>
     public class SentEmailService : ISentEmailService
     {
         private readonly ISentEmailRepository _sentEmailRepository;
-        private readonly IConfiguration _configuration;
 
-        public SentEmailService(ISentEmailRepository sentEmailRepository, IConfiguration configuration)
+        public SentEmailService(ISentEmailRepository sentEmailRepository)
         {
             _sentEmailRepository = sentEmailRepository;
-            _configuration = configuration;
         }
 
         /// <summary>
-        /// Get sent messages (matches legacy controller exactly)
+        /// Get sent messages for a user
         /// </summary>
-        public SentMessagesListResponse GetSentMessages(GetSentMessagesRequest request)
+        public async Task<GetSentMessagesResponse> GetSentMessagesAsync(GetSentMessagesRequest request)
         {
-            SentMessagesListResponse response = new SentMessagesListResponse();
             try
             {
-                var result = _sentEmailRepository.GetSentMessagesAsync(request).Result;
+                var dataTable = await _sentEmailRepository.GetSentMessagesAsync(request.Username);
+                var messages = new List<SentMessageInfo>();
 
-                if (!string.IsNullOrEmpty(result))
+                if (dataTable != null && dataTable.Rows.Count > 0)
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    foreach (DataRow row in dataTable.Rows)
                     {
-                        foreach (System.Data.DataRow row in dataTable.Rows)
+                        messages.Add(new SentMessageInfo
                         {
-                            var emailInfo = $"{row["EmailID"]}~#{row["SendTo"]}~#{row["Subject"]}~#{row["Name"]}~#{row["SendBy"]}";
-
-                            response.SentMessages.Add(new SentEmailMessage
-                            {
-                                MessageID = Convert.ToInt32(row["MessageID"]),
-                                EmailID = row["EmailID"]?.ToString() ?? string.Empty,
-                                SendFrom = row["SendFrom"]?.ToString() ?? string.Empty,
-                                SendTo = row["SendTo"]?.ToString() ?? string.Empty,
-                                Subject = row["Subject"]?.ToString() ?? string.Empty,
-                                Message = row["Message"]?.ToString() ?? string.Empty,
-                                SendDate = Convert.ToDateTime(row["SendDate"]),
-                                Name = row["Name"]?.ToString() ?? string.Empty,
-                                SendBy = row["SendBy"]?.ToString() ?? string.Empty,
-                                EmailInfo = emailInfo
-                            });
-                        }
+                            MessageID = GetIntValue(row, "MessageID"),
+                            SendFrom = GetStringValue(row, "SendFrom"),
+                            SendTo = GetStringValue(row, "SendTo"),
+                            Subject = GetStringValue(row, "Subject"),
+                            SendDate = GetDateTimeValue(row, "SendDate"),
+                            Message = GetStringValue(row, "Message"),
+                            EmailID = GetIntValue(row, "EmailID"),
+                            Name = GetStringValue(row, "Name"),
+                            SendBy = GetStringValue(row, "SendBy")
+                        });
                     }
                 }
 
-                response.IsSuccess = true;
-                response.ErrorMessage = "";
+                return new GetSentMessagesResponse
+                {
+                    IsSuccess = true,
+                    Messages = messages
+                };
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
+                return new GetSentMessagesResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
             }
-
-            return response;
         }
 
         /// <summary>
-        /// Get message (matches legacy controller exactly)
+        /// Get specific message details
         /// </summary>
-        public MessageDetailResponse GetMessage(GetMessageRequest request)
+        public async Task<GetMessageDetailsResponse> GetMessageDetailsAsync(GetMessageDetailsRequest request)
         {
-            MessageDetailResponse response = new MessageDetailResponse();
             try
             {
-                var result = _sentEmailRepository.GetMessageAsync(request).Result;
+                var dataTable = await _sentEmailRepository.GetMessageDetailsAsync(request.EmailID);
 
-                if (!string.IsNullOrEmpty(result))
+                if (dataTable != null && dataTable.Rows.Count > 0)
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var row = dataTable.Rows[0];
+                    return new GetMessageDetailsResponse
                     {
-                        response.Message = dataTable.Rows[0]["Message"]?.ToString() ?? string.Empty;
-                    }
-                }
-
-                response.IsSuccess = true;
-                response.ErrorMessage = "";
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
-            }
-
-            return response;
-        }
-
-        /// <summary>
-        /// View email (combines sent messages and message details - matches legacy controller)
-        /// </summary>
-        public ViewEmailResponse ViewEmail(ViewEmailRequest request)
-        {
-            ViewEmailResponse response = new ViewEmailResponse();
-            try
-            {
-                // First get the message details
-                var messageRequest = new GetMessageRequest { EmailId = request.EmailID };
-                var messageResponse = GetMessage(messageRequest);
-
-                if (messageResponse.IsSuccess)
-                {
-                    response.EmailMessage = new SentEmailMessage
-                    {
+                        IsSuccess = true,
+                        Message = GetStringValue(row, "Message"),
                         EmailID = request.EmailID,
-                        SendTo = request.SendTo,
-                        Subject = request.Subject,
-                        Name = request.Name,
-                        SendBy = request.SendBy,
-                        Message = messageResponse.Message
+                        SendTo = GetStringValue(row, "SendTo"),
+                        Subject = GetStringValue(row, "Subject"),
+                        Name = GetStringValue(row, "Name"),
+                        SendBy = GetStringValue(row, "SendBy")
                     };
                 }
 
-                response.IsSuccess = messageResponse.IsSuccess;
-                response.ErrorMessage = messageResponse.ErrorMessage;
+                return new GetMessageDetailsResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "Message not found"
+                };
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
+                return new GetMessageDetailsResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
             }
+        }
 
-            return response;
+        /// <summary>
+        /// Helper method to get integer value from DataRow
+        /// </summary>
+        private int GetIntValue(DataRow row, string columnName)
+        {
+            if (row.Table.Columns.Contains(columnName) &&
+                row[columnName] != DBNull.Value &&
+                int.TryParse(row[columnName].ToString(), out int value))
+            {
+                return value;
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Helper method to get string value from DataRow (handles missing columns)
+        /// </summary>
+        private string GetStringValue(DataRow row, string columnName)
+        {
+            if (row.Table.Columns.Contains(columnName) && row[columnName] != DBNull.Value)
+            {
+                return row[columnName]?.ToString() ?? "";
+            }
+            return "";
+        }
+
+        /// <summary>
+        /// Helper method to get DateTime value from DataRow (handles missing columns)
+        /// </summary>
+        private DateTime GetDateTimeValue(DataRow row, string columnName)
+        {
+            if (row.Table.Columns.Contains(columnName) && row[columnName] != DBNull.Value)
+            {
+                if (DateTime.TryParse(row[columnName].ToString(), out DateTime value))
+                {
+                    return value;
+                }
+            }
+            return DateTime.MinValue;
         }
     }
 }

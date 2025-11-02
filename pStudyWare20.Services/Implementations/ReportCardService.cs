@@ -211,7 +211,7 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                var classListData = await _reportCardRepository.GetClassListByInstructorAsync(request.SendBy);
+                var classListData = await _reportCardRepository.GetClassListByInstructorAsync(request.From);
 
                 if (classListData is DataSet dataSet && dataSet.Tables[0].Rows.Count > 0)
                 {

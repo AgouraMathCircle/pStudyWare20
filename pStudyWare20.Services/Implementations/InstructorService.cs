@@ -3,6 +3,7 @@ using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace pStudyWare20.Services.Implementations
 {
@@ -29,29 +30,29 @@ namespace pStudyWare20.Services.Implementations
             try
             {
                 var result = _instructorRepository.GetInstructorListAsync(request).Result;
-                
+
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var rows = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(result);
+                    if (rows != null && rows.Count > 0)
                     {
-                        foreach (System.Data.DataRow row in dataTable.Rows)
+                        foreach (var row in rows)
                         {
                             var instructor = new Instructor
                             {
-                                InstructorID = Convert.ToInt32(row["InstructorID"]),
-                                FirstName = row["FirstName"]?.ToString() ?? string.Empty,
-                                LastName = row["LastName"]?.ToString() ?? string.Empty,
-                                EmailID = row["EmailID"]?.ToString() ?? string.Empty,
-                                ContactPhone = row["ContactPhone"]?.ToString() ?? string.Empty,
-                                ChapterName = row["ChapterName"]?.ToString() ?? string.Empty,
-                                ChapterID = row["ChapterID"]?.ToString() ?? string.Empty,
-                                InstructorType = row["InstructorType"]?.ToString() ?? string.Empty,
-                                Class = row["Class"]?.ToString() ?? string.Empty,
-                                Section = row["Section"]?.ToString() ?? string.Empty,
-                                UserName = row["UserName"]?.ToString() ?? string.Empty,
-                                MemberStatus = row["mStatus"]?.ToString() ?? string.Empty,
-                                LastLogin = row["LastLogin"] != DBNull.Value ? Convert.ToDateTime(row["LastLogin"]) : null
+                                InstructorID = GetIntValue(row, "InstructorID"),
+                                FirstName = GetStringValue(row, "FirstName"),
+                                LastName = GetStringValue(row, "LastName"),
+                                EmailID = GetStringValue(row, "EmailID"),
+                                ContactPhone = GetStringValue(row, "ContactPhone"),
+                                ChapterName = GetStringValue(row, "ChapterName"),
+                                ChapterID = GetStringValue(row, "ChapterID"),
+                                InstructorType = GetStringValue(row, "InstructorType"),
+                                Class = GetStringValue(row, "Class"),
+                                Section = GetStringValue(row, "Section"),
+                                UserName = GetStringValue(row, "UserName"),
+                                MemberStatus = GetStringValue(row, "mStatus"),
+                                LastLogin = GetDateTimeValue(row, "LastLogin")
                             };
 
                             // Create InstructorInfo string for legacy compatibility
@@ -154,7 +155,7 @@ namespace pStudyWare20.Services.Implementations
                 {
                     // Convert DataTable to Excel format (simplified version)
                     var excelContent = ConvertDataTableToExcel(dataTable);
-                    
+
                     response.IsSuccess = true;
                     response.ErrorMessage = "";
                     response.FileContent = excelContent;
@@ -182,11 +183,11 @@ namespace pStudyWare20.Services.Implementations
         private byte[] ConvertDataTableToExcel(System.Data.DataTable dataTable)
         {
             var sb = new System.Text.StringBuilder();
-            
+
             // Add HTML table structure for Excel compatibility
             sb.AppendLine("<html><head><meta charset='utf-8'></head><body>");
             sb.AppendLine("<table border='1'>");
-            
+
             // Add headers
             sb.AppendLine("<tr>");
             foreach (System.Data.DataColumn column in dataTable.Columns)
@@ -194,7 +195,7 @@ namespace pStudyWare20.Services.Implementations
                 sb.AppendLine($"<th>{column.ColumnName}</th>");
             }
             sb.AppendLine("</tr>");
-            
+
             // Add data rows
             foreach (System.Data.DataRow row in dataTable.Rows)
             {
@@ -205,10 +206,63 @@ namespace pStudyWare20.Services.Implementations
                 }
                 sb.AppendLine("</tr>");
             }
-            
+
             sb.AppendLine("</table></body></html>");
-            
+
             return System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+        }
+
+        /// <summary>
+        /// Helper method to get string value from JsonElement
+        /// </summary>
+        private string GetStringValue(Dictionary<string, JsonElement> row, string key)
+        {
+            if (row.ContainsKey(key) && row[key].ValueKind != JsonValueKind.Null)
+            {
+                return row[key].GetString() ?? string.Empty;
+            }
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Helper method to get int value from JsonElement
+        /// </summary>
+        private int GetIntValue(Dictionary<string, JsonElement> row, string key)
+        {
+            if (row.ContainsKey(key) && row[key].ValueKind != JsonValueKind.Null)
+            {
+                if (row[key].ValueKind == JsonValueKind.Number)
+                {
+                    return row[key].GetInt32();
+                }
+                else if (row[key].ValueKind == JsonValueKind.String)
+                {
+                    if (int.TryParse(row[key].GetString(), out int result))
+                    {
+                        return result;
+                    }
+                }
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Helper method to get DateTime value from JsonElement
+        /// </summary>
+        private DateTime? GetDateTimeValue(Dictionary<string, JsonElement> row, string key)
+        {
+            if (row.ContainsKey(key) && row[key].ValueKind != JsonValueKind.Null)
+            {
+                if (row[key].ValueKind == JsonValueKind.String)
+                {
+                    var dateString = row[key].GetString();
+                    if (!string.IsNullOrEmpty(dateString) && DateTime.TryParse(dateString, out DateTime result))
+                    {
+                        return result;
+                    }
+                }
+            }
+            return null;
         }
     }
 }

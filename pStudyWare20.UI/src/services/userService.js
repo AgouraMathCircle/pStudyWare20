@@ -21,10 +21,10 @@ class UserService {
     }
   }
 
-  // Change password
-  async changePassword(currentPassword, newPassword) {
+  // Update password
+  async updatePassword(currentPassword, newPassword) {
     try {
-      const response = await api.post("/user/change-password", {
+      const response = await api.post("/user/update-password", {
         currentPassword,
         newPassword,
       });

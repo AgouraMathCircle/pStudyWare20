@@ -13,6 +13,9 @@ namespace pStudyWare20.Shared
         [Display(Name = "Chapter ID")]
         public string ChapterId { get; set; } = string.Empty;
 
+        [Display(Name = "Chapter Name")]
+        public string ChapterName { get; set; } = string.Empty;
+
         [Display(Name = "Class")]
         public string Class { get; set; } = string.Empty;
 
@@ -183,32 +186,6 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Form Data")]
         public MeetingSchedule FormData { get; set; } = new MeetingSchedule();
-    }
-
-    /// <summary>
-    /// Model for meeting details dashboard data request
-    /// </summary>
-    public class MeetingDetailsDashboardRequest
-    {
-        // No specific parameters needed for this request
-    }
-
-    /// <summary>
-    /// Model for meeting details dashboard data response
-    /// </summary>
-    public class MeetingDetailsDashboardResponse
-    {
-        [Display(Name = "Is Success")]
-        public bool IsSuccess { get; set; }
-
-        [Display(Name = "Error Message")]
-        public string ErrorMessage { get; set; } = string.Empty;
-
-        [Display(Name = "Meeting Schedules")]
-        public object MeetingSchedules { get; set; } = new object();
-
-        [Display(Name = "Chapter Locations")]
-        public object ChapterLocations { get; set; } = new object();
     }
 
     /// <summary>

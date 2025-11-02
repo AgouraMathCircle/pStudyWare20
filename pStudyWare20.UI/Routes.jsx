@@ -19,7 +19,31 @@ import Login from "./src/components/Login";
 import ProtectedRoute from "./src/components/ProtectedRoute";
 import RoleProtectedRoute from "./src/components/RoleProtectedRoute";
 import StudentDashboard from "./src/components/pstudyware/Student/StudentDashboard";
+import ClassMaterial from "./src/components/pstudyware/Student/ClassMaterial";
 import UpdateProfile from "./src/components/pstudyware/Student/UpdateProfile";
+import StudentDocuments from "./src/components/pstudyware/Student/StudentDocuments";
+import OnlineExam from "./src/components/pstudyware/Student/OnlineExam";
+import ReportCard from "./src/components/pstudyware/Student/ReportCard";
+import AdminDashboard from "./src/components/pstudyware/Admin/AdminDashboard";
+import AdminStudents from "./src/components/pstudyware/Admin/AdminStudents";
+import AdminInstructors from "./src/components/pstudyware/Admin/AdminInstructors";
+import AdminVolunteers from "./src/components/pstudyware/Admin/AdminVolunteers";
+import AdminReports from "./src/components/pstudyware/Admin/AdminReports";
+import AdminSettings from "./src/components/pstudyware/Admin/AdminSettings";
+import AdminChangePassword from "./src/components/pstudyware/Admin/AdminChangePassword";
+import InstructorManagement from "./src/components/pstudyware/Admin/InstructorManagement";
+import {
+  DocumentManagement,
+  Documents,
+} from "./src/components/pstudyware/Admin";
+import RegisteredStudentList from "./src/components/pstudyware/Admin/RegisteredStudentList";
+import SentEmail from "./src/components/pstudyware/Common/SentEmail";
+import {
+  DocumentsRepository,
+  EmailManager,
+  MeetingDetails,
+  UpdatePassword,
+} from "./src/components/pstudyware/Common";
 
 const AppRoutes = () => {
   return (
@@ -66,69 +90,110 @@ const AppRoutes = () => {
               }
             />
             <Route
-              path="/student/class-material"
+              path="/pstudyware/student/class-material"
               element={
-                <ProtectedRoute>
-                  <div style={{ padding: "50px 20px", textAlign: "center" }}>
-                    <h1>Class Material</h1>
-                    <p>Class material page coming soon...</p>
-                  </div>
-                </ProtectedRoute>
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
+                  <ClassMaterial />
+                </RoleProtectedRoute>
               }
             />
             <Route
               path="/student/update-score"
               element={
-                <ProtectedRoute>
-                  <div style={{ padding: "50px 20px", textAlign: "center" }}>
-                    <h1>Update Score</h1>
-                    <p>Update score page coming soon...</p>
-                  </div>
-                </ProtectedRoute>
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
+                  <OnlineExam />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/student/update-score"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
+                  <OnlineExam />
+                </RoleProtectedRoute>
               }
             />
             <Route
               path="/student/upload-documents"
               element={
-                <ProtectedRoute>
-                  <div style={{ padding: "50px 20px", textAlign: "center" }}>
-                    <h1>Upload Documents</h1>
-                    <p>Upload documents page coming soon...</p>
-                  </div>
-                </ProtectedRoute>
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
+                  <StudentDocuments />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/student/upload-documents"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
+                  <StudentDocuments />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/student/my-documents"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
+                  <StudentDocuments />
+                </RoleProtectedRoute>
               }
             />
             <Route
               path="/student/report-card"
               element={
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
+                  <ReportCard />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/student/report-card"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
+                  <ReportCard />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/student/message-center"
+              element={
                 <ProtectedRoute>
-                  <div style={{ padding: "50px 20px", textAlign: "center" }}>
-                    <h1>Report Card</h1>
-                    <p>Report card page coming soon...</p>
-                  </div>
+                  <EmailManager />
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/student/message-center"
+              path="/pstudyware/student/update-password"
               element={
-                <ProtectedRoute>
-                  <div style={{ padding: "50px 20px", textAlign: "center" }}>
-                    <h1>Message Center</h1>
-                    <p>Message center page coming soon...</p>
-                  </div>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/change-password"
-              element={
-                <ProtectedRoute>
-                  <div style={{ padding: "50px 20px", textAlign: "center" }}>
-                    <h1>Change Password</h1>
-                    <p>Change password page coming soon...</p>
-                  </div>
-                </ProtectedRoute>
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
+                  <UpdatePassword />
+                </RoleProtectedRoute>
               }
             />
             <Route
@@ -140,6 +205,258 @@ const AppRoutes = () => {
                 >
                   <UpdateProfile />
                 </RoleProtectedRoute>
+              }
+            />
+
+            {/* Admin Routes */}
+            <Route
+              path="/pstudyware/admin/dashboard"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <AdminDashboard />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <AdminDashboard />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/instructors"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <InstructorManagement />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/students"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <RegisteredStudentList />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/students"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <AdminStudents />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/instructors"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <AdminInstructors />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/volunteers"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <AdminVolunteers />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <AdminReports />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <AdminSettings />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/change-password"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <AdminChangePassword />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/message-center"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <EmailManager />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/class-material"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <Documents />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/message-center"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <EmailManager />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/meeting-details"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <MeetingDetails />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/update-password"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <UpdatePassword />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/docs-repository"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <DocumentsRepository />
+                </RoleProtectedRoute>
+              }
+            />
+
+            {/* Instructor Routes */}
+            <Route
+              path="/pstudyware/instructor/message-center"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Instructor"]}
+                  allowedMemberTypes={["I"]}
+                >
+                  <EmailManager />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/instructor/update-password"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Instructor"]}
+                  allowedMemberTypes={["I"]}
+                >
+                  <UpdatePassword />
+                </RoleProtectedRoute>
+              }
+            />
+
+            {/* Volunteer Routes */}
+            <Route
+              path="/pstudyware/volunteer/message-center"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Volunteer"]}
+                  allowedMemberTypes={["V"]}
+                >
+                  <EmailManager />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/volunteer/update-password"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Volunteer"]}
+                  allowedMemberTypes={["V"]}
+                >
+                  <UpdatePassword />
+                </RoleProtectedRoute>
+              }
+            />
+
+            {/* Common Routes (accessible by all authenticated users) */}
+            <Route
+              path="/pstudyware/emailmanager"
+              element={
+                <ProtectedRoute>
+                  <EmailManager />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/sentemail"
+              element={
+                <ProtectedRoute>
+                  <SentEmail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/message-center/sent"
+              element={
+                <ProtectedRoute>
+                  <SentEmail />
+                </ProtectedRoute>
               }
             />
 

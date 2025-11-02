@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+﻿import React, { createContext, useContext, useState, useEffect } from "react";
 import { authService } from "../services";
 
 const AuthContext = createContext();
@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }) => {
         console.log("AuthContext: Initializing auth", {
           currentUser,
           authenticated,
+          expiresAt: currentUser?.expiresAt,
         });
 
         setUser(currentUser);
@@ -41,15 +42,15 @@ export const AuthProvider = ({ children }) => {
 
     initializeAuth();
 
-    // Periodic token expiration check (every minute)
     const tokenCheckInterval = setInterval(() => {
-      if (authService.isAuthenticated()) {
-        if (authService.isTokenExpired()) {
-          console.log("AuthContext: Token expired, logging out");
-          logout();
-        }
+      const currentUser = authService.getCurrentUser();
+      if (currentUser && authService.isTokenExpired()) {
+        console.log(
+          "AuthContext: Token expired in interval check, logging out"
+        );
+        logout();
       }
-    }, 60000); // Check every 60 seconds
+    }, 60000);
 
     return () => {
       clearInterval(tokenCheckInterval);
@@ -67,7 +68,6 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser);
       setIsAuthenticated(authenticated);
 
-      // Trigger storage event to update other components
       window.dispatchEvent(new Event("storage"));
 
       return response;
@@ -85,7 +85,6 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       setIsRedirecting(false);
 
-      // Trigger storage event to update other components
       window.dispatchEvent(new Event("storage"));
     } catch (error) {
       console.error("AuthContext: Error during logout", error);

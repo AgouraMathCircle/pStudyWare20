@@ -24,12 +24,40 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                var meetingSchedules = await _meetingDetailsRepository.GetMeetingScheduleListAsync(request.RowId);
+                var meetingSchedulesData = await _meetingDetailsRepository.GetMeetingScheduleListAsync(request.RowId);
+                var meetingSchedulesList = new List<MeetingSchedule>();
+
+                if (meetingSchedulesData is DataTable dataTable && dataTable.Rows.Count > 0)
+                {
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        var meetingSchedule = new MeetingSchedule
+                        {
+                            RowId = row["RowID"] != DBNull.Value ? Convert.ToInt32(row["RowID"]) : 0,
+                            ChapterId = row["ChapterID"]?.ToString() ?? "",
+                            ChapterName = dataTable.Columns.Contains("ChapterName") ? row["ChapterName"]?.ToString() ?? "" : "",
+                            Class = row["Class"]?.ToString() ?? "",
+                            Section = row["Section"]?.ToString() ?? "",
+                            MeetingProviderUrl = row["MeetingProviderURL"]?.ToString() ?? "",
+                            MeetingUrl = row["MeetingURL"]?.ToString() ?? "",
+                            MeetingId = row["MeetingID"]?.ToString() ?? "",
+                            Passcode = row["Passcode"]?.ToString() ?? "",
+                            AdminLogin = row["AdminLogin"]?.ToString() ?? "",
+                            AdminPassCode = row["AdminPassCode"]?.ToString() ?? "",
+                            IncludeSection = row["IncludeSection"]?.ToString() == "True" || row["IncludeSection"]?.ToString() == "1",
+                            Active = row["Active"]?.ToString() == "True" || row["Active"]?.ToString() == "1",
+                            MeetingTime = row["MeetingTime"]?.ToString() ?? "",
+                            MeetingDate = row["MeetingDate"]?.ToString() ?? ""
+                        };
+
+                        meetingSchedulesList.Add(meetingSchedule);
+                    }
+                }
 
                 return new MeetingScheduleListResponse
                 {
                     IsSuccess = true,
-                    MeetingSchedules = meetingSchedules
+                    MeetingSchedules = meetingSchedulesList
                 };
             }
             catch (Exception ex)
@@ -170,6 +198,7 @@ namespace pStudyWare20.Services.Implementations
                 {
                     RowId = 0,
                     ChapterId = "",
+                    ChapterName = "",
                     Class = "",
                     Section = "",
                     MeetingProviderUrl = "",
@@ -184,45 +213,15 @@ namespace pStudyWare20.Services.Implementations
                     MeetingDate = ""
                 };
 
-                return new PrepareNewMeetingResponse
+                return await Task.FromResult(new PrepareNewMeetingResponse
                 {
                     IsSuccess = true,
                     FormData = formData
-                };
+                });
             }
             catch (Exception ex)
             {
                 return new PrepareNewMeetingResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = ex.Message
-                };
-            }
-        }
-
-        /// <summary>
-        /// Get meeting details dashboard data
-        /// </summary>
-        public async Task<MeetingDetailsDashboardResponse> GetDashboardDataAsync(MeetingDetailsDashboardRequest request)
-        {
-            try
-            {
-                // Get meeting schedules and chapter locations in parallel
-                var meetingSchedulesTask = _meetingDetailsRepository.GetMeetingScheduleListAsync("0");
-                var chapterLocationsTask = _meetingDetailsRepository.GetChapterLocationsAsync("Y");
-
-                await Task.WhenAll(meetingSchedulesTask, chapterLocationsTask);
-
-                return new MeetingDetailsDashboardResponse
-                {
-                    IsSuccess = true,
-                    MeetingSchedules = await meetingSchedulesTask,
-                    ChapterLocations = await chapterLocationsTask
-                };
-            }
-            catch (Exception ex)
-            {
-                return new MeetingDetailsDashboardResponse
                 {
                     IsSuccess = false,
                     ErrorMessage = ex.Message

@@ -64,7 +64,7 @@
 }
 
 .breadcrumbs-overlay:after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -96,7 +96,7 @@
   font-size: 1.5rem;
   font-weight: 600;
   color: #333333;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
   text-align: left;
 }
 
@@ -106,7 +106,7 @@
 
 /* Row Styles */
 .row-res {
-  margin-bottom: 60px;
+  margin-bottom: 10px;
   padding-left: 25px;
   padding-right: 25px;
 }
@@ -119,13 +119,13 @@
 }
 
 .list-styled li {
-  margin-bottom: 12px;
-  line-height: 1.6;
+  margin-bottom: 1px;
+  line-height: 1.4;
   color: #505050;
 }
 
 .list-styled li a {
-  color: #53b50a;
+  color: #000000;
   text-decoration: none;
   transition: color 0.3s ease;
 }
@@ -139,13 +139,20 @@
 .img-part {
   text-align: center;
   position: relative;
+  display: inline-block; /* shrink container to image */
+  width: fit-content;
 }
 
 .img-part img {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
+  border: 25px solid white;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.img-part img.img-small {
+  max-width: 50%;
 }
 
 /* Animated Arrows */
@@ -190,7 +197,8 @@
 }
 
 @keyframes left-right {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   50% {
@@ -199,7 +207,8 @@
 }
 
 @keyframes up-down {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -212,20 +221,20 @@
   .sc-about {
     padding: 40px 0 30px;
   }
-  
+
   .sc-about .heading {
     font-size: 2rem;
   }
-  
+
   .sc-about h4.heading {
     font-size: 1.3rem;
   }
-  
+
   .row-res {
     padding-left: 15px;
     padding-right: 15px;
   }
-  
+
   .animated-arrow {
     display: none;
   }
@@ -235,19 +244,19 @@
   .sc-breadcrumbs {
     padding: 40px 0;
   }
-  
+
   .sc-breadcrumbs .breadcrumbs-text .page-title {
     font-size: 2rem;
   }
-  
+
   .sc-about .heading {
     font-size: 1.8rem;
   }
-  
+
   .sc-about h4.heading {
     font-size: 1.2rem;
   }
-  
+
   .list-styled li {
     font-size: 0.9rem;
   }
@@ -257,19 +266,19 @@
   .sc-breadcrumbs .breadcrumbs-text .page-title {
     font-size: 1.5rem;
   }
-  
+
   .sc-about .heading {
     font-size: 1.5rem;
   }
-  
+
   .sc-about h4.heading {
     font-size: 1.1rem;
   }
-  
+
   .list-styled li {
     font-size: 0.85rem;
   }
-  
+
   .row-res {
     padding-left: 10px;
     padding-right: 10px;

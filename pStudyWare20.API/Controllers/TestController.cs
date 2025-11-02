@@ -65,6 +65,56 @@ namespace pStudyWare20.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Test SMTP connection with different servers
+        /// </summary>
+        //[HttpGet("test-smtp-connection")]
+        //public async Task<IActionResult> TestSmtpConnection()
+        //{
+        //    try
+        //    {
+        //        var results = new List<object>();
+        //        string[] smtpServers = {
+        //            "relay-hosting.secureserver.net",
+        //            "mail.agouramathcircle.org",
+        //            "smtp.gmail.com",
+        //            "smtp.office365.com"
+        //        };
+
+        //        int[] ports = { 25, 587, 465 };
+
+        //        foreach (var server in smtpServers)
+        //        {
+        //            foreach (var port in ports)
+        //            {
+        //                try
+        //                {
+        //                    using (var smtpClient = new System.Net.Mail.SmtpClient(server, port))
+        //                    {
+        //                        smtpClient.EnableSsl = port == 465 || port == 587;
+        //                        smtpClient.UseDefaultCredentials = false;
+        //                        smtpClient.Timeout = 5000; // 5 second timeout for testing
+
+        //                        // Try to connect (this will throw if connection fails)
+        //                        await Task.Run(() => smtpClient.Send(new System.Net.Mail.MailMessage()));
+
+        //                        results.Add(new { server, port, status = "Success" });
+        //                    }
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    results.Add(new { server, port, status = "Failed", error = ex.Message });
+        //                }
+        //            }
+        //        }
+
+        //        return Ok(new { message = "SMTP connection test completed", results });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { message = $"Exception occurred: {ex.Message}" });
+        //    }
+        //}
     }
 
     public class TestEmailRequest

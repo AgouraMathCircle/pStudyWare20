@@ -155,49 +155,187 @@ const Navbar = () => {
     },
     {
       label: "Class Material",
-      href: "/student/class-material",
+      href: "/pstudyware/student/class-material",
       icon: <SchoolIcon fontSize="small" />,
     },
     {
       label: "Update Score",
-      href: "/student/update-score",
+      href: "/pstudyware/student/update-score",
       icon: <AssignmentIcon fontSize="small" />,
     },
     {
       label: "Upload Documents",
-      href: "/student/upload-documents",
+      href: "/pstudyware/student/upload-documents",
       icon: <UploadIcon fontSize="small" />,
     },
     {
       label: "Report Card",
-      href: "/student/report-card",
+      href: "/pstudyware/student/report-card",
       icon: <AssessmentIcon fontSize="small" />,
     },
     {
       label: "Message Center",
-      href: "/student/message-center",
+      href: "/pstudyware/student/message-center",
       icon: <MessageIcon fontSize="small" />,
     },
     {
       label: "Change Password",
-      href: "/student/change-password",
+      href: "/pstudyware/student/update-password",
       icon: <LockIcon fontSize="small" />,
     },
     {
-      label: "Sign Out",
+      label: "Logout",
       href: "#",
       icon: <LogoutIcon fontSize="small" />,
       action: "logout",
     },
   ];
 
-  // Use student menu items if user is authenticated and is a student
+  // Admin menu items for authenticated admins
+  const adminMenuItems = [
+    {
+      label: "Dashboard",
+      href: "/pstudyware/admin/dashboard",
+      icon: <AdminIcon fontSize="small" />,
+    },
+    {
+      label: "Instructors",
+      href: "/pstudyware/admin/instructors",
+      icon: <SchoolIcon fontSize="small" />,
+    },
+
+    {
+      label: "Students",
+      href: "/pstudyware/admin/students",
+      icon: <PeopleIcon fontSize="small" />,
+    },
+    // {
+    //   label: "Volunteers",
+    //   href: "/pstudyware/admin/volunteers",
+    //   icon: <VolunteerActivismIcon fontSize="small" />,
+    // },
+    {
+      label: "Class Material",
+      href: "/pstudyware/admin/class-material",
+      icon: <AssessmentIcon fontSize="small" />,
+    },
+    {
+      label: "Student Docs",
+      href: "/pstudyware/admin/student-docs",
+      icon: <SettingsIcon fontSize="small" />,
+    },
+    {
+      label: "Report Card",
+      href: "/pstudyware/admin/report-card",
+      icon: <AssessmentIcon fontSize="small" />,
+    },
+    {
+      label: "Docs Repository",
+      href: "/pstudyware/admin/docs-repository",
+      icon: <AssessmentIcon fontSize="small" />,
+    },
+    {
+      label: "Message Center",
+      href: "/pstudyware/admin/message-center",
+      icon: <MessageIcon fontSize="small" />,
+    },
+    {
+      label: "Change Password",
+      href: "/pstudyware/admin/update-password",
+      icon: <LockIcon fontSize="small" />,
+    },
+    {
+      label: "Logout",
+      href: "#",
+      icon: <LogoutIcon fontSize="small" />,
+      action: "logout",
+    },
+  ];
+
+  // Instructor menu items for authenticated instructors
+  const instructorMenuItems = [
+    {
+      label: "Dashboard",
+      href: "/pstudyware/instructor/dashboard",
+      icon: <DashboardIcon fontSize="small" />,
+    },
+    {
+      label: "Message Center",
+      href: "/pstudyware/instructor/message-center",
+      icon: <MessageIcon fontSize="small" />,
+    },
+    {
+      label: "Change Password",
+      href: "/pstudyware/instructor/update-password",
+      icon: <LockIcon fontSize="small" />,
+    },
+    {
+      label: "Logout",
+      href: "#",
+      icon: <LogoutIcon fontSize="small" />,
+      action: "logout",
+    },
+  ];
+
+  // Volunteer menu items for authenticated volunteers
+  const volunteerMenuItems = [
+    {
+      label: "Dashboard",
+      href: "/pstudyware/volunteer/dashboard",
+      icon: <DashboardIcon fontSize="small" />,
+    },
+    {
+      label: "Message Center",
+      href: "/pstudyware/volunteer/message-center",
+      icon: <MessageIcon fontSize="small" />,
+    },
+    {
+      label: "Change Password",
+      href: "/pstudyware/volunteer/update-password",
+      icon: <LockIcon fontSize="small" />,
+    },
+    {
+      label: "Logout",
+      href: "#",
+      icon: <LogoutIcon fontSize="small" />,
+      action: "logout",
+    },
+  ];
+
+  // Determine user type and appropriate menu
   const isStudent =
     isAuthenticated &&
     user &&
     (user.memberType?.toUpperCase() === "S" || user.role === "Student");
 
-  const menuItems = isStudent ? studentMenuItems : regularMenuItems;
+  const isAdmin =
+    isAuthenticated &&
+    user &&
+    (user.memberType?.toUpperCase() === "A" ||
+      user.role === "Admin" ||
+      user.role === "SystemAdmin");
+
+  const isInstructor =
+    isAuthenticated &&
+    user &&
+    (user.memberType?.toUpperCase() === "I" || user.role === "Instructor");
+
+  const isVolunteer =
+    isAuthenticated &&
+    user &&
+    (user.memberType?.toUpperCase() === "V" || user.role === "Volunteer");
+
+  // Select menu based on user type
+  let menuItems = regularMenuItems;
+  if (isAdmin) {
+    menuItems = adminMenuItems;
+  } else if (isInstructor) {
+    menuItems = instructorMenuItems;
+  } else if (isVolunteer) {
+    menuItems = volunteerMenuItems;
+  } else if (isStudent) {
+    menuItems = studentMenuItems;
+  }
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -339,9 +477,10 @@ const Navbar = () => {
             color: "#ffffff", // White text for contrast against green background
             fontWeight: isActive ? 600 : 400,
             textTransform: "none",
-            fontSize: "1rem",
-            px: 2,
+            fontSize: isAdmin || isStudent ? "0.85rem" : "1rem",
+            px: isAdmin || isStudent ? 0.8 : 2,
             py: 1,
+            minWidth: "auto",
             "&:hover": {
               backgroundColor: "rgba(255, 255, 255, 0.1)",
             },
@@ -411,9 +550,39 @@ const Navbar = () => {
           borderColor: "divider",
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          Menu
-        </Typography>
+        {/* Logo in mobile drawer */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            cursor: "pointer",
+          }}
+          onClick={() => {
+            if (isStudent) {
+              navigate("/pstudyware/student/dashboard");
+            } else if (isAdmin) {
+              navigate("/pstudyware/admin/dashboard");
+            } else {
+              navigate("/");
+            }
+            handleDrawerToggle();
+          }}
+        >
+          <Box
+            component="img"
+            src={logoUrl}
+            alt="AMC Logo"
+            sx={{
+              height: 40,
+              width: "auto",
+              objectFit: "contain",
+            }}
+            onError={(e) => {
+              e.target.style.display = "none";
+            }}
+          />
+        </Box>
         <IconButton onClick={handleDrawerToggle}>
           <CloseIcon />
         </IconButton>
@@ -438,25 +607,37 @@ const Navbar = () => {
           borderColor: "rgba(255, 255, 255, 0.1)",
         }}
       >
-        <Container maxWidth="lg">
-          <Toolbar sx={{ px: { xs: 0 } }}>
+        <Container maxWidth="xl">
+          <Toolbar sx={{ px: { xs: 0 }, justifyContent: "space-between" }}>
             {/* Logo */}
             <Box
               className="navbar-logo"
               sx={{
                 display: "flex",
                 alignItems: "center",
-                flexGrow: 1,
+                gap: 1,
+                mr: 2,
                 cursor: "pointer",
               }}
-              onClick={() => navigate("/")}
+              onClick={() => {
+                // Navigate to appropriate dashboard based on user type
+                if (isStudent) {
+                  navigate("/pstudyware/student/dashboard");
+                } else if (isAdmin) {
+                  navigate("/pstudyware/admin/dashboard");
+                } else {
+                  navigate("/");
+                }
+              }}
             >
               <Box
                 component="img"
                 src={logoUrl}
                 alt="AMC Logo"
                 sx={{
-                  height: 50,
+                  height: isMobile ? 50 : 90,
+                  width: "auto",
+                  objectFit: "contain",
                 }}
                 onError={(e) => {
                   e.target.style.display = "none";
@@ -464,14 +645,17 @@ const Navbar = () => {
               />
             </Box>
 
-            {/* Desktop Menu */}
+            {/* Desktop Menu - Centered for Admin/Student */}
             {!isMobile && (
               <Box
                 className="navbar-menu"
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 1,
+                  justifyContent: isAdmin || isStudent ? "center" : "flex-end",
+                  gap: isAdmin || isStudent ? 0.1 : 1,
+                  flex: 1,
+                  mx: isAdmin || isStudent ? 3 : 0,
                 }}
               >
                 {menuItems.map((item) => renderMenuItem(item, false))}

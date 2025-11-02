@@ -36,6 +36,8 @@ import { useNavigate } from "react-router-dom";
 const StudentProfile = ({ username, chapterId }) => {
   const navigate = useNavigate();
   const [profileData, setProfileData] = useState(null);
+  const [filteredData, setFilteredData] = useState([]);
+  const [displayedData, setDisplayedData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchBy, setSearchBy] = useState("ALL");
@@ -44,10 +46,56 @@ const StudentProfile = ({ username, chapterId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [goToPageInput, setGoToPageInput] = useState("1");
 
+  const pageSize = 10; // Match old ASPX system
+
+  // Implement search functionality
   const handleSearch = () => {
-    // TODO: Implement search functionality
-    console.log("Search:", { searchBy, searchCriteria, searchText });
+    let filtered = [
+      ...(Array.isArray(profileData) ? profileData : [profileData]),
+    ];
+
+    if (searchBy !== "ALL" && searchText.trim()) {
+      filtered = filtered.filter((student) => {
+        let fieldValue = "";
+
+        switch (searchBy) {
+          case "STUDENT_ID":
+            fieldValue = student.studentID?.toString() || "";
+            break;
+          case "STUDENT_NAME":
+            fieldValue = student.studentName || "";
+            break;
+          case "PROGRAM":
+            fieldValue = student.program || "";
+            break;
+          case "GRADE":
+            fieldValue = student.grade || "";
+            break;
+          default:
+            return true;
+        }
+
+        fieldValue = fieldValue.toString().toLowerCase();
+        const search = searchText.toLowerCase();
+
+        switch (searchCriteria) {
+          case "equals":
+            return fieldValue === search;
+          case "contains":
+            return fieldValue.includes(search);
+          case "starts_with":
+            return fieldValue.startsWith(search);
+          default:
+            return fieldValue.includes(search); // Default to contains
+        }
+      });
+    }
+
+    setFilteredData(filtered);
+    setCurrentPage(1); // Reset to first page after search
+    setGoToPageInput("1");
   };
 
   const handleEditProfile = (studentId) => {
@@ -55,13 +103,23 @@ const StudentProfile = ({ username, chapterId }) => {
     navigate(`/student/updateprofile/${studentId}`);
   };
 
-  const handlePageChange = (event, page) => {
-    setCurrentPage(page);
+  // Handle page change
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      setGoToPageInput(page.toString());
+    }
   };
 
+  // Handle go to specific page
   const handleGoToPage = () => {
-    // TODO: Implement go to specific page
-    console.log("Go to page:", currentPage);
+    const page = parseInt(goToPageInput);
+    if (!isNaN(page) && page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    } else {
+      // Reset to current page if invalid input
+      setGoToPageInput(currentPage.toString());
+    }
   };
 
   // Load student profile data from API
@@ -85,22 +143,22 @@ const StudentProfile = ({ username, chapterId }) => {
           chapterId
         );
 
-        const response = await studentDashboardService.getStudentProfile(
+        const response = await studentDashboardService.getStudentProfiles(
           username,
           chapterId
         );
         console.log("StudentProfile: API response", response);
 
-        if (response.isSuccess && response.studentProfile) {
-          // Convert single profile to array for table display
-          const profileArray = Array.isArray(response.studentProfile)
-            ? response.studentProfile
-            : [response.studentProfile];
+        if (response.isSuccess && response.studentProfiles) {
+          // Use the array of profiles from the API
+          const profileArray = Array.isArray(response.studentProfiles)
+            ? response.studentProfiles
+            : [response.studentProfiles];
           setProfileData(profileArray);
+          setFilteredData(profileArray);
           setTotalRecords(profileArray.length);
-          setTotalPages(1);
         } else {
-          setError(response.message || "Failed to load student profile");
+          setError(response.message || "Failed to load student profiles");
         }
       } catch (err) {
         console.error("Error fetching student profile:", err);
@@ -112,6 +170,28 @@ const StudentProfile = ({ username, chapterId }) => {
 
     loadStudentProfile();
   }, [username, chapterId]);
+
+  // Update pagination when filtered data changes
+  useEffect(() => {
+    const total = filteredData.length;
+    const pages = Math.ceil(total / pageSize);
+    setTotalPages(pages > 0 ? pages : 1);
+    setTotalRecords(total);
+
+    // Reset to page 1 if current page exceeds total pages
+    if (currentPage > pages && pages > 0) {
+      setCurrentPage(1);
+      setGoToPageInput("1");
+    }
+  }, [filteredData, pageSize, currentPage]);
+
+  // Update displayed data when page or filtered data changes
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginated = filteredData.slice(startIndex, endIndex);
+    setDisplayedData(paginated);
+  }, [currentPage, filteredData, pageSize]);
 
   // Show loading state
   if (loading) {
@@ -132,27 +212,30 @@ const StudentProfile = ({ username, chapterId }) => {
   }
 
   // Show empty state
-  if (!profileData || profileData.length === 0) {
+  if (
+    !profileData ||
+    (Array.isArray(profileData) && profileData.length === 0)
+  ) {
     return (
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography
-            variant="h6"
-            sx={{ mb: 3, fontWeight: 600, color: "#1976d2" }}
-          >
+      <Box sx={{ width: "100%", mb: 3 }}>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: "#1976d2" }}>
             Student Profile
           </Typography>
-          <Alert severity="info">No profile information available.</Alert>
-        </CardContent>
-      </Card>
+        </Box>
+        <Alert severity="info">No profile information available.</Alert>
+      </Box>
     );
   }
 
   return (
     <Box>
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, color: "#1976d2" }}>
+      <Box sx={{ mb: 2 }}>
+        <Typography
+          variant="subtitle1"
+          sx={{ fontWeight: 600, color: "#1976d2", fontSize: "1rem" }}
+        >
           Student Profile
         </Typography>
       </Box>
@@ -161,101 +244,94 @@ const StudentProfile = ({ username, chapterId }) => {
       <Box
         sx={{
           backgroundColor: "#4caf50",
-          p: 1.5,
+          p: 0.5,
           borderRadius: 1,
-          mb: 2,
+          mb: 1.5,
           display: "flex",
           alignItems: "center",
-          gap: 1.5,
+          gap: 1,
           flexWrap: "wrap",
         }}
       >
-        <FormControl size="small" sx={{ minWidth: 100 }}>
-          <InputLabel
-            sx={{
-              color: "white",
-              backgroundColor: "#4caf50",
-              px: 0.5,
-              fontSize: "0.813rem",
-            }}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <Typography
+            sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
           >
-            Search By
-          </InputLabel>
+            Search By:
+          </Typography>
           <Select
             value={searchBy}
             onChange={(e) => setSearchBy(e.target.value)}
+            size="small"
             sx={{
               color: "white",
-              fontSize: "0.813rem",
+              fontSize: "0.75rem",
+              minWidth: 100,
               "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
               "& .MuiSelect-icon": { color: "white" },
             }}
           >
-            <MenuItem value="ALL" sx={{ fontSize: "0.813rem" }}>
+            <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
               -ALL-
             </MenuItem>
-            <MenuItem value="STUDENT_ID" sx={{ fontSize: "0.813rem" }}>
+            <MenuItem value="STUDENT_ID" sx={{ fontSize: "0.75rem" }}>
               Student ID
             </MenuItem>
-            <MenuItem value="STUDENT_NAME" sx={{ fontSize: "0.813rem" }}>
+            <MenuItem value="STUDENT_NAME" sx={{ fontSize: "0.75rem" }}>
               Student Name
             </MenuItem>
-            <MenuItem value="PROGRAM" sx={{ fontSize: "0.813rem" }}>
+            <MenuItem value="PROGRAM" sx={{ fontSize: "0.75rem" }}>
               Program
             </MenuItem>
-            <MenuItem value="GRADE" sx={{ fontSize: "0.813rem" }}>
+            <MenuItem value="GRADE" sx={{ fontSize: "0.75rem" }}>
               Grade
             </MenuItem>
           </Select>
-        </FormControl>
+        </Box>
 
-        <FormControl size="small" sx={{ minWidth: 100 }}>
-          <InputLabel
-            sx={{
-              color: "white",
-              backgroundColor: "#4caf50",
-              px: 0.5,
-              fontSize: "0.813rem",
-            }}
-          ></InputLabel>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <Typography
+            sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
+          >
+            Criteria:
+          </Typography>
           <Select
             value={searchCriteria}
             onChange={(e) => setSearchCriteria(e.target.value)}
+            size="small"
             sx={{
               color: "white",
-              fontSize: "0.813rem",
+              fontSize: "0.75rem",
+              minWidth: 100,
               "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
               "& .MuiSelect-icon": { color: "white" },
             }}
           >
-            <MenuItem value="" sx={{ fontSize: "0.813rem" }}>
+            <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
               Select Criteria
             </MenuItem>
-            <MenuItem value="equals" sx={{ fontSize: "0.813rem" }}>
+            <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
               Equals
             </MenuItem>
-            <MenuItem value="contains" sx={{ fontSize: "0.813rem" }}>
+            <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
               Contains
             </MenuItem>
-            <MenuItem value="starts_with" sx={{ fontSize: "0.813rem" }}>
+            <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>
               Starts With
             </MenuItem>
           </Select>
-        </FormControl>
+        </Box>
 
         <TextField
           size="small"
-          label="Search Text"
+          placeholder="Search Text"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           sx={{
             minWidth: 150,
             "& .MuiOutlinedInput-root": {
               backgroundColor: "white",
-              fontSize: "0.813rem",
-            },
-            "& .MuiInputLabel-root": {
-              fontSize: "0.813rem",
+              fontSize: "0.75rem",
             },
           }}
         />
@@ -267,9 +343,10 @@ const StudentProfile = ({ username, chapterId }) => {
           sx={{
             backgroundColor: "white",
             color: "#4caf50",
-            fontSize: "0.813rem",
+            fontSize: "0.75rem",
             textTransform: "none",
-            px: 2,
+            px: 1.5,
+            py: 0.25,
             "&:hover": { backgroundColor: "#f5f5f5" },
           }}
         >
@@ -286,8 +363,9 @@ const StudentProfile = ({ username, chapterId }) => {
                 sx={{
                   fontWeight: 600,
                   borderRight: "1px solid #4caf50",
-                  width: "8%",
-                  fontSize: "0.875rem",
+                  width: "6%",
+                  fontSize: "0.75rem",
+                  padding: "2px 4px",
                 }}
               >
                 Actions
@@ -296,8 +374,9 @@ const StudentProfile = ({ username, chapterId }) => {
                 sx={{
                   fontWeight: 600,
                   borderRight: "1px solid #4caf50",
-                  width: "8%",
-                  fontSize: "0.875rem",
+                  width: "6%",
+                  fontSize: "0.75rem",
+                  padding: "2px 4px",
                 }}
               >
                 Student #
@@ -306,8 +385,9 @@ const StudentProfile = ({ username, chapterId }) => {
                 sx={{
                   fontWeight: 600,
                   borderRight: "1px solid #4caf50",
-                  width: "12%",
-                  fontSize: "0.875rem",
+                  width: "10%",
+                  fontSize: "0.75rem",
+                  padding: "2px 4px",
                 }}
               >
                 Student Name
@@ -316,8 +396,9 @@ const StudentProfile = ({ username, chapterId }) => {
                 sx={{
                   fontWeight: 600,
                   borderRight: "1px solid #4caf50",
-                  width: "10%",
-                  fontSize: "0.875rem",
+                  width: "8%",
+                  fontSize: "0.75rem",
+                  padding: "2px 4px",
                 }}
               >
                 Program
@@ -326,8 +407,9 @@ const StudentProfile = ({ username, chapterId }) => {
                 sx={{
                   fontWeight: 600,
                   borderRight: "1px solid #4caf50",
-                  width: "8%",
-                  fontSize: "0.875rem",
+                  width: "7%",
+                  fontSize: "0.75rem",
+                  padding: "2px 4px",
                 }}
               >
                 Class
@@ -336,8 +418,9 @@ const StudentProfile = ({ username, chapterId }) => {
                 sx={{
                   fontWeight: 600,
                   borderRight: "1px solid #4caf50",
-                  width: "6%",
-                  fontSize: "0.875rem",
+                  width: "5%",
+                  fontSize: "0.75rem",
+                  padding: "2px 4px",
                 }}
               >
                 Grade
@@ -346,8 +429,9 @@ const StudentProfile = ({ username, chapterId }) => {
                 sx={{
                   fontWeight: 600,
                   borderRight: "1px solid #4caf50",
-                  width: "12%",
-                  fontSize: "0.875rem",
+                  width: "10%",
+                  fontSize: "0.75rem",
+                  padding: "2px 4px",
                 }}
               >
                 School
@@ -356,8 +440,9 @@ const StudentProfile = ({ username, chapterId }) => {
                 sx={{
                   fontWeight: 600,
                   borderRight: "1px solid #4caf50",
-                  width: "10%",
-                  fontSize: "0.875rem",
+                  width: "9%",
+                  fontSize: "0.75rem",
+                  padding: "2px 4px",
                 }}
               >
                 Parent
@@ -366,8 +451,9 @@ const StudentProfile = ({ username, chapterId }) => {
                 sx={{
                   fontWeight: 600,
                   borderRight: "1px solid #4caf50",
-                  width: "10%",
-                  fontSize: "0.875rem",
+                  width: "9%",
+                  fontSize: "0.75rem",
+                  padding: "2px 4px",
                 }}
               >
                 Contact #
@@ -376,8 +462,9 @@ const StudentProfile = ({ username, chapterId }) => {
                 sx={{
                   fontWeight: 600,
                   borderRight: "1px solid #4caf50",
-                  width: "12%",
-                  fontSize: "0.875rem",
+                  width: "15%",
+                  fontSize: "0.75rem",
+                  padding: "2px 4px",
                 }}
               >
                 Email
@@ -387,7 +474,8 @@ const StudentProfile = ({ username, chapterId }) => {
                   fontWeight: 600,
                   borderRight: "1px solid #4caf50",
                   width: "8%",
-                  fontSize: "0.875rem",
+                  fontSize: "0.75rem",
+                  padding: "2px 4px",
                 }}
               >
                 Session
@@ -395,8 +483,9 @@ const StudentProfile = ({ username, chapterId }) => {
               <TableCell
                 sx={{
                   fontWeight: 600,
-                  width: "8%",
-                  fontSize: "0.875rem",
+                  width: "7%",
+                  fontSize: "0.75rem",
+                  padding: "2px 4px",
                 }}
               >
                 Location
@@ -404,84 +493,149 @@ const StudentProfile = ({ username, chapterId }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {profileData.map((student, index) => (
+            {displayedData.map((student, index) => (
               <TableRow
                 key={student.studentID || index}
                 sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}
               >
                 <TableCell
-                  sx={{ borderRight: "1px solid #4caf50", width: "8%" }}
+                  sx={{
+                    borderRight: "1px solid #4caf50",
+                    width: "6%",
+                    fontSize: "0.75rem",
+                    padding: "4px 5px",
+                  }}
                 >
                   <IconButton
                     size="small"
                     color="primary"
                     onClick={() => handleEditProfile(student.studentID)}
-                    sx={{ fontSize: "1rem" }}
+                    sx={{ fontSize: "0.75rem" }}
                   >
                     <EditIcon fontSize="small" />
                   </IconButton>
                 </TableCell>
                 <TableCell
-                  sx={{ borderRight: "1px solid #4caf50", width: "8%" }}
+                  sx={{
+                    borderRight: "1px solid #4caf50",
+                    width: "6%",
+                    fontSize: "0.75rem",
+                    padding: "4px 5px",
+                  }}
                 >
                   {student.studentID}
                 </TableCell>
                 <TableCell
-                  sx={{ borderRight: "1px solid #4caf50", width: "12%" }}
+                  sx={{
+                    borderRight: "1px solid #4caf50",
+                    width: "10%",
+                    fontSize: "0.75rem",
+                    padding: "4px 5px",
+                  }}
                 >
                   {student.studentName}
                 </TableCell>
                 <TableCell
-                  sx={{ borderRight: "1px solid #4caf50", width: "10%" }}
+                  sx={{
+                    borderRight: "1px solid #4caf50",
+                    width: "8%",
+                    fontSize: "0.75rem",
+                    padding: "4px 5px",
+                  }}
                 >
                   <Chip
-                    label="Math Circle"
+                    label={student.program || "N/A"}
                     size="small"
                     color="primary"
                     variant="outlined"
+                    sx={{ fontSize: "0.7rem" }}
                   />
                 </TableCell>
                 <TableCell
-                  sx={{ borderRight: "1px solid #4caf50", width: "8%" }}
+                  sx={{
+                    borderRight: "1px solid #4caf50",
+                    width: "7%",
+                    fontSize: "0.75rem",
+                    padding: "4px 5px",
+                  }}
                 >
-                  Jr Adv
+                  {student.class || "N/A"}
                 </TableCell>
                 <TableCell
-                  sx={{ borderRight: "1px solid #4caf50", width: "6%" }}
+                  sx={{
+                    borderRight: "1px solid #4caf50",
+                    width: "5%",
+                    fontSize: "0.75rem",
+                    padding: "4px 5px",
+                  }}
                 >
                   {student.grade}
                 </TableCell>
                 <TableCell
-                  sx={{ borderRight: "1px solid #4caf50", width: "12%" }}
+                  sx={{
+                    borderRight: "1px solid #4caf50",
+                    width: "10%",
+                    fontSize: "0.75rem",
+                    padding: "4px 5px",
+                  }}
                 >
                   {student.school}
                 </TableCell>
                 <TableCell
-                  sx={{ borderRight: "1px solid #4caf50", width: "10%" }}
+                  sx={{
+                    borderRight: "1px solid #4caf50",
+                    width: "9%",
+                    fontSize: "0.75rem",
+                    padding: "4px 5px",
+                  }}
                 >
                   {student.parentName}
                 </TableCell>
                 <TableCell
-                  sx={{ borderRight: "1px solid #4caf50", width: "10%" }}
+                  sx={{
+                    borderRight: "1px solid #4caf50",
+                    width: "9%",
+                    fontSize: "0.75rem",
+                    padding: "4px 5px",
+                  }}
                 >
                   {student.phone}
                 </TableCell>
                 <TableCell
-                  sx={{ borderRight: "1px solid #4caf50", width: "12%" }}
+                  sx={{
+                    borderRight: "1px solid #4caf50",
+                    width: "15%",
+                    fontSize: "0.75rem",
+                    padding: "4px 5px",
+                    wordBreak: "break-word",
+                  }}
                 >
-                  {student.email}
+                  {student.email ||
+                    student.parentEmail ||
+                    student.studentEmail ||
+                    "N/A"}
                 </TableCell>
                 <TableCell
-                  sx={{ borderRight: "1px solid #4caf50", width: "8%" }}
+                  sx={{
+                    borderRight: "1px solid #4caf50",
+                    width: "8%",
+                    fontSize: "0.75rem",
+                    padding: "4px 5px",
+                  }}
                 >
                   <Chip
-                    label="F2025"
+                    label={student.eventSession || "N/A"}
                     size="small"
                     color="secondary"
                     variant="outlined"
+                    sx={{ fontSize: "0.7rem" }}
                   />
                 </TableCell>
-                <TableCell sx={{ width: "8%" }}>On Site</TableCell>
+                <TableCell
+                  sx={{ width: "7%", fontSize: "0.75rem", padding: "4px 5px" }}
+                >
+                  {student.eventLocation || "N/A"}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -492,68 +646,111 @@ const StudentProfile = ({ username, chapterId }) => {
       <Box
         sx={{
           backgroundColor: "#4caf50",
-          p: 2,
+          p: 0.5,
           borderRadius: 1,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           flexWrap: "wrap",
-          gap: 2,
+          gap: 1,
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <IconButton size="small" sx={{ color: "white" }}>
-            <FirstPageIcon />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+          <IconButton
+            size="small"
+            sx={{ color: "white", padding: "2px" }}
+            onClick={() => handlePageChange(1)}
+            disabled={currentPage === 1}
+          >
+            <FirstPageIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" sx={{ color: "white" }}>
-            <PrevPageIcon />
+          <IconButton
+            size="small"
+            sx={{ color: "white", padding: "2px" }}
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <PrevPageIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" sx={{ color: "white" }}>
-            <NextPageIcon />
+          <IconButton
+            size="small"
+            sx={{ color: "white", padding: "2px" }}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            <NextPageIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" sx={{ color: "white" }}>
-            <LastPageIcon />
+          <IconButton
+            size="small"
+            sx={{ color: "white", padding: "2px" }}
+            onClick={() => handlePageChange(totalPages)}
+            disabled={currentPage === totalPages}
+          >
+            <LastPageIcon fontSize="small" />
           </IconButton>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography sx={{ color: "white", fontSize: "0.875rem" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+          <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
             GoTo
           </Typography>
           <Select
             size="small"
             value={currentPage}
-            onChange={(e) => setCurrentPage(e.target.value)}
+            onChange={(e) => handlePageChange(e.target.value)}
             sx={{
               color: "white",
-              minWidth: 60,
+              minWidth: 50,
+              fontSize: "0.75rem",
               "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+              "& .MuiSelect-icon": { color: "white" },
             }}
           >
-            <MenuItem value={1}>1</MenuItem>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <MenuItem key={page} value={page} sx={{ fontSize: "0.75rem" }}>
+                {page}
+              </MenuItem>
+            ))}
           </Select>
         </Box>
 
-        <Typography sx={{ color: "white", fontSize: "0.875rem" }}>
+        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
           Page(s): {currentPage} of {totalPages}
         </Typography>
 
-        <Typography sx={{ color: "white", fontSize: "0.875rem" }}>
-          Record(s): 1 - {totalRecords} of {totalRecords}
+        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+          Record(s):{" "}
+          {totalRecords > 0
+            ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
+                currentPage * pageSize,
+                totalRecords
+              )}`
+            : "0"}{" "}
+          of {totalRecords}
         </Typography>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography sx={{ color: "white", fontSize: "0.875rem" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+          <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
             Go to Page Number:
           </Typography>
           <TextField
             size="small"
-            value={currentPage}
-            onChange={(e) => setCurrentPage(parseInt(e.target.value) || 1)}
-            sx={{
-              width: 60,
-              "& .MuiOutlinedInput-root": { backgroundColor: "white" },
+            type="number"
+            value={goToPageInput}
+            onChange={(e) => setGoToPageInput(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                handleGoToPage();
+              }
             }}
+            sx={{
+              width: 50,
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: "white",
+                fontSize: "0.75rem",
+              },
+            }}
+            inputProps={{ min: 1, max: totalPages }}
           />
           <Button
             size="small"
@@ -562,6 +759,9 @@ const StudentProfile = ({ username, chapterId }) => {
             sx={{
               backgroundColor: "white",
               color: "#4caf50",
+              fontSize: "0.75rem",
+              px: 1,
+              py: 0.25,
               "&:hover": { backgroundColor: "#f5f5f5" },
             }}
           >

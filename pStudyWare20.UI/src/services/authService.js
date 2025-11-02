@@ -21,19 +21,27 @@ class AuthService {
       } = response.data;
 
       if (token) {
+        const userDataToStore = {
+          token,
+          userId,
+          email: userEmail,
+          role,
+          expiresAt,
+          ...userData,
+        };
+
+        console.log("Storing user data:", {
+          ...userDataToStore,
+          expiresAt,
+          expiresAtParsed: new Date(expiresAt).toISOString(),
+          currentTime: new Date().toISOString(),
+        });
+
         localStorage.setItem(config.auth.tokenKey, token);
         localStorage.setItem(
           config.auth.userDataKey,
-          JSON.stringify({
-            token,
-            userId,
-            email: userEmail,
-            role,
-            expiresAt,
-            ...userData,
-          })
+          JSON.stringify(userDataToStore)
         );
-        console.log("User data stored:", userData);
       }
 
       return response.data;
@@ -91,6 +99,19 @@ class AuthService {
     }
   }
 
+  // Update password
+  async updatePassword(username, password) {
+    try {
+      const response = await api.post("/auth/update-password", {
+        username,
+        password,
+      });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
   // Get current user
   getCurrentUser() {
     console.log("key", config.auth.userDataKey);
@@ -102,10 +123,15 @@ class AuthService {
   // Check if user is authenticated
   isAuthenticated() {
     const token = localStorage.getItem(config.auth.tokenKey);
-    if (!token) return false;
+    if (!token) {
+      console.log("isAuthenticated: No token found");
+      return false;
+    }
 
     // Check token expiration
-    if (this.isTokenExpired()) {
+    const expired = this.isTokenExpired();
+    if (expired) {
+      console.log("isAuthenticated: Token expired, logging out");
       this.logout();
       return false;
     }
@@ -119,10 +145,23 @@ class AuthService {
       const user = this.getCurrentUser();
       if (!user || !user.expiresAt) return true;
 
+      // Parse the expiresAt timestamp (backend sends UTC)
       const expiryTime = new Date(user.expiresAt).getTime();
-      const currentTime = new Date().getTime();
+      const currentTime = Date.now();
 
-      return currentTime >= expiryTime;
+      // Add a small buffer (5 seconds) to prevent edge cases
+      const isExpired = currentTime >= expiryTime - 5000;
+
+      if (isExpired) {
+        console.log("Token expired", {
+          expiresAt: user.expiresAt,
+          expiryTime: new Date(expiryTime).toISOString(),
+          currentTime: new Date(currentTime).toISOString(),
+          difference: (expiryTime - currentTime) / 1000 + " seconds",
+        });
+      }
+
+      return isExpired;
     } catch (error) {
       console.error("Error checking token expiration:", error);
       return true;

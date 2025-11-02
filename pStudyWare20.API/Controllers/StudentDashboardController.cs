@@ -154,6 +154,62 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
+        /// Gets multiple student profiles by username and chapter ID (GET endpoint)
+        /// </summary>
+        /// <param name="username">Student username</param>
+        /// <param name="chapterId">Chapter ID</param>
+        /// <returns>Multiple student profiles information</returns>
+        [HttpGet("GetStudentProfiles/{username}/{chapterId}")]
+        public async Task<ActionResult<GetStudentProfilesResponse>> GetStudentProfiles(string username, int chapterId)
+        {
+            try
+            {
+                Console.WriteLine($"GetStudentProfiles API called: username={username}, chapterId={chapterId}");
+
+                // Validate input parameters
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    return BadRequest(new GetStudentProfilesResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Username is required"
+                    });
+                }
+
+                if (chapterId <= 0)
+                {
+                    return BadRequest(new GetStudentProfilesResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Valid Chapter ID is required"
+                    });
+                }
+
+                var request = new GetStudentProfilesRequest
+                {
+                    Username = username.Trim(),
+                    ChapterID = chapterId
+                };
+
+                var response = await _studentDashboardService.GetStudentProfilesAsync(request);
+
+                Console.WriteLine($"GetStudentProfiles API response: IsSuccess={response.IsSuccess}, ProfileCount={response.StudentProfiles.Count}, Message={response.Message}");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetStudentProfiles API error: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return StatusCode(500, new GetStudentProfilesResponse
+                {
+                    IsSuccess = false,
+                    Message = $"Internal server error: {ex.Message}"
+                });
+            }
+        }
+
+        /// <summary>
         /// Gets student report card/grades
         /// </summary>
         /// <param name="request">Request containing username</param>

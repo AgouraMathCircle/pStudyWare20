@@ -197,9 +197,9 @@ namespace pStudyWare20.API.Controllers
                 }
 
                 // Get username from JWT token if not provided in request
-                if (string.IsNullOrEmpty(request.SendBy))
+                if (string.IsNullOrEmpty(request.From))
                 {
-                    request.SendBy = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.From = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
                 }
 
                 var response = await _reportCardService.SendEmailAsync(request);

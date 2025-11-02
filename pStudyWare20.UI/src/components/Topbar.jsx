@@ -161,9 +161,18 @@ const Topbar = () => {
     }
   };
 
-  // Hide topbar only for authenticated students, not on login page
-  if (user && (user.role === "Student" || user.MemberType === "S")) {
-    return null;
+  // Hide topbar for authenticated students and admins, not on login page
+  if (user) {
+    const isStudent =
+      user.role === "Student" || user.memberType?.toUpperCase() === "S";
+    const isAdmin =
+      user.role === "Admin" ||
+      user.role === "SystemAdmin" ||
+      user.memberType?.toUpperCase() === "A";
+
+    if (isStudent || isAdmin) {
+      return null;
+    }
   }
 
   return (
@@ -227,17 +236,27 @@ const Topbar = () => {
               flexShrink: 0,
             }}
           >
-            {/* User Info - Show when logged in (for non-students) */}
-            {user && !(user.role === "Student" || user.MemberType === "S") && (
-              <Box sx={{ display: "flex", alignItems: "center", mr: 2 }}>
-                <Typography variant="body2" sx={{ color: "#ffffff", mr: 1 }}>
-                  Welcome {user?.firstName || "User"},
-                </Typography>
-                <Typography variant="body2" sx={{ color: "#ffffff", mr: 2 }}>
-                  {new Date().toLocaleDateString()}
-                </Typography>
-              </Box>
-            )}
+            {/* User Info - Show when logged in (for non-students and non-admins) */}
+            {user &&
+              (() => {
+                const isStudent =
+                  user.role === "Student" ||
+                  user.memberType?.toUpperCase() === "S";
+                const isAdmin =
+                  user.role === "Admin" ||
+                  user.role === "SystemAdmin" ||
+                  user.memberType?.toUpperCase() === "A";
+                return !isStudent && !isAdmin;
+              })() && (
+                <Box sx={{ display: "flex", alignItems: "center", mr: 2 }}>
+                  <Typography variant="body2" sx={{ color: "#ffffff", mr: 1 }}>
+                    Welcome {user?.firstName || "User"},
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "#ffffff", mr: 2 }}>
+                    {new Date().toLocaleDateString()}
+                  </Typography>
+                </Box>
+              )}
 
             {/* Social Media Links */}
             {socialLinks.map((social, index) => (

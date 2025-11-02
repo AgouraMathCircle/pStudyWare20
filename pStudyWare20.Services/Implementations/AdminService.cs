@@ -30,12 +30,34 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                var studentList = await _adminRepository.GetStudentListAsync(request.Username, request.Mode);
-                
+                var studentListData = await _adminRepository.GetStudentListAsync(request.Username, request.Mode);
+                var students = new List<StudentInfo>();
+
+                // Convert DataTable to List<StudentInfo>
+                if (studentListData is DataTable dataTable)
+                {
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        students.Add(new StudentInfo
+                        {
+                            StudentID = GetIntValue(row, "StudentID"),
+                            StudentName = row["StudentName"]?.ToString() ?? "",
+                            Class = row["Class"]?.ToString() ?? "",
+                            Grade = row["Grade"]?.ToString() ?? "",
+                            School = row["School"]?.ToString() ?? "",
+                            ParentName = row["ParentName"]?.ToString() ?? "",
+                            PhoneNumber = row["PhoneNumber"]?.ToString() ?? "",
+                            EmailAddress = row["EmailAddress"]?.ToString() ?? "",
+                            EventSession = row["EventSession"]?.ToString() ?? "",
+                            EventLocation = row["EventLocation"]?.ToString() ?? ""
+                        });
+                    }
+                }
+
                 return new AdminStudentListResponse
                 {
                     IsSuccess = true,
-                    StudentList = studentList
+                    Students = students
                 };
             }
             catch (Exception ex)
@@ -55,12 +77,28 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                var trackingSummary = await _adminRepository.GetUserTrackingSummaryAsync();
-                
+                var trackingSummaryData = await _adminRepository.GetUserTrackingSummaryAsync();
+                var trackingData = new List<UserTrackingData>();
+
+                // Convert DataTable to List<UserTrackingData>
+                if (trackingSummaryData is DataTable dataTable)
+                {
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        trackingData.Add(new UserTrackingData
+                        {
+                            VisitedDate = row["VisitedDate"] != DBNull.Value ? Convert.ToDateTime(row["VisitedDate"]) : DateTime.MinValue,
+                            WebCount = GetIntValue(row, "WebCount"),
+                            AppCount = GetIntValue(row, "AppCount"),
+                            UpdateScoreCnt = GetIntValue(row, "UpdateScoreCnt")
+                        });
+                    }
+                }
+
                 return new UserTrackingSummaryResponse
                 {
                     IsSuccess = true,
-                    TrackingSummary = trackingSummary
+                    TrackingData = trackingData
                 };
             }
             catch (Exception ex)
@@ -81,64 +119,74 @@ namespace pStudyWare20.Services.Implementations
             try
             {
                 var dashboardData = await _adminRepository.GetDashboardMessageAsync(request.Mode, request.Username);
-                
-                var studentCounts = new StudentCounts();
-                
+
+                var studentCounts = new Dictionary<string, int>();
+                var waitingListCounts = new Dictionary<string, int>();
+
                 if (dashboardData is DataSet dataSet && dataSet.Tables.Count > 0 && dataSet.Tables[0].Rows.Count > 0)
                 {
                     var table = dataSet.Tables[0];
-                    
-                    // Map the data from the stored procedure result to StudentCounts
+
+                    // Map the data from the stored procedure result
                     // Based on the original code, the data is accessed by row index
                     if (table.Rows.Count > 13)
                     {
-                        // Online Student Counts
-                        studentCounts.OnlineStudentCountJA = GetIntValue(table.Rows[7], "StudentOTotal");
-                        studentCounts.OnlineStudentCountJB = GetIntValue(table.Rows[8], "StudentOTotal");
-                        studentCounts.OnlineStudentCountJI = GetIntValue(table.Rows[9], "StudentOTotal");
-                        studentCounts.OnlineStudentCountSA = GetIntValue(table.Rows[10], "StudentOTotal");
-                        studentCounts.OnlineStudentCountSB = GetIntValue(table.Rows[11], "StudentOTotal");
-                        studentCounts.OnlineStudentCountSI = GetIntValue(table.Rows[12], "StudentOTotal");
-                        studentCounts.OnlineStudentCountAI = GetIntValue(table.Rows[4], "StudentOTotal");
-                        studentCounts.OnlineStudentCountAT = GetIntValue(table.Rows[5], "StudentOTotal");
-                        studentCounts.OnlineStudentCountDS = GetIntValue(table.Rows[6], "StudentOTotal");
-                        studentCounts.OnlineStudentCountST = GetIntValue(table.Rows[13], "StudentOTotal");
+                        // OnSite Student Counts (matching frontend keys)
+                        studentCounts["onstudentCntJA"] = GetIntValue(table.Rows[7], "StudentOTotal");
+                        studentCounts["onstudentCntJB"] = GetIntValue(table.Rows[8], "StudentOTotal");
+                        studentCounts["onstudentCntJI"] = GetIntValue(table.Rows[9], "StudentOTotal");
+                        studentCounts["onstudentCntSA"] = GetIntValue(table.Rows[10], "StudentOTotal");
+                        studentCounts["onstudentCntSB"] = GetIntValue(table.Rows[11], "StudentOTotal");
+                        studentCounts["onstudentCntSI"] = GetIntValue(table.Rows[12], "StudentOTotal");
+                        studentCounts["onstudentCntAI"] = GetIntValue(table.Rows[4], "StudentOTotal");
+                        studentCounts["onstudentCntAT"] = GetIntValue(table.Rows[5], "StudentOTotal");
+                        studentCounts["onstudentCntDS"] = GetIntValue(table.Rows[6], "StudentOTotal");
+                        studentCounts["onstudentCntST"] = GetIntValue(table.Rows[13], "StudentOTotal");
 
-                        // In-Person Student Counts
-                        studentCounts.InPersonStudentCountJA = GetIntValue(table.Rows[7], "StudentITotal");
-                        studentCounts.InPersonStudentCountJB = GetIntValue(table.Rows[8], "StudentITotal");
-                        studentCounts.InPersonStudentCountJI = GetIntValue(table.Rows[9], "StudentITotal");
-                        studentCounts.InPersonStudentCountSA = GetIntValue(table.Rows[10], "StudentITotal");
-                        studentCounts.InPersonStudentCountSB = GetIntValue(table.Rows[11], "StudentITotal");
-                        studentCounts.InPersonStudentCountSI = GetIntValue(table.Rows[12], "StudentITotal");
+                        // Online Student Counts (matching frontend keys)
+                        studentCounts["instudentCntJA"] = GetIntValue(table.Rows[7], "StudentITotal");
+                        studentCounts["instudentCntJB"] = GetIntValue(table.Rows[8], "StudentITotal");
+                        studentCounts["instudentCntJI"] = GetIntValue(table.Rows[9], "StudentITotal");
+                        studentCounts["instudentCntSA"] = GetIntValue(table.Rows[10], "StudentITotal");
+                        studentCounts["instudentCntSB"] = GetIntValue(table.Rows[11], "StudentITotal");
+                        studentCounts["instudentCntSI"] = GetIntValue(table.Rows[12], "StudentITotal");
+                        studentCounts["instudentCntAI"] = GetIntValue(table.Rows[4], "StudentITotal");
+                        studentCounts["instudentCntAT"] = GetIntValue(table.Rows[5], "StudentITotal");
+                        studentCounts["instudentCntDS"] = GetIntValue(table.Rows[6], "StudentITotal");
+                        studentCounts["instudentCntST"] = GetIntValue(table.Rows[13], "StudentITotal");
 
-                        // Online Waiting List Counts
-                        studentCounts.OnlineWaitingListCountAI = GetIntValue(table.Rows[4], "WaitingOTotal");
-                        studentCounts.OnlineWaitingListCountAT = GetIntValue(table.Rows[5], "WaitingOTotal");
-                        studentCounts.OnlineWaitingListCountJA = GetIntValue(table.Rows[7], "WaitingOTotal");
-                        studentCounts.OnlineWaitingListCountJB = GetIntValue(table.Rows[8], "WaitingOTotal");
-                        studentCounts.OnlineWaitingListCountJI = GetIntValue(table.Rows[9], "WaitingOTotal");
-                        studentCounts.OnlineWaitingListCountSA = GetIntValue(table.Rows[10], "WaitingOTotal");
-                        studentCounts.OnlineWaitingListCountSB = GetIntValue(table.Rows[11], "WaitingOTotal");
-                        studentCounts.OnlineWaitingListCountSI = GetIntValue(table.Rows[12], "WaitingOTotal");
-                        studentCounts.OnlineWaitingListCountST = GetIntValue(table.Rows[13], "WaitingOTotal");
+                        // OnSite Waiting List Counts (matching frontend keys)
+                        waitingListCounts["owaitingListCntAI"] = GetIntValue(table.Rows[4], "WaitingOTotal");
+                        waitingListCounts["owaitingListCntAT"] = GetIntValue(table.Rows[5], "WaitingOTotal");
+                        waitingListCounts["owaitingListCntJA"] = GetIntValue(table.Rows[7], "WaitingOTotal");
+                        waitingListCounts["owaitingListCntJB"] = GetIntValue(table.Rows[8], "WaitingOTotal");
+                        waitingListCounts["owaitingListCntJI"] = GetIntValue(table.Rows[9], "WaitingOTotal");
+                        waitingListCounts["owaitingListCntSA"] = GetIntValue(table.Rows[10], "WaitingOTotal");
+                        waitingListCounts["owaitingListCntSB"] = GetIntValue(table.Rows[11], "WaitingOTotal");
+                        waitingListCounts["owaitingListCntSI"] = GetIntValue(table.Rows[12], "WaitingOTotal");
+                        waitingListCounts["owaitingListCntST"] = GetIntValue(table.Rows[13], "WaitingOTotal");
+                        waitingListCounts["owaitingListCntDS"] = GetIntValue(table.Rows[6], "WaitingOTotal");
 
-                        // In-Person Waiting List Counts
-                        studentCounts.InPersonWaitingListCountAI = GetIntValue(table.Rows[4], "WaitingITotal");
-                        studentCounts.InPersonWaitingListCountAT = GetIntValue(table.Rows[5], "WaitingITotal");
-                        studentCounts.InPersonWaitingListCountJA = GetIntValue(table.Rows[7], "WaitingITotal");
-                        studentCounts.InPersonWaitingListCountJB = GetIntValue(table.Rows[8], "WaitingITotal");
-                        studentCounts.InPersonWaitingListCountJI = GetIntValue(table.Rows[9], "WaitingITotal");
-                        studentCounts.InPersonWaitingListCountSA = GetIntValue(table.Rows[10], "WaitingITotal");
-                        studentCounts.InPersonWaitingListCountSB = GetIntValue(table.Rows[11], "WaitingITotal");
-                        studentCounts.InPersonWaitingListCountSI = GetIntValue(table.Rows[12], "WaitingITotal");
+                        // Online Waiting List Counts (matching frontend keys)
+                        waitingListCounts["iwaitingListCntAI"] = GetIntValue(table.Rows[4], "WaitingITotal");
+                        waitingListCounts["iwaitingListCntAC"] = GetIntValue(table.Rows[5], "WaitingITotal"); // Note: AC instead of AT
+                        waitingListCounts["iwaitingListCntJA"] = GetIntValue(table.Rows[7], "WaitingITotal");
+                        waitingListCounts["iwaitingListCntJB"] = GetIntValue(table.Rows[8], "WaitingITotal");
+                        waitingListCounts["iwaitingListCntJI"] = GetIntValue(table.Rows[9], "WaitingITotal");
+                        waitingListCounts["iwaitingListCntSA"] = GetIntValue(table.Rows[10], "WaitingITotal");
+                        waitingListCounts["iwaitingListCntSB"] = GetIntValue(table.Rows[11], "WaitingITotal");
+                        waitingListCounts["iwaitingListCntSI"] = GetIntValue(table.Rows[12], "WaitingITotal");
+                        waitingListCounts["iwaitingListCntST"] = GetIntValue(table.Rows[13], "WaitingITotal");
+                        waitingListCounts["iwaitingListCntDS"] = GetIntValue(table.Rows[6], "WaitingITotal");
                     }
                 }
-                
+
                 return new DashboardMessageResponse
                 {
                     IsSuccess = true,
-                    StudentCounts = studentCounts
+                    Message = "",
+                    StudentCounts = studentCounts,
+                    WaitingListCounts = waitingListCounts
                 };
             }
             catch (Exception ex)
@@ -170,7 +218,7 @@ namespace pStudyWare20.Services.Implementations
                               "Regards <br>Sriya Kalyan <br>CEO, Agoura Math Circle<br/> <br/>www.agouramathcircle.org";
 
                     var emailSent = await _adminRepository.SendEmailNotificationAsync(adminEmail, studentEmailGroup, subject, body);
-                    
+
                     if (!emailSent)
                     {
                         return new PublishDocumentResponse
@@ -205,12 +253,12 @@ namespace pStudyWare20.Services.Implementations
             try
             {
                 var studentList = await _adminRepository.GetStudentListForExportAsync(request.Username, request.Mode);
-                
+
                 if (studentList is DataTable dataTable && dataTable.Rows.Count > 0)
                 {
                     // Convert DataTable to Excel format (simplified version)
                     var excelContent = ConvertDataTableToExcel(dataTable);
-                    
+
                     return new ExportExcelResponse
                     {
                         IsSuccess = true,
@@ -219,7 +267,7 @@ namespace pStudyWare20.Services.Implementations
                         ContentType = "application/octet-stream"
                     };
                 }
-                
+
                 return new ExportExcelResponse
                 {
                     IsSuccess = false,
@@ -254,7 +302,7 @@ namespace pStudyWare20.Services.Implementations
         private byte[] ConvertDataTableToExcel(DataTable dataTable)
         {
             var sb = new StringBuilder();
-            
+
             // Add headers
             for (int i = 0; i < dataTable.Columns.Count; i++)
             {
@@ -263,7 +311,7 @@ namespace pStudyWare20.Services.Implementations
                     sb.Append("\t");
             }
             sb.AppendLine();
-            
+
             // Add data rows
             foreach (DataRow row in dataTable.Rows)
             {
@@ -275,7 +323,7 @@ namespace pStudyWare20.Services.Implementations
                 }
                 sb.AppendLine();
             }
-            
+
             return Encoding.UTF8.GetBytes(sb.ToString());
         }
     }

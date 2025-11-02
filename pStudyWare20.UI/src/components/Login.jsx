@@ -69,16 +69,16 @@ const Login = () => {
         const memberType = user.memberType.toUpperCase();
         switch (memberType) {
           case "A":
-            navigate("/admin/dashboard", { replace: true });
+            navigate("/pstudyware/admin/dashboard", { replace: true });
             break;
           case "I":
-            navigate("/instructor/dashboard", { replace: true });
+            navigate("/pstudyware/instructor/dashboard", { replace: true });
             break;
           case "S":
             navigate("/pstudyware/student/dashboard", { replace: true });
             break;
           case "V":
-            navigate("/volunteer/dashboard", { replace: true });
+            navigate("/pstudyware/volunteer/dashboard", { replace: true });
             break;
           default:
             navigate("/dashboard", { replace: true });
@@ -87,7 +87,7 @@ const Login = () => {
       } else if (user.role) {
         switch (user.role) {
           case "Admin":
-            navigate("/admin/dashboard", { replace: true });
+            navigate("/pstudyware/admin/dashboard", { replace: true });
             break;
           case "Instructor":
             navigate("/instructor/dashboard", { replace: true });

@@ -3,6 +3,44 @@ using System.ComponentModel.DataAnnotations;
 namespace pStudyWare20.Shared
 {
     /// <summary>
+    /// Model for send email request
+    /// </summary>
+    public class SendEmailRequest
+    {
+        [Required]
+        [Display(Name = "To")]
+        public string To { get; set; } = string.Empty;
+
+        [Required]
+        [Display(Name = "From")]
+        public string From { get; set; } = string.Empty;
+
+        [Required]
+        [Display(Name = "Subject")]
+        public string Subject { get; set; } = string.Empty;
+
+        [Required]
+        [Display(Name = "Body")]
+        public string Body { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Model for send email response
+    /// </summary>
+    public class SendEmailResponse
+    {
+        [Display(Name = "Is Success")]
+        public bool IsSuccess { get; set; }
+
+        [Display(Name = "Message")]
+        public string Message { get; set; } = string.Empty;
+
+        [Display(Name = "Error Message")]
+        public string ErrorMessage { get; set; } = string.Empty;
+    }
+
+
+    /// <summary>
     /// Model for report card list request
     /// </summary>
     public class ReportCardListRequest

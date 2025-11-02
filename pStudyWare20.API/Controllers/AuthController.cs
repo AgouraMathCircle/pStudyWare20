@@ -62,7 +62,12 @@ namespace pStudyWare20.API.Controllers
         {
             return Ok(new { message = "Token is valid", user = User.Identity?.Name });
         }
- 
+
+        /// <summary>
+        /// Forgot Password - Send password reset email to user
+        /// </summary>
+        /// <param name="request">Forgot password request with email</param>
+        /// <returns>Forgot password response</returns>
         [HttpPost("forgot-password")]
         [AllowAnonymous] // Allow anonymous access for forgot password
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
@@ -103,6 +108,46 @@ namespace pStudyWare20.API.Controllers
             catch
             {
                 return StatusCode(500, new { message = "An error occurred while refreshing the token" });
+            }
+        }
+
+        /// <summary>
+        /// Update Password - Change user password and send notification email
+        /// </summary>
+        /// <param name="request">Update password request with username and new password</param>
+        /// <returns>Update password response</returns>
+        [HttpPost("update-password")]
+        [Authorize] // Require authentication to update password
+        public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                // Verify that the authenticated user is updating their own password
+                var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(userEmail) || !userEmail.Equals(request.Username, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Forbid(); // User can only update their own password
+                }
+
+                var response = await _authService.UpdatePasswordAsync(request);
+
+                if (response.IsSuccess)
+                {
+                    return Ok(response);
+                }
+                else
+                {
+                    return BadRequest(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while updating password", error = ex.Message });
             }
         }
     }

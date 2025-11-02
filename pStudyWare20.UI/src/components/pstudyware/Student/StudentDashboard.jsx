@@ -21,6 +21,7 @@ import {
   Checkbox,
   FormControlLabel,
   Link,
+  Snackbar,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -42,7 +43,12 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import StudentHeader from "./StudentHeader";
 import DashboardMessages from "./DashboardMessages";
-  import StudentProfile from "./StudentProfile";
+import StudentProfile from "./StudentProfile";
+import ReportCard from "./ReportCard";
+import RegistrationSection from "./RegistrationSection";
+import FinalExamSection from "./FinalExamSection";
+import StudentMeetingSchedule from "./StudentMeetingSchedule";
+import studentDashboardService from "../../../services/studentDashboardService";
 import "../../../styles/StudentDashboard.css";
 
 const StudentDashboard = () => {
@@ -51,6 +57,25 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isValidated, setIsValidated] = useState(false);
   const hasRedirectedRef = useRef(false);
+
+  // Registration state
+  const [registrationData, setRegistrationData] = useState([]);
+  const [showRegistration, setShowRegistration] = useState(false);
+  const [registrationLoading, setRegistrationLoading] = useState(false);
+
+  // Final Exam state
+  const [showFinalExam, setShowFinalExam] = useState(false);
+  const [finalExamLoading, setFinalExamLoading] = useState(false);
+
+  // Global message state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info", // 'success', 'error', 'warning', 'info'
+  });
+
+  // Trigger for refreshing data after registration
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Handle authentication and validation
   useEffect(() => {
@@ -95,11 +120,11 @@ const StudentDashboard = () => {
       hasRedirectedRef.current = true;
       // Redirect to appropriate dashboard based on user type
       if (memberType === "A" || role === "Admin") {
-        navigate("/admin/dashboard", { replace: true });
+        navigate("/pstudyware/admin/dashboard", { replace: true });
       } else if (memberType === "I" || role === "Instructor") {
-        navigate("/instructor/dashboard", { replace: true });
+        navigate("/pstudyware/instructor/dashboard", { replace: true });
       } else if (memberType === "V" || role === "Volunteer") {
-        navigate("/volunteer/dashboard", { replace: true });
+        navigate("/pstudyware/volunteer/dashboard", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
       }
@@ -134,6 +159,148 @@ const StudentDashboard = () => {
 
     return () => clearTimeout(timeout);
   }, [loading, authLoading]);
+
+  // Load registration status
+  useEffect(() => {
+    const loadRegistrationStatus = async () => {
+      if (!isValidated || !user || !user.email) {
+        return;
+      }
+
+      try {
+        setRegistrationLoading(true);
+        console.log(
+          "StudentDashboard: Fetching registration status for",
+          user.email
+        );
+
+        const response = await studentDashboardService.getRegistrationStatus(
+          user.email || user.username
+        );
+
+        console.log("StudentDashboard: Registration status response", response);
+
+        if (response.isSuccess && response.registrationEntries) {
+          setRegistrationData(response.registrationEntries);
+          // Show registration section if there are entries
+          if (response.registrationEntries.length > 0) {
+            setShowRegistration(true);
+          } else {
+            setShowRegistration(false);
+          }
+        } else {
+          // No registration data or failed
+          setShowRegistration(false);
+          console.log(
+            "StudentDashboard: No registration data available or failed to load"
+          );
+        }
+      } catch (err) {
+        console.error("Error fetching registration status:", err);
+        setShowRegistration(false);
+      } finally {
+        setRegistrationLoading(false);
+      }
+    };
+
+    loadRegistrationStatus();
+  }, [isValidated, user, refreshTrigger]);
+
+  // Load dashboard data and check for final exam visibility
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      if (!isValidated || !user || !user.email) {
+        return;
+      }
+
+      try {
+        setFinalExamLoading(true);
+        console.log(
+          "StudentDashboard: Fetching dashboard data for final exam status"
+        );
+
+        const response = await studentDashboardService.getDashboardData(
+          user.email || user.username,
+          user.chapterId || user.chapterID || 1
+        );
+
+        console.log("StudentDashboard: Dashboard data response", response);
+
+        // Check if final exam should be shown
+        // Option 1: Check from API response (if backend provides this info)
+        if (response.isSuccess && response.showFinalExam !== undefined) {
+          setShowFinalExam(response.showFinalExam);
+        } else {
+          // Option 2: Check based on current date (exam period)
+          // For now, we'll enable it by default (matching old ASPX behavior: divExamButton.Visible = true)
+          // You can customize this logic based on your requirements
+          setShowFinalExam(checkIfFinalExamPeriod());
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard data for final exam:", err);
+        // Default to showing final exam if there's an error (matching old behavior)
+        setShowFinalExam(true);
+      } finally {
+        setFinalExamLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, [isValidated, user, refreshTrigger]);
+
+  // Helper function to check if it's final exam period
+  const checkIfFinalExamPeriod = () => {
+    // Option 1: Always show (matching old ASPX: divExamButton.Visible = true)
+    // return true;
+
+    // Option 2: Check date range (example: show during exam period)
+    const now = new Date();
+    const examStartDate = new Date("2024-05-01"); // Configure start date
+    const examEndDate = new Date("2024-06-30"); // Configure end date
+
+    // Show if within exam period or always show (uncomment line below for date-based)
+    // return now >= examStartDate && now <= examEndDate;
+
+    // For now, return true to match old behavior (always visible)
+    return true;
+  };
+
+  // Helper function to show messages
+  const showMessage = (message, severity = "info") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity,
+    });
+  };
+
+  // Helper function to close snackbar
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  // Handle successful registration
+  const handleRegistrationSuccess = (message) => {
+    showMessage(
+      message || "You have successfully registered for the Fall 2024 session!",
+      "success"
+    );
+    // Hide registration section after successful registration
+    setShowRegistration(false);
+    // Trigger refresh of dashboard data
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
+  // Handle registration error
+  const handleRegistrationError = (message) => {
+    showMessage(
+      message || "Error submitting registration. Please try again.",
+      "error"
+    );
+  };
 
   // Show loading while auth context is loading or while validating user
   if (authLoading || loading) {
@@ -172,27 +339,121 @@ const StudentDashboard = () => {
   return (
     <Box className="student-dashboard">
       <StudentHeader user={user} />
-      <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
+      {/* Spacer to account for fixed StudentHeader */}
+      <Box sx={{ height: "40px" }} />
+      <Container 
+        maxWidth="xl" 
+        sx={{ 
+          mb: 4, 
+          ml: { xs: 2, sm: 3, md: "1in", lg: "1in" },
+          mr: { xs: 2, sm: 3, md: "1in", lg: "1in" }
+        }}
+      >
         <Grid container spacing={3}>
-          {/* Left Content */}
-          <Grid item xs={12} lg={8}>
-            {/* Dashboard Messages */}
-            <DashboardMessages
-              username={user?.email || user?.username}
-              chapterId={user?.chapterId || user?.chapterID || 1}
-            />
+          {/* Dashboard Messages */}
+          <DashboardMessages
+            username={user?.email || user?.username}
+            chapterId={user?.chapterId || user?.chapterID || 1}
+          />
+
+          {/* Meeting Schedule Section - Centered on page */}
+          <Grid item xs={12}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "flex-start",
+                width: "100%",
+              }}
+            >
+              <Box sx={{ width: "100%", maxWidth: "600px" }}>
+                <StudentMeetingSchedule
+                  username={user?.email || user?.username}
+                />
+              </Box>
+            </Box>
           </Grid>
 
-          {/* Right Content */}
-          <Grid item xs={12} lg={4}>
-            {/* Student Profile */}
-            <StudentProfile
-              username={user?.email || user?.username}
-              chapterId={user?.chapterId || user?.chapterID || 1}
-            />
-          </Grid>
+          {/* Registration Section - Conditionally Rendered */}
+          {showRegistration && !registrationLoading && (
+            <Grid item xs={12}>
+              <RegistrationSection
+                registrationData={registrationData}
+                username={user?.email || user?.username}
+                onSuccess={handleRegistrationSuccess}
+                onError={handleRegistrationError}
+              />
+            </Grid>
+          )}
+
+          {/* Loading state for registration */}
+          {registrationLoading && (
+            <Grid item xs={12}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  p: 3,
+                }}
+              >
+                <Typography>Loading registration information...</Typography>
+              </Box>
+            </Grid>
+          )}
+
+          {/* Final Exam Section - Conditionally Rendered */}
+          {showFinalExam && !finalExamLoading && (
+            <Grid item xs={12}>
+              <FinalExamSection />
+            </Grid>
+          )}
+
+          {/* Loading state for final exam */}
+          {finalExamLoading && (
+            <Grid item xs={12}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  p: 3,
+                }}
+              >
+                <Typography>Loading final exam information...</Typography>
+              </Box>
+            </Grid>
+          )}
+
+          {/* Student Profile */}
+          <StudentProfile
+            username={user?.email || user?.username}
+            chapterId={user?.chapterId || user?.chapterID || 1}
+            key={`profile-${refreshTrigger}`}
+          />
+
+          {/* Report Card */}
+          <ReportCard
+            username={user?.email || user?.username}
+            key={`reportcard-${refreshTrigger}`}
+          />
         </Grid>
       </Container>
+
+      {/* Global Snackbar for Success/Error Messages */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

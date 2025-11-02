@@ -10,7 +10,7 @@ namespace pStudyWare20.Repository.Interfaces
         /// <summary>
         /// Get meeting schedule list
         /// </summary>
-        /// <param name="rowId">Row ID (0 for all records)</param>
+        /// <param name="rowId">Row ID ("0" for all records)</param>
         /// <returns>Meeting schedule data</returns>
         Task<object> GetMeetingScheduleListAsync(string rowId);
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -22,11 +22,23 @@ import {
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon
 } from '@mui/icons-material';
+import studentDashboardService from '../../../services/studentDashboardService';
 
-const RegistrationSection = ({ registrationData }) => {
+const RegistrationSection = ({ registrationData, username, onSuccess, onError }) => {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [submitMessage, setSubmitMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasOpenRegistration, setHasOpenRegistration] = useState(false);
+
+  // Check if there are any open registrations
+  useEffect(() => {
+    if (registrationData && registrationData.length > 0) {
+      const hasOpen = registrationData.some(
+        student => student.regStatus === 'Open' || student.regStatus === 'open'
+      );
+      setHasOpenRegistration(hasOpen);
+    }
+  }, [registrationData]);
 
   const handleStudentSelection = (studentId) => {
     setSelectedStudents(prev => 
@@ -39,6 +51,9 @@ const RegistrationSection = ({ registrationData }) => {
   const handleSubmit = async () => {
     if (selectedStudents.length === 0) {
       setSubmitMessage('Please select at least one student to register.');
+      if (onError) {
+        onError('Please select at least one student to register.');
+      }
       return;
     }
 
@@ -46,16 +61,47 @@ const RegistrationSection = ({ registrationData }) => {
     setSubmitMessage('');
 
     try {
-      // TODO: Replace with actual API call
-      // await api.post('/student/register', { studentIds: selectedStudents });
+      console.log('RegistrationSection: Submitting registration for students:', selectedStudents);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Submit registration for each selected student
+      for (const studentId of selectedStudents) {
+        console.log('RegistrationSection: Registering student ID:', studentId);
+        
+        // Call the API to submit registration
+        const response = await studentDashboardService.submitRegistration(
+          studentId, 
+          username
+        );
+
+        console.log('RegistrationSection: Registration response:', response);
+
+        if (!response.isSuccess) {
+          throw new Error(response.message || 'Registration failed');
+        }
+      }
       
-      setSubmitMessage('Registration submitted successfully!');
+      // All registrations successful
+      const successMessage = selectedStudents.length === 1 
+        ? 'You have successfully registered for Fall 2024 session.'
+        : `Successfully registered ${selectedStudents.length} students for Fall 2024 session.`;
+      
+      setSubmitMessage(successMessage);
       setSelectedStudents([]);
+      
+      // Notify parent component of success
+      if (onSuccess) {
+        onSuccess(successMessage);
+      }
+      
     } catch (error) {
-      setSubmitMessage('Error submitting registration. Please try again.');
+      console.error('RegistrationSection: Error submitting registration:', error);
+      const errorMessage = error.message || 'Error submitting registration. Please try again.';
+      setSubmitMessage(errorMessage);
+      
+      // Notify parent component of error
+      if (onError) {
+        onError(errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -64,20 +110,20 @@ const RegistrationSection = ({ registrationData }) => {
   const getStatusChip = (status) => {
     switch (status) {
       case 'Open':
-        return <Chip label="Open" color="success" size="small" />;
+        return <Chip label="Open" color="success" size="small" sx={{ fontSize: '0.7rem' }} />;
       case 'Closed':
-        return <Chip label="Closed" color="error" size="small" />;
+        return <Chip label="Closed" color="error" size="small" sx={{ fontSize: '0.7rem' }} />;
       case 'Waiting List':
-        return <Chip label="Waiting List" color="warning" size="small" />;
+        return <Chip label="Waiting List" color="warning" size="small" sx={{ fontSize: '0.7rem' }} />;
       default:
-        return <Chip label={status} color="default" size="small" />;
+        return <Chip label={status} color="default" size="small" sx={{ fontSize: '0.7rem' }} />;
     }
   };
 
   return (
     <Card sx={{ mb: 3 }}>
       <CardContent>
-        <Typography variant="h5" sx={{ mb: 2, fontWeight: 600, color: '#1976d2' }}>
+        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: '#1976d2', fontSize: '1rem' }}>
           Course Registration
         </Typography>
 
@@ -127,104 +173,134 @@ const RegistrationSection = ({ registrationData }) => {
           <Table>
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                <TableCell padding="checkbox">
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                <TableCell padding="checkbox" sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                     Select
                   </Typography>
                 </TableCell>
-                <TableCell>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                     Student ID
                   </Typography>
                 </TableCell>
-                <TableCell>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                     Name
                   </Typography>
                 </TableCell>
-                <TableCell>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                     Location
                   </Typography>
                 </TableCell>
-                <TableCell>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                     Grade
                   </Typography>
                 </TableCell>
-                <TableCell>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                     School
                   </Typography>
                 </TableCell>
-                <TableCell>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                     Parent Name
                   </Typography>
                 </TableCell>
-                <TableCell>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                     Class
                   </Typography>
                 </TableCell>
-                <TableCell>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                     Status
                   </Typography>
                 </TableCell>
-                <TableCell>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
                     Available Space
                   </Typography>
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {registrationData.map((student) => (
-                <TableRow key={student.studentId} hover>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={selectedStudents.includes(student.studentId)}
-                      onChange={() => handleStudentSelection(student.studentId)}
-                      disabled={student.regStatus === 'Closed'}
-                    />
-                  </TableCell>
-                  <TableCell>{student.studentId}</TableCell>
-                  <TableCell>{student.studentName}</TableCell>
-                  <TableCell>{student.eventLocation}</TableCell>
-                  <TableCell>{student.grade}</TableCell>
-                  <TableCell>{student.school}</TableCell>
-                  <TableCell>{student.parentName}</TableCell>
-                  <TableCell>{student.class}</TableCell>
-                  <TableCell>
-                    {getStatusChip(student.regStatus)}
-                  </TableCell>
-                  <TableCell>{student.openSpace}</TableCell>
-                </TableRow>
-              ))}
+              {registrationData.map((student) => {
+                const status = student.regStatus || '';
+                const isClosed = status.toLowerCase().includes('closed') || status.toLowerCase() === 'full - closed';
+                const isWaitingList = status.toLowerCase().includes('waiting');
+                const isOpen = status.toLowerCase() === 'open' && !isClosed && !isWaitingList;
+                
+                return (
+                  <TableRow key={student.studentId} hover>
+                    <TableCell padding="checkbox" sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                      {isOpen ? (
+                        <Checkbox
+                          checked={selectedStudents.includes(student.studentId)}
+                          onChange={() => handleStudentSelection(student.studentId)}
+                          disabled={false}
+                        />
+                      ) : (
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {isClosed && (
+                            <Chip label="Closed" color="error" size="small" sx={{ fontSize: '0.7rem' }} />
+                          )}
+                          {isWaitingList && (
+                            <Chip label="Waiting" color="warning" size="small" sx={{ fontSize: '0.7rem' }} />
+                          )}
+                        </Box>
+                      )}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>{student.studentId}</TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>{student.studentName}</TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>{student.eventLocation}</TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>{student.grade}</TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>{student.school}</TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>{student.parentName}</TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>{student.class}</TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                      {getStatusChip(student.regStatus)}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>{student.openSpace}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>
 
-        {/* Submit Button */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
-            disabled={isSubmitting || selectedStudents.length === 0}
-            sx={{
-              backgroundColor: '#53b50a',
-              '&:hover': { backgroundColor: '#4a7c59' },
-              '&:disabled': { backgroundColor: '#cccccc' },
-              px: 4,
-              py: 1.5,
-              fontSize: '1rem',
-              fontWeight: 600
-            }}
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Registration'}
-          </Button>
-        </Box>
+        {/* Submit Button - Only show if there are open registrations */}
+        {hasOpenRegistration && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+            <Button
+              variant="contained"
+              onClick={handleSubmit}
+              disabled={isSubmitting || selectedStudents.length === 0}
+              sx={{
+                backgroundColor: '#53b50a',
+                '&:hover': { backgroundColor: '#4a7c59' },
+                '&:disabled': { backgroundColor: '#cccccc' },
+                px: 4,
+                py: 1.5,
+                fontSize: '1rem',
+                fontWeight: 600
+              }}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Registration'}
+            </Button>
+          </Box>
+        )}
+
+        {/* Message if no open registrations */}
+        {!hasOpenRegistration && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              Registration is currently closed or all students are on the waiting list. 
+              Please contact us via Message Center if you have any questions.
+            </Typography>
+          </Alert>
+        )}
 
         {/* Submit Message */}
         {submitMessage && (

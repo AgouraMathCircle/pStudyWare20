@@ -291,7 +291,7 @@ const Footer = () => {
 
         <FooterContent>
           <Grid container spacing={3}>
-            <Grid item xs={12} lg={5}>
+            <Grid size={{ xs: 12, lg: 5 }}>
               <FooterWidget>
                 <WidgetTitle variant="h4">
                   AMC SEMESTER SCHEDULE- PST
@@ -325,7 +325,7 @@ const Footer = () => {
                 </WidgetMenu>
               </FooterWidget>
             </Grid>
-            <Grid item xs={12} lg={4}>
+            <Grid size={{ xs: 12, lg: 4 }}>
               <FooterWidget>
                 <WidgetTitle variant="h4">CLASS LOCATION</WidgetTitle>
                 <WidgetMenu>
@@ -357,7 +357,7 @@ const Footer = () => {
                 </WidgetMenu>
               </FooterWidget>
             </Grid>
-            <Grid item xs={12} lg={3}>
+            <Grid size={{ xs: 12, lg: 3 }}>
               <FooterWidget>
                 <WidgetTitle variant="h4">Contact Info</WidgetTitle>
                 <AddressWidget>
@@ -440,7 +440,7 @@ const Footer = () => {
       <FooterBottom>
         <Container>
           <Grid container alignItems="center" spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography
                 variant="body2"
                 sx={{
@@ -451,7 +451,7 @@ const Footer = () => {
                 © Copyright 2015-2024 Agoura Math Circle. All Rights Reserved.
               </Typography>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <CopyrightMenu>
                 <li>
                   <Link href="ContactUs.aspx" underline="none">
