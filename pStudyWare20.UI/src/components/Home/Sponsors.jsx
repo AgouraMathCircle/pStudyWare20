@@ -132,7 +132,7 @@ const Sponsors = () => {
     <Box
       sx={{
         backgroundColor: "#e3f8f1",
-        padding: { xs: "40px 0", md: "70px 0 100px 0" },
+        padding: { xs: "20px 0", md: "35px 0 50px 0" },
       }}
     >
       <Container maxWidth="lg">

@@ -12,7 +12,7 @@ using System.Text;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var AllowSpecificOrigins = "CORPolicy";
 // Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -219,7 +219,7 @@ app.UseSwaggerUI(c =>
 app.UseHttpsRedirection();
 
 // Use CORS before Authentication and Authorization
-app.UseCors(); // Use default policy
+app.UseCors(AllowSpecificOrigins); // Use default policy
 app.UseCors("AllowReactApp");
 
 app.UseAuthentication();

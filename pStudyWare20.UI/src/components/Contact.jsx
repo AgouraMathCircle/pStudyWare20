@@ -6,16 +6,16 @@ import {
   Box,
   Button,
   TextField,
-  Card,
-  CardContent,
   useTheme,
   useMediaQuery,
+  IconButton,
 } from "@mui/material";
 import {
-  LocationOn as LocationIcon,
-  Email as EmailIcon,
-  Phone as PhoneIcon,
-  Send as SendIcon,
+  Facebook as FacebookIcon,
+  Twitter as TwitterIcon,
+  LinkedIn as LinkedInIcon,
+  Instagram as InstagramIcon,
+  YouTube as YouTubeIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import "../styles/Contact.css";
@@ -25,6 +25,7 @@ import pageHeaderImg from "../assets/images/about/page-header.jpg";
 const Contact = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isSmallMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -63,10 +64,17 @@ const Contact = () => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  // Primary green color
+  const primaryGreen = "#53b50a";
+  const darkGray = "#373737";
+
   return (
-    <Box className="contact-container">
-      {/* Breadcrumbs Section */}
-      <Box className="sc-breadcrumbs breadcrumbs-overlay">
+    <Box
+      className="contact-container"
+      sx={{ backgroundColor: "#ffffff", minHeight: "100vh" }}
+    >
+      {/* Breadcrumbs Section with Mathematical Background */}
+      <Box className="sc-breadcrumbs breadcrumbs-overlay contact-breadcrumbs">
         <Box className="breadcrumbs-img">
           <img src={pageHeaderImg} alt="Breadcrumbs Image" />
         </Box>
@@ -75,12 +83,13 @@ const Contact = () => {
             variant="h1"
             className="page-title"
             sx={{
-              fontSize: { xs: "2.5rem", md: "3.5rem" },
+              fontSize: { xs: "1.75rem", sm: "2rem", md: "3.5rem" },
               fontWeight: 700,
-              mb: 2,
+              mb: { xs: 1, md: 2 },
+              px: { xs: 2, md: 0 },
             }}
           >
-            Contact Us
+            CONTACT US
           </Typography>
           <Box
             component="ul"
@@ -90,7 +99,11 @@ const Contact = () => {
               m: 0,
               display: "flex",
               alignItems: "center",
-              gap: 1,
+              gap: { xs: 0.5, md: 1 },
+              justifyContent: "center",
+              flexWrap: "wrap",
+              px: { xs: 2, md: 0 },
+              fontSize: { xs: "0.875rem", md: "1rem" },
             }}
           >
             <Box component="li" sx={{ display: "inline-block" }}>
@@ -101,15 +114,22 @@ const Contact = () => {
                   textDecoration: "underline",
                   p: 0,
                   minWidth: "auto",
-                  fontSize: "inherit",
+                  fontSize: { xs: "0.875rem", md: "inherit" },
                   textTransform: "none",
+                  minHeight: { xs: "44px", md: "auto" },
                 }}
               >
                 Home &gt;
               </Button>
             </Box>
             <Box component="li" sx={{ display: "inline-block" }}>
-              <Typography component="span" sx={{ color: "white" }}>
+              <Typography
+                component="span"
+                sx={{
+                  color: "white",
+                  fontSize: { xs: "0.875rem", md: "1rem" },
+                }}
+              >
                 Contact Us
               </Typography>
             </Box>
@@ -117,354 +137,569 @@ const Contact = () => {
         </Box>
       </Box>
 
-      {/* Contact Section */}
-      <Box
-        sx={{
-          pt: { xs: 4, md: 8 },
-          pb: { xs: 4, md: 6 },
-        }}
-      >
-        <Container maxWidth="lg">
-          <Grid container spacing={6}>
-            {/* Contact Information */}
-            <Grid item xs={12} md={5}>
+      {/* Main Content Section */}
+      <Box>
+        <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+          <Box sx={{ mb: { xs: 3, md: 4 }, mt: { xs: 2, md: 0 } }}>
+            <Typography
+              variant="h2"
+              sx={{
+                fontWeight: 700,
+                mb: { xs: 1.5, md: 2 },
+                mt: { xs: 1, md: 2 },
+                fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2.5rem" },
+                color: "#1a2b51",
+                textTransform: "uppercase",
+                textAlign: { xs: "center", md: "center" },
+                fontFamily: "sans-serif",
+                letterSpacing: "0.5px",
+                px: { xs: 1, md: 0 },
+              }}
+            >
+              HAPPY TO HELP!
+            </Typography>
+            {/* CONTACT US Title */}
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                fontSize: { xs: "0.875rem", sm: "1rem", md: "1.25rem" },
+                color: darkGray,
+                textTransform: "uppercase",
+                textAlign: "left",
+                px: { xs: 1, md: 0 },
+              }}
+            >
+              CONTACT US
+            </Typography>
+          </Box>
+
+          <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
+            {/* Column 1: Agoura Chapter, ACT/SAT/PSAT, WE'RE SOCIAL */}
+            <Grid item xs={12} sm={6} md={3}>
               <Box>
-                <Typography
-                  variant="h3"
-                  sx={{
-                    fontWeight: 700,
-                    mb: 4,
-                    fontSize: { xs: "2rem", md: "2.5rem" },
-                  }}
-                >
-                  Get In Touch
-                </Typography>
-                <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 4 }}>
-                  Have questions about our programs? Want to learn more about
-                  how to get involved? We'd love to hear from you! Reach out to
-                  us through any of the channels below.
-                </Typography>
-
-                {/* Contact Info Cards */}
-                <Box sx={{ mb: 4 }}>
-                  <Card sx={{ mb: 2, boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
-                    <CardContent
-                      sx={{ display: "flex", alignItems: "center", p: 3 }}
+                {/* Agoura Chapter El Camino Real High School */}
+                <Box sx={{ mb: { xs: 3, md: 4 } }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 600,
+                      mb: { xs: 0.75, md: 1 },
+                      color: primaryGreen,
+                      fontSize: { xs: "0.875rem", sm: "0.95rem", md: "1.1rem" },
+                      lineHeight: { xs: 1.4, md: 1.5 },
+                    }}
+                  >
+                    Agoura Chapter El Camino Real High School
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: darkGray,
+                      mb: 0.5,
+                      fontSize: { xs: "0.813rem", sm: "0.875rem", md: "1rem" },
+                      lineHeight: { xs: 1.5, md: 1.6 },
+                    }}
+                  >
+                    5440 Valley Cir Blvd, Woodland Hill CA 91367
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: darkGray,
+                      fontSize: { xs: "0.813rem", sm: "0.875rem", md: "1rem" },
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    Email:{" "}
+                    <Box
+                      component="a"
+                      href="mailto:support@agouramathcircle.org"
+                      sx={{
+                        color: primaryGreen,
+                        textDecoration: "none",
+                        fontSize: {
+                          xs: "0.813rem",
+                          sm: "0.875rem",
+                          md: "1rem",
+                        },
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                        touchAction: "manipulation",
+                      }}
                     >
-                      <LocationIcon
-                        sx={{
-                          color: theme.palette.primary.main,
-                          mr: 2,
-                          fontSize: "2rem",
-                        }}
-                      />
-                      <Box>
-                        <Typography
-                          variant="h6"
-                          sx={{ fontWeight: 600, mb: 1 }}
-                        >
-                          Location
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          sx={{ color: "text.secondary" }}
-                        >
-                          Agoura Chapter
-                          <br />
-                          El Camino Real High School
-                          <br />
-                          5440 Valley Cir Blvd, Woodland Hills
-                          <br />
-                          CA 91367
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-
-                  <Card sx={{ mb: 2, boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
-                    <CardContent
-                      sx={{ display: "flex", alignItems: "center", p: 3 }}
-                    >
-                      <EmailIcon
-                        sx={{
-                          color: theme.palette.primary.main,
-                          mr: 2,
-                          fontSize: "2rem",
-                        }}
-                      />
-                      <Box>
-                        <Typography
-                          variant="h6"
-                          sx={{ fontWeight: 600, mb: 1 }}
-                        >
-                          Email
-                        </Typography>
-                        <Button
-                          onClick={() =>
-                            handleExternalLink(
-                              "mailto:info@agouramathcircle.org"
-                            )
-                          }
-                          sx={{
-                            color: theme.palette.primary.main,
-                            textTransform: "none",
-                            p: 0,
-                            "&:hover": {
-                              backgroundColor: "transparent",
-                              textDecoration: "underline",
-                            },
-                          }}
-                        >
-                          info@agouramathcircle.org
-                        </Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-
-                  <Card sx={{ boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
-                    <CardContent
-                      sx={{ display: "flex", alignItems: "center", p: 3 }}
-                    >
-                      <PhoneIcon
-                        sx={{
-                          color: theme.palette.primary.main,
-                          mr: 2,
-                          fontSize: "2rem",
-                        }}
-                      />
-                      <Box>
-                        <Typography
-                          variant="h6"
-                          sx={{ fontWeight: 600, mb: 1 }}
-                        >
-                          Support
-                        </Typography>
-                        <Button
-                          onClick={() =>
-                            handleExternalLink(
-                              "mailto:support@agouramathcircle.org"
-                            )
-                          }
-                          sx={{
-                            color: theme.palette.primary.main,
-                            textTransform: "none",
-                            p: 0,
-                            "&:hover": {
-                              backgroundColor: "transparent",
-                              textDecoration: "underline",
-                            },
-                          }}
-                        >
-                          support@agouramathcircle.org
-                        </Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
+                      support@agouramathcircle.org
+                    </Box>
+                  </Typography>
                 </Box>
 
-                {/* Social Media Links */}
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                    Follow Us
+                {/* ACT/SAT/PSAT */}
+                <Box sx={{ mb: { xs: 3, md: 4 } }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 600,
+                      mb: { xs: 0.75, md: 1 },
+                      color: primaryGreen,
+                      fontSize: { xs: "0.875rem", sm: "0.95rem", md: "1.1rem" },
+                    }}
+                  >
+                    ACT/SAT/PSAT
                   </Typography>
-                  <Box sx={{ display: "flex", gap: 2 }}>
-                    <Button
-                      variant="outlined"
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: darkGray,
+                      fontSize: { xs: "0.813rem", sm: "0.875rem", md: "1rem" },
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    Email:{" "}
+                    <Box
+                      component="a"
+                      href="mailto:support@agouramathcircle.org"
+                      sx={{
+                        color: primaryGreen,
+                        textDecoration: "none",
+                        fontSize: {
+                          xs: "0.813rem",
+                          sm: "0.875rem",
+                          md: "1rem",
+                        },
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                        touchAction: "manipulation",
+                      }}
+                    >
+                      support@agouramathcircle.org
+                    </Box>
+                  </Typography>
+                </Box>
+
+                {/* WE'RE SOCIAL Section */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: { xs: 1.5, md: 2 },
+                    flexWrap: "wrap",
+                    mb: { xs: 2, md: 0 },
+                  }}
+                >
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: { xs: "0.688rem", sm: "0.75rem", md: "1rem" },
+                      color: darkGray,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    WE'RE SOCIAL
+                  </Typography>
+                  {/* Social Media Icons */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: { xs: 0.75, sm: 1, md: 1.5 },
+                      alignItems: "center",
+                    }}
+                  >
+                    <IconButton
                       onClick={() =>
                         handleExternalLink(
                           "https://www.facebook.com/profile.php?id=100010784343153"
                         )
                       }
                       sx={{
-                        borderColor: theme.palette.primary.main,
-                        color: theme.palette.primary.main,
+                        color: primaryGreen,
+                        border: `1px solid ${primaryGreen}`,
                         "&:hover": {
-                          backgroundColor: theme.palette.primary.main,
-                          color: "white",
+                          backgroundColor: primaryGreen,
+                          color: "#ffffff",
+                        },
+                        "&:active": {
+                          backgroundColor: primaryGreen,
+                          color: "#ffffff",
+                        },
+                        width: { xs: 36, sm: 40, md: 24 },
+                        height: { xs: 36, sm: 40, md: 24 },
+                        minWidth: { xs: "44px", md: "auto" },
+                        minHeight: { xs: "44px", md: "auto" },
+                        touchAction: "manipulation",
+                        "& .MuiSvgIcon-root": {
+                          fontSize: { xs: "1rem", sm: "1.125rem", md: "1rem" },
                         },
                       }}
                     >
-                      Facebook
-                    </Button>
-                    <Button
-                      variant="outlined"
+                      <FacebookIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
                       onClick={() =>
                         handleExternalLink(
                           "https://twitter.com/Agouramathcirle"
                         )
                       }
                       sx={{
-                        borderColor: theme.palette.primary.main,
-                        color: theme.palette.primary.main,
+                        color: primaryGreen,
+                        border: `1px solid ${primaryGreen}`,
                         "&:hover": {
-                          backgroundColor: theme.palette.primary.main,
-                          color: "white",
+                          backgroundColor: primaryGreen,
+                          color: "#ffffff",
+                        },
+                        "&:active": {
+                          backgroundColor: primaryGreen,
+                          color: "#ffffff",
+                        },
+                        width: { xs: 36, sm: 40, md: 24 },
+                        height: { xs: 36, sm: 40, md: 24 },
+                        minWidth: { xs: "44px", md: "auto" },
+                        minHeight: { xs: "44px", md: "auto" },
+                        touchAction: "manipulation",
+                        "& .MuiSvgIcon-root": {
+                          fontSize: { xs: "1rem", sm: "1.125rem", md: "1rem" },
                         },
                       }}
                     >
-                      Twitter
-                    </Button>
-                    <Button
-                      variant="outlined"
+                      <TwitterIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      onClick={() =>
+                        handleExternalLink(
+                          "https://www.linkedin.com/company/agouramathcircle"
+                        )
+                      }
+                      sx={{
+                        color: primaryGreen,
+                        border: `1px solid ${primaryGreen}`,
+                        "&:hover": {
+                          backgroundColor: primaryGreen,
+                          color: "#ffffff",
+                        },
+                        "&:active": {
+                          backgroundColor: primaryGreen,
+                          color: "#ffffff",
+                        },
+                        width: { xs: 36, sm: 40, md: 24 },
+                        height: { xs: 36, sm: 40, md: 24 },
+                        minWidth: { xs: "44px", md: "auto" },
+                        minHeight: { xs: "44px", md: "auto" },
+                        touchAction: "manipulation",
+                        "& .MuiSvgIcon-root": {
+                          fontSize: { xs: "1rem", sm: "1.125rem", md: "1rem" },
+                        },
+                      }}
+                    >
+                      <LinkedInIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      onClick={() =>
+                        handleExternalLink(
+                          "https://www.instagram.com/agouramathcircle"
+                        )
+                      }
+                      sx={{
+                        color: primaryGreen,
+                        border: `1px solid ${primaryGreen}`,
+                        "&:hover": {
+                          backgroundColor: primaryGreen,
+                          color: "#ffffff",
+                        },
+                        "&:active": {
+                          backgroundColor: primaryGreen,
+                          color: "#ffffff",
+                        },
+                        width: { xs: 36, sm: 40, md: 24 },
+                        height: { xs: 36, sm: 40, md: 24 },
+                        minWidth: { xs: "44px", md: "auto" },
+                        minHeight: { xs: "44px", md: "auto" },
+                        touchAction: "manipulation",
+                        "& .MuiSvgIcon-root": {
+                          fontSize: { xs: "1rem", sm: "1.125rem", md: "1rem" },
+                        },
+                      }}
+                    >
+                      <InstagramIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
                       onClick={() =>
                         handleExternalLink(
                           "https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/videos"
                         )
                       }
                       sx={{
-                        borderColor: theme.palette.primary.main,
-                        color: theme.palette.primary.main,
+                        color: primaryGreen,
+                        border: `1px solid ${primaryGreen}`,
                         "&:hover": {
-                          backgroundColor: theme.palette.primary.main,
-                          color: "white",
+                          backgroundColor: primaryGreen,
+                          color: "#ffffff",
+                        },
+                        "&:active": {
+                          backgroundColor: primaryGreen,
+                          color: "#ffffff",
+                        },
+                        width: { xs: 36, sm: 40, md: 24 },
+                        height: { xs: 36, sm: 40, md: 24 },
+                        minWidth: { xs: "44px", md: "auto" },
+                        minHeight: { xs: "44px", md: "auto" },
+                        touchAction: "manipulation",
+                        "& .MuiSvgIcon-root": {
+                          fontSize: { xs: "1rem", sm: "1.125rem", md: "1rem" },
                         },
                       }}
                     >
-                      YouTube
-                    </Button>
+                      <YouTubeIcon fontSize="small" />
+                    </IconButton>
                   </Box>
                 </Box>
               </Box>
             </Grid>
 
-            {/* Contact Form */}
-            <Grid item xs={12} md={7}>
-              <Card sx={{ boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}>
-                <CardContent sx={{ p: 4 }}>
+            {/* Column 2: Agoura Engineering Circle, Online Chapter */}
+            <Grid item xs={12} md={4}>
+              <Box>
+                {/* Agoura Engineering Circle */}
+                <Box sx={{ mb: 4 }}>
                   <Typography
-                    variant="h4"
+                    variant="h6"
                     sx={{
-                      fontWeight: 700,
-                      mb: 3,
-                      fontSize: { xs: "1.8rem", md: "2.2rem" },
+                      fontWeight: 600,
+                      mb: 1,
+                      color: primaryGreen,
+                      fontSize: { xs: "1rem", md: "1.1rem" },
                     }}
                   >
-                    Send Us a Message
+                    Agoura Engineering Circle
                   </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: darkGray,
+                      fontSize: { xs: "0.9rem", md: "1rem" },
+                    }}
+                  >
+                    Email:{" "}
+                    <Box
+                      component="a"
+                      href="mailto:support@agouramathcircle.org"
+                      sx={{
+                        color: primaryGreen,
+                        textDecoration: "none",
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                      }}
+                    >
+                      support@agouramathcircle.org
+                    </Box>
+                  </Typography>
+                </Box>
 
-                  <Box component="form" onSubmit={handleSubmit}>
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Your Name"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          required
-                          variant="outlined"
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Email Address"
-                          name="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          required
-                          variant="outlined"
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Subject"
-                          name="subject"
-                          value={formData.subject}
-                          onChange={handleInputChange}
-                          required
-                          variant="outlined"
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Message"
-                          name="message"
-                          value={formData.message}
-                          onChange={handleInputChange}
-                          required
-                          multiline
-                          rows={6}
-                          variant="outlined"
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Button
-                          type="submit"
-                          variant="contained"
-                          size="large"
-                          startIcon={<SendIcon />}
-                          sx={{
-                            backgroundColor: theme.palette.primary.main,
-                            color: "white",
-                            px: 4,
-                            py: 1.5,
-                            borderRadius: "5px",
-                            fontWeight: 600,
-                            fontSize: "1.1rem",
-                            "&:hover": {
-                              backgroundColor: theme.palette.primary.dark,
-                            },
-                          }}
-                        >
-                          Send Message
-                        </Button>
-                      </Grid>
-                    </Grid>
-                  </Box>
-                </CardContent>
-              </Card>
+                {/* Online Chapter */}
+                <Box sx={{ mb: 4 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 600,
+                      mb: 1,
+                      color: primaryGreen,
+                      fontSize: { xs: "1rem", md: "1.1rem" },
+                    }}
+                  >
+                    Online Chapter
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: darkGray,
+                      fontSize: { xs: "0.9rem", md: "1rem" },
+                    }}
+                  >
+                    Email:{" "}
+                    <Box
+                      component="a"
+                      href="mailto:support@agouramathcircle.org"
+                      sx={{
+                        color: primaryGreen,
+                        textDecoration: "none",
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                      }}
+                    >
+                      support@agouramathcircle.org
+                    </Box>
+                  </Typography>
+                </Box>
+              </Box>
             </Grid>
-          </Grid>
-        </Container>
-      </Box>
 
-      {/* Map Section */}
-      <Box
-        sx={{
-          pt: { xs: 4, md: 6 },
-          pb: { xs: 4, md: 6 },
-          backgroundColor: "#f8f9fa",
-        }}
-      >
-        <Container maxWidth="lg">
-          <Box sx={{ textAlign: "center", mb: 4 }}>
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: 700,
-                mb: 2,
-                fontSize: { xs: "2rem", md: "2.5rem" },
-              }}
-            >
-              Find Us
-            </Typography>
-            <Typography variant="body1" sx={{ color: "text.secondary" }}>
-              Visit us at our location or join our virtual sessions
-            </Typography>
-          </Box>
-
-          <Card sx={{ boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}>
-            <CardContent sx={{ p: 0 }}>
+            {/* Column 3: Contact Form - Vertical Layout */}
+            <Grid item xs={12} md={5}>
               <Box
+                component="form"
+                onSubmit={handleSubmit}
                 sx={{
-                  height: "400px",
-                  backgroundColor: "#e0e0e0",
                   display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: "8px",
+                  flexDirection: "column",
+                  gap: 1,
                 }}
               >
-                <Typography variant="h6" sx={{ color: "text.secondary" }}>
-                  Interactive Map Coming Soon
-                </Typography>
+                <TextField
+                  fullWidth
+                  label="Your Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                  variant="outlined"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "#ffffff",
+                      fontSize: { xs: "1rem", md: "1.1rem" },
+                      "& input": {
+                        fontSize: { xs: "1rem", md: "1.1rem" },
+                      },
+                      "& fieldset": {
+                        borderColor: "#d3d3d3",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: primaryGreen,
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: primaryGreen,
+                      },
+                    },
+                    "& .MuiInputLabel-root": {
+                      color: darkGray,
+                    },
+                    "& .MuiInputLabel-root.Mui-focused": {
+                      color: primaryGreen,
+                    },
+                  }}
+                />
+                <TextField
+                  fullWidth
+                  label="Email ID"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  variant="outlined"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "#ffffff",
+                      "& input": {
+                        fontSize: { xs: "1rem", md: "1.1rem" },
+                      },
+                      "& fieldset": {
+                        borderColor: "#d3d3d3",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: primaryGreen,
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: primaryGreen,
+                      },
+                    },
+                    "& .MuiInputLabel-root": {
+                      color: darkGray,
+                    },
+                    "& .MuiInputLabel-root.Mui-focused": {
+                      color: primaryGreen,
+                    },
+                  }}
+                />
+                <TextField
+                  fullWidth
+                  label="Subject"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleInputChange}
+                  required
+                  variant="outlined"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "#ffffff",
+                      "& input": {},
+                      "& fieldset": {
+                        borderColor: "#d3d3d3",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: primaryGreen,
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: primaryGreen,
+                      },
+                    },
+                    "& .MuiInputLabel-root": {
+                      color: darkGray,
+                    },
+                    "& .MuiInputLabel-root.Mui-focused": {
+                      color: primaryGreen,
+                    },
+                  }}
+                />
+                <TextField
+                  fullWidth
+                  label="Message"
+                  name="message"
+                  value={formData.message}
+                  onChange={handleInputChange}
+                  required
+                  multiline
+                  rows={6}
+                  variant="outlined"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "#ffffff",
+                      "& textarea": {},
+                      "& fieldset": {
+                        borderColor: "#d3d3d3",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: primaryGreen,
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: primaryGreen,
+                      },
+                    },
+                    "& .MuiInputLabel-root": {
+                      color: darkGray,
+                    },
+                    "& .MuiInputLabel-root.Mui-focused": {
+                      color: primaryGreen,
+                    },
+                  }}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    backgroundColor: primaryGreen,
+                    color: "#ffffff",
+                    px: 4,
+                    py: 1.5,
+                    borderRadius: "5px",
+                    fontWeight: 600,
+                    fontSize: { xs: "0.95rem", md: "1.1rem" },
+                    textTransform: "none",
+                    "&:hover": {
+                      backgroundColor: "#449804",
+                    },
+                    minWidth: { xs: "150px", md: "180px" },
+                    alignSelf: "flex-start",
+                  }}
+                >
+                  Send Message
+                </Button>
               </Box>
-            </CardContent>
-          </Card>
+            </Grid>
+          </Grid>
         </Container>
       </Box>
     </Box>

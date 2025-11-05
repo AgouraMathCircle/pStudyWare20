@@ -101,7 +101,7 @@ const Stats = () => {
         backgroundSize: "cover",
         backgroundPosition: "center center",
         backgroundRepeat: "no-repeat",
-        padding: { xs: "50px 0", md: "120px 0 90px 0" },
+        padding: { xs: "25px 0", md: "50px 0 40px 0" },
         position: "relative",
         overflow: "hidden",
         minHeight: "100vh",

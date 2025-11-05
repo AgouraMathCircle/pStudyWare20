@@ -28,7 +28,9 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useNavigate } from "react-router-dom";
+// Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import studentService from "../services/studentService";
 import "../styles/StudentRegistration.css";
 
@@ -267,23 +269,31 @@ const StudentRegistration = () => {
   return (
     <div className="student-registration-container">
       {/* Breadcrumbs */}
-      <div className="sc-breadcrumbs breadcrumbs-overlay">
+      <div
+        className="sc-breadcrumbs breadcrumbs-overlay"
+        style={{ "--page-header-bg": `url(${pageHeaderImg})` }}
+      >
         <div className="breadcrumbs-img">
-          <img
-            src="/assets/images/about/page-header.jpg"
-            alt="Breadcrumbs Image"
-          />
+          <img src={pageHeaderImg} alt="Breadcrumbs Image" />
         </div>
         <div className="breadcrumbs-text white-color">
           <h1 className="page-title">STUDENT REGISTRATION</h1>
-          <nav className="breadcrumb-nav">
-            <Link to="/" className="breadcrumb-link">
+          <nav
+            className="breadcrumb-nav"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "nowrap",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <RouterLink to="/" className="breadcrumb-link">
               Home
-            </Link>
+            </RouterLink>
             <span className="breadcrumb-separator"> &gt; </span>
-            <Link to="/registration" className="breadcrumb-link">
+            <RouterLink to="/registration" className="breadcrumb-link">
               Registration
-            </Link>
+            </RouterLink>
             <span className="breadcrumb-separator"> &gt; </span>
             <span className="breadcrumb-current">Student Registration</span>
           </nav>
@@ -329,7 +339,7 @@ const StudentRegistration = () => {
                 {/* Parent Information Section - Full Width */}
                 <Grid item xs={12}>
                   <Card sx={{ p: 2 }}>
-                    <CardContent>
+                    <CardContent sx={{ p: 0 }}>
                       <Typography
                         variant="h5"
                         gutterBottom
@@ -344,172 +354,162 @@ const StudentRegistration = () => {
                         <span style={{ color: "#1976d2" }}>Information</span>
                       </Typography>
 
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="parentFirstName"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="First Name *"
-                                error={!!errors.parentFirstName}
-                                helperText={errors.parentFirstName?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 2,
+                        }}
+                      >
+                        <Controller
+                          name="parentFirstName"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="First Name *"
+                              error={!!errors.parentFirstName}
+                              helperText={errors.parentFirstName?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="parentLastName"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="Last Name *"
-                                error={!!errors.parentLastName}
-                                helperText={errors.parentLastName?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="parentLastName"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Last Name *"
+                              error={!!errors.parentLastName}
+                              helperText={errors.parentLastName?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12}>
-                          <Controller
-                            name="parentEmail"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="Email ID *"
-                                type="email"
-                                error={!!errors.parentEmail}
-                                helperText={errors.parentEmail?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="parentEmail"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Email ID *"
+                              type="email"
+                              error={!!errors.parentEmail}
+                              helperText={errors.parentEmail?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12}>
-                          <Controller
-                            name="parentPhoneNo"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="Phone (999-999-9999) *"
-                                placeholder="999-999-9999"
-                                error={!!errors.parentPhoneNo}
-                                helperText={errors.parentPhoneNo?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="parentPhoneNo"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Phone (999-999-9999) *"
+                              placeholder="999-999-9999"
+                              error={!!errors.parentPhoneNo}
+                              helperText={errors.parentPhoneNo?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={4}>
-                          <Controller
-                            name="city"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="City *"
-                                error={!!errors.city}
-                                helperText={errors.city?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="city"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="City *"
+                              error={!!errors.city}
+                              helperText={errors.city?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={4}>
-                          <Controller
-                            name="state"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="State *"
-                                error={!!errors.state}
-                                helperText={errors.state?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="state"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="State *"
+                              error={!!errors.state}
+                              helperText={errors.state?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={4}>
-                          <Controller
-                            name="country"
-                            control={control}
-                            render={({ field }) => (
-                              <FormControl fullWidth error={!!errors.country}>
-                                <InputLabel>Country *</InputLabel>
-                                <Select {...field} label="Country *">
-                                  {countries.map((country) => (
-                                    <MenuItem
-                                      key={country.value}
-                                      value={country.value}
-                                    >
-                                      {country.label}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                                {errors.country && (
-                                  <FormHelperText>
-                                    {errors.country.message}
-                                  </FormHelperText>
-                                )}
-                              </FormControl>
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="country"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControl fullWidth error={!!errors.country}>
+                              <InputLabel>Country *</InputLabel>
+                              <Select {...field} label="Country *">
+                                {countries.map((country) => (
+                                  <MenuItem
+                                    key={country.value}
+                                    value={country.value}
+                                  >
+                                    {country.label}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                              {errors.country && (
+                                <FormHelperText>
+                                  {errors.country.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
 
-                        <Grid item xs={12}>
-                          <Controller
-                            name="userName"
-                            control={control}
-                            render={({ field }) => (
-                              <FormControl
-                                component="fieldset"
-                                error={!!errors.userName}
-                              >
-                                <Typography variant="subtitle2" gutterBottom>
-                                  User Name *
-                                </Typography>
-                                <RadioGroup {...field} row>
-                                  <FormControlLabel
-                                    value="P"
-                                    control={<Radio />}
-                                    label="Parent Email as User Name"
-                                  />
-                                  <FormControlLabel
-                                    value="S"
-                                    control={<Radio />}
-                                    label="Student Email as User Name"
-                                  />
-                                </RadioGroup>
-                                {errors.userName && (
-                                  <FormHelperText>
-                                    {errors.userName.message}
-                                  </FormHelperText>
-                                )}
-                              </FormControl>
-                            )}
-                          />
-                        </Grid>
-                      </Grid>
+                        <Controller
+                          name="userName"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControl
+                              component="fieldset"
+                              error={!!errors.userName}
+                            >
+                              <Typography variant="subtitle2" gutterBottom>
+                                User Name *
+                              </Typography>
+                              <RadioGroup {...field} row>
+                                <FormControlLabel
+                                  value="P"
+                                  control={<Radio />}
+                                  label="Parent Email as User Name"
+                                />
+                                <FormControlLabel
+                                  value="S"
+                                  control={<Radio />}
+                                  label="Student Email as User Name"
+                                />
+                              </RadioGroup>
+                              {errors.userName && (
+                                <FormHelperText>
+                                  {errors.userName.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
+                      </Box>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -517,7 +517,7 @@ const StudentRegistration = () => {
                 {/* Student Information Section - Full Width */}
                 <Grid item xs={12}>
                   <Card sx={{ p: 2 }}>
-                    <CardContent>
+                    <CardContent sx={{ p: 0 }}>
                       <Typography
                         variant="h5"
                         gutterBottom
@@ -532,178 +532,164 @@ const StudentRegistration = () => {
                         <span style={{ color: "#1976d2" }}>Information</span>
                       </Typography>
 
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="studentFirstName"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="Student First Name *"
-                                error={!!errors.studentFirstName}
-                                helperText={errors.studentFirstName?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 2,
+                        }}
+                      >
+                        <Controller
+                          name="studentFirstName"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Student First Name *"
+                              error={!!errors.studentFirstName}
+                              helperText={errors.studentFirstName?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="studentLastName"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="Student Last Name *"
-                                error={!!errors.studentLastName}
-                                helperText={errors.studentLastName?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="studentLastName"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Student Last Name *"
+                              error={!!errors.studentLastName}
+                              helperText={errors.studentLastName?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12}>
-                          <Controller
-                            name="studentEmail"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="Student Email ID"
-                                type="email"
-                                error={!!errors.studentEmail}
-                                helperText={
-                                  errors.studentEmail?.message ||
-                                  (userNameOption === "S"
-                                    ? "Required when using student email as username"
-                                    : "Optional")
-                                }
-                                variant="outlined"
-                                required={userNameOption === "S"}
-                              />
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="studentEmail"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Student Email ID"
+                              type="email"
+                              error={!!errors.studentEmail}
+                              helperText={
+                                errors.studentEmail?.message ||
+                                (userNameOption === "S"
+                                  ? "Required when using student email as username"
+                                  : "Optional")
+                              }
+                              variant="outlined"
+                              required={userNameOption === "S"}
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12}>
-                          <Controller
-                            name="studentSchoolName"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="School *"
-                                error={!!errors.studentSchoolName}
-                                helperText={errors.studentSchoolName?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="studentSchoolName"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="School *"
+                              error={!!errors.studentSchoolName}
+                              helperText={errors.studentSchoolName?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="studentGrade"
-                            control={control}
-                            render={({ field }) => (
-                              <FormControl
-                                fullWidth
-                                error={!!errors.studentGrade}
-                              >
-                                <InputLabel>Grade *</InputLabel>
-                                <Select {...field} label="Grade *">
-                                  <MenuItem value="0">
-                                    <em>--Select--</em>
+                        <Controller
+                          name="studentGrade"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControl
+                              fullWidth
+                              error={!!errors.studentGrade}
+                            >
+                              <InputLabel>Grade *</InputLabel>
+                              <Select {...field} label="Grade *">
+                                <MenuItem value="0">
+                                  <em>--Select--</em>
+                                </MenuItem>
+                                {grades.map((grade) => (
+                                  <MenuItem
+                                    key={grade.value}
+                                    value={grade.value}
+                                  >
+                                    {grade.label}
                                   </MenuItem>
-                                  {grades.map((grade) => (
-                                    <MenuItem
-                                      key={grade.value}
-                                      value={grade.value}
-                                    >
-                                      {grade.label}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                                {errors.studentGrade && (
-                                  <FormHelperText>
-                                    {errors.studentGrade.message}
-                                  </FormHelperText>
-                                )}
-                              </FormControl>
-                            )}
-                          />
-                        </Grid>
+                                ))}
+                              </Select>
+                              {errors.studentGrade && (
+                                <FormHelperText>
+                                  {errors.studentGrade.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="sessionId"
-                            control={control}
-                            render={({ field }) => (
-                              <FormControl fullWidth error={!!errors.sessionId}>
-                                <InputLabel>Register For *</InputLabel>
-                                <Select {...field} label="Register For *">
-                                  <MenuItem value="0">
-                                    <em>--Select--</em>
+                        <Controller
+                          name="sessionId"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControl fullWidth error={!!errors.sessionId}>
+                              <InputLabel>Register For *</InputLabel>
+                              <Select {...field} label="Register For *">
+                                <MenuItem value="0">
+                                  <em>--Select--</em>
+                                </MenuItem>
+                                {sessions.map((session) => (
+                                  <MenuItem key={session.id} value={session.id}>
+                                    {session.name}
                                   </MenuItem>
-                                  {sessions.map((session) => (
-                                    <MenuItem
-                                      key={session.id}
-                                      value={session.id}
-                                    >
-                                      {session.name}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                                {errors.sessionId && (
-                                  <FormHelperText>
-                                    {errors.sessionId.message}
-                                  </FormHelperText>
-                                )}
-                              </FormControl>
-                            )}
-                          />
-                        </Grid>
+                                ))}
+                              </Select>
+                              {errors.sessionId && (
+                                <FormHelperText>
+                                  {errors.sessionId.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
 
-                        <Grid item xs={12}>
-                          <Controller
-                            name="locationId"
-                            control={control}
-                            render={({ field }) => (
-                              <FormControl
-                                fullWidth
-                                error={!!errors.locationId}
-                              >
-                                <InputLabel>Course/Location *</InputLabel>
-                                <Select {...field} label="Course/Location *">
-                                  <MenuItem value={0}>
-                                    <em>--Select--</em>
+                        <Controller
+                          name="locationId"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControl fullWidth error={!!errors.locationId}>
+                              <InputLabel>Course/Location *</InputLabel>
+                              <Select {...field} label="Course/Location *">
+                                <MenuItem value={0}>
+                                  <em>--Select--</em>
+                                </MenuItem>
+                                {locations.map((location) => (
+                                  <MenuItem
+                                    key={location.id}
+                                    value={location.id}
+                                  >
+                                    {location.name}
                                   </MenuItem>
-                                  {locations.map((location) => (
-                                    <MenuItem
-                                      key={location.id}
-                                      value={location.id}
-                                    >
-                                      {location.name}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                                {errors.locationId && (
-                                  <FormHelperText>
-                                    {errors.locationId.message}
-                                  </FormHelperText>
-                                )}
-                              </FormControl>
-                            )}
-                          />
-                        </Grid>
-                      </Grid>
+                                ))}
+                              </Select>
+                              {errors.locationId && (
+                                <FormHelperText>
+                                  {errors.locationId.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
+                      </Box>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -726,115 +712,113 @@ const StudentRegistration = () => {
                         <span style={{ color: "#1976d2" }}>Signatures</span>
                       </Typography>
 
-                      <Grid container spacing={3}>
-                        <Grid item xs={12}>
-                          <Typography variant="body2" paragraph>
-                            Pressing the "Submit" button I agree the Agoura Math
-                            Circle{" "}
-                            <Link href="#" color="primary">
-                              Terms
-                            </Link>{" "}
-                            and{" "}
-                            <Link href="#" color="primary">
-                              Rules
-                            </Link>
-                          </Typography>
-                        </Grid>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 3,
+                        }}
+                      >
+                        <Typography variant="body2" paragraph>
+                          Pressing the "Submit" button I agree the Agoura Math
+                          Circle{" "}
+                          <Link href="#" color="primary">
+                            Terms
+                          </Link>{" "}
+                          and{" "}
+                          <Link href="#" color="primary">
+                            Rules
+                          </Link>
+                        </Typography>
 
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="liabilitySignature"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="Liability Signature *"
-                                error={!!errors.liabilitySignature}
-                                helperText={errors.liabilitySignature?.message}
-                                variant="outlined"
-                                placeholder="Enter your full name"
-                              />
-                            )}
-                          />
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ mt: 1, display: "block" }}
-                          >
-                            DO NOT SIGN WITHOUT READING. I HAVE READ THIS
-                            ASSUMPTION OF RISK, WAIVER OF LIABILITY AND
-                            INDEMNITY AGREEMENT AND AGREE TO ITS TERMS.
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ mt: 1, display: "block" }}
-                          >
-                            By printing your name in the box and pressing the
-                            submit button, I acknowledge that I have read and am
-                            electronically signing the Waiver of Liability,
-                            Assumption of Risk and Indemnity Agreement on behalf
-                            of myself or my dependent minor participant.
-                          </Typography>
-                        </Grid>
+                        <Controller
+                          name="liabilitySignature"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Liability Signature *"
+                              error={!!errors.liabilitySignature}
+                              helperText={errors.liabilitySignature?.message}
+                              variant="outlined"
+                              placeholder="Enter your full name"
+                            />
+                          )}
+                        />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ mt: 1, display: "block" }}
+                        >
+                          DO NOT SIGN WITHOUT READING. I HAVE READ THIS
+                          ASSUMPTION OF RISK, WAIVER OF LIABILITY AND INDEMNITY
+                          AGREEMENT AND AGREE TO ITS TERMS.
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ mt: 1, display: "block" }}
+                        >
+                          By printing your name in the box and pressing the
+                          submit button, I acknowledge that I have read and am
+                          electronically signing the Waiver of Liability,
+                          Assumption of Risk and Indemnity Agreement on behalf
+                          of myself or my dependent minor participant.
+                        </Typography>
 
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="ruleSignature"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="Rule Signature *"
-                                error={!!errors.ruleSignature}
-                                helperText={errors.ruleSignature?.message}
-                                variant="outlined"
-                                placeholder="Enter your full name"
-                              />
-                            )}
-                          />
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ mt: 1, display: "block" }}
-                          >
-                            By printing your name in the box and pressing the
-                            submit button, I acknowledge that I have read and am
-                            electronically signing the Agoura Math Circle Rules
-                            and Expectations on behalf of myself or my dependent
-                            minor participant.
-                          </Typography>
-                        </Grid>
+                        <Controller
+                          name="ruleSignature"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Rule Signature *"
+                              error={!!errors.ruleSignature}
+                              helperText={errors.ruleSignature?.message}
+                              variant="outlined"
+                              placeholder="Enter your full name"
+                            />
+                          )}
+                        />
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ mt: 1, display: "block" }}
+                        >
+                          By printing your name in the box and pressing the
+                          submit button, I acknowledge that I have read and am
+                          electronically signing the Agoura Math Circle Rules
+                          and Expectations on behalf of myself or my dependent
+                          minor participant.
+                        </Typography>
 
-                        <Grid item xs={12}>
-                          <Controller
-                            name="picturePermission"
-                            control={control}
-                            render={({ field }) => (
-                              <FormControlLabel
-                                control={
-                                  <Checkbox
-                                    {...field}
-                                    checked={field.value}
-                                    color="primary"
-                                  />
-                                }
-                                label={
-                                  <Typography variant="body2">
-                                    I give permission to use the
-                                    pictures/videos. Occasionally, we take
-                                    pictures at AMC meetings, which may be used
-                                    for publicity purposes [e.g.: posted on our
-                                    web site or used in a brochure about AMC.]
-                                  </Typography>
-                                }
-                              />
-                            )}
-                          />
-                        </Grid>
-                      </Grid>
+                        <Controller
+                          name="picturePermission"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  {...field}
+                                  checked={field.value}
+                                  color="primary"
+                                />
+                              }
+                              label={
+                                <Typography variant="body2">
+                                  I give permission to use the pictures/videos.
+                                  Occasionally, we take pictures at AMC
+                                  meetings, which may be used for publicity
+                                  purposes [e.g.: posted on our web site or used
+                                  in a brochure about AMC.]
+                                </Typography>
+                              }
+                            />
+                          )}
+                        />
+                      </Box>
                     </CardContent>
                   </Card>
                 </Grid>

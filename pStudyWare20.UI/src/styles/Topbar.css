@@ -7,6 +7,13 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Hide topbar on mobile devices */
+@media (max-width: 899px) {
+  .topbar-container {
+    display: none !important;
+  }
+}
+
 /* Program links container */
 .program-links-container {
   display: flex;
@@ -122,6 +129,7 @@
 @media (max-width: 600px) {
   .topbar-container {
     padding: 8px 0;
+    min-height: auto;
   }
 }
 
@@ -130,32 +138,98 @@
   .program-links-container {
     justify-content: center;
     margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .social-container,
   .action-buttons-container {
     justify-content: center;
     margin-left: 0;
+    gap: 8px;
   }
   
   .program-link {
-    font-size: 0.8rem;
-    padding: 3px 6px;
+    font-size: 13px;
+    padding: 8px 12px;
+    min-height: 44px; /* Touch target */
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+    line-height: 1.5;
   }
   
   .topbar-link {
-    font-size: 0.8rem;
+    font-size: 14px;
+    padding: 8px 12px;
+    min-height: 44px; /* Touch target */
+    display: flex;
+    align-items: center;
+    line-height: 1.5;
   }
   
   .topbar-action-button {
-    font-size: 0.8rem;
+    font-size: 14px;
+    padding: 8px 16px;
+    min-height: 44px; /* Touch target */
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+    line-height: 1.5;
+  }
+  
+  /* Social icons - touch-friendly */
+  .social-icon {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
   }
 }
 
 /* Tablet responsive adjustments */
 @media (max-width: 768px) {
   .program-links-container {
-    gap: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .social-container {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .action-buttons-container {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  /* Hide some links on very small tablets */
+  .program-link {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  
+  .topbar-link {
+    font-size: 13px;
+  }
+  
+  .topbar-action-button {
+    font-size: 13px;
+    padding: 6px 14px;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .topbar-container {
+    padding: 6px 0;
+  }
+  
+  .program-links-container {
+    display: none; /* Hide on very small screens */
   }
   
   .social-container {
@@ -163,7 +237,20 @@
   }
   
   .action-buttons-container {
-    gap: 12px;
+    gap: 6px;
+  }
+  
+  .topbar-link,
+  .topbar-action-button {
+    font-size: 12px;
+    padding: 6px 12px;
+    min-height: 40px; /* Slightly smaller but still touch-friendly */
+  }
+  
+  .social-icon {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 16px;
   }
 }
 
