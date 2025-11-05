@@ -36,7 +36,7 @@ const Courses = () => {
     <Box
       sx={{
         backgroundColor: "#f8f9fa",
-        padding: { xs: "40px 0", md: "110px 0" },
+        padding: { xs: "20px 0", md: "40px 0" },
       }}
     >
       <Container maxWidth="lg">

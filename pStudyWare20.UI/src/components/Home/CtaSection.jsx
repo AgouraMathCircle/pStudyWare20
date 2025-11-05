@@ -105,8 +105,8 @@ const CtaSection = () => {
           backgroundSize: "cover",
           backgroundPosition: "center center",
           backgroundRepeat: "no-repeat",
-          padding: { xs: "40px 0", md: "70px 0" },
-          marginBottom: { xs: "40px", md: "80px" },
+          padding: { xs: "20px 0", md: "30px 0" },
+          marginBottom: { xs: "20px", md: "30px" },
         }}
       >
         <Container maxWidth="lg">
@@ -237,8 +237,8 @@ const CtaSection = () => {
           backgroundSize: "cover",
           backgroundPosition: "center center",
           backgroundRepeat: "no-repeat",
-          padding: { xs: "30px 0", md: "30px 0" },
-          marginBottom: { xs: "40px", md: "80px" },
+          padding: { xs: "15px 0", md: "15px 0" },
+          marginBottom: { xs: "20px", md: "30px" },
         }}
       >
         <Container maxWidth="lg">
@@ -449,8 +449,8 @@ const CtaSection = () => {
           backgroundSize: "cover",
           backgroundPosition: "center center",
           backgroundRepeat: "no-repeat",
-          padding: { xs: "40px 0", md: "70px 0" },
-          marginBottom: { xs: "40px", md: "80px" },
+          padding: { xs: "20px 0", md: "30px 0" },
+          marginBottom: { xs: "20px", md: "30px" },
         }}
       >
         <Container maxWidth="lg">

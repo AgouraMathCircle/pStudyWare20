@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Carousel from "react-material-ui-carousel";
 import { initCounterAnimation } from "../assets/js/counter";
 import Banner from "./Home/Banner";
 import CtaSection from "./Home/CtaSection";
@@ -10,6 +9,8 @@ import Stats from "./Home/Stats";
 import VideoGallery from "./Home/VideoGallery";
 import Team from "./Home/Team";
 import Sponsors from "./Home/Sponsors";
+import JoinUs from "./Home/WhyWaitJoinUs";
+import YouTubeCoursesSection from "./Home/YouTubeCoursesSection";
 import "../styles/Home.css";
 
 const Home = () => {
@@ -42,11 +43,14 @@ const Home = () => {
       <Banner />
       <CtaSection />
       <About />
-      <Courses />
-      <Stats />
-      <VideoGallery />
-      <Team />
-      <Sponsors />
+        <Courses />
+        <Stats />
+        <YouTubeCoursesSection />
+        <JoinUs />
+        <Team />
+        <VideoGallery />
+        <Sponsors />
+     
       {/* Other Home content will go here */}
     </div>
   );

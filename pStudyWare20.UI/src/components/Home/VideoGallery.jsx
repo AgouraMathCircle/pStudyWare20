@@ -122,7 +122,7 @@ const VideoGallery = () => {
         backgroundSize: "cover",
         backgroundPosition: "center center",
         backgroundRepeat: "no-repeat",
-        padding: { xs: "30px 0", md: "60px 0" }, // Reduced padding
+        padding: { xs: "15px 0", md: "30px 0" },
         position: "relative",
         overflow: "hidden",
         minHeight: "80vh", // Reduced from 100vh to 80vh

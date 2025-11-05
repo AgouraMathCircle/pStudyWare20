@@ -16,7 +16,6 @@ import {
   Box,
   Paper,
   Breadcrumbs,
-  Link,
   CircularProgress,
   Snackbar,
   Divider,
@@ -24,9 +23,11 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import volunteerService from "../services/volunteerService";
 import "../styles/VolunteerRegistration.css";
+// Import images from src/assets
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
 
 // Validation schema
 const validationSchema = yup.object({
@@ -215,23 +216,23 @@ const VolunteerRegistration = () => {
   return (
     <div className="volunteer-registration-container">
       {/* Breadcrumbs */}
-      <div className="sc-breadcrumbs breadcrumbs-overlay">
+      <div
+        className="sc-breadcrumbs breadcrumbs-overlay"
+        style={{ "--page-header-bg": `url(${pageHeaderImg})` }}
+      >
         <div className="breadcrumbs-img">
-          <img
-            src="/assets/images/about/page-header.jpg"
-            alt="Breadcrumbs Image"
-          />
+          <img src={pageHeaderImg} alt="Breadcrumbs Image" />
         </div>
         <div className="breadcrumbs-text white-color">
           <h1 className="page-title">VOLUNTEER REGISTRATION</h1>
           <nav className="breadcrumb-nav">
-            <Link to="/" className="breadcrumb-link">
+            <RouterLink to="/" className="breadcrumb-link">
               Home
-            </Link>
+            </RouterLink>
             <span className="breadcrumb-separator"> &gt; </span>
-            <Link to="/registration" className="breadcrumb-link">
+            <RouterLink to="/registration" className="breadcrumb-link">
               Registration
-            </Link>
+            </RouterLink>
             <span className="breadcrumb-separator"> &gt; </span>
             <span className="breadcrumb-current">Volunteer Registration</span>
           </nav>
@@ -263,138 +264,130 @@ const VolunteerRegistration = () => {
                         <span style={{ color: "#1976d2" }}>Information</span>
                       </Typography>
 
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="firstName"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="First Name *"
-                                error={!!errors.firstName}
-                                helperText={errors.firstName?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 2,
+                        }}
+                      >
+                        <Controller
+                          name="firstName"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="First Name *"
+                              error={!!errors.firstName}
+                              helperText={errors.firstName?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="lastName"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="Last Name *"
-                                error={!!errors.lastName}
-                                helperText={errors.lastName?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="lastName"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Last Name *"
+                              error={!!errors.lastName}
+                              helperText={errors.lastName?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="email"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="Email ID *"
-                                type="email"
-                                error={!!errors.email}
-                                helperText={errors.email?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="email"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Email ID *"
+                              type="email"
+                              error={!!errors.email}
+                              helperText={errors.email?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="phoneNo"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="Phone (999-999-9999) *"
-                                placeholder="999-999-9999"
-                                error={!!errors.phoneNo}
-                                helperText={errors.phoneNo?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="phoneNo"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Phone (999-999-9999) *"
+                              placeholder="999-999-9999"
+                              error={!!errors.phoneNo}
+                              helperText={errors.phoneNo?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={4}>
-                          <Controller
-                            name="city"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="City *"
-                                error={!!errors.city}
-                                helperText={errors.city?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="city"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="City *"
+                              error={!!errors.city}
+                              helperText={errors.city?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={4}>
-                          <Controller
-                            name="state"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="State *"
-                                error={!!errors.state}
-                                helperText={errors.state?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                        <Controller
+                          name="state"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="State *"
+                              error={!!errors.state}
+                              helperText={errors.state?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={4}>
-                          <Controller
-                            name="country"
-                            control={control}
-                            render={({ field }) => (
-                              <FormControl fullWidth error={!!errors.country}>
-                                <InputLabel>Country *</InputLabel>
-                                <Select {...field} label="Country *">
-                                  {countries.map((country) => (
-                                    <MenuItem
-                                      key={country.value}
-                                      value={country.value}
-                                    >
-                                      {country.label}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                                {errors.country && (
-                                  <FormHelperText>
-                                    {errors.country.message}
-                                  </FormHelperText>
-                                )}
-                              </FormControl>
-                            )}
-                          />
-                        </Grid>
-                      </Grid>
+                        <Controller
+                          name="country"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControl fullWidth error={!!errors.country}>
+                              <InputLabel>Country *</InputLabel>
+                              <Select {...field} label="Country *">
+                                {countries.map((country) => (
+                                  <MenuItem
+                                    key={country.value}
+                                    value={country.value}
+                                  >
+                                    {country.label}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                              {errors.country && (
+                                <FormHelperText>
+                                  {errors.country.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
+                      </Box>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -417,196 +410,186 @@ const VolunteerRegistration = () => {
                         <span style={{ color: "#1976d2" }}>Information</span>
                       </Typography>
 
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="schoolName"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="School/University *"
-                                error={!!errors.schoolName}
-                                helperText={errors.schoolName?.message}
-                                variant="outlined"
-                              />
-                            )}
-                          />
-                        </Grid>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 2,
+                        }}
+                      >
+                        <Controller
+                          name="schoolName"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="School/University *"
+                              error={!!errors.schoolName}
+                              helperText={errors.schoolName?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
 
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="grade"
-                            control={control}
-                            render={({ field }) => (
-                              <FormControl fullWidth error={!!errors.grade}>
-                                <InputLabel>Grade/Degree *</InputLabel>
-                                <Select {...field} label="Grade/Degree *">
-                                  {grades.map((grade) => (
-                                    <MenuItem
-                                      key={grade.value}
-                                      value={grade.value}
-                                    >
-                                      {grade.label}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                                {errors.grade && (
-                                  <FormHelperText>
-                                    {errors.grade.message}
-                                  </FormHelperText>
-                                )}
-                              </FormControl>
-                            )}
-                          />
-                        </Grid>
-
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="sessionId"
-                            control={control}
-                            render={({ field }) => (
-                              <FormControl fullWidth error={!!errors.sessionId}>
-                                <InputLabel>Register For *</InputLabel>
-                                <Select {...field} label="Register For *">
-                                  {sessions.map((session) => (
-                                    <MenuItem
-                                      key={session.id}
-                                      value={session.id}
-                                    >
-                                      {session.name}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                                {errors.sessionId && (
-                                  <FormHelperText>
-                                    {errors.sessionId.message}
-                                  </FormHelperText>
-                                )}
-                              </FormControl>
-                            )}
-                          />
-                        </Grid>
-
-                        <Grid item xs={12} sm={6}>
-                          <Controller
-                            name="locationId"
-                            control={control}
-                            render={({ field }) => (
-                              <FormControl
-                                fullWidth
-                                error={!!errors.locationId}
-                              >
-                                <InputLabel>Course/Location *</InputLabel>
-                                <Select {...field} label="Course/Location *">
-                                  <MenuItem value={0}>
-                                    <em>--Select--</em>
+                        <Controller
+                          name="grade"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControl fullWidth error={!!errors.grade}>
+                              <InputLabel>Grade/Degree *</InputLabel>
+                              <Select {...field} label="Grade/Degree *">
+                                {grades.map((grade) => (
+                                  <MenuItem
+                                    key={grade.value}
+                                    value={grade.value}
+                                  >
+                                    {grade.label}
                                   </MenuItem>
-                                  {locations.map((location) => (
-                                    <MenuItem
-                                      key={location.id}
-                                      value={location.id}
-                                    >
-                                      {location.name}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                                {errors.locationId && (
-                                  <FormHelperText>
-                                    {errors.locationId.message}
-                                  </FormHelperText>
-                                )}
-                              </FormControl>
-                            )}
-                          />
-                        </Grid>
+                                ))}
+                              </Select>
+                              {errors.grade && (
+                                <FormHelperText>
+                                  {errors.grade.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
 
-                        <Grid item xs={12}>
-                          <Controller
-                            name="interestedFor"
-                            control={control}
-                            render={({ field }) => (
-                              <FormControl
-                                fullWidth
-                                error={!!errors.interestedFor}
-                              >
-                                <InputLabel>Interested For *</InputLabel>
-                                <Select {...field} label="Interested For *">
-                                  <MenuItem value="0">
-                                    <em>--Select--</em>
+                        <Controller
+                          name="sessionId"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControl fullWidth error={!!errors.sessionId}>
+                              <InputLabel>Register For *</InputLabel>
+                              <Select {...field} label="Register For *">
+                                {sessions.map((session) => (
+                                  <MenuItem key={session.id} value={session.id}>
+                                    {session.name}
                                   </MenuItem>
-                                  {interestedOptions.map((option) => (
-                                    <MenuItem
-                                      key={option.value}
-                                      value={option.value}
-                                    >
-                                      {option.label}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                                {errors.interestedFor && (
-                                  <FormHelperText>
-                                    {errors.interestedFor.message}
-                                  </FormHelperText>
-                                )}
-                              </FormControl>
-                            )}
-                          />
-                        </Grid>
+                                ))}
+                              </Select>
+                              {errors.sessionId && (
+                                <FormHelperText>
+                                  {errors.sessionId.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
 
-                        <Grid item xs={12}>
-                          <Controller
-                            name="aboutyourself"
-                            control={control}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="About Yourself (Achievements, Merits, etc)"
-                                multiline
-                                rows={4}
-                                error={!!errors.aboutyourself}
-                                helperText={errors.aboutyourself?.message}
-                                variant="outlined"
-                                placeholder="Tell us about your achievements, merits, and any additional information..."
-                              />
+                        <Controller
+                          name="locationId"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControl fullWidth error={!!errors.locationId}>
+                              <InputLabel>Course/Location *</InputLabel>
+                              <Select {...field} label="Course/Location *">
+                                <MenuItem value={0}>
+                                  <em>--Select--</em>
+                                </MenuItem>
+                                {locations.map((location) => (
+                                  <MenuItem
+                                    key={location.id}
+                                    value={location.id}
+                                  >
+                                    {location.name}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                              {errors.locationId && (
+                                <FormHelperText>
+                                  {errors.locationId.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
+
+                        <Controller
+                          name="interestedFor"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControl
+                              fullWidth
+                              error={!!errors.interestedFor}
+                            >
+                              <InputLabel>Interested For *</InputLabel>
+                              <Select {...field} label="Interested For *">
+                                <MenuItem value="0">
+                                  <em>--Select--</em>
+                                </MenuItem>
+                                {interestedOptions.map((option) => (
+                                  <MenuItem
+                                    key={option.value}
+                                    value={option.value}
+                                  >
+                                    {option.label}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                              {errors.interestedFor && (
+                                <FormHelperText>
+                                  {errors.interestedFor.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
+
+                        <Controller
+                          name="aboutyourself"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="About Yourself (Achievements, Merits, etc)"
+                              multiline
+                              rows={4}
+                              error={!!errors.aboutyourself}
+                              helperText={errors.aboutyourself?.message}
+                              variant="outlined"
+                              placeholder="Tell us about your achievements, merits, and any additional information..."
+                            />
+                          )}
+                        />
+
+                        {/* Submit Button */}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            mt: 4,
+                          }}
+                        >
+                          <Button
+                            type="submit"
+                            variant="contained"
+                            size="large"
+                            disabled={loading}
+                            sx={{
+                              minWidth: 250,
+                              py: 1.5,
+                              fontSize: "1.1rem",
+                              fontWeight: "bold",
+                              backgroundColor: "#1976d2",
+                              "&:hover": {
+                                backgroundColor: "#1565c0",
+                              },
+                            }}
+                          >
+                            {loading ? (
+                              <CircularProgress size={24} color="inherit" />
+                            ) : (
+                              "Submit"
                             )}
-                          />
-                        </Grid>
-                      </Grid>
+                          </Button>
+                        </Box>
+                      </Box>
                     </CardContent>
                   </Card>
-                </Grid>
-
-                {/* Submit Button - Full Width */}
-                <Grid item xs={12}>
-                  <Box
-                    sx={{ display: "flex", justifyContent: "center", mt: 4 }}
-                  >
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      size="large"
-                      disabled={loading}
-                      sx={{
-                        minWidth: 250,
-                        py: 1.5,
-                        fontSize: "1.1rem",
-                        fontWeight: "bold",
-                        backgroundColor: "#1976d2",
-                        "&:hover": {
-                          backgroundColor: "#1565c0",
-                        },
-                      }}
-                    >
-                      {loading ? (
-                        <CircularProgress size={24} color="inherit" />
-                      ) : (
-                        "Submit"
-                      )}
-                    </Button>
-                  </Box>
                 </Grid>
               </Grid>
             </form>

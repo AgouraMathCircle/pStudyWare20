@@ -30,6 +30,8 @@ import {
 import "../styles/Login.css";
 // Import images from src/assets
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
+// Import services
+import { authService } from "../services";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -208,7 +210,6 @@ const Login = () => {
     setSubmitMessage("");
 
     try {
-      const { authService } = await import("../services/authService");
       await authService.forgotPassword(formData.email);
       setSubmitMessage("Password reset email sent! Please check your inbox.");
     } catch (error) {

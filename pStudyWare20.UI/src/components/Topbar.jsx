@@ -184,15 +184,18 @@ const Topbar = () => {
         height: "50px",
         lineHeight: "50px",
         fontSize: "14px",
+        display: { xs: "none", md: "block" }, // Hide on mobile, show on medium and up
       }}
     >
-      <Container maxWidth="xl">
+      <Container maxWidth={false} sx={{ px: 0 }}>
         <Box
           sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             height: "100%",
+            maxWidth: "100%",
+            px: { xs: 2, sm: 4, md: 8, lg: "1in", xl: "1in" },
           }}
         >
           {/* Left side - Navigation Links */}

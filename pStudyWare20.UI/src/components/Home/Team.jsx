@@ -151,7 +151,7 @@ const Team = () => {
     <Box
       sx={{
         backgroundColor: "#d5e8e2",
-        padding: { xs: "40px 0", md: "80px 0" },
+        padding: { xs: "20px 0", md: "40px 0" },
         minHeight: "100vh",
         display: "flex",
         alignItems: "center",

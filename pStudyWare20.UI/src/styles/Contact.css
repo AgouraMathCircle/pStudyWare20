@@ -2,6 +2,157 @@
 
 .contact-container {
   min-height: 100vh;
+  background-color: #ffffff;
+}
+
+/* Breadcrumbs Section */
+.sc-breadcrumbs {
+  position: relative;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  padding: 80px 0 40px;
+  overflow: hidden;
+}
+
+.breadcrumbs-overlay {
+  position: relative;
+}
+
+.breadcrumbs-overlay::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(30, 60, 114, 0.8);
+  z-index: 1;
+}
+
+.breadcrumbs-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.breadcrumbs-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.breadcrumbs-text {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.page-title {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.breadcrumbs-text ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.breadcrumbs-text li {
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+.breadcrumbs-text li a {
+  color: #ffd700;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.breadcrumbs-text li a:hover {
+  color: #ffffff;
+}
+
+.breadcrumbs-text li.active {
+  color: #ffffff;
+}
+
+/* Mathematical Background Pattern for Contact Breadcrumbs */
+.contact-breadcrumbs::after {
+  content: "H₂O f(x) circle = πr² trapezoid triangle square rectangle ellipse parallelogram Log sinh(x) cosh(x) e^x e^-x a³+b³ (a+b)(c+d) ∫ ∑ ∏ √ ∞ α β γ δ ε θ λ μ π σ φ ω Δ ∇ ∂ x²+y²=z² a²+b²=c² sin²θ+cos²θ=1 y=mx+b ax²+bx+c=0 lim x→∞ f(x) d/dx ∫f(x)dx Σ ∞ ∑ ∏ √³ √² log₁₀ ln e iπ+1=0";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  font-family: 'Courier New', 'Monaco', monospace;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.2);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding: 30px;
+  line-height: 2.2;
+  pointer-events: none;
+  overflow: hidden;
+  text-align: left;
+  opacity: 0.6;
+  transform: rotate(-1deg);
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 24px,
+    rgba(255, 255, 255, 0.04) 24px,
+    rgba(255, 255, 255, 0.04) 26px
+  );
+}
+
+/* Additional mathematical patterns overlay */
+.contact-breadcrumbs .breadcrumbs-img::before {
+  content: "f(x) = ax² + bx + c  y = mx + b  ∫ f(x)dx  d/dx  lim  Σ  ∏  √  ∞  π  e  α  β  γ  δ  θ  λ  μ  σ  φ  ω  Δ  ∇  ∂  sin  cos  tan  log  ln";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  font-family: 'Courier New', 'Monaco', monospace;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.18);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding: 40px;
+  line-height: 2.5;
+  pointer-events: none;
+  overflow: hidden;
+  text-align: right;
+  opacity: 0.5;
+  transform: rotate(1deg);
+}
+
+/* Chalkboard texture effect */
+.contact-breadcrumbs {
+  background: #1a1a1a !important;
+  position: relative;
+}
+
+.contact-breadcrumbs .breadcrumbs-overlay::before {
+  background: rgba(26, 26, 26, 0.85) !important;
+}
+
+.contact-breadcrumbs .breadcrumbs-img {
+  opacity: 0.3;
+  filter: grayscale(100%) brightness(0.3);
 }
 
 /* Form styles */
@@ -28,16 +179,48 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .contact-container {
     padding: 20px 0;
   }
   
   .contact-container .MuiContainer-root {
-    padding: 10px;
+    padding: 16px;
   }
   
   .contact-container .MuiCard-root {
     margin-bottom: 15px;
+  }
+
+  .sc-breadcrumbs {
+    padding: 60px 0 30px;
+  }
+
+  .page-title {
+    font-size: 2rem;
+  }
+
+  .contact-breadcrumbs::after {
+    font-size: 12px;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 600px) {
+  .contact-container .MuiContainer-root {
+    padding: 12px;
+  }
+
+  .sc-breadcrumbs {
+    padding: 40px 0 20px;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .contact-breadcrumbs::after {
+    font-size: 10px;
+    padding: 10px;
   }
 }
