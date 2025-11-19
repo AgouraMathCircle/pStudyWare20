@@ -1,13 +1,51 @@
 /* MathCircle Component Styles */
 
 .math-circle-container {
+  width: 100%;
+  margin: 10px;
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
 /* Image styling */
+.math-circle-container .img-part img,
 .math-circle-container img {
   border-radius: 10px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* Enhanced image styling with border and shadow */
+.math-circle-container .img-part {
+  border: 3px solid #ffffff;
+  background: #ffffff;
+  padding: 8px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1),
+              8px 8px 0 rgba(0, 0, 0, 0.3),
+              0 8px 0 rgba(0, 0, 0, 0.3);
+  transform: translateY(-8px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-right: 40px;
+  margin-bottom: 30px;
+}
+
+.math-circle-container .img-part:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
+              12px 12px 0 rgba(0, 0, 0, 0.4),
+              0 12px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Add gap between text and image */
+.math-circle-container .MuiGrid-item:has(.img-part) {
+  margin-right: 40px;
+}
+
+@media (max-width: 991px) {
+  .math-circle-container .img-part {
+    margin-right: 0;
+    margin-bottom: 40px;
+  }
 }
 
 /* Team member cards */

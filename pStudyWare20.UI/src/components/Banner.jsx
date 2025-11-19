@@ -105,7 +105,7 @@ const Banner = () => {
               <Button
                 variant="contained"
                 endIcon={<ArrowForwardIcon />}
-                href="/mathcircle"
+                href="http://localhost:5173/about/math-circle"
                 component="a"
                 sx={{
                   outline: "none",

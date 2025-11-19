@@ -30,25 +30,27 @@ const Overview = () => {
         </div>
       </div>
 
-      {/* About Section */}
+      {/* History Section */}
       <div
-        id="sc-about"
-        className="sc-about pt-80 pb-70 md-pt-40 position-relative arrow-animation-1"
+        id="sc-history"
+        className="history-section pt-80 pb-70 md-pt-40 position-relative"
       >
         <div className="container">
-          {/* History Section - ADDED ID */}
-          <div id="sc-history" className="row">
-            <div className="col-lg-5 md-mb-115 img-p">
-              <div className="img-part position-relative">
+          <div className="row history-row">
+            {/* Image Column - Left */}
+            <div className="col-lg-6 col-md-6 history-image-col">
+              <div className="img-part history-img-wrapper">
                 <img
-                  className=""
                   src={speechImg}
-                  alt="About Image"
+                  alt="History Image"
+                  className="history-image"
                 />
               </div>
             </div>
-            <div className="col-lg-7 pl-90 md-pl-15">
-              <div className="sec-title mb-20">
+            
+            {/* Text Column - Right */}
+            <div className="col-lg-6 col-md-6 history-text-col">
+              <div className="history-content">
                 <h2 className="title mb-20">History</h2>
                 <div className="des about-cont" style={{ fontSize: "17px" }}>
                   The Agoura Math Circle is a student-run, 501(c)(3) nonprofit
@@ -66,34 +68,40 @@ const Overview = () => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          <br />
-
-          {/* Overview Image Section - ADDED ID */}
-          <div id="sc-overview" className="row text-center">
+      {/* Overview Section */}
+      <div
+        id="sc-overview"
+        className="overview-section position-relative"
+        style={{ paddingTop: "10px", paddingBottom: "15px" }}
+      >
+        <div className="container">
+          {/* Overview Title */}
+          <div className="row">
             <div className="col-lg-12 text-center">
-              <center>
-                <h2 className="title mb-20">Overview</h2>
-                <div
-                  className="img-part position-relative text-center"
-                  style={{ width: "50%", height: "auto", textAlign: "center" }}
-                >
-                  <center>
-                    <img
-                      className=""
-                      src={eg1Img}
-                      alt="About Image"
-                    />
-                  </center>
-                </div>
-              </center>
+              <h2 className="title mb-40">Overview</h2>
             </div>
           </div>
 
-          {/* Overview Content Section */}
-          <div className="row">
-            <div className="col-lg-12 md-mb-115 img-p">
-              <div className="sec-title mb-20 text-center">
+          {/* Overview Image Row - Top */}
+          <div className="row overview-image-row">
+            <div className="col-lg-12 text-center">
+              <div className="img-part overview-img-wrapper">
+                <img
+                  src={eg1Img}
+                  alt="Overview Image"
+                  className="overview-image"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Overview Text Row - Bottom */}
+          <div className="row overview-text-row">
+            <div className="col-lg-12">
+              <div className="sec-title mb-20">
                 <div
                   className="des-sec about-cont"
                   style={{ fontSize: "17px" }}
@@ -121,7 +129,7 @@ const Overview = () => {
                 </div>
                 <div
                   className="des-sec about-cont"
-                  style={{ fontSize: "17px" }}
+                  style={{ fontSize: "17px", marginTop: "20px" }}
                 >
                   In summary, the Agoura Math Circle, founded on the principles
                   of education, empowerment, and community service, strives to

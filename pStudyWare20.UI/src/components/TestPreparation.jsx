@@ -111,7 +111,7 @@ const TestPreparation = () => {
           <Box sx={{ position: 'relative', width: '100%' }}>
             <Grid container spacing={4} alignItems="flex-start">
               {/* Text Content */}
-              <Grid item xs={12} md={9}>
+              <Grid item xs={12} md={9} sx={{ pr: { md: 4 } }}>
                 <Box className="sec-title">
                   <Typography
                     variant="h3"
@@ -255,20 +255,21 @@ const TestPreparation = () => {
         <Grid container spacing={4} sx={{ mt: 2 }}>
             <Grid item xs={12} md={6}>
   
-    <Box
-      component="img"
-      src={actImg}
-      alt="ACT Training"
-      sx={{
-        display: "block",   // 👈 removes the bottom inline gap
-        width: "100%",
-        height: "auto",
-        maxHeight: "750px",
-        objectFit: "cover",
-        borderRadius: "10px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-      }}
-    />
+    <Box className="img-part">
+      <Box
+        component="img"
+        src={actImg}
+        alt="ACT Training"
+        sx={{
+          display: "block",
+          width: "100%",
+          height: "auto",
+          maxHeight: "750px",
+          objectFit: "cover",
+          borderRadius: "10px",
+        }}
+      />
+    </Box>
 </Grid>        
 <Grid item xs={12} md={6}>
   <Box sx={{ mt: 2 }}>
@@ -447,19 +448,21 @@ const TestPreparation = () => {
 </Typography>
           <Grid container spacing={4} sx={{ mt: 2 }}>
   <Grid item xs={12} md={6}>
-    <Box
-      component="img"
-      src={psatImg}
-      alt="SAT/PSAT Training"
-      sx={{
-        width: "100%",
-        height: "auto",
-        maxHeight: "750px",
-        objectFit: "cover",
-        borderRadius: "10px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-      }}
-    />
+    <Box className="img-part">
+      <Box
+        component="img"
+        src={psatImg}
+        alt="SAT/PSAT Training"
+        sx={{
+          width: "100%",
+          height: "auto",
+          maxHeight: "750px",
+          objectFit: "cover",
+          borderRadius: "10px",
+          display: "block",
+        }}
+      />
+    </Box>
   </Grid>
 
   <Grid item xs={12} md={6}>

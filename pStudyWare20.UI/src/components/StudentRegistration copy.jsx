@@ -339,9 +339,9 @@ const StudentRegistration = () => {
           </Paper>
 
           {/* Main Form - Vertical Layout */}
-          <Paper elevation={3} sx={{ p: 4 }}>
+          <Paper elevation={6} sx={{ p: 8 }}>
             <form onSubmit={handleSubmit(onSubmit)}>
-              <Grid container spacing={4}>
+              <Grid container spacing={8}>
                 {/* Parent Information Section - Full Width */}
                 <Grid item xs={12}>
                   <Card sx={{ p: 2 }}>
@@ -518,8 +518,183 @@ const StudentRegistration = () => {
                     </CardContent>
                   </Card>
                 </Grid>
-                {/* Student Information Section - Full Width */}
                 <Grid item xs={12}>
+                  <Card sx={{ p: 2 }}>
+                    <CardContent sx={{ p: 0 }}>
+                      <Typography
+                        variant="h5"
+                        gutterBottom
+                        sx={{
+                          color: "#174a10",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          mb: 3,
+                        }}
+                      >
+                        Parent{" "}
+                        <span style={{ color: "#1976d2" }}>Information</span>
+                      </Typography>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 2,
+                        }}
+                      >
+                        <Controller
+                          name="parentFirstName"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="First Name *"
+                              error={!!errors.parentFirstName}
+                              helperText={errors.parentFirstName?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
+
+                        <Controller
+                          name="parentLastName"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Last Name *"
+                              error={!!errors.parentLastName}
+                              helperText={errors.parentLastName?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
+
+                        <Controller
+                          name="parentEmail"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Email ID *"
+                              type="email"
+                              error={!!errors.parentEmail}
+                              helperText={errors.parentEmail?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
+
+                        <Controller
+                          name="parentPhoneNo"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Phone (999-999-9999) *"
+                              placeholder="999-999-9999"
+                              error={!!errors.parentPhoneNo}
+                              helperText={errors.parentPhoneNo?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
+
+                        <Controller
+                          name="city"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="City *"
+                              error={!!errors.city}
+                              helperText={errors.city?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
+
+                        <Controller
+                          name="state"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="State *"
+                              error={!!errors.state}
+                              helperText={errors.state?.message}
+                              variant="outlined"
+                            />
+                          )}
+                        />
+
+                        <Controller
+                          name="country"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControl fullWidth error={!!errors.country}>
+                              <InputLabel>Country *</InputLabel>
+                              <Select {...field} label="Country *">
+                                {countries.map((country) => (
+                                  <MenuItem
+                                    key={country.value}
+                                    value={country.value}
+                                  >
+                                    {country.label}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                              {errors.country && (
+                                <FormHelperText>
+                                  {errors.country.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
+
+                        <Controller
+                          name="userName"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControl
+                              component="fieldset"
+                              error={!!errors.userName}
+                            >
+                              <Typography variant="subtitle2" gutterBottom>
+                                User Name *
+                              </Typography>
+                              <RadioGroup {...field} row>
+                                <FormControlLabel
+                                  value="P"
+                                  control={<Radio />}
+                                  label="Parent Email as User Name"
+                                />
+                                <FormControlLabel
+                                  value="S"
+                                  control={<Radio />}
+                                  label="Student Email as User Name"
+                                />
+                              </RadioGroup>
+                              {errors.userName && (
+                                <FormHelperText>
+                                  {errors.userName.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
+                          )}
+                        />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                {/* Student Information Section - Full Width */}
+                {/* <Grid item xs={6}>
                   <Card sx={{ p: 2 }}>
                     <CardContent sx={{ p: 0 }}>
                       <Typography
@@ -536,11 +711,14 @@ const StudentRegistration = () => {
                         <span style={{ color: "#1976d2" }}>Information</span>
                       </Typography>
 
+
+
                       <Box
                         sx={{
                           display: "flex",
                           flexDirection: "column",
                           gap: 2,
+                          width: "100%",
                         }}
                       >
                         <Controller
@@ -550,6 +728,7 @@ const StudentRegistration = () => {
                             <TextField
                               {...field}
                               fullWidth
+                              sx={{ width: "100%" }}
                               label="Student First Name *"
                               error={!!errors.studentFirstName}
                               helperText={errors.studentFirstName?.message}
@@ -565,6 +744,7 @@ const StudentRegistration = () => {
                             <TextField
                               {...field}
                               fullWidth
+                              sx={{ width: "100%" }}
                               label="Student Last Name *"
                               error={!!errors.studentLastName}
                               helperText={errors.studentLastName?.message}
@@ -580,6 +760,7 @@ const StudentRegistration = () => {
                             <TextField
                               {...field}
                               fullWidth
+                              sx={{ width: "100%" }}
                               label="Student Email ID"
                               type="email"
                               error={!!errors.studentEmail}
@@ -602,6 +783,7 @@ const StudentRegistration = () => {
                             <TextField
                               {...field}
                               fullWidth
+                              sx={{ width: "100%" }}
                               label="School *"
                               error={!!errors.studentSchoolName}
                               helperText={errors.studentSchoolName?.message}
@@ -696,7 +878,7 @@ const StudentRegistration = () => {
                       </Box>
                     </CardContent>
                   </Card>
-                </Grid>
+                </Grid> */}
 
                 {/* Signatures and Agreements Section - Full Width */}
                 <Grid item xs={12}>

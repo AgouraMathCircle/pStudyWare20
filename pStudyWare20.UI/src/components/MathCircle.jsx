@@ -5,8 +5,6 @@ import {
   Typography,
   Box,
   Button,
-  Card,
-  CardContent,
   useTheme,
   useMediaQuery,
 } from "@mui/material";
@@ -15,46 +13,37 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import AndroidIcon from "@mui/icons-material/Android";
 import AppleIcon from "@mui/icons-material/Apple";
 import YouTubeIcon from "@mui/icons-material/YouTube";
-import VideoGallerys from "./MathCirclebg";
-import ComputerOutlinedIcon from '@mui/icons-material/ComputerOutlined';
-import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
-import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
-import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
+import VideoGallerys from "../components/Home/VideoGallery";
+import AMCTeam from "./AMCTeam";
+import ComputerOutlinedIcon from "@mui/icons-material/ComputerOutlined";
+import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
+import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
+import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
 import "../styles/MathCircle.css";
 import counterBg2Img from "../assets/images/bg/counter-bg2.jpg";
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
-import aboutAmcImg from "../assets/images/about/about-amc copy copy.png"; 
-import arrow1Img from "../assets/images/arrow-1.png"; 
-import arrow2Img from "../assets/images/arrow-2.png"; 
-import arrow3Img from "../assets/images/arrow-3.png"; 
-import arrow4Img from "../assets/images/arrow-4.png"; 
-import arrow5Img from "../assets/images/arrow-5.png"; 
-import teamMember1 from "../assets/images/team/1.jpg"; 
-import teamMember2 from "../assets/images/team/2.jpg"; 
-import teamMember13 from "../assets/images/team/13.png";
-import teamMember3 from "../assets/images/team/3.jpg";
-import teamMember8 from "../assets/images/team/8.jpg";
-import teamMemberCharlie from "../assets/images/team/volunteers/charlie.png"; 
-import teamMember4 from "../assets/images/team/4.jpg";
-import teamMember5 from "../assets/images/team/5.jpg"; 
-import teamMember6 from "../assets/images/team/6.jpg"; 
-import teamMember7 from "../assets/images/team/7.jpg";
+import aboutAmcImg from "../assets/images/about/about-amc copy copy.png";
+import arrow1Img from "../assets/images/arrow-1.png";
+import arrow2Img from "../assets/images/arrow-2.png";
+import arrow3Img from "../assets/images/arrow-3.png";
+import arrow4Img from "../assets/images/arrow-4.png";
+import arrow5Img from "../assets/images/arrow-5.png";
 
 // Counter Section Component (moved outside)
 const CounterSection = ({ counterRef }) => {
   return (
-   <Box
-  ref={counterRef}
-  className="sc-counter"
-  sx={{
-    py: { xs: 8, md: 10 },
-    backgroundColor: "#c9fdc9 !important", // ✅ forces mint green
-    backgroundImage: "none !important",     // ✅ removes the gradient
-    color: "#000",                          // optional, since old CSS had white text
-    position: "relative",
-    overflow: "hidden",
-  }}
->
+    <Box
+      ref={counterRef}
+      className="sc-counter"
+      sx={{
+        py: { xs: 8, md: 10 },
+        backgroundColor: "#c9fdc9 !important", // ✅ forces mint green
+        backgroundImage: "none !important", // ✅ removes the gradient
+        color: "#000", // optional, since old CSS had white text
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
       {/* Decorative circles and triangle */}
       <Box
         sx={{
@@ -133,10 +122,10 @@ const CounterSection = ({ counterRef }) => {
               >
                 <ComputerOutlinedIcon sx={{ fontSize: 40, color: "#64B5F6" }} />
               </Box>
-              <Typography 
-                className="counter-value" 
-                data-target="8" 
-                variant="h4" 
+              <Typography
+                className="counter-value"
+                data-target="8"
+                variant="h4"
                 sx={{ fontWeight: 700, color: "#002B5B" }}
               >
                 0+
@@ -172,10 +161,10 @@ const CounterSection = ({ counterRef }) => {
               >
                 <MenuBookOutlinedIcon sx={{ fontSize: 40, color: "#FF8A80" }} />
               </Box>
-              <Typography 
-                className="counter-value" 
-                data-target="1000" 
-                variant="h4" 
+              <Typography
+                className="counter-value"
+                data-target="1000"
+                variant="h4"
                 sx={{ fontWeight: 700, color: "#002B5B" }}
               >
                 0+
@@ -211,10 +200,10 @@ const CounterSection = ({ counterRef }) => {
               >
                 <GroupsOutlinedIcon sx={{ fontSize: 40, color: "#81C784" }} />
               </Box>
-              <Typography 
-                className="counter-value" 
-                data-target="125" 
-                variant="h4" 
+              <Typography
+                className="counter-value"
+                data-target="125"
+                variant="h4"
                 sx={{ fontWeight: 700, color: "#002B5B" }}
               >
                 0+
@@ -248,12 +237,14 @@ const CounterSection = ({ counterRef }) => {
                   justifyContent: "center",
                 }}
               >
-                <AssessmentOutlinedIcon sx={{ fontSize: 40, color: "#FFD54F" }} />
+                <AssessmentOutlinedIcon
+                  sx={{ fontSize: 40, color: "#FFD54F" }}
+                />
               </Box>
-              <Typography 
-                className="counter-value" 
-                data-target="6" 
-                variant="h4" 
+              <Typography
+                className="counter-value"
+                data-target="6"
+                variant="h4"
                 sx={{ fontWeight: 700, color: "#002B5B" }}
               >
                 0+
@@ -265,16 +256,48 @@ const CounterSection = ({ counterRef }) => {
       </Container>
 
       {/* Animated Arrows */}
-      <Box className="animated-arrow-1 animated-arrow left-right-new" sx={{ position: "absolute", top: "20%", left: "10%", animation: "leftRight 3s ease-in-out infinite" }}>
+      <Box
+        className="animated-arrow-1 animated-arrow left-right-new"
+        sx={{
+          position: "absolute",
+          top: "20%",
+          left: "10%",
+          animation: "leftRight 3s ease-in-out infinite",
+        }}
+      >
         <Box component="img" src={arrow5Img} alt="" />
       </Box>
-      <Box className="animated-arrow-2 animated-arrow up-down-new" sx={{ position: "absolute", top: "40%", right: "15%", animation: "upDown 4s ease-in-out infinite" }}>
+      <Box
+        className="animated-arrow-2 animated-arrow up-down-new"
+        sx={{
+          position: "absolute",
+          top: "40%",
+          right: "15%",
+          animation: "upDown 4s ease-in-out infinite",
+        }}
+      >
         <Box component="img" src={arrow2Img} alt="" />
       </Box>
-      <Box className="animated-arrow-3 animated-arrow up-down-new" sx={{ position: "absolute", bottom: "30%", left: "20%", animation: "upDown 3.5s ease-in-out infinite" }}>
+      <Box
+        className="animated-arrow-3 animated-arrow up-down-new"
+        sx={{
+          position: "absolute",
+          bottom: "30%",
+          left: "20%",
+          animation: "upDown 3.5s ease-in-out infinite",
+        }}
+      >
         <Box component="img" src={arrow4Img} alt="" />
       </Box>
-      <Box className="animated-arrow-4 animated-arrow left-right-new" sx={{ position: "absolute", bottom: "20%", right: "10%", animation: "leftRight 4.5s ease-in-out infinite" }}>
+      <Box
+        className="animated-arrow-4 animated-arrow left-right-new"
+        sx={{
+          position: "absolute",
+          bottom: "20%",
+          right: "10%",
+          animation: "leftRight 4.5s ease-in-out infinite",
+        }}
+      >
         <Box component="img" src={arrow3Img} alt="" />
       </Box>
     </Box>
@@ -289,7 +312,7 @@ const DownloadSection = () => {
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -365,12 +388,8 @@ const DownloadSection = () => {
         {/* Left Column */}
         <Grid item xs={12} md={6}>
           <Box sx={{ mb: 2 }}>
-            <AndroidIcon
-              sx={{ fontSize: 60, color: "#9be15d", mx: 1 }}
-            />
-            <AppleIcon
-              sx={{ fontSize: 60, color: "#cfd2d7", mx: 1 }}
-            />
+            <AndroidIcon sx={{ fontSize: 60, color: "#9be15d", mx: 1 }} />
+            <AppleIcon sx={{ fontSize: 60, color: "#cfd2d7", mx: 1 }} />
           </Box>
 
           <Typography
@@ -402,14 +421,19 @@ const DownloadSection = () => {
                 borderRadius: "5px",
                 fontWeight: 600,
                 textTransform: "none",
-                transform: isVisible ? 'translateY(0)' : 'translateY(50px)',
+                transform: isVisible ? "translateY(0)" : "translateY(50px)",
                 opacity: isVisible ? 1 : 0,
-                transition: 'all 0.8s ease-out',
+                transition: "all 0.8s ease-out",
                 "&:hover": {
                   backgroundColor: "#4c8c2b",
                 },
               }}
-              onClick={() => window.open("https://apps.apple.com/us/app/agoura-math-circle/id1438597363", "_blank")}
+              onClick={() =>
+                window.open(
+                  "https://apps.apple.com/us/app/agoura-math-circle/id1438597363",
+                  "_blank"
+                )
+              }
             >
               IOS App →
             </Button>
@@ -423,9 +447,9 @@ const DownloadSection = () => {
                 borderRadius: "5px",
                 fontWeight: 600,
                 textTransform: "none",
-                transform: isVisible ? 'translateY(0)' : 'translateY(50px)',
+                transform: isVisible ? "translateY(0)" : "translateY(50px)",
                 opacity: isVisible ? 1 : 0,
-                transition: 'all 0.8s ease-out 0.2s',
+                transition: "all 0.8s ease-out 0.2s",
                 "&:hover": {
                   backgroundColor: "#4c8c2b",
                 },
@@ -463,9 +487,9 @@ const DownloadSection = () => {
               borderRadius: "5px",
               fontWeight: 600,
               textTransform: "none",
-              transform: isVisible ? 'translateY(0)' : 'translateY(50px)',
+              transform: isVisible ? "translateY(0)" : "translateY(50px)",
               opacity: isVisible ? 1 : 0,
-              transition: 'all 0.8s ease-out 0.4s',
+              transition: "all 0.8s ease-out 0.4s",
               "&:hover": {
                 backgroundColor: "#4c8c2b",
               },
@@ -509,9 +533,9 @@ const MathCircle = () => {
           observer.unobserve(entry.target);
         }
       },
-      { 
+      {
         threshold: 0.3,
-        rootMargin: '0px 0px -100px 0px'
+        rootMargin: "0px 0px -100px 0px",
       }
     );
 
@@ -531,15 +555,18 @@ const MathCircle = () => {
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        console.log("Register button observer triggered:", entry.isIntersecting);
+        console.log(
+          "Register button observer triggered:",
+          entry.isIntersecting
+        );
         if (entry.isIntersecting) {
           setRegisterButtonVisible(true);
           observer.unobserve(entry.target);
         }
       },
-      { 
+      {
         threshold: 0.3,
-        rootMargin: '0px 0px -100px 0px'
+        rootMargin: "0px 0px -100px 0px",
       }
     );
 
@@ -561,20 +588,20 @@ const MathCircle = () => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             // Animate counters
-            const counters = entry.target.querySelectorAll('.counter-value');
-            counters.forEach(counter => {
-              const target = parseInt(counter.getAttribute('data-target'));
+            const counters = entry.target.querySelectorAll(".counter-value");
+            counters.forEach((counter) => {
+              const target = parseInt(counter.getAttribute("data-target"));
               const duration = 2000;
               const step = target / (duration / 16);
               let current = 0;
-              
+
               const timer = setInterval(() => {
                 current += step;
                 if (current >= target) {
-                  counter.innerText = target + '+';
+                  counter.innerText = target + "+";
                   clearInterval(timer);
                 } else {
-                  counter.innerText = Math.floor(current) + '+';
+                  counter.innerText = Math.floor(current) + "+";
                 }
               }, 16);
             });
@@ -596,23 +623,9 @@ const MathCircle = () => {
     };
   }, []);
 
-  // Team members data
-  const teamMembers = [
-    { name: "PRANAV KALYAN", role: "FOUNDER & PRESIDENT", image: teamMember1 },
-    { name: "SRIYA KALYAN", role: "CHIEF EXECUTIVE OFFICER", image: teamMember2 },
-    { name: "DR BHARAT PATEL", role: "DIRECTOR", image: teamMember13 },
-    { name: "ANDREW XU", role: "DIRECTOR", image: teamMember3 },
-    { name: "JOSHNA JUDE", role: "SENIOR VICE PRESIDENT", image: teamMember8 },
-    { name: "CHARLIE NICKS", role: "SENIOR VICE PRESIDENT", image: teamMemberCharlie },
-    { name: "MINITA CLARKE", role: "ADVISORY BOARD", image: teamMember4 },
-    { name: "DIANA NGUYEN", role: "ADVISORY BOARD", image: teamMember5 },
-    { name: "JOSEPH KEAYS", role: "ADVISORY BOARD", image: teamMember6 },
-    { name: "MUGIL SHANMUGAM", role: "ADVISORY BOARD", image: teamMember7 },
-  ];
-
   // SkillItem component
   const SkillItem = ({ text }) => (
-    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+    <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
       <CheckCircleOutlineIcon color="primary" sx={{ mr: 1.5 }} />
       <Typography variant="body1">{text}</Typography>
     </Box>
@@ -626,82 +639,201 @@ const MathCircle = () => {
           <img src={pageHeaderImg} alt="Breadcrumbs" />
         </Box>
         <Box className="breadcrumbs-text white-color">
-          <Typography variant="h1" className="page-title" sx={{ fontSize: { xs: "2.5rem", md: "3.5rem" }, fontWeight: 700, mb: 2 }}>
+          <Typography
+            variant="h1"
+            className="page-title"
+            sx={{
+              fontSize: { xs: "2.5rem", md: "3.5rem" },
+              fontWeight: 700,
+              mb: 2,
+            }}
+          >
             About Us
           </Typography>
-          <Box component="ul" sx={{ listStyle: "none", p: 0, m: 0, display: "flex", alignItems: "center", gap: 1 }}>
+          <Box
+            component="ul"
+            sx={{
+              listStyle: "none",
+              p: 0,
+              m: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
             <Box component="li" sx={{ display: "inline-block" }}>
-              <Button onClick={() => handleNavigation("/")} sx={{ color: "white", textDecoration: "none", p: 0, minWidth: "auto", fontSize: "inherit", textTransform: "none", '&:hover': { textDecoration: "none" } }}>
+              <Button
+                onClick={() => handleNavigation("/")}
+                sx={{
+                  color: "white",
+                  textDecoration: "none",
+                  p: 0,
+                  minWidth: "auto",
+                  fontSize: "inherit",
+                  textTransform: "none",
+                  "&:hover": { textDecoration: "none" },
+                }}
+              >
                 Home &gt;
               </Button>
             </Box>
             <Box component="li" sx={{ display: "inline-block" }}>
-              <Typography component="span" sx={{ color: "white" }}> About Us &gt; </Typography>
+              <Typography component="span" sx={{ color: "white" }}>
+                {" "}
+                About Us &gt;{" "}
+              </Typography>
             </Box>
             <Box component="li" sx={{ display: "inline-block" }}>
-              <Typography component="span" sx={{ color: "white" }}> Math Circle </Typography>
+              <Typography component="span" sx={{ color: "white" }}>
+                {" "}
+                Math Circle{" "}
+              </Typography>
             </Box>
           </Box>
         </Box>
       </Box>
 
       {/* About Section */}
-      <Box id="sc-about" className="sc-about pt-80 pb-70 md-pt-40 position-relative" sx={{ pt: { xs: 4, md: 8 }, pb: { xs: 4, md: 6 }, position: "relative" }}>
+      <Box
+        id="sc-about"
+        className="sc-about pt-80 pb-70 md-pt-40 position-relative"
+        sx={{
+          pt: { xs: 4, md: 8 },
+          pb: { xs: 4, md: 6 },
+          position: "relative",
+        }}
+      >
         <Container maxWidth="lg">
-          <Grid container direction="row" flexWrap={{ xs: "wrap", md: "nowrap" }} spacing={4} alignItems="flex-start">
+          <Grid
+            container
+            direction="row"
+            flexWrap={{ xs: "wrap", md: "nowrap" }}
+            spacing={4}
+            alignItems="flex-start"
+          >
             {/* Image on left */}
             <Grid item xs={12} md={5}>
-              <Box className="img-part" sx={{ position: "relative", overflow: "visible" }}>
-                <Box component="img" src={aboutAmcImg} alt="About" sx={{ width: "100%", height: "auto", border: "20px solid white", boxShadow: "0 40px 120px rgba(0,0,0,0.8)", display: "block" }} />
-                <Box sx={{ position: "absolute", bottom: "-40px", right: "-30px", backgroundColor: "white", color: "black", padding: "15px", borderRadius: "8px", width: "120px", height: "120px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}>
-                  <Typography variant="h5" sx={{ fontWeight: 700 }}> 1000+ </Typography>
-                  <Typography variant="body2" sx={{ fontSize: "0.8rem" }}> Students </Typography>
+              <Box
+                className="img-part"
+                sx={{ position: "relative", overflow: "visible" }}
+              >
+                <Box
+                  component="img"
+                  src={aboutAmcImg}
+                  alt="About"
+                  sx={{ width: "100%", height: "auto", display: "block" }}
+                />
+                <Box
+                  sx={{
+                    position: "absolute",
+                    bottom: "-40px",
+                    right: "-30px",
+                    backgroundColor: "white",
+                    color: "black",
+                    padding: "15px",
+                    borderRadius: "8px",
+                    width: "120px",
+                    height: "120px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                    {" "}
+                    1000+{" "}
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontSize: "0.8rem" }}>
+                    {" "}
+                    Students{" "}
+                  </Typography>
                 </Box>
               </Box>
             </Grid>
             {/* Text content on right */}
-            <Grid item xs={12} md={7} sx={{ ml: { xs: 0, md: 4 } }}>
+            <Grid
+              item
+              xs={12}
+              md={7}
+              sx={{ ml: { xs: 0, md: 4 }, pl: { xs: 0, md: 4 } }}
+            >
               <Box className="sec-title mb-20">
-                <Typography variant="h2" className="title mb-20" sx={{ fontWeight: 700, mb: 2.5, fontSize: { xs: "1.8rem", md: "2.5rem" } }}>
+                <Typography
+                  variant="h2"
+                  className="title mb-20"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 2.5,
+                    fontSize: { xs: "1.8rem", md: "2.5rem" },
+                  }}
+                >
                   ABOUT AMC
                 </Typography>
                 <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 2 }}>
-                  The Agoura Math Circle is a student-run, 501(c)(3) nonprofit community service organization founded by Pranav Kalyan in September 2015. Agoura Math Circle is a free educational program focusing on the problem-solving skills that lead students to success in both academics and the real world. More importantly, Agoura Math Circle gives students confidence and the skills to tackle any type of problem, academic or otherwise. Our goal is to create a strong foundation for kids to increase critical thinking and motivate kids to aim for top universities in a fun-filled environment.
+                  The Agoura Math Circle is a student-run, 501(c)(3) nonprofit
+                  community service organization founded by Pranav Kalyan in
+                  September 2015. Agoura Math Circle is a free educational
+                  program focusing on the problem-solving skills that lead
+                  students to success in both academics and the real world. More
+                  importantly, Agoura Math Circle gives students confidence and
+                  the skills to tackle any type of problem, academic or
+                  otherwise. Our goal is to create a strong foundation for kids
+                  to increase critical thinking and motivate kids to aim for top
+                  universities in a fun-filled environment.
                 </Typography>
                 <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 4 }}>
-                  Agoura Math Circle has many opportunities for students dependent on their various interests. At the moment we have online and OnSite where students can learn math and Engineering. These chapters work together to support our students as best we can. Agoura Engineering Circle is a place for high school students to apply their math skills to engineering. Our test preparation course, offered to 8th graders and up, help students achieve the score they want for standardized tests like the PSAT, SAT and ACT. For kids around the world who still wish to learn math concepts, we have a YouTube channel.
+                  Agoura Math Circle has many opportunities for students
+                  dependent on their various interests. At the moment we have
+                  online and OnSite where students can learn math and
+                  Engineering. These chapters work together to support our
+                  students as best we can. Agoura Engineering Circle is a place
+                  for high school students to apply their math skills to
+                  engineering. Our test preparation course, offered to 8th
+                  graders and up, help students achieve the score they want for
+                  standardized tests like the PSAT, SAT and ACT. For kids around
+                  the world who still wish to learn math concepts, we have a
+                  YouTube channel.
                 </Typography>
-                
+
                 {/* Animated Buttons Container */}
-                <Box 
+                <Box
                   ref={buttonsRef}
                   sx={{
                     opacity: buttonsVisible ? 1 : 0,
-                    transform: buttonsVisible ? 'translateY(0)' : 'translateY(50px)',
-                    transition: 'all 0.8s ease-out',
+                    transform: buttonsVisible
+                      ? "translateY(0)"
+                      : "translateY(50px)",
+                    transition: "all 0.8s ease-out",
                   }}
                 >
-                  <Grid container spacing={2} justifyContent="space-between" alignItems="center">
+                  <Grid
+                    container
+                    spacing={2}
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
                     <Grid item xs={12} sm={4}>
                       <Box sx={{ textAlign: "center" }}>
-                        <Button 
-                          variant="contained" 
-                          onClick={() => handleNavigation("/about/leadership")} 
-                          sx={{ 
-                            backgroundColor: "#58a82d", 
-                            color: "white", 
-                            px: 3, 
-                            py: 1.5, 
-                            borderRadius: "5px", 
-                            fontWeight: 600, 
+                        <Button
+                          variant="contained"
+                          onClick={() => handleNavigation("/about/leadership")}
+                          sx={{
+                            backgroundColor: "#58a82d",
+                            color: "white",
+                            px: 3,
+                            py: 1.5,
+                            borderRadius: "5px",
+                            fontWeight: 600,
                             textDecoration: "none",
-                            "&:hover": { 
+                            "&:hover": {
                               backgroundColor: "#191970",
                               transform: "translateY(-3px)",
                               boxShadow: "0 6px 12px rgba(0,0,0,0.2)",
-                              textDecoration: "none"
+                              textDecoration: "none",
                             },
-                            transition: "all 0.3s ease"
+                            transition: "all 0.3s ease",
                           }}
                         >
                           Leadership
@@ -710,24 +842,24 @@ const MathCircle = () => {
                     </Grid>
                     <Grid item xs={12} sm={4}>
                       <Box sx={{ textAlign: "center" }}>
-                        <Button 
-                          variant="contained" 
-                          onClick={() => handleNavigation("/about/team")} 
-                          sx={{ 
-                            backgroundColor: "#58a82d", 
-                            color: "white", 
-                            px: 3, 
-                            py: 1.5, 
-                            borderRadius: "5px", 
-                            fontWeight: 600, 
+                        <Button
+                          variant="contained"
+                          onClick={() => handleNavigation("/about/team")}
+                          sx={{
+                            backgroundColor: "#58a82d",
+                            color: "white",
+                            px: 3,
+                            py: 1.5,
+                            borderRadius: "5px",
+                            fontWeight: 600,
                             textDecoration: "none",
-                            "&:hover": { 
+                            "&:hover": {
                               backgroundColor: "#191970",
                               transform: "translateY(-3px)",
                               boxShadow: "0 6px 12px rgba(0,0,0,0.2)",
-                              textDecoration: "none"
+                              textDecoration: "none",
                             },
-                            transition: "all 0.3s ease"
+                            transition: "all 0.3s ease",
                           }}
                         >
                           Our Team
@@ -736,24 +868,24 @@ const MathCircle = () => {
                     </Grid>
                     <Grid item xs={12} sm={4}>
                       <Box sx={{ textAlign: "center" }}>
-                        <Button 
-                          variant="contained" 
-                          onClick={() => handleNavigation("/about/alumni")} 
-                          sx={{ 
-                            backgroundColor: "#58a82d", 
-                            color: "white", 
-                            px: 3, 
-                            py: 1.5, 
-                            borderRadius: "5px", 
-                            fontWeight: 600, 
+                        <Button
+                          variant="contained"
+                          onClick={() => handleNavigation("/about/alumni")}
+                          sx={{
+                            backgroundColor: "#58a82d",
+                            color: "white",
+                            px: 3,
+                            py: 1.5,
+                            borderRadius: "5px",
+                            fontWeight: 600,
                             textDecoration: "none",
-                            "&:hover": { 
+                            "&:hover": {
                               backgroundColor: "#191970",
                               transform: "translateY(-3px)",
                               boxShadow: "0 6px 12px rgba(0,0,0,0.2)",
-                              textDecoration: "none"
+                              textDecoration: "none",
                             },
-                            transition: "all 0.3s ease"
+                            transition: "all 0.3s ease",
                           }}
                         >
                           AMC Alumni
@@ -774,9 +906,9 @@ const MathCircle = () => {
           {/* Skills + Button Row */}
           <Box
             sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              alignItems: 'flex-start',
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              alignItems: "flex-start",
               gap: 2,
             }}
           >
@@ -791,23 +923,43 @@ const MathCircle = () => {
                 {/* Column 2 */}
                 <Grid item xs={12} sm={4} md={5}>
                   <Grid container spacing={1}>
-                    <Grid item xs={6}><SkillItem text="Basic Math" /></Grid>
-                    <Grid item xs={6}><SkillItem text="Calculus" /></Grid>
-                    <Grid item xs={6}><SkillItem text="Pre Calculus" /></Grid>
-                    <Grid item xs={6}><SkillItem text="MATH COUNTS" /></Grid>
+                    <Grid item xs={6}>
+                      <SkillItem text="Basic Math" />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <SkillItem text="Calculus" />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <SkillItem text="Pre Calculus" />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <SkillItem text="MATH COUNTS" />
+                    </Grid>
                     <Grid item xs={6}></Grid>
-                    <Grid item xs={6}><SkillItem text="AMC 8" /></Grid>
-                    <Grid item xs={6}><SkillItem text="AMC 10" /></Grid>
-                    <Grid item xs={6}><SkillItem text="AMC 12" /></Grid>
+                    <Grid item xs={6}>
+                      <SkillItem text="AMC 8" />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <SkillItem text="AMC 10" />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <SkillItem text="AMC 12" />
+                    </Grid>
                   </Grid>
                 </Grid>
                 {/* Column 3 */}
                 <Grid item xs={12} sm={4} md={4}>
                   <Grid container spacing={1}>
-                    <Grid item xs={6}><SkillItem text="MATH Kangaroo" /></Grid>
-                    <Grid item xs={6}><SkillItem text="MATH LEAGUE" /></Grid>
+                    <Grid item xs={6}>
+                      <SkillItem text="MATH Kangaroo" />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <SkillItem text="MATH LEAGUE" />
+                    </Grid>
                     <Grid item xs={6}></Grid>
-                    <Grid item xs={6}><SkillItem text="ACT/PSAT" /></Grid>
+                    <Grid item xs={6}>
+                      <SkillItem text="ACT/PSAT" />
+                    </Grid>
                   </Grid>
                   <SkillItem text="Introduction to Data Science" />
                   <SkillItem text="Introduction to Artificial Intelligence" />
@@ -819,36 +971,38 @@ const MathCircle = () => {
             <Box
               ref={registerButtonRef}
               sx={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                alignItems: 'flex-start',
+                display: "flex",
+                justifyContent: "flex-end",
+                alignItems: "flex-start",
                 mt: { xs: 4, md: 0 },
-                width: { xs: '100%', md: 'auto' },
+                width: { xs: "100%", md: "auto" },
                 opacity: registerButtonVisible ? 1 : 0,
-                transform: registerButtonVisible ? 'translateY(0)' : 'translateY(50px)',
-                transition: 'all 0.8s ease-out 0.3s',
+                transform: registerButtonVisible
+                  ? "translateY(0)"
+                  : "translateY(50px)",
+                transition: "all 0.8s ease-out 0.3s",
               }}
             >
               <Button
                 variant="contained"
                 onClick={() => handleNavigation("/registration/student")}
                 sx={{
-                  backgroundColor: '#58a82d',
-                  color: 'white',
-                  fontWeight: 'bold',
-                  fontSize: '1.2rem',
-                  borderRadius: '8px',
-                  textTransform: 'none',
-                  textDecoration: 'none',
+                  backgroundColor: "#58a82d",
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: "1.2rem",
+                  borderRadius: "8px",
+                  textTransform: "none",
+                  textDecoration: "none",
                   px: 5,
                   py: 2,
-                  '&:hover': {
-                    backgroundColor: '#191970',
+                  "&:hover": {
+                    backgroundColor: "#191970",
                     transform: "translateY(-3px)",
                     boxShadow: "0 8px 16px rgba(0,0,0,0.3)",
-                    textDecoration: 'none'
+                    textDecoration: "none",
                   },
-                  transition: "all 0.3s ease"
+                  transition: "all 0.3s ease",
                 }}
               >
                 Register Now
@@ -865,36 +1019,31 @@ const MathCircle = () => {
       <Box className="sc-team" sx={{ py: { xs: 4, md: 6 } }}>
         <Container maxWidth="lg">
           <Box sx={{ textAlign: "center", mb: 4 }}>
-            <Typography variant="h2" sx={{ fontWeight: 700, fontSize: { xs: "2rem", md: "2.5rem" } }}>
+            <Typography
+              variant="h2"
+              sx={{ fontWeight: 700, fontSize: { xs: "2rem", md: "2.5rem" } }}
+            >
               AMC TEAM
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 3 }}>
-            {teamMembers.map((member, index) => (
-              <Box key={index} sx={{ flex: "0 0 auto", width: { xs: "100%", sm: "45%", md: "30%", lg: "22%" }, mb: 3 }}>
-                <Card sx={{ height: "100%", transition: "transform 0.3s ease, box-shadow 0.3s ease", "&:hover": { transform: "translateY(-5px)", boxShadow: "0 8px 25px rgba(0,0,0,0.15)" } }}>
-                  <Box component="img" src={member.image} alt={member.name} sx={{ width: "100%", height: "280px", objectFit: "cover" }} />
-                  <CardContent sx={{ p: 3 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "1.1rem", mb: 1 }}>
-                      {member.name}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500, fontSize: "0.9rem" }}>
-                      {member.role}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Box>
-            ))}
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: 3,
+            }}
+          >
+            <AMCTeam />
           </Box>
         </Container>
       </Box>
 
       {/* Download Section */}
       <DownloadSection />
-      <VideoGallerys/>
+      <VideoGallerys />
     </Box>
   );
 };
 
 export default MathCircle;
-

@@ -112,25 +112,53 @@
 /* Image Part */
 .img-p {
   margin-bottom: 30px;
+  margin-right: 40px;
+}
+
+/* Add gap between text and image */
+.col-lg-7.pl-90 {
+  padding-left: 90px;
+  margin-left: 40px;
+}
+
+@media (max-width: 991px) {
+  .col-lg-7.pl-90 {
+    padding-left: 15px;
+    margin-left: 0;
+  }
+  
+  .img-p {
+    margin-right: 0;
+    margin-bottom: 40px;
+  }
 }
 
 .img-part {
   border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1),
+              8px 8px 0 rgba(0, 0, 0, 0.3),
+              0 8px 0 rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative;
+  border: 3px solid #ffffff;
+  background: #ffffff;
+  padding: 8px;
+  transform: translateY(-8px);
 }
 
 .img-part:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  transform: translateY(-12px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
+              12px 12px 0 rgba(0, 0, 0, 0.4),
+              0 12px 0 rgba(0, 0, 0, 0.4);
 }
 
 .img-part img {
   width: 100%;
   height: auto;
   display: block;
+  border-radius: 10px;
 }
 
 /* About Experience Badge */
@@ -327,16 +355,19 @@
 }
 
 .team-inner-item {
-  margin-bottom: 30px;
+  margin-bottom: 0;
 }
 
 .team-wrap {
-  background: #ffffff;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: 15px;
+  margin: 0;
+  background: #fff;
+  box-shadow: 0px 0px 16px rgba(4, 59, 80, 0.1);
+  border-radius: 5px;
+  z-index: 1;
   position: relative;
+  text-align: center;
+  height: 100%;
 }
 
 .team-wrap:hover {
@@ -347,12 +378,15 @@
 .team-img {
   position: relative;
   overflow: hidden;
+  min-height: 350px;
 }
 
-.team-img img {
+.team-img a img {
+  border-radius: 5px;
   width: 100%;
-  height: 300px;
+  height: 350px;
   object-fit: cover;
+  display: block;
   transition: transform 0.3s ease;
 }
 
@@ -362,43 +396,55 @@
 
 .team-social {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(30, 60, 114, 0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
+  bottom: 35px;
+  left: 50%;
+  transform: translateX(-50%);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  z-index: 2;
+  text-align: center;
+  transition: all 0.3s;
+  width: 100%;
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 
-.team-wrap:hover .team-social {
+.team-wrap:hover .team-img .team-social {
   opacity: 1;
 }
 
+.team-social li {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.team-social li:last-child {
+  margin-right: 0;
+}
+
 .social-icon {
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: #ffd700;
-  color: #1e3c72;
-  border-radius: 50%;
+  transition: all 0.3s;
+  font-size: 15px;
+  width: 35px;
+  height: 35px;
+  border-radius: 35px;
+  color: #102d47;
+  background: #53b50a;
+  text-align: center;
   text-decoration: none;
-  transition: all 0.3s ease;
 }
 
 .social-icon:hover {
-  background: #ffffff;
-  color: #1e3c72;
-  transform: scale(1.1);
+  cursor: pointer;
+  color: #53b50a;
+  background: #fff;
 }
 
 .team-item-text {
@@ -407,20 +453,20 @@
 }
 
 .team-name {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #1e3c72;
-  margin-bottom: 5px;
+  font-size: 18px;
+  margin: 20px 0 4px;
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
 .team-name a {
-  color: inherit;
+  color: #102d47;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
 .team-name a:hover {
-  color: #ffd700;
+  color: #53b50a;
 }
 
 .team-title {

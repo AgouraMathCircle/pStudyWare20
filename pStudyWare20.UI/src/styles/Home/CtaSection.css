@@ -1,0 +1,382 @@
+.cta-section {
+  padding: 20px 0;
+  background-color: #edf7f9;
+  width: 100%;
+}
+
+.cta-section-primary {
+  margin: 10px 0;
+  width: 100%;
+}
+
+.cta-primary-layout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+  min-height: 320px;
+  flex-direction: row;
+}
+
+@media (max-width: 960px) {
+  .cta-primary-layout {
+    flex-direction: column;
+    gap: 30px;
+  }
+}
+
+.cta-primary-text {
+  flex: 0 0 40%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  color: #102d47;
+}
+
+.cta-badge {
+  color: #40c1ec;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.cta-title {
+  font-weight: 700 !important;
+  font-size: clamp(2rem, 4vw, 3.2rem) !important;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.cta-primary-button.MuiButton-root {
+  align-self: flex-start;
+  background-color: #53b50a !important;
+  color: #ffffff !important;
+  padding: 14px 36px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: none;
+  box-shadow: none;
+  border: 2px solid transparent !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+    background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.cta-primary-button.MuiButton-root:hover {
+  background-color: #000000 !important;
+  border: 2px solid #000000 !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.cta-primary-button .MuiButton-endIcon {
+  margin-left: 12px;
+  transition: transform 0.3s ease;
+}
+
+.cta-primary-button:hover .MuiButton-endIcon {
+  transform: translateX(4px);
+}
+
+.cta-primary-gallery {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  padding-left: 20px;
+}
+
+.cta-copy {
+  font-size: clamp(1rem, 1.2vw, 1.1rem);
+  line-height: 1.75;
+  color: #385264;
+  max-width: 620px;
+}
+
+.cta-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.cta-outline-button.MuiButton-root {
+  border-color: rgba(64, 193, 236, 0.45);
+  color: #102d47;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-transform: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+    border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.cta-outline-button.MuiButton-root:hover {
+  border-color: #40c1ec;
+  background-color: rgba(64, 193, 236, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0, 76, 117, 0.2);
+}
+
+.cta-feature-wrapper {
+  display: grid;
+  gap: 24px;
+  flex: 1;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+}
+
+.cta-feature-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 20px 45px rgba(15, 50, 90, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  backdrop-filter: blur(6px);
+}
+
+.cta-feature-image {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+.cta-feature-badge {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  color: #40c1ec;
+  font-weight: 700;
+}
+
+.cta-feature-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f325a;
+}
+
+.cta-feature-copy {
+  font-size: 0.95rem;
+  color: #486176;
+  line-height: 1.6;
+}
+
+.cta-feature-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cta-feature-button.MuiButton-root {
+  background-color: #53b50a;
+  color: #ffffff;
+  text-transform: none;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 8px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease,
+    background-color 0.3s ease;
+}
+
+.cta-feature-button.MuiButton-root:hover {
+  background-color: #399105;
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(57, 145, 5, 0.28);
+}
+
+.cta-feature-button--outline.MuiButton-root {
+  background: transparent;
+  border: 2px solid rgba(64, 193, 236, 0.4);
+  color: #0f325a;
+}
+
+.cta-feature-button--outline.MuiButton-root:hover {
+  border-color: #40c1ec;
+  background-color: rgba(64, 193, 236, 0.12);
+  color: #0f325a;
+}
+
+.cta-news-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 520px;
+}
+
+.cta-news-card {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 18px;
+  box-shadow: 0 20px 45px rgba(15, 50, 90, 0.18);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cta-news-item {
+  padding: 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease,
+    box-shadow 0.3s ease;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid transparent;
+}
+
+.cta-news-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(15, 50, 90, 0.15);
+}
+
+.cta-news-item.active {
+  background: rgba(64, 193, 236, 0.12);
+  border-color: rgba(64, 193, 236, 0.4);
+  box-shadow: 0 12px 28px rgba(15, 50, 90, 0.18);
+}
+
+.cta-news-subtitle {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #40c1ec;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.cta-news-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0f325a;
+  line-height: 1.4;
+}
+
+.cta-gallery-viewport {
+  width: 100%;
+  overflow: hidden;
+}
+
+.cta-gallery-track {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  /* Animation removed - using step-based carousel instead */
+  will-change: transform;
+}
+
+.cta-gallery-viewport .img-p {
+  flex: 0 0 clamp(320px, 35vw, 450px);
+  margin-bottom: 0;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.cta-gallery-viewport .img-part {
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 8px 8px 24px rgba(0, 0, 0, 0.4), 4px 4px 12px rgba(0, 0, 0, 0.3), 2px 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  border: 5px solid rgba(255, 255, 255, 0.9) !important;
+  background-color: #ffffff;
+}
+
+.cta-gallery-viewport .img-part:hover {
+  transform: translateY(-5px);
+  box-shadow: 12px 12px 32px rgba(0, 0, 0, 0.5), 6px 6px 16px rgba(0, 0, 0, 0.4), 3px 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.cta-gallery-viewport .img-part img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  aspect-ratio: 4 / 3;
+}
+
+@keyframes cta-gallery-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    /* Move by 16.67% (one complete set) since we duplicate 6 times for seamless loop */
+    transform: translateX(calc(-100% / 6));
+  }
+}
+
+@media (max-width: 1024px) {
+  .cta-primary-layout {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 32px;
+  }
+
+  .cta-primary-text {
+    align-items: center;
+  }
+
+  .cta-primary-button.MuiButton-root {
+    align-self: center;
+  }
+
+  .cta-primary-gallery {
+    max-width: 100%;
+  }
+
+  .cta-feature-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .cta-button-group {
+    justify-content: center;
+  }
+
+  .cta-feature-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .cta-news-wrapper {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .cta-section {
+    padding: 28px 0;
+  }
+
+  .cta-primary-gallery {
+    max-width: 100%;
+  }
+
+  .cta-feature-card {
+    padding: 20px;
+  }
+
+  .cta-feature-actions {
+    flex-direction: column;
+  }
+
+  .cta-button-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .cta-primary-button.MuiButton-root,
+  .cta-outline-button.MuiButton-root {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

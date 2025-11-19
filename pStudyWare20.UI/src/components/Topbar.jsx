@@ -175,27 +175,31 @@ const Topbar = () => {
     }
   }
 
+  if (_isMobile) {
+    return null;
+  }
+
   return (
     <Box
       className="topbar-container"
       sx={{
         backgroundColor: "#102d47",
         color: "#ffffff",
-        height: "50px",
-        lineHeight: "50px",
+        width: "100%",
         fontSize: "14px",
-        display: { xs: "none", md: "block" }, // Hide on mobile, show on medium and up
+        py: { xs: 0.75, sm: 0.75, md: 0 },
       }}
     >
       <Container maxWidth={false} sx={{ px: 0 }}>
         <Box
           sx={{
             display: "flex",
+            flexDirection: { xs: "column", md: "row" },
             justifyContent: "space-between",
-            alignItems: "center",
-            height: "100%",
-            maxWidth: "100%",
-            px: { xs: 2, sm: 4, md: 8, lg: "1in", xl: "1in" },
+            alignItems: { xs: "stretch", md: "center" },
+            width: "100%",
+            gap: { xs: 1, sm: 1.25, md: 0 },
+            px: { xs: 2, sm: 3, md: 8, lg: "1in", xl: "1in" },
           }}
         >
           {/* Left side - Navigation Links */}
@@ -203,8 +207,14 @@ const Topbar = () => {
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: 2,
+              gap: { xs: 1.25, sm: 1.5, md: 2 },
               flexShrink: 0,
+              flexWrap: { xs: "nowrap", md: "wrap" },
+              overflowX: { xs: "auto", md: "visible" },
+              py: { xs: 0.25, md: 0 },
+              "&::-webkit-scrollbar": { display: "none" },
+              maskImage:
+                "linear-gradient(to right, transparent 0, black 12px, black calc(100% - 12px), transparent 100%)",
             }}
           >
             {topbarLinks.map((link, index) => (
@@ -213,16 +223,24 @@ const Topbar = () => {
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 0.5,
+                  gap: 0.75,
                   cursor: "pointer",
                   "&:hover": { color: "#ccc" },
                   whiteSpace: "nowrap",
                   flexShrink: 0,
+                  fontSize: { xs: "0.85rem", sm: "0.9rem", md: "0.95rem" },
+                  px: { xs: 0, md: 0 },
                 }}
                 onClick={() => handleNavigation(link.href, link.external)}
               >
                 <Box sx={{ fontSize: 13, mr: 0.5 }}>{link.icon}</Box>
-                <Typography variant="body2" sx={{ fontSize: "15px" }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontSize: { xs: "0.85rem", md: "0.95rem" },
+                    lineHeight: 1.3,
+                  }}
+                >
                   {link.text}
                 </Typography>
               </Box>
@@ -233,9 +251,11 @@ const Topbar = () => {
           <Box
             sx={{
               display: "flex",
-              alignItems: "center",
-              gap: 1,
-              ml: 4, // Add more gap between left and right items
+              alignItems: { xs: "center", sm: "center", md: "center" },
+              justifyContent: { xs: "space-between", sm: "flex-end" },
+              flexWrap: { xs: "wrap", sm: "wrap", md: "nowrap" },
+              gap: { xs: 1, sm: 1.25, md: 1 },
+              ml: { xs: 0, md: 4 },
               flexShrink: 0,
             }}
           >
@@ -251,11 +271,19 @@ const Topbar = () => {
                   user.memberType?.toUpperCase() === "A";
                 return !isStudent && !isAdmin;
               })() && (
-                <Box sx={{ display: "flex", alignItems: "center", mr: 2 }}>
-                  <Typography variant="body2" sx={{ color: "#ffffff", mr: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    mr: { xs: 0, md: 2 },
+                    order: { xs: 3, sm: 3, md: 1 },
+                  }}
+                >
+                  <Typography variant="body2" sx={{ color: "#ffffff" }}>
                     Welcome {user?.firstName || "User"},
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "#ffffff", mr: 2 }}>
+                  <Typography variant="body2" sx={{ color: "#ffffff" }}>
                     {new Date().toLocaleDateString()}
                   </Typography>
                 </Box>
@@ -285,9 +313,11 @@ const Topbar = () => {
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
-                ml: 2,
                 cursor: "pointer",
                 "&:hover": { color: "#ccc" },
+                order: { xs: 1, sm: 1, md: 2 },
+                flexGrow: { xs: 1, sm: 0 },
+                justifyContent: { xs: "flex-start", sm: "center", md: "flex-start" },
               }}
               onClick={user ? handleLogout : () => navigate("/login")}
             >
@@ -320,9 +350,11 @@ const Topbar = () => {
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
-                ml: 2,
                 cursor: "pointer",
                 "&:hover": { color: "#ccc" },
+                order: { xs: 2, sm: 2, md: 3 },
+                flexGrow: { xs: 1, sm: 0 },
+                justifyContent: { xs: "flex-start", sm: "center", md: "flex-start" },
               }}
               onClick={() => navigate("/donate")}
             >

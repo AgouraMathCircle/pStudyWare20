@@ -1,16 +1,5 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Container,
-  Grid,
-  Card,
-  CardMedia,
-  IconButton,
-  keyframes,
-} from "@mui/material";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import React from "react";
+import { Box, Typography, Container, keyframes } from "@mui/material";
 // Import images from src/assets
 import client1Img from "../../assets/images/clients/clients-1.png";
 import client3Img from "../../assets/images/clients/clients-3.png";
@@ -34,8 +23,6 @@ const fadeInAnimation = keyframes`
 `;
 
 const Sponsors = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
   const sponsors = [
     {
       id: 1,
@@ -45,7 +32,7 @@ const Sponsors = () => {
     },
     {
       id: 2,
-      name: "Sponsor 2",
+      name: "Drs. Bharat and Ninna Patel Family Foundation",
       image: client3Img,
       link: null,
     },
@@ -57,7 +44,7 @@ const Sponsors = () => {
     },
     {
       id: 4,
-      name: "Sponsor 4",
+      name: "Andrew XU Family Foundation",
       image: client5Img,
       link: null,
     },
@@ -69,7 +56,7 @@ const Sponsors = () => {
     },
     {
       id: 6,
-      name: "Camreal",
+      name: "Caminoreal",
       image: client7Img,
       link: "https://www.camreal.com",
     },
@@ -81,52 +68,14 @@ const Sponsors = () => {
     },
     {
       id: 8,
-      name: "Sponsor 8",
+      name: "Agoura Hills Dental Designs",
       image: client2Img,
       link: null,
     },
   ];
 
-  const sponsorsPerView = 5; // Show 5 sponsors per view on desktop
-  const totalSlides = Math.ceil(sponsors.length / sponsorsPerView);
-
-  const nextSlide = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === totalSlides - 1 ? 0 : prevIndex + 1
-    );
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? totalSlides - 1 : prevIndex - 1
-    );
-  };
-
-  // Auto-advance carousel
-  useEffect(() => {
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 5000); // Change slide every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [currentIndex]);
-
-  const getCurrentSponsors = () => {
-    const startIndex = currentIndex * sponsorsPerView;
-    const currentSponsors = sponsors.slice(
-      startIndex,
-      startIndex + sponsorsPerView
-    );
-
-    // If we don't have exactly 5 sponsors, fill with the first sponsors to avoid blanks
-    if (currentSponsors.length < sponsorsPerView) {
-      const remainingSlots = sponsorsPerView - currentSponsors.length;
-      const additionalSponsors = sponsors.slice(0, remainingSlots);
-      return [...currentSponsors, ...additionalSponsors];
-    }
-
-    return currentSponsors;
-  };
+  // Duplicate sponsors for seamless continuous loop
+  const allSponsors = [...sponsors, ...sponsors, ...sponsors, ...sponsors];
 
   return (
     <Box
@@ -135,12 +84,16 @@ const Sponsors = () => {
         padding: { xs: "20px 0", md: "35px 0 50px 0" },
       }}
     >
-      <Container maxWidth="lg">
+      <Container
+        maxWidth={false}
+        disableGutters
+        className="home-section-container"
+      >
         {/* Section Header */}
         <Box
           sx={{
             textAlign: "center",
-            marginBottom: { xs: "30px", md: "50px" },
+            marginBottom: "10px",
             animation: `${fadeInAnimation} 0.8s ease-out`,
           }}
         >
@@ -148,102 +101,82 @@ const Sponsors = () => {
             variant="h3"
             sx={{
               color: "#102d47",
-              fontWeight: 700,
+              fontWeight: 600,
               marginBottom: 0,
               "@media (max-width: 600px)": {
                 fontSize: "28px",
               },
             }}
           >
-            OUR SPONSORS
+            Our Sponsors
           </Typography>
         </Box>
 
-        {/* Sponsors Carousel */}
+        {/* Horizontal Scrolling Container */}
         <Box
           sx={{
+            overflow: "hidden",
+            width: "100%",
             position: "relative",
-            animation: `${fadeInAnimation} 0.8s ease-out 0.2s both`,
-            maxWidth: "1200px",
-            margin: "0 auto",
           }}
         >
-          {/* Sponsors Grid */}
-          <Grid
-            container
-            spacing={3}
-            justifyContent="center"
-            alignItems="center"
+          <Box
+            sx={{
+              display: "flex",
+              animation: "continuousScroll 20s linear infinite",
+              gap: { xs: 1.5, sm: 2, md: 2 },
+              "&:hover": {
+                animationPlayState: "paused",
+              },
+            }}
           >
-            {getCurrentSponsors().map((sponsor, index) => (
-              <Grid
-                xs={6}
-                sm={4}
-                md={2.4}
-                key={`${sponsor.id}-${currentIndex}-${index}`}
+            {/* All Sponsors - Duplicated for seamless loop */}
+            {allSponsors.map((sponsor, index) => (
+              <Box
+                key={`sponsor-${index}`}
+                sx={{
+                  flex: "0 0 auto",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  padding: { xs: "10px", sm: "12px", md: "12px" },
+                  backgroundColor: "#ffffff",
+                  borderRadius: "8px",
+                  boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+                  transition: "all 0.3s ease",
+                  width: { xs: 180, sm: 200, md: 220 },
+                  height: { xs: "80px", sm: "90px", md: "100px" },
+                  "&:hover": {
+                    transform: "translateY(-8px)",
+                    boxShadow: "0 15px 35px rgba(0,0,0,0.2)",
+                  },
+                }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    padding: "20px",
-                    backgroundColor: "#ffffff",
-                    borderRadius: "10px",
-                    boxShadow: "0px 0px 16px rgba(4, 59, 80, 0.1)",
-                    transition: "all 0.3s ease",
-                    animation: `${fadeInAnimation} 0.8s ease-out ${
-                      0.3 + index * 0.1
-                    }s both`,
-                    height: "120px",
-                    "&:hover": {
-                      transform: "translateY(-5px)",
-                      boxShadow: "0px 8px 25px rgba(4, 59, 80, 0.15)",
-                    },
-                  }}
-                >
-                  {sponsor.link ? (
-                    <Box
-                      component="a"
-                      href={sponsor.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        width: "100%",
-                        height: "100%",
-                        textDecoration: "none",
-                        "&:hover": {
-                          opacity: 0.8,
-                        },
-                      }}
-                    >
-                      <Box
-                        component="img"
-                        src={sponsor.image}
-                        alt={sponsor.name}
-                        sx={{
-                          maxWidth: "100%",
-                          maxHeight: "80px",
-                          objectFit: "contain",
-                          filter: "grayscale(100%)",
-                          transition: "filter 0.3s ease",
-                          "&:hover": {
-                            filter: "grayscale(0%)",
-                          },
-                        }}
-                      />
-                    </Box>
-                  ) : (
+                {sponsor.link ? (
+                  <Box
+                    component="a"
+                    href={sponsor.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      width: "100%",
+                      height: "100%",
+                      textDecoration: "none",
+                      "&:hover": {
+                        opacity: 0.8,
+                      },
+                    }}
+                  >
                     <Box
                       component="img"
                       src={sponsor.image}
                       alt={sponsor.name}
                       sx={{
                         maxWidth: "100%",
-                        maxHeight: "80px",
+                        maxHeight: { xs: "60px", sm: "65px", md: "70px" },
                         objectFit: "contain",
                         filter: "grayscale(100%)",
                         transition: "filter 0.3s ease",
@@ -252,108 +185,43 @@ const Sponsors = () => {
                         },
                       }}
                     />
-                  )}
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
-
-          {/* Navigation Arrows */}
-          <IconButton
-            onClick={prevSlide}
-            sx={{
-              position: "absolute",
-              left: "-60px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              backgroundColor: "#ffffff",
-              color: "#40c1ec",
-              width: "50px",
-              height: "50px",
-              boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-              "&:hover": {
-                backgroundColor: "#40c1ec",
-                color: "#ffffff",
-              },
-              "@media (max-width: 1200px)": {
-                left: "-40px",
-              },
-              "@media (max-width: 768px)": {
-                left: "10px",
-                top: "auto",
-                bottom: "-60px",
-                transform: "none",
-              },
-            }}
-          >
-            <ChevronLeftIcon />
-          </IconButton>
-
-          <IconButton
-            onClick={nextSlide}
-            sx={{
-              position: "absolute",
-              right: "-60px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              backgroundColor: "#ffffff",
-              color: "#40c1ec",
-              width: "50px",
-              height: "50px",
-              boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-              "&:hover": {
-                backgroundColor: "#40c1ec",
-                color: "#ffffff",
-              },
-              "@media (max-width: 1200px)": {
-                right: "-40px",
-              },
-              "@media (max-width: 768px)": {
-                right: "10px",
-                top: "auto",
-                bottom: "-60px",
-                transform: "none",
-              },
-            }}
-          >
-            <ChevronRightIcon />
-          </IconButton>
-
-          {/* Dots Indicator */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              marginTop: "40px",
-              gap: "8px",
-            }}
-          >
-            {Array.from({ length: totalSlides }, (_, index) => (
-              <Box
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                sx={{
-                  width: "12px",
-                  height: "12px",
-                  borderRadius: "50%",
-                  backgroundColor:
-                    index === currentIndex
-                      ? "#40c1ec"
-                      : "rgba(64, 193, 236, 0.3)",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    backgroundColor:
-                      index === currentIndex
-                        ? "#40c1ec"
-                        : "rgba(64, 193, 236, 0.6)",
-                  },
-                }}
-              />
+                  </Box>
+                ) : (
+                  <Box
+                    component="img"
+                    src={sponsor.image}
+                    alt={sponsor.name}
+                    sx={{
+                      maxWidth: "100%",
+                      maxHeight: { xs: "60px", sm: "65px", md: "70px" },
+                      objectFit: "contain",
+                      filter: "grayscale(100%)",
+                      transition: "filter 0.3s ease",
+                      "&:hover": {
+                        filter: "grayscale(0%)",
+                      },
+                    }}
+                  />
+                )}
+              </Box>
             ))}
           </Box>
         </Box>
       </Container>
+
+      {/* CSS Keyframes */}
+      <style>
+        {`
+          @keyframes continuousScroll {
+            0% {
+              transform: translateX(0);
+            }
+            100% {
+              transform: translateX(-50%);
+            }
+          }
+        `}
+      </style>
     </Box>
   );
 };

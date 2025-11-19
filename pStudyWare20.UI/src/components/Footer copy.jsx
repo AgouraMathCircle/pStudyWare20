@@ -448,7 +448,7 @@ const Footer = () => {
                   textAlign: { xs: "center", md: "left" },
                 }}
               >
-                © Copyright 2015-2024 Agoura Math Circle. All Rights Reserved.
+                © Copyright 2015-2025 Agoura Math Circle. All Rights Reserved.
               </Typography>
             </Grid>
             <Grid item xs={12} md={6}>

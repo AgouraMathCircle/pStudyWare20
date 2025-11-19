@@ -10,6 +10,20 @@ import EngineeringCircle from "./src/components/EngineeringCircle";
 import TestPreparation from "./src/components/TestPreparation";
 import Contact from "./src/components/Contact";
 import Gallery from "./src/components/Gallery";
+import PhotoGallery from "./src/components/PhotoGallery";
+import VideoGallery from "./src/components/VideoGallery";
+import NewsGallery from "./src/components/NewsGallery";
+import AmcClass from "./src/components/AmcClass";
+import AwardCeremony2017 from "./src/components/AwardCeremony2017";
+import AwardCeremony2018 from "./src/components/AwardCeremony2018";
+import AwardCeremony2019 from "./src/components/AwardCeremony2019";
+import AwardCeremony2023 from "./src/components/AwardCeremony2023";
+import AwardCeremony2024 from "./src/components/AwardCeremony2024";
+import AwardCeremony2025 from "./src/components/AwardCeremony2025";
+import EC from "./src/components/EC";
+import FieldTrip2016 from "./src/components/FieldTrip2016";
+import MathKangaroo from "./src/components/MathKangaroo";
+import MathKangaroo2017 from "./src/components/MathKangaroo2017";
 import Donate from "./src/components/Donate";
 import StudentRegistration from "./src/components/StudentRegistration";
 import VolunteerRegistration from "./src/components/VolunteerRegistration";
@@ -64,6 +78,20 @@ const AppRoutes = () => {
             />
             <Route path="/contact" element={<Contact />} />
             <Route path="/gallery" element={<Gallery />} />
+            <Route path="/gallery/photo" element={<PhotoGallery />} />
+            <Route path="/gallery/photo/AwardCeremony2025" element={<AwardCeremony2025 />} />
+            <Route path="/gallery/photo/AwardCeremony2024" element={<AwardCeremony2024 />} />
+            <Route path="/gallery/photo/AwardCeremony2023" element={<AwardCeremony2023 />} />
+            <Route path="/gallery/photo/AwardCeremony2019" element={<AwardCeremony2019 />} />
+            <Route path="/gallery/photo/AwardCeremony2018" element={<AwardCeremony2018 />} />
+            <Route path="/gallery/photo/AwardCeremony2017" element={<AwardCeremony2017 />} />
+            <Route path="/gallery/photo/MathKangaroo2017" element={<MathKangaroo2017 />} />
+            <Route path="/gallery/photo/MathKangaroo" element={<MathKangaroo />} />
+            <Route path="/gallery/photo/AmcClass" element={<AmcClass />} />
+            <Route path="/gallery/photo/FieldTrip2016" element={<FieldTrip2016 />} />
+            <Route path="/gallery/photo/EC" element={<EC />} />
+            <Route path="/gallery/video" element={<VideoGallery />} />
+            <Route path="/gallery/news" element={<NewsGallery />} />
             <Route path="/donate" element={<Donate />} />
             <Route
               path="/studentregistration"

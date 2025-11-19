@@ -3,16 +3,13 @@ import {
   Box,
   Typography,
   Container,
-  Grid,
   Card,
-  CardContent,
   IconButton,
   keyframes,
 } from "@mui/material";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 // Import images from src/assets
+// Component is in src/components/Home/, so need to go up two levels (../../) to reach src/
 import counterBg2Img from "../../assets/images/bg/counter-bg2.jpg";
 import arrow2Img from "../../assets/images/arrow-2.png";
 import arrow3Img from "../../assets/images/arrow-3.png";
@@ -56,15 +53,15 @@ const leftRightAnimation = keyframes`
 `;
 
 const VideoGallery = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const videos = [
     {
-      id: "EViqvhjPO_0",
+      id: "EViqvhjPO_0", // Corresponds to "Success Story - Joshna Jude"
       title: "AMC Success Story 1",
     },
     {
-      id: "brFBSTL7o10",
+      id: "brFBSTL7o10", // Corresponds to "13 Year Old Math Teacher"
       title: "AMC Success Story 2",
     },
     {
@@ -77,43 +74,20 @@ const VideoGallery = () => {
     },
   ];
 
-  const videosPerView = 3; // Changed from 2 to 3
-  const totalSlides = Math.ceil(videos.length / videosPerView);
+  // Create video pairs for side-by-side display
+  const videoPairs = [
+    [videos[0], videos[1]], // First pair: videos 1,2
+    [videos[2], videos[3]], // Second pair: videos 3,4
+  ];
 
-  const nextSlide = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === totalSlides - 1 ? 0 : prevIndex + 1
-    );
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? totalSlides - 1 : prevIndex - 1
-    );
-  };
-
-  // Auto-advance carousel
+  // Auto-advance carousel - cycles through pairs
   useEffect(() => {
     const interval = setInterval(() => {
-      nextSlide();
-    }, 5000); // Change slide every 5 seconds
+      setCurrentSlide((prevSlide) => (prevSlide + 1) % videoPairs.length); // Loop using modulo
+    }, 3000); // Change slide every 3 seconds
 
     return () => clearInterval(interval);
-  }, [currentIndex]);
-
-  const getCurrentVideos = () => {
-    const startIndex = currentIndex * videosPerView;
-    const currentVideos = videos.slice(startIndex, startIndex + videosPerView);
-
-    // If we don't have exactly 3 videos, fill with the first videos to avoid blanks
-    if (currentVideos.length < videosPerView) {
-      const remainingSlots = videosPerView - currentVideos.length;
-      const additionalVideos = videos.slice(0, remainingSlots);
-      return [...currentVideos, ...additionalVideos];
-    }
-
-    return currentVideos;
-  };
+  }, []);
 
   return (
     <Box
@@ -122,13 +96,17 @@ const VideoGallery = () => {
         backgroundSize: "cover",
         backgroundPosition: "center center",
         backgroundRepeat: "no-repeat",
-        padding: { xs: "15px 0", md: "30px 0" },
+        padding: { xs: "20px 0", md: "30px 0" },
         position: "relative",
         overflow: "hidden",
-        minHeight: "80vh", // Reduced from 100vh to 80vh
+        minHeight: "40vh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        borderTop: "3px solid #40c1ec",
+        borderBottom: "3px solid #40c1ec",
+        boxShadow:
+          "inset 0 10px 20px rgba(64, 193, 236, 0.1), inset 0 -10px 20px rgba(64, 193, 236, 0.1)",
       }}
     >
       {/* Animated Arrows */}
@@ -189,238 +167,185 @@ const VideoGallery = () => {
         }}
       />
 
-      <Container maxWidth="lg" sx={{ width: "100%" }}>
-        <Grid container spacing={3} alignItems="center"> {/* Reduced spacing from 4 to 3 */}
-          {/* Left Side - Content */}
-          <Grid item xs={12} lg={4}>
-            <Box
-              sx={{
-                animation: `${fadeInAnimation} 0.8s ease-out`,
-                paddingTop: { xs: 0, lg: "15px" }, // Reduced padding
-              }}
-            >
-              <Typography
-                variant="h6"
+      <Container
+        maxWidth={false}
+        disableGutters
+        className="home-section-container"
+        sx={{ width: "100%" }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 6,
+            alignItems: "center",
+            width: "100%",
+          }}
+        >
+          {/* Left Side: Success Story Text */}
+          <Box
+            sx={{
+              flex: 1,
+              width: "100%",
+            }}
+          >
+            <Box sx={{ textAlign: { xs: "center", md: "left" } }}>
+              <Box
                 sx={{
-                  color: "#40c1ec",
-                  fontWeight: 600,
-                  marginBottom: "8px", // Reduced margin
-                  textTransform: "uppercase",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "16px",
+                  justifyContent: { xs: "center", md: "flex-start" },
+                  mb: 2,
                 }}
               >
-                Success Story{" "}
-                <Box
-                  component="span"
+                <Typography
                   sx={{
-                    display: "inline-block",
-                    width: "30px",
+                    color: "#40c1ec",
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Success Story
+                </Typography>
+                <Box
+                  sx={{
                     height: "2px",
+                    width: "60px",
                     backgroundColor: "#40c1ec",
-                    marginLeft: "10px",
+                    opacity: 0.5,
                   }}
                 />
-              </Typography>
+              </Box>
               <Typography
-                variant="h3"
+                variant="h2"
                 sx={{
                   color: "#ffffff",
-                  fontWeight: 700,
-                  marginBottom: 0,
-                  "@media (max-width: 600px)": {
-                    fontSize: "28px",
+                  fontWeight: 400,
+                  fontSize: {
+                    xs: "2rem",
+                    sm: "2.5rem",
+                    md: "3rem",
+                    lg: "3.5rem",
                   },
+                  lineHeight: 1.2,
                 }}
               >
                 Students are always happy with us!
               </Typography>
+              <Typography
+                sx={{
+                  color: "#ffffff",
+                  fontSize: "1.1rem",
+                  lineHeight: 1.6,
+                  opacity: 0.9,
+                }}
+              >
+                See what our students and their parents have to say about their
+                experience with Agoura Math Circle.
+              </Typography>
             </Box>
-          </Grid>
+          </Box>
 
-          {/* Right Side - Video Carousel */}
-          <Grid item xs={12} lg={8}>
+          {/* Right Side: Video Carousel */}
+          <Box
+            sx={{
+              flex: 1,
+              width: "100%",
+              position: "relative",
+              overflow: "hidden",
+              height: "240px",
+            }}
+          >
+            {/* Video Carousel Container */}
             <Box
               sx={{
-                position: "relative",
-                animation: `${fadeInAnimation} 0.8s ease-out 0.2s both`,
-                maxWidth: "1000px",
-                margin: "0 auto",
+                display: "flex",
+                height: "100%",
+                transition: "transform 0.8s ease-in-out",
+                transform: `translateX(-${currentSlide * 100}%)`,
               }}
             >
-              {/* Video Grid */}
-              <Grid container spacing={2}>
-                {getCurrentVideos().map((video, index) => (
-                  <Grid
-                    item
-                    xs={12}
-                    md={4}
-                    key={`${video.id}-${currentIndex}-${index}`}
-                  >
+              {videoPairs.map((pair, pairIndex) => (
+                <Box
+                  key={`pair-${pairIndex}`}
+                  sx={{
+                    minWidth: "100%",
+                    flexShrink: 0,
+                    display: "flex",
+                    gap: 2,
+                    height: "100%",
+                  }}
+                >
+                  {/* Maps the pair of videos to be side-by-side */}
+                  {pair.map((video, videoIndex) => (
                     <Card
+                      key={`${video.id}-${pairIndex}-${videoIndex}`}
                       sx={{
                         backgroundColor: "#ffffff",
-                        borderRadius: "10px",
+                        borderRadius: "8px",
                         overflow: "hidden",
-                        boxShadow: "0px 0px 16px rgba(4, 59, 80, 0.1)",
-                        transition: "all 0.3s ease",
+                        boxShadow: "0px 8px 25px rgba(0, 0, 0, 0.15)",
                         height: "100%",
+                        width: "calc(50% - 8px)",
+                        flexShrink: 0,
+                        border: "8px solid #ffffff",
+                        transition: "all 0.3s ease",
                         "&:hover": {
                           transform: "translateY(-5px)",
-                          boxShadow: "0px 8px 25px rgba(4, 59, 80, 0.15)",
+                          boxShadow: "0px 15px 35px rgba(0, 0, 0, 0.25)",
+                          border: "8px solid #40c1ec",
                         },
                       }}
                     >
-                      <CardContent sx={{ padding: 0 }}>
-                        <Box
+                      <Box
+                        sx={{
+                          position: "relative",
+                          width: "100%",
+                          height: "100%",
+                          overflow: "hidden",
+                          backgroundImage: `url(https://img.youtube.com/vi/${video.id}/hqdefault.jpg)`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          "&:hover > .play-button": {
+                            opacity: 1,
+                            transform: "translate(-50%, -50%) scale(1.1)",
+                          },
+                        }}
+                      >
+                        <IconButton
+                          className="play-button"
+                          href={`https://www.youtube.com/watch?v=${video.id}`}
+                          target="_blank"
                           sx={{
-                            position: "relative",
-                            width: "100%",
-                            height: "160px", // Reduced height to accommodate 3 videos
-                            overflow: "hidden",
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            backgroundColor: "rgba(255, 0, 0, 0.9)",
+                            color: "#fff",
+                            width: "50px",
+                            height: "50px",
+                            borderRadius: "50%",
+                            opacity: 0.9,
+                            transition: "all 0.3s ease",
+                            "&:hover": {
+                              backgroundColor: "rgba(255, 0, 0, 1)",
+                              transform: "translate(-50%, -50%) scale(1.2)",
+                            },
                           }}
                         >
-                          <iframe
-                            width="100%"
-                            height="100%"
-                            src={`https://www.youtube.com/embed/${video.id}`}
-                            title={video.title}
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                            style={{
-                              border: "none",
-                            }}
-                          />
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              top: "50%",
-                              left: "50%",
-                              transform: "translate(-50%, -50%)",
-                              backgroundColor: "rgba(0, 0, 0, 0.7)",
-                              borderRadius: "50%",
-                              width: "50px", // Reduced size
-                              height: "50px", // Reduced size
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              opacity: 0,
-                              transition: "opacity 0.3s ease",
-                              "&:hover": {
-                                opacity: 1,
-                              },
-                            }}
-                          >
-                            <PlayArrowIcon
-                              sx={{
-                                color: "#ffffff",
-                                fontSize: "24px", // Reduced size
-                              }}
-                            />
-                          </Box>
-                        </Box>
-                      </CardContent>
+                          <PlayArrowIcon sx={{ fontSize: "1.5rem" }} />
+                        </IconButton>
+                      </Box>
                     </Card>
-                  </Grid>
-                ))}
-              </Grid>
-
-              {/* Navigation Arrows */}
-              <IconButton
-                onClick={prevSlide}
-                sx={{
-                  position: "absolute",
-                  left: "-60px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  backgroundColor: "#ffffff",
-                  color: "#40c1ec",
-                  width: "50px",
-                  height: "50px",
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-                  "&:hover": {
-                    backgroundColor: "#40c1ec",
-                    color: "#ffffff",
-                  },
-                  "@media (max-width: 1200px)": {
-                    left: "-40px",
-                  },
-                  "@media (max-width: 768px)": {
-                    left: "10px",
-                    top: "auto",
-                    bottom: "-60px",
-                    transform: "none",
-                  },
-                }}
-              >
-                <ChevronLeftIcon />
-              </IconButton>
-
-              <IconButton
-                onClick={nextSlide}
-                sx={{
-                  position: "absolute",
-                  right: "-60px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  backgroundColor: "#ffffff",
-                  color: "#40c1ec",
-                  width: "50px",
-                  height: "50px",
-                  boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-                  "&:hover": {
-                    backgroundColor: "#40c1ec",
-                    color: "#ffffff",
-                  },
-                  "@media (max-width: 1200px)": {
-                    right: "-40px",
-                  },
-                  "@media (max-width: 768px)": {
-                    right: "10px",
-                    top: "auto",
-                    bottom: "-60px",
-                    transform: "none",
-                  },
-                }}
-              >
-                <ChevronRightIcon />
-              </IconButton>
-
-              {/* Dots Indicator */}
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginTop: "20px", // Reduced margin
-                  gap: "8px",
-                }}
-              >
-                {Array.from({ length: totalSlides }, (_, index) => (
-                  <Box
-                    key={index}
-                    onClick={() => setCurrentIndex(index)}
-                    sx={{
-                      width: "12px",
-                      height: "12px",
-                      borderRadius: "50%",
-                      backgroundColor:
-                        index === currentIndex
-                          ? "#40c1ec"
-                          : "rgba(255, 255, 255, 0.5)",
-                      cursor: "pointer",
-                      transition: "all 0.3s ease",
-                      "&:hover": {
-                        backgroundColor:
-                          index === currentIndex
-                            ? "#40c1ec"
-                            : "rgba(255, 255, 255, 0.8)",
-                      },
-                    }}
-                  />
-                ))}
-              </Box>
+                  ))}
+                </Box>
+              ))}
             </Box>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Container>
     </Box>
   );

@@ -5,6 +5,34 @@
 }
 
 /* Image styling */
+.engineering-circle-container .img-part {
+  border: 3px solid #ffffff;
+  background: #ffffff;
+  padding: 8px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1),
+              8px 8px 0 rgba(0, 0, 0, 0.3),
+              0 8px 0 rgba(0, 0, 0, 0.3);
+  transform: translateY(-8px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-right: 40px;
+  margin-bottom: 30px;
+}
+
+.engineering-circle-container .img-part:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
+              12px 12px 0 rgba(0, 0, 0, 0.4),
+              0 12px 0 rgba(0, 0, 0, 0.4);
+}
+
+.engineering-circle-container .img-part img {
+  border-radius: 10px;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 .engineering-circle-container img {
   border-radius: 10px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -13,6 +41,18 @@
 
 .engineering-circle-container img:hover {
   transform: scale(1.02);
+}
+
+/* Add gap between text and image */
+.engineering-circle-container .eng-row .MuiGrid-item:has(.img-part) {
+  margin-right: 40px;
+}
+
+@media (max-width: 991px) {
+  .engineering-circle-container .img-part {
+    margin-right: 0;
+    margin-bottom: 40px;
+  }
 }
 
 /* Content spacing */
