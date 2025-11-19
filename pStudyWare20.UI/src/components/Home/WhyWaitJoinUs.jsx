@@ -125,9 +125,14 @@ const JoinUs = () => {
         }}
       />
 
-      <Container maxWidth="lg" sx={{ position: "relative", zIndex: 2 }}>
+      <Container
+        maxWidth={false}
+        disableGutters
+        className="home-section-container"
+        sx={{ width: "100%", position: "relative", zIndex: 2 }}
+      >
         {/* Heading */}
-        <Box sx={{ textAlign: "center", mb: 5 }}>
+        <Box sx={{ textAlign: "center", mb: 2 }}>
           <Typography
             variant="h2"
             sx={{
@@ -143,34 +148,38 @@ const JoinUs = () => {
           <Typography
             sx={{
               color: "rgba(255,255,255,0.9)",
-              maxWidth: "800px",
-              mx: "auto",
-              fontSize: "1.1rem",
+              width: "100%",
+              fontSize: { xs: "0.95rem", sm: "1rem", md: "1.1rem" },
               lineHeight: 1.6,
               textShadow: "1px 1px 4px rgba(0,0,0,0.3)",
+              px: { xs: 2, sm: 0 },
             }}
           >
-            Joining Agoura Math Circle offers numerous learning opportunities for
-            students, volunteers, schools, and donors tailored to their interests.
+            Joining Agoura Math Circle offers numerous learning opportunities
+            for students, volunteers, schools/educational institutions, and
+            donors tailored to their diverse interests.
           </Typography>
         </Box>
 
         {/* Centered Cards Grid */}
-        <Grid
-          container
-          spacing={4}
-          justifyContent="center"
-          alignItems="stretch"
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            flexWrap: { xs: "nowrap", sm: "wrap" },
+            justifyContent: { xs: "center", sm: "space-between" },
+            gap: { xs: "15px", sm: "15px", md: "20px" },
+            width: "100%",
+          }}
         >
           {cardData.map((card) => (
-            <Grid
-              item
+            <Box
               key={card.title}
-              xs={12}
-              sm={6}
-              md={3}
-              display="flex"
-              justifyContent="center"
+              sx={{
+                flex: { xs: "0 0 100%", sm: "0 0 calc(50% - 7.5px)", md: "0 0 calc(25% - 15px)", lg: "0 0 calc(25% - 15px)" },
+                minWidth: 0,
+                maxWidth: { xs: "100%", sm: "calc(50% - 7.5px)", md: "calc(25% - 15px)" },
+              }}
             >
               <Card
                 sx={{
@@ -178,9 +187,11 @@ const JoinUs = () => {
                   borderRadius: "14px",
                   boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
                   textAlign: "center",
-                  p: 2,
+                  p: { xs: 2, sm: 2.5, md: 3 },
                   width: "100%",
-                  maxWidth: 280,
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
                   transition: "all 0.3s ease",
                   border: "1px solid rgba(64, 193, 236, 0.1)",
                   "&:hover": {
@@ -195,8 +206,8 @@ const JoinUs = () => {
                   sx={{
                     fontWeight: "bold",
                     color: "#1c3d5a",
-                    mb: 2,
-                    fontSize: { xs: "1.2rem", md: "1.3rem" },
+                    mb: 0.5,
+                    fontSize: { xs: "1.1rem", sm: "1.2rem", md: "1.35rem" },
                   }}
                 >
                   {card.title}
@@ -205,14 +216,16 @@ const JoinUs = () => {
                 <Box
                   sx={{
                     width: "100%",
-                    height: "130px",
-                    mb: 2,
+                    height: { xs: "120px", sm: "140px", md: "160px", lg: "180px" },
+                    mb: 1.5,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     overflow: "hidden",
-                    borderRadius: "10px",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                    borderRadius: "0px",
+                    border: { xs: "10px solid rgb(255, 255, 255)", sm: "12px solid rgb(255, 255, 255)", md: "15px solid rgb(255, 255, 255)" },
+                    boxShadow: "8px 8px 24px rgba(0, 0, 0, 0.4), 4px 4px 12px rgba(0, 0, 0, 0.3)",
+                    flex: 1,
                   }}
                 >
                   <Box
@@ -233,28 +246,31 @@ const JoinUs = () => {
                   variant="contained"
                   href={card.link}
                   sx={{
-                    backgroundColor: "#4CAF50",
+                    backgroundColor: "#53b50a",
                     color: "#fff",
                     fontWeight: 700,
-                    fontSize: "1rem",
-                    py: 1.2,
-                    px: 3,
+                    fontSize: { xs: "0.9rem", sm: "0.95rem", md: "1rem" },
+                    py: { xs: 1, sm: 1.1, md: 1.2 },
+                    px: { xs: 2.5, sm: 3, md: 3.5 },
                     borderRadius: "8px",
                     textTransform: "capitalize",
-                    boxShadow: "0 4px 12px rgba(76,175,80,0.3)",
+                    boxShadow: "0 4px 12px rgba(83,181,10,0.3)",
+                    transition: "all 0.3s ease",
+                    mt: "auto",
                     "&:hover": {
-                      backgroundColor: "#45a049",
+                      backgroundColor: "#000000",
+                      color: "#ffffff",
                       transform: "translateY(-2px)",
-                      boxShadow: "0 6px 16px rgba(76,175,80,0.4)",
+                      boxShadow: "0 6px 16px rgba(0,0,0,0.4)",
                     },
                   }}
                 >
                   {card.buttonText}
                 </Button>
               </Card>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       </Container>
     </Box>
   );

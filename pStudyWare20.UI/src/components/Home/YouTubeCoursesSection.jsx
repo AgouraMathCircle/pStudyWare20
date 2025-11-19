@@ -21,15 +21,21 @@ const SubscribeYouTube = () => {
   // Create sets: first three and next three videos
   const firstSet = videoData.slice(0, 3); // Videos 1,2,3
   const secondSet = videoData.slice(3, 6); // Videos 4,5,6
+  // Duplicate sets for continuous loop
+  const allVideos = [...firstSet, ...secondSet, ...firstSet, ...secondSet];
 
   return (
-    <Box sx={{ backgroundColor: "#e6f4f1", py: { xs: 3, md: 4 } }}>
-      <Container maxWidth="lg">
+    <Box sx={{ backgroundColor: "#e6f4f1", pt: "15px", pb: "10px" }}>
+      <Container
+        maxWidth={false}
+        disableGutters
+        className="home-section-container"
+      >
         {/* Horizontal Scrolling Container */}
         <Box
           sx={{
             overflow: "hidden",
-            mb: 6,
+            mb: "5px",
             width: "100%",
             position: "relative",
           }}
@@ -37,17 +43,17 @@ const SubscribeYouTube = () => {
           <Box
             sx={{
               display: "flex",
-              animation: "slideAndWait 8s infinite",
-              gap: { xs: 2, sm: 3, md: 4 },
+              animation: "continuousScroll 20s linear infinite",
+              gap: { xs: 1, sm: 1.5, md: 2 },
               "&:hover": {
                 animationPlayState: "paused",
               },
             }}
           >
-            {/* First Set - Videos 1,2,3 */}
-            {firstSet.map((video, index) => (
+            {/* All Videos - Duplicated for seamless loop */}
+            {allVideos.map((video, index) => (
               <Card
-                key={`first-${index}`}
+                key={`video-${index}`}
                 sx={{
                   flex: "0 0 auto",
                   width: { 
@@ -58,6 +64,7 @@ const SubscribeYouTube = () => {
                   borderRadius: "16px",
                   overflow: "hidden",
                   boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+                  border: "15px solid rgb(255, 255, 255)",
                   transition: "all 0.3s ease",
                   "&:hover": {
                     transform: "translateY(-8px)",
@@ -70,54 +77,7 @@ const SubscribeYouTube = () => {
                     position: "relative",
                     width: "100%",
                     height: 0,
-                    paddingBottom: "56.25%",
-                  }}
-                >
-                  <iframe
-                    src={`https://www.youtube.com/embed/${video.id}`}
-                    title={`YouTube video ${video.id}`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: "100%",
-                      border: 0,
-                    }}
-                  ></iframe>
-                </Box>
-              </Card>
-            ))}
-            
-            {/* Second Set - Videos 4,5,6 */}
-            {secondSet.map((video, index) => (
-              <Card
-                key={`second-${index}`}
-                sx={{
-                  flex: "0 0 auto",
-                  width: { 
-                    xs: 280,
-                    sm: 300, 
-                    md: 320
-                  },
-                  borderRadius: "16px",
-                  overflow: "hidden",
-                  boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    transform: "translateY(-8px)",
-                    boxShadow: "0 15px 35px rgba(0,0,0,0.2)",
-                  },
-                }}
-              >
-                <Box
-                  sx={{
-                    position: "relative",
-                    width: "100%",
-                    height: 0,
-                    paddingBottom: "56.25%",
+                    paddingBottom: "100%",
                   }}
                 >
                   <iframe
@@ -141,7 +101,7 @@ const SubscribeYouTube = () => {
         </Box>
 
         {/* Call to Action */}
-        <Box sx={{ textAlign: "center" }}>
+        <Box sx={{ textAlign: "center", pt: "15px" }}>
           <Typography
             variant="h4"
             sx={{
@@ -149,6 +109,7 @@ const SubscribeYouTube = () => {
               color: "#1c3d5a",
               mb: 3,
               fontSize: { xs: "1.75rem", md: "2.125rem" },
+              textAlign: "center",
             }}
           >
             Subscribe YouTube for More Course Videos
@@ -159,7 +120,7 @@ const SubscribeYouTube = () => {
             target="_blank"
             endIcon={<ArrowForwardIcon />}
             sx={{
-              backgroundColor: "#76b900",
+              backgroundColor: "#53b50a",
               color: "#fff",
               fontWeight: "bold",
               py: 1.5,
@@ -167,7 +128,11 @@ const SubscribeYouTube = () => {
               fontSize: "1.1rem",
               borderRadius: "8px",
               textTransform: "none",
-              "&:hover": { backgroundColor: "#1c3d5a" },
+              transition: "all 0.3s ease",
+              "&:hover": {
+                backgroundColor: "#000000",
+                color: "#ffffff",
+              },
             }}
           >
             Subscribe Our Channel
@@ -178,18 +143,12 @@ const SubscribeYouTube = () => {
       {/* CSS Keyframes */}
       <style>
         {`
-          @keyframes slideAndWait {
-            /* Show first set (1,2,3) */
-            0%, 25% {
+          @keyframes continuousScroll {
+            0% {
               transform: translateX(0);
             }
-            /* Slide to second set (4,5,6) */
-            35%, 60% {
+            100% {
               transform: translateX(-50%);
-            }
-            /* Slide back to first set (1,2,3) */
-            70%, 100% {
-              transform: translateX(0);
             }
           }
         `}

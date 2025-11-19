@@ -2,37 +2,19 @@ import React from "react";
 import { Link } from "react-router-dom";
 import "../styles/Gallery.css";
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
-// Import video thumbnails
-import video01Img from "../assets/images/gallery/video/video-01.jpg";
-import video02Img from "../assets/images/gallery/video/video-02.jpg";
-import video03Img from "../assets/images/gallery/video/video-03.jpg";
-import video04Img from "../assets/images/gallery/video/video-04.jpg";
+// Import news image
+import indiaWestImg from "../assets/images/gallery/news/IndiaWest_AMCFest2017.jpg";
 
-const VideoGallery = () => {
-  const videos = [
+const NewsGallery = () => {
+  const newsArticles = [
     {
-      title: "Video 1",
-      url: "https://www.youtube.com/watch?v=j_CUTnHSNHQ",
-      thumbnail: video01Img,
-    },
-    {
-      title: "Video 2",
-      url: "https://www.youtube.com/watch?v=LnDwNFbK61g",
-      thumbnail: video02Img,
-    },
-    {
-      title: "Video 3",
-      url: "https://www.youtube.com/watch?v=ggPqGYdPxNU",
-      thumbnail: video03Img,
-    },
-    {
-      title: "Video 4",
-      url: "https://www.youtube.com/watch?v=6rUbesvZ9cM",
-      thumbnail: video04Img,
+      title: "India West - 2017",
+      url: "https://www.indiawest.com/news/global_indian/agoura-math-circle-founded-by-teen-pranav-kalyan-helping-students/article_cd3fd3f0-4b1d-11e7-9794-17deed101e75.html",
+      image: indiaWestImg,
     },
   ];
 
-  const handleVideoClick = (url, e) => {
+  const handleNewsClick = (url, e) => {
     e.preventDefault();
     window.open(url, "_blank", "noopener,noreferrer");
   };
@@ -57,34 +39,48 @@ const VideoGallery = () => {
                 Gallery &gt;
               </Link>
             </li>
-            <li>Video Gallery</li>
+            <li>News Gallery</li>
           </ul>
         </div>
       </div>
 
-      {/* Video Gallery Section */}
+      {/* News Gallery Section */}
       <div id="sc-about faq" className="sc-about pt-80 pb-70 md-pt-40 position-relative arrow-animation-1">
         <div className="faq-title text-center">
-          <h2 className="title mb-20">VIDEO GALLERY</h2>
+          <h2 className="title mb-20">NEWS GALLERY</h2>
         </div>
         <section className="Material-contact-section section-padding section-dark">
           <div className="sc-team team-style-1">
             <div className="container pb-60">
               <div className="row gallery-row1 text-center">
-                {videos.map((video, index) => (
-                  <div key={index} className="col-lg-6">
+                {newsArticles.map((article, index) => (
+                  <div key={index} className="col-lg-4">
                     <div className="team-inner-item">
                       <div className="team-wrap team-wrap1">
                         <div className="team-img">
                           <a
                             className="image-link"
-                            href={video.url}
+                            href={article.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            onClick={(e) => handleVideoClick(video.url, e)}
+                            onClick={(e) => handleNewsClick(article.url, e)}
                           >
-                            <img src={video.thumbnail} alt={video.title} />
+                            <img src={article.image} alt={article.title} />
                           </a>
+                        </div>
+                        <div className="team-item-text">
+                          <div className="team-details">
+                            <h3 className="team-name">
+                              <a
+                                href={article.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => handleNewsClick(article.url, e)}
+                              >
+                                {article.title}
+                              </a>
+                            </h3>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -99,5 +95,5 @@ const VideoGallery = () => {
   );
 };
 
-export default VideoGallery;
+export default NewsGallery;
 

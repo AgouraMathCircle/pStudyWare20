@@ -7,13 +7,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Hide topbar on mobile devices */
-@media (max-width: 899px) {
-  .topbar-container {
-    display: none !important;
-  }
-}
-
 /* Program links container */
 .program-links-container {
   display: flex;

@@ -243,7 +243,7 @@ const VolunteerRegistration = () => {
       <div className="main-content">
         <Container maxWidth="lg" sx={{ py: 4 }}>
           {/* Main Form - Vertical Layout */}
-          <Paper elevation={3} sx={{ p: 4 }}>
+          <Paper elevation={10}  sx={{ p: 4 }}>
             <form onSubmit={handleSubmit(onSubmit)}>
               <Grid container spacing={4}>
                 {/* Personal Information Section - Full Width */}

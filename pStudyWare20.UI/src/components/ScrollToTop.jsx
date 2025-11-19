@@ -50,11 +50,11 @@ const ScrollToTop = () => {
           aria-label="scroll back to top"
           onClick={scrollToTop}
           sx={{
-            backgroundColor: theme.palette.primary.main,
+            backgroundColor: "#53b50a",
             color: "white",
             boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
             "&:hover": {
-              backgroundColor: theme.palette.primary.dark,
+              backgroundColor: "#45a009",
               transform: "translateY(-2px)",
               boxShadow: "0 6px 25px rgba(0,0,0,0.4)",
             },

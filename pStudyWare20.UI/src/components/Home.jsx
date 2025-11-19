@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { initCounterAnimation } from "../assets/js/counter";
 import Banner from "./Home/Banner";
-import CtaSection from "./Home/CtaSection";
-import About from "./Home/About";
-import Courses from "./Home/Courses";
+import CtaSectionRegistration from "./Home/CtaSectionRegistration";
+import CtaSectionSatellite from "./Home/CtaSectionSatellite";
+import CtaSectionNews from "./Home/CtaSectionNews";
+import WhoAreWe from "./Home/WhoAreWe";
+import WhatWeDo from "./Home/WhatWeDo";
 import Stats from "./Home/Stats";
 import VideoGallery from "./Home/VideoGallery";
 import Team from "./Home/Team";
@@ -39,19 +41,19 @@ const Home = () => {
   };
 
   return (
-    <div>
+    <div className="home-page">
       <Banner />
-      <CtaSection />
-      <About />
-        <Courses />
-        <Stats />
-        <YouTubeCoursesSection />
-        <JoinUs />
-        <Team />
-        <VideoGallery />
-        <Sponsors />
-     
-      {/* Other Home content will go here */}
+      <CtaSectionRegistration />
+      <WhoAreWe />
+      <CtaSectionSatellite />
+      <WhatWeDo />
+      <Stats />
+      <YouTubeCoursesSection />
+      <JoinUs />
+      <CtaSectionNews />
+      <Team />
+      <VideoGallery />
+      <Sponsors />
     </div>
   );
 };

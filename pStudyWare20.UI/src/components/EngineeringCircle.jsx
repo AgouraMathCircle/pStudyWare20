@@ -109,7 +109,7 @@ const EngineeringCircle = () => {
       >
         <Container maxWidth="lg">
           <Grid container spacing={4} className="eng-row">
-            <Grid item xs={12} md={9}>
+            <Grid item xs={12} md={9} sx={{ pr: { md: 4 } }}>
               <Box className="sec-title">
                 <Typography
                   variant="h3"
@@ -156,8 +156,7 @@ const EngineeringCircle = () => {
                     maxHeight: "300px",
                     objectFit: "contain",
                     borderRadius: "10px",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-                    padding: "10px",
+                    display: "block",
                   }}
                 />
               </Box>

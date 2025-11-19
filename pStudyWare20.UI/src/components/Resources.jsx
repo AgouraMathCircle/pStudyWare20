@@ -122,14 +122,6 @@ const Resources = () => {
 
           <Grid container className="row row-res">
             <Grid item xs={12} lg={8}>
-              <Box className="img-part" sx={{ textAlign: "center", mb: 4 }}>
-                <img src={aboutImage} alt="About AMC" />
-              </Box>
-            </Grid>
-          </Grid>
-
-          <Grid container className="row row-res">
-            <Grid item xs={12} lg={8}>
               <Typography variant="h4" className="heading">
                 <Box component="span" className="color2">
                   Research Internships and Volunteering Opportunities
@@ -463,10 +455,12 @@ const Resources = () => {
                 </ListItem>
               </List>
             </Grid>
-            <Grid item xs={12} lg={4}>
-              <Box className="img-part" sx={{ textAlign: "center", mt: 2 }}>
-                <img src={mathImage} alt="Mathematics" className="img-small" />
-              </Box>
+            <Grid container className="row row-res">
+              <Grid item xs={12} lg={8}>
+                <Box className="img-part" sx={{ textAlign: "center", mb: 4 }}>
+                  <img src={aboutImage} alt="About AMC" />
+                </Box>
+              </Grid>
             </Grid>
           </Grid>
 
@@ -571,6 +565,11 @@ const Resources = () => {
                   </ListItemText>
                 </ListItem>
               </List>
+            </Grid>
+            <Grid item xs={12} lg={4}>
+              <Box className="img-part" sx={{ textAlign: "center", mt: 2 }}>
+                <img src={mathImage} alt="Mathematics" className="img-small" />
+              </Box>
             </Grid>
           </Grid>
 
@@ -928,7 +927,11 @@ const Resources = () => {
             </Grid>
             <Grid item xs={12} lg={4}>
               <Box className="img-part" sx={{ textAlign: "center", mt: 2 }}>
-                <img src={referenceImage} alt="Reference Links" className="img-small" />
+                <img
+                  src={referenceImage}
+                  alt="Reference Links"
+                  className="img-small"
+                />
               </Box>
             </Grid>
           </Grid>

@@ -134,6 +134,7 @@ const Navbar = () => {
       href: "/donate",
       icon: <DonateIcon fontSize="small" />,
     },
+
     {
       label: "Login",
       href: "/login",
@@ -390,11 +391,9 @@ const Navbar = () => {
               }
             }}
             sx={{
-              backgroundColor: isActive
-                ? "rgba(255, 255, 255, 0.1)"
-                : "transparent",
+              backgroundColor: isActive ? "#53b50a" : "#53b50a",
               "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
+                backgroundColor: "#45a108",
               },
             }}
           >
@@ -402,7 +401,11 @@ const Navbar = () => {
               sx={{ display: "flex", alignItems: "center", gap: 1.5, flex: 1 }}
             >
               <Box
-                sx={{ color: "#ffffff", display: "flex", alignItems: "center" }}
+                sx={{
+                  color: "#ffffff",
+                  display: "flex",
+                  alignItems: "center",
+                }}
               >
                 {item.icon}
               </Box>
@@ -410,7 +413,7 @@ const Navbar = () => {
                 variant="body1"
                 sx={{
                   fontWeight: isActive ? 600 : 400,
-                  color: "#ffffff", // White text for all states
+                  color: "#ffffff",
                   fontSize: "16px",
                   lineHeight: 1.5,
                   flex: 1,
@@ -442,7 +445,7 @@ const Navbar = () => {
                       color: "#ffffff",
                       minHeight: 44,
                       "&:hover": {
-                        backgroundColor: "rgba(255, 255, 255, 0.1)",
+                        backgroundColor: "#45a108",
                       },
                     }}
                     onClick={() =>
@@ -496,7 +499,7 @@ const Navbar = () => {
             textTransform: "none",
             fontSize: isAdmin || isStudent ? "0.85rem" : "1rem",
             px: isAdmin || isStudent ? 0.8 : 2,
-            py: 0.5,
+            py: 1,
             minWidth: "auto",
             "&:hover": {
               backgroundColor: "rgba(255, 255, 255, 0.1)",
@@ -519,7 +522,7 @@ const Navbar = () => {
               borderRadius: 1,
               minWidth: 200,
               zIndex: 1000,
-              py: 0.5,
+              py: 1,
             }}
           >
             {item.submenu.map((subItem) => (
@@ -538,7 +541,7 @@ const Navbar = () => {
                   width: "100%",
                   textAlign: "left",
                   px: 2,
-                  py: 0.5,
+                  py: 1,
                   color: "#ffffff", // White text for contrast
                   textTransform: "none",
                   "&:hover": {
@@ -556,14 +559,7 @@ const Navbar = () => {
   };
 
   const drawer = (
-    <Box
-      sx={{
-        width: 280,
-        backgroundColor: "#53b50a",
-        color: "#ffffff",
-        height: "100%",
-      }}
-    >
+    <Box sx={{ width: 280 }}>
       <Box
         sx={{
           display: "flex",
@@ -571,7 +567,7 @@ const Navbar = () => {
           justifyContent: "space-between",
           p: 2,
           borderBottom: 1,
-          borderColor: "rgba(255, 255, 255, 0.2)",
+          borderColor: "divider",
         }}
       >
         {/* Logo in mobile drawer */}
@@ -607,7 +603,7 @@ const Navbar = () => {
             }}
           />
         </Box>
-        <IconButton onClick={handleDrawerToggle} sx={{ color: "#ffffff" }}>
+        <IconButton onClick={handleDrawerToggle}>
           <CloseIcon />
         </IconButton>
       </Box>
@@ -625,34 +621,31 @@ const Navbar = () => {
         position="sticky"
         elevation={0}
         sx={{
+          width: "100%",
+          borderRadius: 0,
           backgroundColor: "#53b50a", // Match original menu background color
           color: "#ffffff", // White text for contrast
           borderBottom: 1,
           borderColor: "rgba(255, 255, 255, 0.1)",
         }}
       >
-        <Container maxWidth={false} sx={{ px: 0, position: "relative" }}>
+        <Container maxWidth={false} sx={{ width: "100%", px: 0 }}>
           <Toolbar
             sx={{
-              px: { xs: 2, sm: 4, md: 8, lg: "1in", xl: "1in" },
-              justifyContent: "center",
-              maxWidth: "100%",
-              minHeight: { xs: 48, sm: 56 },
-              py: 0.5,
-              position: "relative",
+              width: "100%",
+              px: { xs: 0 },
+              justifyContent: "space-between",
             }}
           >
-            {/* Logo - Absolutely positioned on the left */}
+            {/* Logo */}
             <Box
               className="navbar-logo"
               sx={{
-                position: "absolute",
-                left: { xs: 2, sm: 4, md: 8, lg: "1in", xl: "1in" },
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
+                mr: 2,
                 cursor: "pointer",
-                zIndex: 1,
               }}
               onClick={() => {
                 // Navigate to appropriate dashboard based on user type
@@ -670,7 +663,7 @@ const Navbar = () => {
                 src={logoUrl}
                 alt="AMC Logo"
                 sx={{
-                  height: isMobile ? 40 : 60,
+                  height: isMobile ? 50 : 90,
                   width: "auto",
                   objectFit: "contain",
                 }}
@@ -680,27 +673,24 @@ const Navbar = () => {
               />
             </Box>
 
-            {/* Desktop Menu - Centered with equal spacing */}
+            {/* Desktop Menu - Centered for Admin/Student */}
             {!isMobile && (
               <Box
                 className="navbar-menu"
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  // Increased spacing for public users, normal spacing for authenticated users
-                  gap: !isAuthenticated
-                    ? { xs: 2, sm: 2.5, md: 3, lg: 3.5, xl: 4 }
-                    : { xs: 1, sm: 1.5, md: 2, lg: 2.5 },
+                  justifyContent: isAdmin || isStudent ? "center" : "flex-end",
+                  gap: isAdmin || isStudent ? 0.1 : 1,
                   flex: 1,
-                  width: "100%",
+                  mx: isAdmin || isStudent ? 3 : 0,
                 }}
               >
                 {menuItems.map((item) => renderMenuItem(item, false))}
               </Box>
             )}
 
-            {/* Mobile Menu Button - Absolutely positioned on the right */}
+            {/* Mobile Menu Button */}
             {isMobile && (
               <IconButton
                 color="inherit"
@@ -708,11 +698,7 @@ const Navbar = () => {
                 edge="start"
                 onClick={handleDrawerToggle}
                 className="menu-button"
-                sx={{
-                  position: "absolute",
-                  right: { xs: 2, sm: 4, md: 8, lg: "1in", xl: "1in" },
-                  zIndex: 1,
-                }}
+                sx={{ ml: "auto" }}
               >
                 <MenuIcon />
               </IconButton>
@@ -735,8 +721,6 @@ const Navbar = () => {
           "& .MuiDrawer-paper": {
             boxSizing: "border-box",
             width: 280,
-            backgroundColor: "#53b50a", // Green background
-            color: "#ffffff", // White text
           },
         }}
       >

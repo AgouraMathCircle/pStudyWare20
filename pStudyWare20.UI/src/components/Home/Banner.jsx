@@ -51,7 +51,7 @@ const Banner = () => {
         backgroundPosition: "center center",
         backgroundRepeat: "no-repeat",
         backgroundColor: "#f3fafc",
-        minHeight: "750px",
+        minHeight: "550px",
         display: "grid",
         alignItems: "flex-end",
         zIndex: 9,
@@ -64,7 +64,11 @@ const Banner = () => {
         },
       }}
     >
-      <Container maxWidth="lg">
+      <Container
+        maxWidth={false}
+        disableGutters
+        className="home-section-container"
+      >
         <Grid container spacing={3}>
           <Grid xs={12} lg={6}>
             <Box
@@ -105,7 +109,7 @@ const Banner = () => {
               <Button
                 variant="contained"
                 endIcon={<ArrowForwardIcon />}
-                href="/mathcircle"
+                href="http://localhost:5173/about/math-circle"
                 component="a"
                 sx={{
                   outline: "none",
@@ -120,7 +124,9 @@ const Banner = () => {
                   color: "#ffffff",
                   transition: "all 0.3s ease",
                   "&:hover": {
-                    backgroundColor: "#4a9d09",
+                    backgroundColor: "transparent",
+                    border: "2px solid #ffffff",
+                    color: "#ffffff",
                     transform: "translateY(-2px)",
                     boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
                   },
