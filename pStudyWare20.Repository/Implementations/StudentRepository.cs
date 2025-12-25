@@ -22,38 +22,79 @@ namespace pStudyWare20.Repository.Implementations
         }
 
         /// <summary>
-        /// Register a new student using stored procedure
+        /// Register a new student using stored procedure AMC_spRegisterStudent
+        /// Matches StudentRegistration.aspx.cs btnSubmit_Click logic exactly
+        /// Uses transaction with rollback on error (matches .aspx.cs transaction handling)
         /// </summary>
         public async Task<bool> RegisterStudentAsync(RegistrationStudentModel request)
         {
+            SqlTransaction? transaction = null;
             try
             {
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
-               
-                using var command = new SqlCommand("AMC_spRegisterStudent", connection)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
 
-                command.Parameters.Add(new SqlParameter("@StudentFirstName", request.StudentFirstName ?? ""));
-                command.Parameters.Add(new SqlParameter("@StudentLastName", request.StudentLastName ?? ""));
-                command.Parameters.Add(new SqlParameter("@StudentEmail", request.StudentEmail ?? ""));
-                command.Parameters.Add(new SqlParameter("@StudentGrade", request.StudentGrade ?? ""));
-                command.Parameters.Add(new SqlParameter("@ParentFirstName", request.ParentFirstName ?? ""));
-                command.Parameters.Add(new SqlParameter("@ParentLastName", request.ParentLastName ?? ""));
-                command.Parameters.Add(new SqlParameter("@ParentEmail", request.ParentEmail ?? ""));
-                command.Parameters.Add(new SqlParameter("@ParentPhoneNo", request.ParentPhoneNo ?? ""));
-                command.Parameters.Add(new SqlParameter("@Address", request.Address ?? ""));
-                command.Parameters.Add(new SqlParameter("@City", request.City ?? ""));
-                command.Parameters.Add(new SqlParameter("@State", request.State ?? ""));
-                command.Parameters.Add(new SqlParameter("@LocationId", request.LocationId));
+                // Begin transaction (matches tran_register = cn.BeginTransaction() in .aspx.cs)
+                transaction = connection.BeginTransaction();
 
+                using var command = connection.CreateCommand();
+                command.Transaction = transaction;
+                command.CommandText = "AMC_spRegisterStudent";
+                command.CommandType = CommandType.StoredProcedure;
+
+                // Parent parameters (matches @p* parameters in .aspx.cs)
+                command.Parameters.Add(new SqlParameter("@pFirstName", request.ParentFirstName ?? ""));
+                command.Parameters.Add(new SqlParameter("@pLastName", request.ParentLastName ?? ""));
+                command.Parameters.Add(new SqlParameter("@pAddress", request.Address ?? "")); // Empty string in .aspx.cs
+                command.Parameters.Add(new SqlParameter("@pCity", request.City ?? ""));
+                command.Parameters.Add(new SqlParameter("@pState", request.State ?? ""));
+                command.Parameters.Add(new SqlParameter("@pZip", "")); // Empty string in .aspx.cs
+                command.Parameters.Add(new SqlParameter("@pPhno", request.ParentPhoneNo ?? ""));
+                command.Parameters.Add(new SqlParameter("@pEmail", request.ParentEmail ?? ""));
+                command.Parameters.Add(new SqlParameter("@pCountry", request.Country ?? ""));
+
+                // UserName parameter (determined in service layer based on UserNameType)
+                command.Parameters.Add(new SqlParameter("@UserName", request.UserName ?? ""));
+
+                // Student parameters (matches @s* parameters in .aspx.cs)
+                command.Parameters.Add(new SqlParameter("@sFirstName", request.StudentFirstName ?? ""));
+                command.Parameters.Add(new SqlParameter("@sLastName", request.StudentLastName ?? ""));
+                command.Parameters.Add(new SqlParameter("@sEmail", request.StudentEmail ?? ""));
+                command.Parameters.Add(new SqlParameter("@sSchool", request.StudentSchoolName ?? ""));
+                command.Parameters.Add(new SqlParameter("@sGrade", request.StudentGrade ?? ""));
+                command.Parameters.Add(new SqlParameter("@sdrLocation", request.LocationId));
+                command.Parameters.Add(new SqlParameter("@sSessionID", request.SessionId ?? ""));
+
+                // Signature parameters
+                command.Parameters.Add(new SqlParameter("@sLiabilitySignature", request.LiabilitySignature ?? ""));
+                command.Parameters.Add(new SqlParameter("@sRuleSignature", request.RuleSignature ?? ""));
+
+                // Picture permission (converted to "Y" or "N" string, matches .aspx.cs logic)
+                string picPermission = request.PicturePermission ? "Y" : "N";
+                command.Parameters.Add(new SqlParameter("@sPicPermission", picPermission));
+
+                // Execute stored procedure within transaction
                 var result = await command.ExecuteNonQueryAsync();
+
+                // Commit transaction if successful (matches tran_register.Commit() in .aspx.cs)
+                transaction.Commit();
+
                 return result > 0;
             }
             catch (Exception ex)
             {
+                // Rollback transaction on error (matches tran_register.Rollback() in .aspx.cs)
+                if (transaction != null)
+                {
+                    try
+                    {
+                        transaction.Rollback();
+                    }
+                    catch (Exception rollbackEx)
+                    {
+                        throw new Exception($"Error rolling back transaction: {rollbackEx.Message}. Original error: {ex.Message}", ex);
+                    }
+                }
                 throw new Exception($"Error registering student: {ex.Message}", ex);
             }
         }
@@ -79,7 +120,7 @@ namespace pStudyWare20.Repository.Implementations
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
-                        return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                return System.Text.Json.JsonSerializer.Serialize(dataTable);
             }
             catch (Exception ex)
             {
@@ -104,7 +145,7 @@ namespace pStudyWare20.Repository.Implementations
 
                 command.Parameters.Add(new SqlParameter("@Username", request.userName ?? ""));
 
-                        var dataTable = new DataTable();
+                var dataTable = new DataTable();
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 

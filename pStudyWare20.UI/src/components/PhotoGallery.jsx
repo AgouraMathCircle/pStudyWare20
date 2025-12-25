@@ -2,7 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import "../styles/Gallery.css";
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
-// Import photo album icons
+// Import photo album icons 
+import award2025Icon from "../assets/images/gallery/photos/AwardCeremony2025/017.jpg";
 import award2024Icon from "../assets/images/gallery/photos/AwardCeremony2024/icon.jpeg";
 import award2023Icon from "../assets/images/gallery/photos/AwardCeremony2023/icon.jpg";
 import award2019Icon from "../assets/images/gallery/photos/AwardCeremony2019/icon.jpg";
@@ -17,7 +18,7 @@ const PhotoGallery = () => {
     {
       title: "AWARD CEREMONY 2025",
       link: "/gallery/photo/AwardCeremony2025",
-      image: award2024Icon,
+      image: award2025Icon,
     },
     {
       title: "AWARD CEREMONY 2024",
@@ -72,7 +73,7 @@ const PhotoGallery = () => {
   ];
 
   return (
-    <div className="main-content">
+    <div className="main-content gallery-page">
       {/* Breadcrumbs Section */}
       <div className="sc-breadcrumbs breadcrumbs-overlay">
         <div className="breadcrumbs-img">

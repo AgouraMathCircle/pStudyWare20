@@ -844,7 +844,7 @@ const MathCircle = () => {
                       <Box sx={{ textAlign: "center" }}>
                         <Button
                           variant="contained"
-                          onClick={() => handleNavigation("/about/team")}
+                          onClick={() => handleNavigation("/our-team")}
                           sx={{
                             backgroundColor: "#58a82d",
                             color: "white",
@@ -870,7 +870,7 @@ const MathCircle = () => {
                       <Box sx={{ textAlign: "center" }}>
                         <Button
                           variant="contained"
-                          onClick={() => handleNavigation("/about/alumni")}
+                          onClick={() => handleNavigation("/alumini")}
                           sx={{
                             backgroundColor: "#58a82d",
                             color: "white",

@@ -12,7 +12,6 @@ using System.Text;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
-var AllowSpecificOrigins = "CORPolicy";
 // Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -24,6 +23,8 @@ builder.Services.AddControllers()
 builder.Services.AddHttpContextAccessor();
 
 // Configure CORS - More permissive for testing
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
@@ -41,13 +42,22 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 
-    // Add a policy for specific origins (if you need credentials)
+    // Add a policy for specific origins (used by controllers that require credentials)
     options.AddPolicy("AllowSpecificOrigins", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "https://localhost:3000", "http://localhost:5173", "https://localhost:5173")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        }
+        else
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        }
     });
 });
 
@@ -68,12 +78,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidAudience = jwtSettings?.Audience,
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero,
+            // Map role claim correctly for authorization
+            // JWT tokens typically use "role" as the claim name
+            RoleClaimType = "role",
+            NameClaimType = System.Security.Claims.ClaimTypes.NameIdentifier
         };
     });
 
 // Configure Authorization
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Configure role-based authorization policies
+    options.AddPolicy("Student", policy => policy.RequireRole("Student"));
+    options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("Instructor", policy => policy.RequireRole("Instructor"));
+    options.AddPolicy("Volunteer", policy => policy.RequireRole("Volunteer"));
+});
 
 // Configure DbContext
 builder.Services.AddDbContext<AMC_DBContext>(options =>
@@ -219,8 +240,8 @@ app.UseSwaggerUI(c =>
 app.UseHttpsRedirection();
 
 // Use CORS before Authentication and Authorization
-app.UseCors(AllowSpecificOrigins); // Use default policy
-app.UseCors("AllowReactApp");
+// Use default policy which allows all origins, or use specific policy
+app.UseCors(); // This uses the default policy (AllowAnyOrigin)
 
 app.UseAuthentication();
 app.UseAuthorization();

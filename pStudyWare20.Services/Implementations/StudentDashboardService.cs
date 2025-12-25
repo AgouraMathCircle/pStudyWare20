@@ -186,8 +186,6 @@ namespace pStudyWare20.Services.Implementations
             }
         }
 
-
-
         /// <summary>
         /// Gets student report card/grades
         /// </summary>

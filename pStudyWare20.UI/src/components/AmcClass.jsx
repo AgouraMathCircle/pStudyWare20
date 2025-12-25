@@ -4,6 +4,7 @@ import { Box, Typography } from "@mui/material";
 import "../styles/Gallery.css";
 import "../styles/About.css";
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
+
 // Import all images from amcClass folder
 import image001 from "../assets/images/gallery/photos/amcClass/001.jpg";
 import image002 from "../assets/images/gallery/photos/amcClass/002.jpg";
@@ -18,7 +19,7 @@ import image009 from "../assets/images/gallery/photos/amcClass/009.jpg";
 const AmcClass = () => {
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // Array of all photos from amcClass folder
+  // Array of all photos
   const photos = [
     { id: 1, src: image001, alt: "AMC Class Photo 1" },
     { id: 2, src: image002, alt: "AMC Class Photo 2" },
@@ -73,7 +74,7 @@ const AmcClass = () => {
       <div className="sc-team team-style-1">
         <div
           className="container"
-          style={{ paddingTop: "40px", paddingBottom: "70px" }}
+          style={{ paddingTop: "10px", paddingBottom: "70px" }}
         >
           <Box sx={{ textAlign: "center", mb: "40px", width: "100%" }}>
             <Typography
@@ -121,63 +122,32 @@ const AmcClass = () => {
                   mb: 0,
                 }}
               >
-                <Box component="div" className="team-inner-item">
-                  <Box component="div" className="team-wrap">
-                    <Box
-                      component="div"
-                      className="team-img"
-                      onClick={() => handleImageClick(photo)}
-                      sx={{
-                        cursor: "pointer",
-                        position: "relative",
-                        overflow: "hidden",
-                        "&:hover .image-overlay": {
-                          opacity: 1,
-                        },
-                      }}
-                    >
-                      <Box
-                        component="img"
-                        src={photo.src}
-                        alt={photo.alt}
-                        sx={{
-                          width: "100%",
-                          height: "auto",
-                          display: "block",
-                          transition: "transform 0.3s ease",
-                          "&:hover": {
-                            transform: "scale(1.05)",
-                          },
-                        }}
-                      />
-                      <Box
-                        className="image-overlay"
-                        sx={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          backgroundColor: "rgba(0, 0, 0, 0.5)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          opacity: 0,
-                          transition: "opacity 0.3s ease",
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            color: "white",
-                            fontWeight: 600,
-                            fontSize: "1.1rem",
-                          }}
-                        >
-                          View Full Size
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
+                <Box
+                  sx={{
+                    backgroundColor: "#fff",
+                    padding: "15px",
+                    boxShadow: "0 0 15px rgba(0, 0, 0, 0.1)",
+                    height: "100%",
+                    transition: "all 0.3s ease",
+                    cursor: "pointer",
+                    "&:hover": {
+                      transform: "translateY(-5px)",
+                      boxShadow: "0 5px 20px rgba(0, 0, 0, 0.15)",
+                    },
+                  }}
+                  onClick={() => handleImageClick(photo)}
+                >
+                  <Box
+                    component="img"
+                    src={photo.src}
+                    alt={photo.alt}
+                    sx={{
+                      width: "100%",
+                      aspectRatio: "3/2", // Enforce landscape aspect ratio
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                  />
                 </Box>
               </Box>
             ))}

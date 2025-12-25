@@ -22,36 +22,36 @@ namespace pStudyWare20.Services.Implementations
             {
                 string adminEmail = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
 
-                // Email to Admin
+                // Email to Admin (matches old file logic)
                 string adminSubject = "Agoura Math Circle : New Volunteer request from: " + volunteerDetail.FirstName + " " + volunteerDetail.LastName + ".";
-                string adminBody = "Just Received New Volunteer request from " + volunteerDetail.FirstName + " " + volunteerDetail.LastName + "<br/>"
+                string adminBody = "Just Recieved New Volunteer request from " + volunteerDetail.FirstName + " " + volunteerDetail.LastName + "<br/>"
                                 + " Student Name: " + volunteerDetail.FirstName + "<br/>"
                                 + " Education: " + volunteerDetail.Grade + "<br/>"
                                 + " School/University: " + volunteerDetail.SchoolName + "<br/>"
-                                + " Register For : " + volunteerDetail.SessionId + "<br/>"
+                                + " Register For : " + volunteerDetail.SessionName + "<br/>"
                                 + " Location: " + volunteerDetail.LocationId + "<br/>"
                                 + " Interested For : " + volunteerDetail.InterestedFor + "<br/>"
-                                + " Regards <br> Agoura Math Circle<br/> <br/>www.agouramathcircle.org";
+                                + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                string adminEmailResult = SendEmail(adminEmail, volunteerDetail.Email, adminSubject, adminBody);
-                if (adminEmailResult.Contains("Error"))
-                {
-                    return adminEmailResult;
-                }
+                SendEmail(adminEmail, volunteerDetail.Email, adminSubject, adminBody);
+                //if (adminEmailResult.Contains("Error"))
+                //{
+                //    return adminEmailResult;
+                //}
 
-                // Email to Volunteer
+                // Email to Volunteer (matches old file logic)
                 string volunteerSubject = "Agoura Math Circle : New Volunteer Request confirmation for " + volunteerDetail.FirstName + " " + volunteerDetail.LastName + ".";
-                string volunteerBody = volunteerDetail.FirstName + " " + volunteerDetail.LastName + ",<br>"
+                string volunteerBody = volunteerDetail.FirstName + " " + volunteerDetail.LastName + ",<Br>"
                                     + " Thank you very much for registering as volunteer in Agoura Math Circle."
-                                    + " We will contact you about your role and responsibility ASAP." + " <br/><br/>"
-                                    + " If you have any question, please email to support@agouramathcircle.org." + " <br/><br/>"
-                                    + " Regards <br> Agoura Math Circle<br/> <br/>www.agouramathcircle.org";
+                                    + " We will contact you about your role and responsibilty ASAP." + " <br/><br/>"
+                                    + " If you have any question, please email to support@agouramathcircle.org." + "<br/><br/>"
+                                    + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                string volunteerEmailResult = SendEmail(volunteerDetail.Email, adminEmail, volunteerSubject, volunteerBody);
-                if (volunteerEmailResult.Contains("Error"))
-                {
-                    return volunteerEmailResult;
-                }
+                SendEmail(volunteerDetail.Email, adminEmail, volunteerSubject, volunteerBody);
+                //if (volunteerEmailResult.Contains("Error"))
+                //{
+                //    return volunteerEmailResult;
+                //}
 
                 return "Emails sent successfully";
             }
@@ -65,46 +65,113 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                string adminEmail = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
+                // Use RegistrationEmailGroup from config (matches InformMe() logic in .aspx.cs line 149)
+                string adminEmail = _configuration.GetSection("AppSettings")["RegistrationEmailGroup"]
+                    ?? _configuration.GetSection("AppSettings")["AdminEmailID"]
+                    ?? "info@agouramathcircle.net";
+                string emailBCC = "";
 
-                // Email to Admin
-                string adminSubject = "Agoura Math Circle : New Student Registration from: " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + ".";
-                string adminBody = "Just Received New Student Registration from " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + "<br/>"
-                                + " Parent Name: " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + "<br/>"
+                // Email to Admin (matches InformMe() logic in .aspx.cs lines 142-148)
+                string adminSubject = "Agoura Math Circle : New Registration request from: " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + ".";
+                string adminBody = "Just Recieved New Registration request from " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + "<br/>"
                                 + " Student Name: " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + "<br/>"
-                                + " School: " + studentDetail.StudentSchoolName + "<br/>"
-                                + " Grade: " + studentDetail.StudentGrade + "<br/>"
-                                + " Session: " + studentDetail.SessionId + "<br/>"
-                                + " Location: " + studentDetail.LocationId + "<br/>"
-                                + " Parent Email: " + studentDetail.ParentEmail + "<br/>"
-                                + " Parent Phone: " + studentDetail.ParentPhoneNo + "<br/>"
-                                + " Regards <br> Agoura Math Circle<br/> <br/>www.agouramathcircle.org";
+                                + "Session: " + (string.IsNullOrEmpty(studentDetail.SessionName) ? studentDetail.SessionId : studentDetail.SessionName) + "<br/>"
+                                + " Student Level: " + studentDetail.StudentGrade + "<br/>"
+                                + " Course/Location: " + (string.IsNullOrEmpty(studentDetail.LocationName) ? studentDetail.LocationId.ToString() : studentDetail.LocationName) + "<br/>"
+                                + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                string adminEmailResult = SendEmail(adminEmail, studentDetail.ParentEmail, adminSubject, adminBody);
-                if (adminEmailResult.Contains("Error"))
+                // Special handling for LocationId == 3 (BCC to support.ic@agouramathcircle.org)
+                if (studentDetail.LocationId.ToString() == "3")
                 {
-                    return adminEmailResult;
+                    emailBCC = "support.ic@agouramathcircle.org";
+                    string adminEmailResult = SendEmailGroupAsync(adminEmail, studentDetail.ParentEmail, adminSubject, adminBody, emailBCC).Result;
+                    if (adminEmailResult.Contains("Error"))
+                    {
+                        return adminEmailResult;
+                    }
+                }
+                else
+                {
+                    // SendEmail(EmailSendTo, EmailFrom, Emailsubject, RegistrationInfo) - matches .aspx.cs line 152
+                    SendEmail(adminEmail, studentDetail.ParentEmail, adminSubject, adminBody);
+                    //if (adminEmailResult.Contains("Error"))
+                    //{
+                    //    return adminEmailResult;
+                    //}
                 }
 
-                // Email to Parent
-                string parentSubject = "Agoura Math Circle : Student Registration confirmation for " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + ".";
-                string parentBody = "Dear " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + ",<br>"
-                                 + " Thank you very much for registering your child " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + " in Agoura Math Circle."
-                                 + " We will contact you about the class schedule and other details ASAP." + " <br/><br/>"
-                                 + " If you have any question, please email to support@agouramathcircle.org." + " <br/><br/>"
-                                 + " Regards <br> Agoura Math Circle<br/> <br/>www.agouramathcircle.org";
-
-                string parentEmailResult = SendEmail(studentDetail.ParentEmail, adminEmail, parentSubject, parentBody);
-                if (parentEmailResult.Contains("Error"))
-                {
-                    return parentEmailResult;
-                }
-
-                return "Emails sent successfully";
+                return "Admin email sent successfully";
             }
             catch (Exception ex)
             {
-                return $"Error sending emails: {ex.Message}";
+                return $"Error sending admin email: {ex.Message}";
+            }
+        }
+
+        public string SendEmailtoParentForStudentRegistration(RegistrationStudentModel studentDetail)
+        {
+            try
+            {
+                // Use Email from config (matches InformParent() logic in .aspx.cs line 200)
+                string adminEmail = _configuration.GetSection("AppSettings")["Email"]
+                    ?? _configuration.GetSection("AppSettings")["AdminEmailID"]
+                    ?? "info@agouramathcircle.net";
+
+                string emailSendTo = studentDetail.ParentEmail; // matches .aspx.cs line 199: EmailSendTo = txtParentEmail.Text
+                string emailFrom = adminEmail; // matches .aspx.cs line 200: EmailFrom = ConfigurationManager.AppSettings["Email"]
+                string emailSubject;
+                string registrationInfo;
+
+                // Different email content for LocationId = 4 (Engineering Circle) - matches InformParent() logic in .aspx.cs lines 174-184
+                if (studentDetail.LocationId.ToString() == "4")
+                {
+                    emailSubject = "Agoura Engineering Circle: New Registration confirmation for " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + ".";
+                    registrationInfo = "Thank you very much for registering in Agoura Engineering Circle. We have recieved your application for " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + ".<br/>"
+                                    + " Session: " + (string.IsNullOrEmpty(studentDetail.SessionName) ? studentDetail.SessionId : studentDetail.SessionName) + "<br/>"
+                                    + " Student Grade: " + studentDetail.StudentGrade + "<br/><hr>" // matches .aspx.cs line 179
+                                    + " Course/Location: " + (string.IsNullOrEmpty(studentDetail.LocationName) ? studentDetail.LocationId.ToString() : studentDetail.LocationName) + "<br/>"
+                                    + " Note: We will review and decide on your application based on the availability of space, your assessment performance, and eligibility. We will send an email about the assessment test. If space is not available, we will add you into our waiting list for our next session. " + " <br/><br/>"
+                                    + " If you have any questions or concerns, please email us via support@agouramathcircle.org." + "<br/><br/>"
+                                    + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
+                }
+                else
+                {
+                    // Matches InformParent() logic in .aspx.cs lines 189-196
+                    emailSubject = "Agoura Math Circle : New Registration confirmation for " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + ".";
+                    registrationInfo = "Thank you very much for registering in Agoura Math Circle. We have recieved your application for " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + ".<br/>"
+                                    + " Session: " + (string.IsNullOrEmpty(studentDetail.SessionName) ? studentDetail.SessionId : studentDetail.SessionName) + "<br/>"
+                                    + " Student Grade: " + studentDetail.StudentGrade + "<br/><hr>" // matches .aspx.cs line 192
+                                    + " Course/Location: " + (string.IsNullOrEmpty(studentDetail.LocationName) ? studentDetail.LocationId.ToString() : studentDetail.LocationName) + "<br/>"
+                                    + " Note: We will review and decide on your application based on the availability of space. If space is not avaiable, we will add you into our waiting list. We will email those on the waiting list when there is space." + " <br/><br/>"
+                                    + " If you have any questions or concerns, please email us via support@agouramathcircle.org." + "<br/><br/>"
+                                    + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
+                }
+
+                // Use SendEmail if UserNameType is "P" (Parent), SendEmailGroup if UserNameType is "S" (Student)
+                // Matches InformParent() logic in .aspx.cs line 201: if (rblUserName.SelectedIndex == 0)
+                // SelectedIndex == 0 means first option selected, which is "P" (Parent)
+                string emailResult;
+                if (studentDetail.UserNameType == "P" || studentDetail.UserName == studentDetail.ParentEmail)
+                {
+                    // Username is parent email (UserNameType="P" or rblUserName.SelectedIndex==0) - use SendEmail (matches .aspx.cs line 203)
+                    SendEmail(emailSendTo, emailFrom, emailSubject, registrationInfo);
+                }
+                else
+                {
+                    // Username is student email (UserNameType="S") - use SendEmailGroup (BCC student email) (matches .aspx.cs line 207)
+                    emailResult = SendEmailGroupAsync(emailSendTo, emailFrom, emailSubject, registrationInfo, studentDetail.StudentEmail).Result;
+                }
+
+                //if (emailResult.Contains("Error"))
+                //{
+                //    return emailResult;
+                //}
+
+                return "Parent email sent successfully";
+            }
+            catch (Exception ex)
+            {
+                return $"Error sending parent email: {ex.Message}";
             }
         }
 
@@ -112,29 +179,47 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                string adminEmail = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
+                // Use AMCRegistrationEmailID from config (matches old file logic)
+                string adminEmail = _configuration.GetSection("AppSettings")["AMCRegistrationEmailID"]
+                    ?? _configuration.GetSection("AppSettings")["AdminEmailID"]
+                    ?? "info@agouramathcircle.net";
 
-                // Email to Admin for existing student registration
-                string adminSubject = "Agoura Math Circle : Existing Student Registration Update for: " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + ".";
-                string adminBody = "Existing Student Registration Update for " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + "<br/>"
-                                + " Student ID: " + studentDetail.StudentId + "<br/>"
-                                + " School: " + studentDetail.School + "<br/>"
-                                + " Grade: " + studentDetail.GradeLevel + "<br/>"
-                                + " City: " + studentDetail.City + "<br/>"
-                                + " State: " + studentDetail.State + "<br/>"
-                                + " Country: " + studentDetail.Country + "<br/>"
-                                + " Phone: " + studentDetail.StudentPhone + "<br/>"
-                                + " Member Type: " + studentDetail.MemberType + "<br/>"
-                                + " Registration Update: " + studentDetail.RegistrationUpdate + "<br/>"
-                                + " Regards <br> Agoura Math Circle<br/> <br/>www.agouramathcircle.org";
+                // Email to Admin (matches old file logic)
+                string adminSubject = "Agoura Math Circle : Registration request from: " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + ".";
+                string adminBody = "Just Recieved registration from " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + "<br/>"
+                                + " Student Name: " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + "<br/>"
+                                + " Student Level: " + studentDetail.GradeLevel + "<br/>"
+                                + " Session: " + (GetPropertyValue(studentDetail, "RegistrationSession") ?? "") + "<br/>"
+                                + " Chapter: " + (GetPropertyValue(studentDetail, "RegistrationChapter") ?? "") + "<br/>"
+                                + " Location: " + (GetPropertyValue(studentDetail, "RegistrationLocation") ?? "") + "<br/>"
+                                + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                string emailResult = SendEmail(adminEmail, studentDetail.StudentEmailID, adminSubject, adminBody);
-                if (emailResult.Contains("Error"))
-                {
-                    return emailResult;
-                }
+                // Use RegistrationUserName if available, otherwise use StudentEmailID (matches old file logic)
+                string fromEmail = GetPropertyValue(studentDetail, "RegistrationUserName") ?? studentDetail.StudentEmailID;
+                SendEmail(adminEmail, fromEmail, adminSubject, adminBody);
+                //if (emailResult.Contains("Error"))
+                //{
+                //    return emailResult;
+                //}
 
-                return "Email sent successfully";
+                // Email to Parent (matches old file logic)
+                string parentSubject = "Agoura Math Circle : Registration Confirmation " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + ".";
+                string parentBody = "You have successfuly resgistered " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + "<br/>"
+                                + " Student Name: " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + "<br/>"
+                                + " Student Level: " + studentDetail.GradeLevel + "<br/>"
+                                + " Session: " + (GetPropertyValue(studentDetail, "RegistrationSession") ?? "") + "<br/>"
+                                + " Chapter: " + (GetPropertyValue(studentDetail, "RegistrationChapter") ?? "") + "<br/>"
+                                + " Location: " + (GetPropertyValue(studentDetail, "RegistrationLocation") ?? "") + "<br/>"
+                                + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
+
+                string toEmail = GetPropertyValue(studentDetail, "RegistrationUserName") ?? studentDetail.StudentEmailID;
+                SendEmail(toEmail, adminEmail, parentSubject, parentBody);
+                //if (parentEmailResult.Contains("Error"))
+                //{
+                //    return parentEmailResult;
+                //}
+
+                return "Emails sent successfully";
             }
             catch (Exception ex)
             {
@@ -142,74 +227,82 @@ namespace pStudyWare20.Services.Implementations
             }
         }
 
-        private string SendEmail(string toEmail, string fromEmail, string subject, string body)
+        private bool SendEmail(string SendTo, string SentFrom, string subject, string body)
         {
+            string AdminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"];
+
             try
             {
-                string adminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
-
-                // Validate email addresses
-                if (string.IsNullOrEmpty(toEmail) || !IsValidEmail(toEmail))
-                {
-                    return $"Error: Invalid recipient email address: {toEmail}";
-                }
-
-                if (string.IsNullOrEmpty(adminEmailID) || !IsValidEmail(adminEmailID))
-                {
-                    return $"Error: Invalid sender email address: {adminEmailID}";
-                }
-
                 MailMessage message = new MailMessage();
-                message.From = new MailAddress(adminEmailID);
-                message.To.Add(new MailAddress(toEmail));
+                message.From = new MailAddress(AdminEmailID);
+                message.To.Add(new MailAddress(SendTo));
                 message.IsBodyHtml = true;
                 message.Subject = subject;
                 message.Body = body;
 
-                // Try multiple SMTP servers with fallback
-                string[] smtpServers = {
-                    "relay-hosting.secureserver.net",
-                    "mail.agouramathcircle.org",
-                    "smtp.gmail.com",
-                    "smtp.office365.com"
-                };
+                // Read SMTP settings from configuration
+                string smtpServer = _configuration.GetSection("SmtpSettings")["Server"] ?? "relay-hosting.secureserver.net";
+                int smtpPort = int.TryParse(_configuration.GetSection("SmtpSettings")["Port"], out int port) ? port : 25;
+                bool enableSsl = bool.TryParse(_configuration.GetSection("SmtpSettings")["EnableSsl"], out bool ssl) ? ssl : false;
+                bool useDefaultCredentials = bool.TryParse(_configuration.GetSection("SmtpSettings")["UseDefaultCredentials"], out bool credentials) ? credentials : false;
+                int timeout = int.TryParse(_configuration.GetSection("SmtpSettings")["Timeout"], out int time) ? time : 30000;
 
-                int[] ports = { 25, 587, 465 };
-
-                Exception lastException = null;
-
-                foreach (var server in smtpServers)
-                {
-                    foreach (var port in ports)
-                    {
-                        try
-                        {
-                            using (var smtpClient = new SmtpClient(server, port))
-                            {
-                                smtpClient.EnableSsl = port == 465 || port == 587; // Enable SSL for secure ports
-                                smtpClient.UseDefaultCredentials = false;
-                                smtpClient.Timeout = 30000; // 30 second timeout
-
-                                smtpClient.Send(message);
-                                return "Email sent successfully";
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            lastException = ex;
-                            // Continue to next server/port combination
-                            continue;
-                        }
-                    }
-                }
-
-                // If all servers failed, return the last exception
-                return $"Error sending email to {toEmail}: All SMTP servers failed. Last error: {lastException?.Message}";
+                SmtpClient smtpClient = new SmtpClient(smtpServer, smtpPort);
+                smtpClient.EnableSsl = enableSsl;
+                smtpClient.UseDefaultCredentials = useDefaultCredentials;
+                smtpClient.Timeout = timeout;
+                smtpClient.Send(message);
+                return true;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Return detailed error message for debugging
-                return $"Error sending email to {toEmail}: {ex.Message}. Inner Exception: {ex.InnerException?.Message}";
+                return false;
+            }
+        }
+
+        private bool SendEmailGroup(string SendTo, string SentFrom, string subject, string body, string SendBcc)
+        {
+            string AdminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"];
+
+            try
+            {
+                MailMessage message = new MailMessage();
+                message.From = new MailAddress(AdminEmailID);
+                message.To.Add(new MailAddress(SendTo));
+                message.Bcc.Add(new MailAddress(SendBcc));
+                message.IsBodyHtml = true;
+                message.Subject = subject;
+                message.Body = body;
+
+                // Read SMTP settings from configuration
+                string smtpServer = _configuration.GetSection("SmtpSettings")["Server"] ?? "relay-hosting.secureserver.net";
+                int smtpPort = int.TryParse(_configuration.GetSection("SmtpSettings")["Port"], out int port) ? port : 25;
+                bool enableSsl = bool.TryParse(_configuration.GetSection("SmtpSettings")["EnableSsl"], out bool ssl) ? ssl : false;
+                bool useDefaultCredentials = bool.TryParse(_configuration.GetSection("SmtpSettings")["UseDefaultCredentials"], out bool credentials) ? credentials : false;
+                int timeout = int.TryParse(_configuration.GetSection("SmtpSettings")["Timeout"], out int time) ? time : 30000;
+
+                SmtpClient smtpClient = new SmtpClient(smtpServer, smtpPort);
+                smtpClient.EnableSsl = enableSsl;
+                smtpClient.UseDefaultCredentials = useDefaultCredentials;
+                smtpClient.Timeout = timeout;
+                smtpClient.Send(message);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+        private string? GetPropertyValue(object obj, string propertyName)
+        {
+            try
+            {
+                var property = obj.GetType().GetProperty(propertyName);
+                return property?.GetValue(obj)?.ToString();
+            }
+            catch
+            {
+                return null;
             }
         }
 
@@ -250,29 +343,47 @@ namespace pStudyWare20.Services.Implementations
                 message.Subject = subject;
                 message.Body = body;
 
-                // Try multiple SMTP servers with fallback
+                // Read SMTP settings from configuration
+                string configuredServer = _configuration.GetSection("SmtpSettings")["Server"] ?? "relay-hosting.secureserver.net";
+                int configuredPort = int.TryParse(_configuration.GetSection("SmtpSettings")["Port"], out int port) ? port : 25;
+                bool configuredEnableSsl = bool.TryParse(_configuration.GetSection("SmtpSettings")["EnableSsl"], out bool ssl) ? ssl : false;
+                bool configuredUseDefaultCredentials = bool.TryParse(_configuration.GetSection("SmtpSettings")["UseDefaultCredentials"], out bool credentials) ? credentials : false;
+                int configuredTimeout = int.TryParse(_configuration.GetSection("SmtpSettings")["Timeout"], out int time) ? time : 30000;
+
+                // Try configured SMTP server first, then fallback to others
                 string[] smtpServers = {
+                    configuredServer,
                     "relay-hosting.secureserver.net",
                     "mail.agouramathcircle.org",
                     "smtp.gmail.com",
                     "smtp.office365.com"
                 };
 
-                int[] ports = { 25, 587, 465 };
+                int[] ports = { configuredPort, 25, 587, 465 };
 
                 Exception lastException = null;
 
                 foreach (var server in smtpServers)
                 {
-                    foreach (var port in ports)
+                    foreach (var portNumber in ports)
                     {
                         try
                         {
-                            using (var smtpClient = new SmtpClient(server, port))
+                            using (var smtpClient = new SmtpClient(server, portNumber))
                             {
-                                smtpClient.EnableSsl = port == 465 || port == 587; // Enable SSL for secure ports
-                                smtpClient.UseDefaultCredentials = false;
-                                smtpClient.Timeout = 30000; // 30 second timeout
+                                // Use configured settings for the configured server, otherwise use defaults
+                                if (server == configuredServer && portNumber == configuredPort)
+                                {
+                                    smtpClient.EnableSsl = configuredEnableSsl;
+                                    smtpClient.UseDefaultCredentials = configuredUseDefaultCredentials;
+                                    smtpClient.Timeout = configuredTimeout;
+                                }
+                                else
+                                {
+                                    smtpClient.EnableSsl = portNumber == 465 || portNumber == 587; // Enable SSL for secure ports
+                                    smtpClient.UseDefaultCredentials = false;
+                                    smtpClient.Timeout = 30000; // 30 second timeout
+                                }
 
                                 await smtpClient.SendMailAsync(message);
                                 return "Email sent successfully";
@@ -326,9 +437,17 @@ namespace pStudyWare20.Services.Implementations
                 message.Subject = subject;
                 message.Body = body;
 
-                SmtpClient smtpClient = new SmtpClient("relay-hosting.secureserver.net", Convert.ToInt32(25));
-                smtpClient.EnableSsl = false; // Explicitly disable SSL
-                smtpClient.UseDefaultCredentials = false; // Explicitly disable default credentials
+                // Read SMTP settings from configuration
+                string smtpServer = _configuration.GetSection("SmtpSettings")["Server"] ?? "relay-hosting.secureserver.net";
+                int smtpPort = int.TryParse(_configuration.GetSection("SmtpSettings")["Port"], out int port) ? port : 25;
+                bool enableSsl = bool.TryParse(_configuration.GetSection("SmtpSettings")["EnableSsl"], out bool ssl) ? ssl : false;
+                bool useDefaultCredentials = bool.TryParse(_configuration.GetSection("SmtpSettings")["UseDefaultCredentials"], out bool credentials) ? credentials : false;
+                int timeout = int.TryParse(_configuration.GetSection("SmtpSettings")["Timeout"], out int time) ? time : 30000;
+
+                SmtpClient smtpClient = new SmtpClient(smtpServer, smtpPort);
+                smtpClient.EnableSsl = enableSsl;
+                smtpClient.UseDefaultCredentials = useDefaultCredentials;
+                smtpClient.Timeout = timeout;
 
                 await smtpClient.SendMailAsync(message);
                 return $"Email sent successfully to group: {group}";
@@ -355,11 +474,11 @@ namespace pStudyWare20.Services.Implementations
                                 + " If you have any issue with your login, please email to info@agouramathcircle.org." + "<br/><br/>"
                                 + " Regards <br> Agoura Math Circle <b/> <br/>www.agouramathcircle.org";
 
-                string emailResult = SendEmail(user.EmailID ?? user.UserName, adminEmailID, emailSubject, emailBody);
-                if (emailResult.Contains("Error"))
-                {
-                    return emailResult;
-                }
+                SendEmail(user.EmailID ?? user.UserName, adminEmailID, emailSubject, emailBody);
+                //if (emailResult.Contains("Error"))
+                //{
+                //    return emailResult;
+                //}
 
                 return "Email sent successfully";
             }
@@ -375,23 +494,84 @@ namespace pStudyWare20.Services.Implementations
             {
                 string adminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
 
-                // Email subject and body matching the original UpdatePassword.aspx.cs
-                string emailSubject = "Agoura Math Circle : Your Password changed.";
-                string emailBody = "You have successfully changed your password<br/>"
+                // Email subject and body matching the original SendChangePassword method from AMCWebServices/EmailUtility.cs
+                string emailSubject = "Agoura Math Circle :  Your Password changed.";
+                string emailBody = "You have successfuly changed your password<br/>"
                                 + " Your New Password: " + newPassword + "<br/> "
-                                + " Regards<br/>Agoura Math Circle<br/><br/>www.agouramathcircle.org";
+                                + " Regards<br/>Agoura Math Circle<b/><br/>www.agouramathcircle.org";
 
-                string emailResult = SendEmail(email, adminEmailID, emailSubject, emailBody);
-                if (emailResult.Contains("Error"))
-                {
-                    return emailResult;
-                }
+                SendEmail(email, adminEmailID, emailSubject, emailBody);
+                //if (emailResult.Contains("Error"))
+                //{
+                //    return emailResult;
+                //}
 
                 return "Email sent successfully";
             }
             catch (Exception ex)
             {
                 return $"Error sending password changed email: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Sends forgot password email - matches SendForgetPassword from AMCWebServices/EmailUtility.cs
+        /// </summary>
+        public bool SendForgetPassword(string emailAddress, string password)
+        {
+            try
+            {
+                string adminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
+
+                // Email subject and body matching the original SendForgetPassword method from AMCWebServices/EmailUtility.cs
+                string emailSubject = "Agoura Math Circle : Your Login Information";
+                string emailBody = "Thank you very much for contacting with Agoura Math Circle.Here is your Login Information.<br/>"
+                                + "<hr><br/>"
+                                + " User Name: " + emailAddress + "<br/>"
+                                + " Password: " + password + " <br/><hr>"
+                                + " If you have any issue with your login, please email to info@agouramathcircle.org." + "<br/><br/>"
+                                + " Regards <br> Agoura Math Circle <b/> <br/>www.agouramathcircle.org";
+
+                SendEmail(emailAddress, adminEmailID, emailSubject, emailBody);
+                //if (emailResult.Contains("Error"))
+                //{
+                //    return false;
+                //}
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Sends change password email - matches SendChangePassword from AMCWebServices/EmailUtility.cs
+        /// </summary>
+        public bool SendChangePassword(string emailAddress, string password)
+        {
+            try
+            {
+                string adminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
+
+                // Email subject and body matching the original SendChangePassword method from AMCWebServices/EmailUtility.cs
+                string emailSubject = "Agoura Math Circle :  Your Password changed.";
+                string emailBody = "You have successfuly changed your password<br/>"
+                                + " Your New Password: " + password + "<br/> "
+                                + " Regards<br/>Agoura Math Circle<b/><br/>www.agouramathcircle.org";
+
+                SendEmail(emailAddress, adminEmailID, emailSubject, emailBody);
+                //if (emailResult.Contains("Error"))
+                //{
+                //    return false;
+                //}
+
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

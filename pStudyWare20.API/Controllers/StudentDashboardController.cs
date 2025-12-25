@@ -11,7 +11,7 @@ namespace pStudyWare20.API.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    [EnableCors("AllowSpecificOrigins")]
+    [EnableCors("AllowReactApp")]
     [Authorize(Roles = "Student")]
     public class StudentDashboardController : ControllerBase
     {
