@@ -2,28 +2,26 @@
 
 .engineering-circle-container {
   min-height: 100vh;
+  background: #ffffff;
+  position: relative;
 }
 
 /* Image styling */
 .engineering-circle-container .img-part {
-  border: 3px solid #ffffff;
+  border: 1px solid #e9ecef;
   background: #ffffff;
-  padding: 8px;
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1),
-              8px 8px 0 rgba(0, 0, 0, 0.3),
-              0 8px 0 rgba(0, 0, 0, 0.3);
-  transform: translateY(-8px);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  margin-right: 40px;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 0.3s ease;
   margin-bottom: 30px;
+  position: relative;
+  overflow: hidden;
+  display: block !important;
 }
 
 .engineering-circle-container .img-part:hover {
-  transform: translateY(-12px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
-              12px 12px 0 rgba(0, 0, 0, 0.4),
-              0 12px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.16);
 }
 
 .engineering-circle-container .img-part img {
@@ -31,11 +29,14 @@
   width: 100%;
   height: auto;
   display: block;
+  object-fit: contain;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
+/* General image rules */
 .engineering-circle-container img {
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   transition: transform 0.3s ease;
 }
 
@@ -43,21 +44,59 @@
   transform: scale(1.02);
 }
 
-/* Add gap between text and image */
-.engineering-circle-container .eng-row .MuiGrid-item:has(.img-part) {
-  margin-right: 40px;
+/* Ensure proper spacing and alignment between content and image */
+.engineering-circle-container .eng-row {
+  align-items: flex-start;
+  margin-left: 0;
 }
 
+/* Content column - more left spacing */
+.engineering-circle-container .eng-row .MuiGrid-item:first-child {
+  padding-left: 20px;
+  margin-left: 0;
+}
+
+/* Responsive: stack and center on smaller screens */
 @media (max-width: 991px) {
   .engineering-circle-container .img-part {
-    margin-right: 0;
-    margin-bottom: 40px;
+    width: 80% !important;
+    margin: 20px auto 0 auto;
+    transform: none;
   }
 }
 
-/* Content spacing */
+/* Content spacing - more left padding */
 .engineering-circle-container .MuiContainer-root {
-  padding: 20px;
+  padding-left: 20px;
+  padding-right: 24px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  margin-left: 0;
+}
+
+/* Ensure image is visible and properly displayed */
+.engineering-circle-container .eng-row .img-part,
+.engineering-circle-container .eng-row1 .img-part {
+  width: 100%;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* Exact sizing for Data Science photo */
+.engineering-circle-container .eng-row1 .img-part {
+  max-width: 420px;
+}
+
+.engineering-circle-container .eng-row .img-part img,
+.engineering-circle-container .eng-row1 .img-part img {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  object-fit: contain;
 }
 
 /* Animated arrows */

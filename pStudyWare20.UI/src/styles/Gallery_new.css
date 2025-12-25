@@ -1,0 +1,159 @@
+/* Gallery Component Styles */
+
+.gallery-container {
+  min-height: 100vh;
+}
+
+/* Gallery grid */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* Gallery cards */
+.gallery-container .MuiCard-root {
+  transition: all 0.3s ease;
+  height: 100%;
+  cursor: pointer;
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.gallery-container .MuiCard-root:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Card media (images) */
+.gallery-container .MuiCardMedia-root {
+  transition: transform 0.3s ease;
+  border-radius: 8px;
+  margin: 8px;
+}
+
+.gallery-container .MuiCardMedia-root:hover {
+  transform: scale(1.02);
+}
+
+/* Card content */
+.gallery-container .MuiCardContent-root {
+  padding: 16px !important;
+  text-align: center;
+}
+
+/* Image hover effects */
+.gallery-item {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.gallery-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Modal styles */
+.gallery-modal {
+  background: rgba(0, 0, 0, 0.95);
+}
+
+/* Modal content */
+.gallery-container .MuiDialog-paper {
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+/* Modal image container */
+.gallery-container .MuiDialogContent-root {
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+/* Modal images */
+.gallery-container .MuiDialogContent-root img {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Modal iframe (videos) */
+.gallery-container .MuiDialogContent-root iframe {
+  border-radius: 8px;
+  width: 100%;
+  height: 100%;
+}
+
+/* Navigation buttons */
+.gallery-container .MuiIconButton-root {
+  border-radius: 50% !important;
+  width: 50px !important;
+  height: 50px !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  color: white !important;
+  transition: background-color 0.3s ease !important;
+}
+
+.gallery-container .MuiIconButton-root:hover {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Close button */
+.gallery-container .MuiDialogContent-root .MuiIconButton-root:first-child {
+  width: 40px !important;
+  height: 40px !important;
+  z-index: 10;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .gallery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+  }
+
+  .gallery-container .MuiCard-root {
+    margin-bottom: 16px;
+  }
+
+  .gallery-container .MuiDialog-paper {
+    max-width: 95vw !important;
+    max-height: 95vh !important;
+    margin: 10px !important;
+  }
+
+  .gallery-container .MuiCardMedia-root {
+    height: 200px !important;
+  }
+
+  .gallery-container .MuiIconButton-root {
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .gallery-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .gallery-container .MuiCardMedia-root {
+    height: 180px !important;
+  }
+
+  .gallery-container .MuiDialog-paper {
+    max-width: 98vw !important;
+    max-height: 98vh !important;
+    margin: 5px !important;
+  }
+}

@@ -46,13 +46,19 @@ namespace pStudyWare20.API.Controllers
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            // Check both claim types for role
+            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? User.FindFirst("role")?.Value;
+            
+            // Get all claims for debugging
+            var allClaims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
 
             return Ok(new
             {
                 UserId = userId,
                 Email = email,
-                Role = role
+                Role = role,
+                AllClaims = allClaims,
+                IsInRoleStudent = User.IsInRole("Student")
             });
         }
 

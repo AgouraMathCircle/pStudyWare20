@@ -8,7 +8,6 @@ using System.Security.Claims;
 namespace pStudyWare20.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
     [EnableCors("AllowReactApp")]
     [Authorize] // Require authentication for all admin endpoints
     public class AdminDashboardController : ControllerBase

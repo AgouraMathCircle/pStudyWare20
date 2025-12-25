@@ -23,7 +23,7 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useNavigate, Link as RouterLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import volunteerService from "../services/volunteerService";
 import "../styles/VolunteerRegistration.css";
 // Import images from src/assets
@@ -225,52 +225,61 @@ const VolunteerRegistration = () => {
         </div>
         <div className="breadcrumbs-text white-color">
           <h1 className="page-title">VOLUNTEER REGISTRATION</h1>
-          <nav className="breadcrumb-nav">
-            <RouterLink to="/" className="breadcrumb-link">
-              Home
-            </RouterLink>
-            <span className="breadcrumb-separator"> &gt; </span>
-            <RouterLink to="/registration" className="breadcrumb-link">
-              Registration
-            </RouterLink>
-            <span className="breadcrumb-separator"> &gt; </span>
-            <span className="breadcrumb-current">Volunteer Registration</span>
-          </nav>
+          <ul>
+            <li>
+              <a className="active" href="/">
+                Home &gt;
+              </a>
+            </li>
+            <li>
+              <a className="active" href="/registration">
+                Registration &gt;
+              </a>
+            </li>
+            <li className="active">Volunteer Registration</li>
+          </ul>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="main-content">
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          {/* Main Form - Vertical Layout */}
-          <Paper elevation={10}  sx={{ p: 4 }}>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <Grid container spacing={4}>
-                {/* Personal Information Section - Full Width */}
-                <Grid item xs={12}>
-                  <Card sx={{ p: 2 }}>
-                    <CardContent>
-                      <Typography
-                        variant="h5"
-                        gutterBottom
-                        sx={{
-                          color: "#174a10",
-                          fontWeight: "bold",
-                          textAlign: "center",
-                          mb: 3,
-                        }}
-                      >
-                        Personal{" "}
-                        <span style={{ color: "#1976d2" }}>Information</span>
-                      </Typography>
-
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 2,
-                        }}
-                      >
+      {/* Main Content Section */}
+      <div className="sc-about pt-80 pb-70 md-pt-40">
+        <div className="container">
+          {/* Main Form */}
+          <div className="row">
+            <form onSubmit={handleSubmit(onSubmit)} style={{ width: "100%" }}>
+              <div className="row">
+                {/* Personal Information Section */}
+                <div className="col-lg-6 md-mb-30">
+                  <div
+                    className="form-section"
+                    style={{
+                      padding: "20px",
+                      backgroundColor: "#ffffff",
+                      borderRadius: "8px",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <h4
+                      className="heading"
+                      style={{
+                        color: "#174a10",
+                        fontWeight: "bold",
+                        textAlign: "center",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      Personal{" "}
+                      <span style={{ color: "#1976d2" }}>Information</span>
+                    </h4>
+                    <div
+                      className="form-group-container"
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "16px",
+                      }}
+                    >
                         <Controller
                           name="firstName"
                           control={control}
@@ -282,6 +291,7 @@ const VolunteerRegistration = () => {
                               error={!!errors.firstName}
                               helperText={errors.firstName?.message}
                               variant="outlined"
+                              sx={{ width: "100%" }}
                             />
                           )}
                         />
@@ -297,6 +307,7 @@ const VolunteerRegistration = () => {
                               error={!!errors.lastName}
                               helperText={errors.lastName?.message}
                               variant="outlined"
+                              sx={{ width: "100%" }}
                             />
                           )}
                         />
@@ -313,6 +324,7 @@ const VolunteerRegistration = () => {
                               error={!!errors.email}
                               helperText={errors.email?.message}
                               variant="outlined"
+                              sx={{ width: "100%" }}
                             />
                           )}
                         />
@@ -329,6 +341,7 @@ const VolunteerRegistration = () => {
                               error={!!errors.phoneNo}
                               helperText={errors.phoneNo?.message}
                               variant="outlined"
+                              sx={{ width: "100%" }}
                             />
                           )}
                         />
@@ -344,6 +357,7 @@ const VolunteerRegistration = () => {
                               error={!!errors.city}
                               helperText={errors.city?.message}
                               variant="outlined"
+                              sx={{ width: "100%" }}
                             />
                           )}
                         />
@@ -359,6 +373,7 @@ const VolunteerRegistration = () => {
                               error={!!errors.state}
                               helperText={errors.state?.message}
                               variant="outlined"
+                              sx={{ width: "100%" }}
                             />
                           )}
                         />
@@ -367,7 +382,7 @@ const VolunteerRegistration = () => {
                           name="country"
                           control={control}
                           render={({ field }) => (
-                            <FormControl fullWidth error={!!errors.country}>
+                            <FormControl fullWidth error={!!errors.country} sx={{ width: "100%" }}>
                               <InputLabel>Country *</InputLabel>
                               <Select {...field} label="Country *">
                                 {countries.map((country) => (
@@ -387,36 +402,42 @@ const VolunteerRegistration = () => {
                             </FormControl>
                           )}
                         />
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
+                    </div>
+                  </div>
+                </div>
 
-                {/* Educational Information Section - Full Width */}
-                <Grid item xs={12}>
-                  <Card sx={{ p: 2 }}>
-                    <CardContent>
-                      <Typography
-                        variant="h5"
-                        gutterBottom
-                        sx={{
-                          color: "#174a10",
-                          fontWeight: "bold",
-                          textAlign: "center",
-                          mb: 3,
-                        }}
-                      >
-                        Educational{" "}
-                        <span style={{ color: "#1976d2" }}>Information</span>
-                      </Typography>
-
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 2,
-                        }}
-                      >
+                {/* Educational Information Section */}
+                <div className="col-lg-6 md-mb-30">
+                  <div
+                    className="form-section"
+                    style={{
+                      padding: "20px",
+                      backgroundColor: "#ffffff",
+                      borderRadius: "8px",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <h4
+                      className="heading"
+                      style={{
+                        color: "#174a10",
+                        fontWeight: "bold",
+                        textAlign: "center",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      Educational{" "}
+                      <span style={{ color: "#1976d2" }}>Information</span>
+                    </h4>
+                    <div
+                      className="form-group-container"
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "16px",
+                      }}
+                    >
                         <Controller
                           name="schoolName"
                           control={control}
@@ -428,6 +449,7 @@ const VolunteerRegistration = () => {
                               error={!!errors.schoolName}
                               helperText={errors.schoolName?.message}
                               variant="outlined"
+                              sx={{ width: "100%" }}
                             />
                           )}
                         />
@@ -436,7 +458,7 @@ const VolunteerRegistration = () => {
                           name="grade"
                           control={control}
                           render={({ field }) => (
-                            <FormControl fullWidth error={!!errors.grade}>
+                            <FormControl fullWidth error={!!errors.grade} sx={{ width: "100%" }}>
                               <InputLabel>Grade/Degree *</InputLabel>
                               <Select {...field} label="Grade/Degree *">
                                 {grades.map((grade) => (
@@ -461,7 +483,7 @@ const VolunteerRegistration = () => {
                           name="sessionId"
                           control={control}
                           render={({ field }) => (
-                            <FormControl fullWidth error={!!errors.sessionId}>
+                            <FormControl fullWidth error={!!errors.sessionId} sx={{ width: "100%" }}>
                               <InputLabel>Register For *</InputLabel>
                               <Select {...field} label="Register For *">
                                 {sessions.map((session) => (
@@ -483,7 +505,7 @@ const VolunteerRegistration = () => {
                           name="locationId"
                           control={control}
                           render={({ field }) => (
-                            <FormControl fullWidth error={!!errors.locationId}>
+                            <FormControl fullWidth error={!!errors.locationId} sx={{ width: "100%" }}>
                               <InputLabel>Course/Location *</InputLabel>
                               <Select {...field} label="Course/Location *">
                                 <MenuItem value={0}>
@@ -514,6 +536,7 @@ const VolunteerRegistration = () => {
                             <FormControl
                               fullWidth
                               error={!!errors.interestedFor}
+                              sx={{ width: "100%" }}
                             >
                               <InputLabel>Interested For *</InputLabel>
                               <Select {...field} label="Interested For *">
@@ -552,48 +575,42 @@ const VolunteerRegistration = () => {
                               helperText={errors.aboutyourself?.message}
                               variant="outlined"
                               placeholder="Tell us about your achievements, merits, and any additional information..."
+                              sx={{ width: "100%" }}
                             />
                           )}
                         />
+                    </div>
+                  </div>
+                </div>
 
-                        {/* Submit Button */}
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            mt: 4,
-                          }}
-                        >
-                          <Button
-                            type="submit"
-                            variant="contained"
-                            size="large"
-                            disabled={loading}
-                            sx={{
-                              minWidth: 250,
-                              py: 1.5,
-                              fontSize: "1.1rem",
-                              fontWeight: "bold",
-                              backgroundColor: "#1976d2",
-                              "&:hover": {
-                                backgroundColor: "#1565c0",
-                              },
-                            }}
-                          >
-                            {loading ? (
-                              <CircularProgress size={24} color="inherit" />
-                            ) : (
-                              "Submit"
-                            )}
-                          </Button>
-                        </Box>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
+                {/* Submit Button */}
+                <div className="col-lg-12" style={{ textAlign: "center", marginTop: "20px" }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={loading}
+                    sx={{
+                      minWidth: 250,
+                      py: 1.5,
+                      fontSize: "1.1rem",
+                      fontWeight: "bold",
+                      backgroundColor: "#1976d2",
+                      "&:hover": {
+                        backgroundColor: "#1565c0",
+                      },
+                    }}
+                  >
+                    {loading ? (
+                      <CircularProgress size={24} color="inherit" />
+                    ) : (
+                      "Submit"
+                    )}
+                  </Button>
+                </div>
+              </div>
             </form>
-          </Paper>
+          </div>
 
           {/* Success/Error Snackbar */}
           <Snackbar
@@ -610,7 +627,7 @@ const VolunteerRegistration = () => {
               {snackbar.message}
             </Alert>
           </Snackbar>
-        </Container>
+        </div>
       </div>
     </div>
   );

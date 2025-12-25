@@ -23,24 +23,30 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
-        /// Register a new student (matches legacy controller exactly)
+        /// Register a new student (matches legacy controller exactly - StudentRegistration.aspx.cs)
         /// </summary>
         public ResponseDetails StudentRegistration(RegistrationStudentModel studentDetails)
         {
             ResponseDetails responseDetails = new ResponseDetails();
             try
             {
-                // Register student using stored procedure
+
+
+                // Register student using stored procedure (matches AMC_spRegisterStudent call)
                 var result = _studentRepository.RegisterStudentAsync(studentDetails).Result;
 
                 if (result)
                 {
-                    // Send email notification to admin
-                    _emailUtility.SendEmailtoAdminForStudentRegistration(studentDetails);
+                    // Send email notification to admin (matches InformMe() call in .aspx.cs line 107)
+                   // _emailUtility.SendEmailtoAdminForStudentRegistration(studentDetails);
 
+                    // Send email notification to parent (matches InformParent() call in .aspx.cs line 108)
+                   // _emailUtility.SendEmailtoParentForStudentRegistration(studentDetails);
+
+                    // Set success message matching .aspx.cs line 103: txtstName.Text + " " + txtstLName.Text + " "
                     responseDetails.isSuccess = true;
                     responseDetails.ErrorMessage = "";
-                    responseDetails.Message = "Registered";
+                    responseDetails.Message = $"{studentDetails.StudentFirstName} {studentDetails.StudentLastName} ";
                 }
                 else
                 {

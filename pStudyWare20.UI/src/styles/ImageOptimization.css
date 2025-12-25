@@ -1,0 +1,145 @@
+/* Image Optimization Styles */
+
+/* Base styles for optimized images */
+.optimized-image-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Lazy loading placeholder */
+.optimized-image-container img[loading="lazy"] {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.optimized-image-container img[loading="lazy"].loaded {
+  opacity: 1;
+}
+
+/* Blur-up placeholder effect */
+.image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  filter: blur(10px);
+  transform: scale(1.1);
+  opacity: 0.5;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.image-placeholder.fade-out {
+  opacity: 0;
+}
+
+/* Skeleton loader for images */
+.image-skeleton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive image styles */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Prevent layout shift */
+img[width][height] {
+  aspect-ratio: attr(width) / attr(height);
+}
+
+/* Optimize image rendering */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: optimize-quality;
+}
+
+/* Lazy load fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+img.lazy-loaded {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Critical images - load immediately */
+img.critical {
+  loading: eager;
+  fetchpriority: high;
+}
+
+/* Non-critical images - lazy load */
+img.non-critical {
+  loading: lazy;
+  fetchpriority: low;
+}
+
+/* Background image optimization */
+.optimized-bg-image {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  will-change: transform;
+}
+
+/* Image container with aspect ratio */
+.aspect-ratio-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: var(--aspect-ratio, 56.25%); /* 16:9 default */
+  overflow: hidden;
+}
+
+.aspect-ratio-container img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Responsive image sizes */
+@media (max-width: 768px) {
+  img {
+    max-width: 100%;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .retina-image {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+

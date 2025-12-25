@@ -8,6 +8,7 @@ import About from "./src/components/About";
 import MathCircle from "./src/components/MathCircle";
 import EngineeringCircle from "./src/components/EngineeringCircle";
 import TestPreparation from "./src/components/TestPreparation";
+import SatelliteProgram from "./src/components/SatelliteProgram";
 import Contact from "./src/components/Contact";
 import Gallery from "./src/components/Gallery";
 import PhotoGallery from "./src/components/PhotoGallery";
@@ -29,6 +30,7 @@ import StudentRegistration from "./src/components/StudentRegistration";
 import VolunteerRegistration from "./src/components/VolunteerRegistration";
 import FAQ from "./src/components/FAQ";
 import Resources from "./src/components/Resources";
+import Rules from "./src/components/Rules";
 import Login from "./src/components/Login";
 import ProtectedRoute from "./src/components/ProtectedRoute";
 import RoleProtectedRoute from "./src/components/RoleProtectedRoute";
@@ -76,19 +78,50 @@ const AppRoutes = () => {
               path="/about/test-preparation"
               element={<TestPreparation />}
             />
+            <Route
+              path="/about/satellite-program"
+              element={<SatelliteProgram />}
+            />
             <Route path="/contact" element={<Contact />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/gallery/photo" element={<PhotoGallery />} />
-            <Route path="/gallery/photo/AwardCeremony2025" element={<AwardCeremony2025 />} />
-            <Route path="/gallery/photo/AwardCeremony2024" element={<AwardCeremony2024 />} />
-            <Route path="/gallery/photo/AwardCeremony2023" element={<AwardCeremony2023 />} />
-            <Route path="/gallery/photo/AwardCeremony2019" element={<AwardCeremony2019 />} />
-            <Route path="/gallery/photo/AwardCeremony2018" element={<AwardCeremony2018 />} />
-            <Route path="/gallery/photo/AwardCeremony2017" element={<AwardCeremony2017 />} />
-            <Route path="/gallery/photo/MathKangaroo2017" element={<MathKangaroo2017 />} />
-            <Route path="/gallery/photo/MathKangaroo" element={<MathKangaroo />} />
+            <Route
+              path="/gallery/photo/AwardCeremony2025"
+              element={<AwardCeremony2025 />}
+            />
+            <Route
+              path="/gallery/photo/AwardCeremony2024"
+              element={<AwardCeremony2024 />}
+            />
+            <Route
+              path="/gallery/photo/AwardCeremony2023"
+              element={<AwardCeremony2023 />}
+            />
+            <Route
+              path="/gallery/photo/AwardCeremony2019"
+              element={<AwardCeremony2019 />}
+            />
+            <Route
+              path="/gallery/photo/AwardCeremony2018"
+              element={<AwardCeremony2018 />}
+            />
+            <Route
+              path="/gallery/photo/AwardCeremony2017"
+              element={<AwardCeremony2017 />}
+            />
+            <Route
+              path="/gallery/photo/MathKangaroo2017"
+              element={<MathKangaroo2017 />}
+            />
+            <Route
+              path="/gallery/photo/MathKangaroo"
+              element={<MathKangaroo />}
+            />
             <Route path="/gallery/photo/AmcClass" element={<AmcClass />} />
-            <Route path="/gallery/photo/FieldTrip2016" element={<FieldTrip2016 />} />
+            <Route
+              path="/gallery/photo/FieldTrip2016"
+              element={<FieldTrip2016 />}
+            />
             <Route path="/gallery/photo/EC" element={<EC />} />
             <Route path="/gallery/video" element={<VideoGallery />} />
             <Route path="/gallery/news" element={<NewsGallery />} />
@@ -103,6 +136,7 @@ const AppRoutes = () => {
             />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/rules" element={<Rules />} />
             <Route path="/login" element={<Login />} />
 
             {/* Student Routes */}

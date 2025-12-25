@@ -17,27 +17,68 @@ namespace pStudyWare20.API.Controllers
             _studentService = studentService;
         }
 
-        /// <summary>
-        /// Register a new student (matches legacy controller exactly)
-        /// </summary>
-        /// <param name="studentDetails">Student registration details</param>
-        /// <returns>Registration result</returns>
-        [HttpPost]        
+        [HttpPost]
         public object StudentRegistration([FromBody] RegistrationStudentModel studentDetails)
         {
             try
             {
+                // Step 1: Validate model state (matches Page.IsValid check in .aspx.cs line 34)
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
+                // Step 2: Honeypot/bot validation (matches txtValidEmailAddress.Text.Length == 0 check in .aspx.cs line 36)
+                // If ValidEmailAddress field is not empty, it indicates a bot submission
+                // In .aspx.cs: if (txtValidEmailAddress.Text.Length == 0) - means if empty, proceed; if not empty, it's a bot
+                if (!string.IsNullOrEmpty(studentDetails.ValidEmailAddress))
+                {
+                    return BadRequest(new
+                    {
+                        isSuccess = false,
+                        message = "Invalid request",
+                        errorMessage = "Bot detection triggered"
+                    });
+                }
+
+                // Step 3: Determine UserName based on UserNameType (matches .aspx.cs lines 41-46)
+                // rblUserName.SelectedValue == "P" → UserName = txtParentEmail.Text
+                // rblUserName.SelectedValue == "S" → UserName = txtstEmail.Text
+                if (string.IsNullOrEmpty(studentDetails.UserName))
+                {
+                    if (studentDetails.UserNameType == "P")
+                    {
+                        studentDetails.UserName = studentDetails.ParentEmail;
+                    }
+                    else if (studentDetails.UserNameType == "S")
+                    {
+                        studentDetails.UserName = studentDetails.StudentEmail;
+                    }
+                }
+
                 var response = _studentService.StudentRegistration(studentDetails);
-                return response;
+
+                // Return response matching the structure expected by the frontend
+                // The .aspx.cs shows/hides divs (lines 104-105), but API returns ResponseDetails object
+                if (response.isSuccess)
+                {
+                    return Ok(response);
+                }
+                else
+                {
+                    return BadRequest(response);
+                }
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred during student registration", error = ex.Message });
+                // Log exception and return error response
+                // The .aspx.cs catches exceptions and shows error message via MsgBox (lines 112-116)
+                return StatusCode(500, new
+                {
+                    isSuccess = false,
+                    message = "An error occurred during student registration",
+                    errorMessage = ex.Message
+                });
             }
         }
 

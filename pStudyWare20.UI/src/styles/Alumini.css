@@ -1,0 +1,79 @@
+.alumini-page .breadcrumbs-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 8px;
+  color: #fff;
+}
+
+.alumini-iframe-wrapper {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 66.66%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+
+.alumini-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+}
+
+@media (max-width: 768px) {
+  .alumini-iframe-wrapper { padding-bottom: 120%; }
+}
+
+.alumini-card {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.alumini-image img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.alumini-info {
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.alumini-name {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.alumini-college {
+  color: #666;
+}
+.alumini-page .ourteam-card {
+  height: 100%;
+}
+
+.alumini-page .ourteam-image {
+  height: 220px;
+}
+
+.alumini-page .ourteam-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.alumini-page .ourteam-info {
+  min-height: 72px;
+}

@@ -2,7 +2,8 @@
 
 .math-circle-container {
   width: 100%;
-  margin: 10px;
+  margin: 0;
+  padding: 0;
   min-height: 100vh;
   box-sizing: border-box;
 }
@@ -12,6 +13,12 @@
 .math-circle-container img {
   border-radius: 10px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* Ensure the page header banner fits edge-to-edge without rounding or shadow */
+.math-circle-container .breadcrumbs-img img {
+  border-radius: 0;
+  box-shadow: none;
 }
 
 /* Enhanced image styling with border and shadow */

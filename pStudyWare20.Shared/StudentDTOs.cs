@@ -52,6 +52,12 @@ namespace pStudyWare20.Shared
         [Display(Name = "Session ID")]
         public string SessionId { get; set; } = string.Empty;
 
+        [Display(Name = "Session Name")]
+        public string SessionName { get; set; } = string.Empty;
+
+        [Display(Name = "Location Name")]
+        public string LocationName { get; set; } = string.Empty;
+
         [Display(Name = "Picture Permission")]
         public bool PicturePermission { get; set; }
 
@@ -63,6 +69,16 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Username")]
         public string UserName { get; set; } = string.Empty;
+
+        [Display(Name = "User Name Type")]
+        public string UserNameType { get; set; } = string.Empty; // P for Parent, S for Student
+
+        /// <summary>
+        /// Honeypot field for bot detection (matches txtValidEmailAddress from StudentRegistration.aspx.cs)
+        /// This field should always be empty for legitimate users. If it contains a value, it indicates a bot submission.
+        /// </summary>
+        [Display(Name = "Valid Email Address")]
+        public string ValidEmailAddress { get; set; } = string.Empty;
     }
 
     /// <summary>

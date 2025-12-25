@@ -106,36 +106,13 @@ const Overview = () => {
                   className="des-sec about-cont"
                   style={{ fontSize: "17px" }}
                 >
-                  Agoura Math Circle is a community service initiative offering
-                  a free educational program with a primary focus on cultivating
-                  problem-solving skills that carves a path for the students to
-                  succeed in both academics and beyond. Our goal is to create a
-                  strong mathematical foundation for kids to maximize their
-                  critical thinking potential and motivate them to aim for
-                  greater heights in their careers.
-                  <br />
-                  <br />
-                  The organization offers diverse learning opportunities to
-                  cater to students' varying interests such as engineering,
-                  computer science, and problem solving for national math
-                  competitions such as AMC and Math Kangaroo. Additionally we
-                  hold monthly seminars from highly qualified STEM professionals
-                  and prepare students for standardized testing. Currently, we
-                  provide both online and on-site programs for the Math Circle
-                  and online classes for Engineering Circle, Test Preparation
-                  and Triangular Talks. Our latest addition is the Satellite
-                  program collaborating with non profit organizations worldwide
-                  to impart and promote the problem solving skills.
+                  Agoura Math Circle is a community service initiative offering a free educational program with a primary focus on cultivating problem-solving skills that carves a path for the students to succeed in both academics and beyond. Our goal is to create a strong mathematical foundation for kids to maximize their critical thinking potential and motivate them to aim for greater heights in their careers. The organization offers diverse learning opportunities to cater to students' varying interests such as engineering, computer science, and problem solving for national math competitions such as AMC and Math Kangaroo. Additionally we hold monthly seminars from highly qualified STEM professionals and prepare students for standardized testing. Currently, we provide both online and on-site programs for the Math Circle and online classes for Engineering Circle, Test Preparation and Triangular Talks. Our latest addition is the Satellite program collaborating with non profit organizations worldwide to impart and promote the problem solving skills..
                 </div>
                 <div
                   className="des-sec about-cont"
-                  style={{ fontSize: "17px", marginTop: "20px" }}
+                  style={{ fontSize: "17px" }}
                 >
-                  In summary, the Agoura Math Circle, founded on the principles
-                  of education, empowerment, and community service, strives to
-                  equip students with the essential skills and confidence needed
-                  for academic excellence and success in life, all while
-                  fostering a love for mathematics and problem-solving.
+                 In summary, the Agoura Math Circle, founded on the principles of education, empowerment, and community service, strives to equip students with the essential skills and confidence needed for academic excellence and success in life, all while fostering a love for mathematics and problem-solving.
                 </div>
               </div>
             </div>
