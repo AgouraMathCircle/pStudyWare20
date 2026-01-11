@@ -65,8 +65,6 @@ const EngineeringCircle = () => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  
-
   return (
     <div>
       {/* Breadcrumbs Section */}
@@ -194,7 +192,22 @@ const EngineeringCircle = () => {
                 </Typography>
                 <Box className="des about-cont">
                   <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 3 }}>
-                    Welcome to the Agoura Engineering Circle. Usually Mathematics and Computer programming, the two most universal languages, are taught independent of each other or they're taught one after the other. As part of Agoura Engineering Circle, we are trying to combine these two universal languages and solve some interesting problems. We will start out our journey by introducing basic programming concepts like branching, iteration, modular coding and data structures while solving mathematics problems that most students can understand but not necessarily solve by hand easily. This type of interdisciplinary learning helps in learning two things at the same time along with reinforcing any prior knowledge. Once everyone has achieved some proficiency in programming, we will move on to solving artificial intelligence and machine learning challenges. The goal of this program is to help students:
+                    Welcome to the Agoura Engineering Circle. Usually
+                    Mathematics and Computer programming, the two most universal
+                    languages, are taught independent of each other or they're
+                    taught one after the other. As part of Agoura Engineering
+                    Circle, we are trying to combine these two universal
+                    languages and solve some interesting problems. We will start
+                    out our journey by introducing basic programming concepts
+                    like branching, iteration, modular coding and data
+                    structures while solving mathematics problems that most
+                    students can understand but not necessarily solve by hand
+                    easily. This type of interdisciplinary learning helps in
+                    learning two things at the same time along with reinforcing
+                    any prior knowledge. Once everyone has achieved some
+                    proficiency in programming, we will move on to solving
+                    artificial intelligence and machine learning challenges. The
+                    goal of this program is to help students:
                   </Typography>
                 </Box>
                 <Box sx={{ textAlign: { xs: "center", md: "left" }, mt: 2 }}>
@@ -234,7 +247,15 @@ const EngineeringCircle = () => {
                 maxWidth: { md: "25%" },
               }}
             >
-              <Box sx={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", mt: { xs: 4, md: 5 } }}>
+              <Box
+                sx={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mt: { xs: 4, md: 5 },
+                }}
+              >
                 <Box
                   component="img"
                   src={aecLogoImg}
@@ -550,20 +571,26 @@ const EngineeringCircle = () => {
                     sx={{
                       mb: 3,
                       fontSize: "1.05rem",
-                       color: "#666",
-                       lineHeight: 1.6,
-                     }}
-                   >
-                    <strong>Pre-requisites:</strong> Good understanding of
-                    basic mathematical concepts (no higher than 8th grade
-                    level or taught in Senior Intermediate level at Agoura Math
-                    Circle). Also, students have to get their own desktops or
-                    laptops to program.
+                      color: "#666",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    <strong>Pre-requisites:</strong> Good understanding of basic
+                    mathematical concepts (no higher than 8th grade level or
+                    taught in Senior Intermediate level at Agoura Math Circle).
+                    Also, students have to get their own desktops or laptops to
+                    program.
                   </Typography>
 
-                  <Box sx={{ display: "flex", justifyContent: { xs: "center", md: "flex-start" } }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: { xs: "center", md: "flex-start" },
+                    }}
+                  >
                     <Button
                       variant="contained"
+                      onClick={() => handleNavigation("/studentregistration")}
                       sx={{
                         backgroundColor: "#00b800",
                         color: "white",
@@ -573,7 +600,9 @@ const EngineeringCircle = () => {
                         fontWeight: 600,
                         fontSize: "1rem",
                         opacity: isButtonVisible ? 1 : 0,
-                        transform: isButtonVisible ? "translateY(0)" : "translateY(40px)",
+                        transform: isButtonVisible
+                          ? "translateY(0)"
+                          : "translateY(40px)",
                         transition: "all 0.7s ease-out",
                         "&:hover": { backgroundColor: "#009600" },
                       }}
@@ -611,7 +640,12 @@ const EngineeringCircle = () => {
           >
             {/* Left: registration/content */}
             <Grid item xs={12} md={5}>
-              <Box sx={{ pl: { md: 2, xs: 0 }, textAlign: { xs: "center", md: "left" } }}>
+              <Box
+                sx={{
+                  pl: { md: 2, xs: 0 },
+                  textAlign: { xs: "center", md: "left" },
+                }}
+              >
                 <Typography
                   variant="h3"
                   sx={{
@@ -625,38 +659,70 @@ const EngineeringCircle = () => {
                 </Typography>
 
                 <Box>
-                  <Typography variant="body2" sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
+                  >
                     <strong>CURRICULUM URL :</strong>{" "}
-                    <span style={{ color: "#00b800", cursor: "pointer" }}>INTRODUCTION TO AI</span>{" "}
+                    <span style={{ color: "#00b800", cursor: "pointer" }}>
+                      INTRODUCTION TO AI
+                    </span>{" "}
                     - <strong>Download</strong>
                   </Typography>
 
-                  <Typography variant="body2" sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
+                  >
                     <strong>STARTING DATE:</strong>{" "}
                     <span style={{ color: "#00b800" }}>AUG 23, 2025</span>
                   </Typography>
 
-                  <Typography variant="body2" sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}>
-                    <strong>LOCATION:</strong> <span style={{ color: "#00b800" }}>VIRTUAL</span>
+                  <Typography
+                    variant="body2"
+                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
+                  >
+                    <strong>LOCATION:</strong>{" "}
+                    <span style={{ color: "#00b800" }}>VIRTUAL</span>
                   </Typography>
 
-                  <Typography variant="body2" sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
+                  >
                     <strong>SCHEDULE:</strong>{" "}
-                    <span style={{ color: "#00b800" }}>ALTERNATE SATURDAYS 7:00AM - 9:00AM [PST]</span>
+                    <span style={{ color: "#00b800" }}>
+                      ALTERNATE SATURDAYS 7:00AM - 9:00AM [PST]
+                    </span>
                   </Typography>
 
-                  <Typography variant="body2" sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}>
-                    <strong>SEMESTER:</strong> <span style={{ color: "#00b800" }}>FALL AND SPRING</span>
+                  <Typography
+                    variant="body2"
+                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
+                  >
+                    <strong>SEMESTER:</strong>{" "}
+                    <span style={{ color: "#00b800" }}>FALL AND SPRING</span>
                   </Typography>
 
-                  <Typography variant="body2" sx={{ mb: 2, fontSize: "1.1rem", color: "#555" }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ mb: 2, fontSize: "1.1rem", color: "#555" }}
+                  >
                     <strong>CONTACT US:</strong>{" "}
-                    <span style={{ color: "#00b800" }}>SUPPORT@AGOURAMATHCIRCLE.ORG</span>
+                    <span style={{ color: "#00b800" }}>
+                      SUPPORT@AGOURAMATHCIRCLE.ORG
+                    </span>
                   </Typography>
 
-                  <Box sx={{ display: "flex", justifyContent: { xs: "center", md: "flex-start" } }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: { xs: "center", md: "flex-start" },
+                    }}
+                  >
                     <Button
                       variant="contained"
+                      onClick={() => handleNavigation("/studentregistration")}
                       sx={{
                         backgroundColor: "#00b800",
                         color: "#fff",
@@ -665,6 +731,7 @@ const EngineeringCircle = () => {
                         borderRadius: 1,
                         fontWeight: 600,
                         fontSize: "1rem",
+                        "&:hover": { backgroundColor: "#009600" },
                       }}
                     >
                       Register Now
@@ -675,24 +742,29 @@ const EngineeringCircle = () => {
             </Grid>
 
             {/* Right: Agoura AI image */}
-            <Grid item xs={12} md={5} sx={{ display: "flex", justifyContent: "flex-end" }}>
-               <Box sx={{ width: "100%", maxWidth: 520, ml: { md: 12, xs: 0 } }}>
-                 <Box
-                   component="img"
-                   src={agouraAiImg}
-                   alt="Agoura AI"
-                   sx={{
-                     width: "100%",
-                     height: "auto",
-                     maxHeight: { xs: 280, md: 500 },
-                     objectFit: "cover",
-                     display: "block",
-                     borderRadius: 2,
-                     boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                   }}
-                 />
-               </Box>
-             </Grid>
+            <Grid
+              item
+              xs={12}
+              md={5}
+              sx={{ display: "flex", justifyContent: "flex-end" }}
+            >
+              <Box sx={{ width: "100%", maxWidth: 520, ml: { md: 12, xs: 0 } }}>
+                <Box
+                  component="img"
+                  src={agouraAiImg}
+                  alt="Agoura AI"
+                  sx={{
+                    width: "100%",
+                    height: "auto",
+                    maxHeight: { xs: 280, md: 500 },
+                    objectFit: "cover",
+                    display: "block",
+                    borderRadius: 2,
+                    boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+                  }}
+                />
+              </Box>
+            </Grid>
           </Grid>
         </Container>
       </Box>
@@ -847,9 +919,15 @@ const EngineeringCircle = () => {
                     desktop/laptop to code.
                   </Typography>
 
-                  <Box sx={{ display: "flex", justifyContent: { xs: "center", md: "flex-start" } }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: { xs: "center", md: "flex-start" },
+                    }}
+                  >
                     <Button
                       variant="contained"
+                      onClick={() => handleNavigation("/studentregistration")}
                       sx={{
                         backgroundColor: "#00b800",
                         color: "white",
@@ -872,175 +950,195 @@ const EngineeringCircle = () => {
       </Box>
 
       {/* AEC Team Section */}
-<Box
-  id="aec-team-section"
-  sx={{
-    backgroundColor: "#ffff",
-    py: { xs: 2, md: 4 },
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  }}
->
-  <Container maxWidth="lg" sx={{ px: { xs: 1, md: 2 } }}>
-    <Typography
-      variant="h2"
-      sx={{
-        fontWeight: 700,
-        fontSize: { xs: "1.9rem", md: "2.6rem" },
-        color: "#002855",
-        textAlign: "center",
-        mb: 4,
-      }}
-    >
-      AEC TEAM
-    </Typography>
-
-    <Grid
-      container
-      spacing={3}
-      sx={{
-        alignItems: "stretch",
-        justifyContent: "center",
-      }}
-    >
-      {[
-        { img: sriyaImg, name: "SRIYA KALYAN(AHS)", role: "Founder" },
-        { img: andrewImg, name: "ANDREW XU (MIT)", role: "Director" },
-        { img: hussainImg, name: "HUSSAIN PATEL", role: "Coordinator" },
-        { img: balajiImg, name: "BALAJI", role: "Coordinator" },
-        { img: gopinathImg, name: "GOPINATH", role: "Coordinator" },
-        { img: kumarImg, name: "KUMAR", role: "Instructor" },
-        { img: srihariImg, name: "SRIHARI K", role: "Instructor" },
-        { img: nayanaImg, name: "NAYANA", role: "Instructor" },
-        { img: haridevImg, name: "HARIDEV", role: "Instructor" },
-      ].map((member) => (
-        <Grid
-          key={member.name}
-          item
-          xs={12}
-          sm={3}
-          md={3}               // 4 columns at sm and up
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            px: 0.5,
-            boxSizing: "border-box",
-          }}
-        >
-          <Box
+      <Box
+        id="aec-team-section"
+        sx={{
+          backgroundColor: "#ffff",
+          py: { xs: 2, md: 4 },
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Container maxWidth="lg" sx={{ px: { xs: 1, md: 2 } }}>
+          <Typography
+            variant="h2"
             sx={{
-              display: "flex",
-              flexDirection: "column",
-              height: "100%",
+              fontWeight: 700,
+              fontSize: { xs: "1.9rem", md: "2.6rem" },
+              color: "#002855",
               textAlign: "center",
-              backgroundColor: "#fff",
-              p: 1.5,
-              borderRadius: 1,
-              boxShadow: "0 8px 24px rgba(2,28,50,0.06)",
-              transition: "transform 0.25s ease, boxShadow 0.25s ease",
-              "&:hover": {
-                transform: "translateY(-6px)",
-                boxShadow: "0 14px 32px rgba(2,28,50,0.09)",
-              },
+              mb: 4,
             }}
           >
-            {/* image container */}
-            <Box
-              sx={{
-                width: "100%",
-                height: 220,
-                borderRadius: 1,
-                mb: 1.5,
-                overflow: "hidden",
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#f2f2f2",
-                // trigger .social-row reveal on hover of parent Box
-                "&:hover .social-row": {
-                  opacity: 1,
-                  transform: "translate(-50%, 0)",
-                },
-              }}
-            >
-              <Box
-                component="img"
-                src={member.img}
-                alt={member.name}
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  display: "block",
-                  borderRadius: 1,
-                }}
-              />
+            AEC TEAM
+          </Typography>
 
-              {/* social icons row (hidden by default, slides up on hover) */}
-              <Box
-                className="social-row"
+          <Grid
+            container
+            spacing={3}
+            sx={{
+              alignItems: "stretch",
+              justifyContent: "center",
+            }}
+          >
+            {[
+              { img: sriyaImg, name: "SRIYA KALYAN(AHS)", role: "Founder" },
+              { img: andrewImg, name: "ANDREW XU (MIT)", role: "Director" },
+              { img: hussainImg, name: "HUSSAIN PATEL", role: "Coordinator" },
+              { img: balajiImg, name: "BALAJI", role: "Coordinator" },
+              { img: gopinathImg, name: "GOPINATH", role: "Coordinator" },
+              { img: kumarImg, name: "KUMAR", role: "Instructor" },
+              { img: srihariImg, name: "SRIHARI K", role: "Instructor" },
+              { img: nayanaImg, name: "NAYANA", role: "Instructor" },
+              { img: haridevImg, name: "HARIDEV", role: "Instructor" },
+            ].map((member) => (
+              <Grid
+                key={member.name}
+                item
+                xs={12}
+                sm={3}
+                md={3} // 4 columns at sm and up
                 sx={{
-                  position: "absolute",
-                  left: "50%",
-                  bottom: 12,
-                  transform: "translate(-50%, 10px)",
                   display: "flex",
-                  gap: 1,
-                  opacity: 0,
-                  transition: "all 220ms cubic-bezier(.2,.9,.2,1)",
-                  zIndex: 10,
-                  justifyContent: "center",
+                  flexDirection: "column",
+                  px: 0.5,
+                  boxSizing: "border-box",
                 }}
               >
-                { [
-                  <FacebookIcon key="f" sx={{ fontSize: 18, color: "white" }} />,
-                  <GoogleIcon key="g" sx={{ fontSize: 18, color: "white" }} />,
-                  <TwitterIcon key="t" sx={{ fontSize: 18, color: "white" }} />,
-                  <LinkedInIcon key="l" sx={{ fontSize: 18, color: "white" }} />,
-                ].map((icon, i) => (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                    textAlign: "center",
+                    backgroundColor: "#fff",
+                    p: 1.5,
+                    borderRadius: 1,
+                    boxShadow: "0 8px 24px rgba(2,28,50,0.06)",
+                    transition: "transform 0.25s ease, boxShadow 0.25s ease",
+                    "&:hover": {
+                      transform: "translateY(-6px)",
+                      boxShadow: "0 14px 32px rgba(2,28,50,0.09)",
+                    },
+                  }}
+                >
+                  {/* image container */}
                   <Box
-                    key={i}
                     sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: "50%",
-                      backgroundColor: "#00b800",
+                      width: "100%",
+                      height: 220,
+                      borderRadius: 1,
+                      mb: 1.5,
+                      overflow: "hidden",
+                      position: "relative",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
-                      cursor: "pointer",
-                      flexShrink: 0,
-                      transition: "transform 150ms ease, background-color 150ms",
-                      "&:hover": { 
-                        transform: "translateY(-4px)", 
-                        backgroundColor: "#009600" 
+                      backgroundColor: "#f2f2f2",
+                      // trigger .social-row reveal on hover of parent Box
+                      "&:hover .social-row": {
+                        opacity: 1,
+                        transform: "translate(-50%, 0)",
                       },
                     }}
                   >
-                    {icon}
+                    <Box
+                      component="img"
+                      src={member.img}
+                      alt={member.name}
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        display: "block",
+                        borderRadius: 1,
+                      }}
+                    />
+
+                    {/* social icons row (hidden by default, slides up on hover) */}
+                    <Box
+                      className="social-row"
+                      sx={{
+                        position: "absolute",
+                        left: "50%",
+                        bottom: 12,
+                        transform: "translate(-50%, 10px)",
+                        display: "flex",
+                        gap: 1,
+                        opacity: 0,
+                        transition: "all 220ms cubic-bezier(.2,.9,.2,1)",
+                        zIndex: 10,
+                        justifyContent: "center",
+                      }}
+                    >
+                      {[
+                        <FacebookIcon
+                          key="f"
+                          sx={{ fontSize: 18, color: "white" }}
+                        />,
+                        <GoogleIcon
+                          key="g"
+                          sx={{ fontSize: 18, color: "white" }}
+                        />,
+                        <TwitterIcon
+                          key="t"
+                          sx={{ fontSize: 18, color: "white" }}
+                        />,
+                        <LinkedInIcon
+                          key="l"
+                          sx={{ fontSize: 18, color: "white" }}
+                        />,
+                      ].map((icon, i) => (
+                        <Box
+                          key={i}
+                          sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: "50%",
+                            backgroundColor: "#00b800",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+                            cursor: "pointer",
+                            flexShrink: 0,
+                            transition:
+                              "transform 150ms ease, background-color 150ms",
+                            "&:hover": {
+                              transform: "translateY(-4px)",
+                              backgroundColor: "#009600",
+                            },
+                          }}
+                        >
+                          {icon}
+                        </Box>
+                      ))}
+                    </Box>
                   </Box>
-                ))}
-              </Box>
-            </Box>
 
-            <Typography sx={{ fontWeight: 700, fontSize: "1.05rem", color: "#002855", mb: 0.5 }}>
-              {member.name}
-            </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "1.05rem",
+                      color: "#002855",
+                      mb: 0.5,
+                    }}
+                  >
+                    {member.name}
+                  </Typography>
 
-            <Typography sx={{ fontSize: "0.95rem", color: "#666", mt: "auto" }}>
-              {member.role}
-            </Typography>
-          </Box>
-        </Grid>
-      ))}
-    </Grid>
-  </Container>
-</Box>
-
-     
+                  <Typography
+                    sx={{ fontSize: "0.95rem", color: "#666", mt: "auto" }}
+                  >
+                    {member.role}
+                  </Typography>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
     </div>
   );
 };

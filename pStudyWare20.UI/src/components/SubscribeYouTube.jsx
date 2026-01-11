@@ -1,12 +1,6 @@
 // src/components/Home/SubscribeYouTube.jsx
 import React from "react";
-import {
-  Box,
-  Container,
-  Card,
-  Button,
-  Typography,
-} from "@mui/material";
+import { Box, Container, Card, Button, Typography } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 const videoData = [
@@ -51,10 +45,10 @@ const SubscribeYouTube = () => {
                 key={`first-${index}`}
                 sx={{
                   flex: "0 0 auto",
-                  width: { 
+                  width: {
                     xs: 280,
-                    sm: 300, 
-                    md: 320
+                    sm: 300,
+                    md: 320,
                   },
                   borderRadius: "16px",
                   overflow: "hidden",
@@ -75,7 +69,7 @@ const SubscribeYouTube = () => {
                   }}
                 >
                   <iframe
-                    src={`https://www.youtube.com/embed/${video.id}`}
+                    src={`https://www.youtube.com/embed/${video.id}?enablejsapi=1&rel=0&modestbranding=1`}
                     title={`YouTube video ${video.id}`}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -91,17 +85,17 @@ const SubscribeYouTube = () => {
                 </Box>
               </Card>
             ))}
-            
+
             {/* Second Set - Videos 4,5,6 */}
             {secondSet.map((video, index) => (
               <Card
                 key={`second-${index}`}
                 sx={{
                   flex: "0 0 auto",
-                  width: { 
+                  width: {
                     xs: 280,
-                    sm: 300, 
-                    md: 320
+                    sm: 300,
+                    md: 320,
                   },
                   borderRadius: "16px",
                   overflow: "hidden",
@@ -122,7 +116,7 @@ const SubscribeYouTube = () => {
                   }}
                 >
                   <iframe
-                    src={`https://www.youtube.com/embed/${video.id}`}
+                    src={`https://www.youtube.com/embed/${video.id}?enablejsapi=1&rel=0&modestbranding=1`}
                     title={`YouTube video ${video.id}`}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -200,11 +194,3 @@ const SubscribeYouTube = () => {
 };
 
 export default SubscribeYouTube;
-
-
-
-
-
-
-
-

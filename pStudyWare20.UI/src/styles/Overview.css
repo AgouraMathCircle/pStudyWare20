@@ -134,7 +134,12 @@
   z-index: 0;
 }
 
-.history-section .container {
+/* Container Styles */
+.history-container,
+.overview-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
   position: relative;
   z-index: 1;
 }
@@ -142,40 +147,31 @@
 .history-row {
   display: flex;
   align-items: stretch;
-  margin-left: -25px;
-  margin-right: -25px;
-}
-
-.history-row > [class*="col-"] {
-  padding-left: 25px;
-  padding-right: 25px;
+  gap: 0;
 }
 
 .history-image-col {
+  flex: 0 0 41.666667%; /* 5/12 columns */
+  max-width: 41.666667%;
   display: flex;
   flex-direction: column;
-}
-
-.history-img-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 100%;
 }
 
 .history-image {
   width: 100%;
-  height: 100%;
-  min-height: 400px;
+  height: auto;
   object-fit: cover;
   border-radius: 10px;
+  display: block;
+  max-width: 100%;
 }
 
 .history-text-col {
+  flex: 0 0 58.333333%; /* 7/12 columns */
+  max-width: 58.333333%;
   display: flex;
   flex-direction: column;
-  padding-left: 50px;
+  padding-left: 90px;
 }
 
 .history-content {
@@ -186,18 +182,17 @@
   height: 100%;
 }
 
-/* Ensure image and text columns have same height */
-.history-row > [class*="col-"] {
-  display: flex;
-  flex-direction: column;
+/* Overview Title Wrapper */
+.overview-title-wrapper {
+  text-align: center;
+  margin-bottom: 40px;
 }
 
 .img-part {
   border-radius: 15px;
   overflow: visible;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1),
-              8px 8px 0 rgba(0, 0, 0, 0.3),
-              0 8px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 8px 8px 0 rgba(0, 0, 0, 0.3),
+    0 8px 0 rgba(0, 0, 0, 0.3);
   transition: box-shadow 0.3s ease;
   border: 3px solid #ffffff;
   background: #ffffff;
@@ -205,9 +200,8 @@
 }
 
 .img-part:hover {
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
-              12px 12px 0 rgba(0, 0, 0, 0.4),
-              0 12px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 12px 12px 0 rgba(0, 0, 0, 0.4),
+    0 12px 0 rgba(0, 0, 0, 0.4);
 }
 
 .img-part img {
@@ -240,7 +234,7 @@
   border-radius: 2px;
 }
 
-.text-center .title::after {
+.overview-title-wrapper .title::after {
   left: 50%;
   transform: translateX(-50%);
 }
@@ -265,10 +259,7 @@
   position: relative;
 }
 
-.overview-section .container {
-  position: relative;
-  z-index: 1;
-}
+/* Overview section container already defined above */
 
 .mb-40 {
   margin-bottom: 40px;
@@ -277,19 +268,17 @@
 /* Overview Image Row - Top */
 .overview-image-row {
   margin-bottom: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .overview-img-wrapper {
+  width: 50%;
+  max-width: 50%;
+  height: auto;
+  text-align: center;
   margin: 0 auto;
-  max-width: 900px;
-  border: 3px solid #ffffff;
-  background: #ffffff;
-  padding: 8px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1),
-              8px 8px 0 rgba(0, 0, 0, 0.3),
-              0 8px 0 rgba(0, 0, 0, 0.3);
-  border-radius: 15px;
-  overflow: visible;
 }
 
 .overview-image {
@@ -297,11 +286,16 @@
   height: auto;
   display: block;
   border-radius: 10px;
+  object-fit: cover;
 }
 
 /* Overview Text Row - Bottom */
 .overview-text-row {
   margin-top: 20px;
+}
+
+.overview-text-row .text-center {
+  text-align: center;
 }
 
 .overview-text-row .about-cont {
@@ -325,33 +319,30 @@
 
   .history-row {
     flex-direction: column;
-    margin-left: -15px;
-    margin-right: -15px;
-  }
-
-  .history-row > [class*="col-"] {
-    padding-left: 15px;
-    padding-right: 15px;
-    margin-bottom: 30px;
+    gap: 30px;
   }
 
   .history-image-col,
   .history-text-col {
-    width: 100%;
-  }
-
-  .history-img-wrapper {
-    height: auto;
-    min-height: auto;
+    flex: 0 0 100%;
+    max-width: 100%;
   }
 
   .history-content {
     min-height: auto;
-    padding-left: 0;
   }
 
   .history-text-col {
     padding-left: 15px;
+  }
+
+  .history-container,
+  .overview-container {
+    padding: 0 15px;
+  }
+
+  .overview-img-wrapper {
+    width: 100%;
   }
 
   .history-image {

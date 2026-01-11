@@ -813,6 +813,7 @@ const StudentRegistration = () => {
                         Pressing the "Submit" button I agree the Agoura Math
                         Circle{" "}
                         <button
+                          type="button"
                           onClick={() => setTermsOpen(true)}
                           style={{
                             backgroundColor: "#53b50a",
@@ -830,6 +831,7 @@ const StudentRegistration = () => {
                         </button>{" "}
                         and{" "}
                         <button
+                          type="button"
                           onClick={() => setRulesOpen(true)}
                           style={{
                             backgroundColor: "#53b50a",

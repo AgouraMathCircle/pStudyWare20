@@ -338,7 +338,7 @@ const CtaSection = () => {
                   component="iframe"
                   width="300"
                   height="300"
-                  src="https://www.youtube.com/embed/qdNXuaToB1M"
+                  src="https://www.youtube.com/embed/qdNXuaToB1M?enablejsapi=1&rel=0&modestbranding=1"
                   title="YouTube video player"
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

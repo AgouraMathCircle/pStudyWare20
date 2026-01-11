@@ -80,19 +80,13 @@ const WhatWeDo = () => {
                 Triangular Talks - Every Month
                 <br />
                 Satellite Program -
-                <a
-                  href="/studentregistration"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href="/studentregistration">
                   Register
                 </a>
                 <br />
                 Math Kangraoo -{" "}
                 <a
                   href="https://mathkangaroo.oasis-lms.com/Public/Catalog/Home.aspx?Criteria=44&Option=503&tab=2"
-                  target="_blank"
-                  rel="noopener noreferrer"
                 >
                   Register
                 </a>
@@ -243,7 +237,7 @@ const WhatWeDo = () => {
                     </a>
                   </li>
                   <li>
-                    <a href="/news-gallery">
+                    <a href="/gallery/news">
                       <button className="active">More</button>
                     </a>
                   </li>
