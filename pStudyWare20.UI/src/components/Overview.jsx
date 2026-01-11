@@ -11,10 +11,7 @@ const Overview = () => {
       {/* Breadcrumbs Section */}
       <div className="sc-breadcrumbs breadcrumbs-overlay">
         <div className="breadcrumbs-img">
-          <img
-            src={pageHeaderImg}
-            alt="Breadcrumbs Image"
-          />
+          <img src={pageHeaderImg} alt="Breadcrumbs Image" />
         </div>
         <div className="breadcrumbs-text white-color">
           <h1 className="page-title">About Us</h1>
@@ -35,10 +32,10 @@ const Overview = () => {
         id="sc-history"
         className="history-section pt-80 pb-70 md-pt-40 position-relative"
       >
-        <div className="container">
-          <div className="row history-row">
+        <div className="history-container">
+          <div className="history-row">
             {/* Image Column - Left */}
-            <div className="col-lg-6 col-md-6 history-image-col">
+            <div className="history-image-col">
               <div className="img-part history-img-wrapper">
                 <img
                   src={speechImg}
@@ -47,9 +44,9 @@ const Overview = () => {
                 />
               </div>
             </div>
-            
+
             {/* Text Column - Right */}
-            <div className="col-lg-6 col-md-6 history-text-col">
+            <div className="history-text-col">
               <div className="history-content">
                 <h2 className="title mb-20">History</h2>
                 <div className="des about-cont" style={{ fontSize: "17px" }}>
@@ -72,48 +69,52 @@ const Overview = () => {
       </div>
 
       {/* Overview Section */}
-      <div
-        id="sc-overview"
-        className="overview-section position-relative"
-        style={{ paddingTop: "10px", paddingBottom: "15px" }}
-      >
-        <div className="container">
+      <div id="sc-overview" className="overview-section position-relative">
+        <div className="overview-container">
           {/* Overview Title */}
-          <div className="row">
-            <div className="col-lg-12 text-center">
-              <h2 className="title mb-40">Overview</h2>
-            </div>
+          <div className="overview-title-wrapper">
+            <h2 className="title mb-40">Overview</h2>
           </div>
 
           {/* Overview Image Row - Top */}
-          <div className="row overview-image-row">
-            <div className="col-lg-12 text-center">
-              <div className="img-part overview-img-wrapper">
-                <img
-                  src={eg1Img}
-                  alt="Overview Image"
-                  className="overview-image"
-                />
-              </div>
+          <div className="overview-image-row">
+            <div className="img-part overview-img-wrapper">
+              <img
+                src={eg1Img}
+                alt="Overview Image"
+                className="overview-image"
+              />
             </div>
           </div>
 
           {/* Overview Text Row - Bottom */}
-          <div className="row overview-text-row">
-            <div className="col-lg-12">
-              <div className="sec-title mb-20">
-                <div
-                  className="des-sec about-cont"
-                  style={{ fontSize: "17px" }}
-                >
-                  Agoura Math Circle is a community service initiative offering a free educational program with a primary focus on cultivating problem-solving skills that carves a path for the students to succeed in both academics and beyond. Our goal is to create a strong mathematical foundation for kids to maximize their critical thinking potential and motivate them to aim for greater heights in their careers. The organization offers diverse learning opportunities to cater to students' varying interests such as engineering, computer science, and problem solving for national math competitions such as AMC and Math Kangaroo. Additionally we hold monthly seminars from highly qualified STEM professionals and prepare students for standardized testing. Currently, we provide both online and on-site programs for the Math Circle and online classes for Engineering Circle, Test Preparation and Triangular Talks. Our latest addition is the Satellite program collaborating with non profit organizations worldwide to impart and promote the problem solving skills..
-                </div>
-                <div
-                  className="des-sec about-cont"
-                  style={{ fontSize: "17px" }}
-                >
-                 In summary, the Agoura Math Circle, founded on the principles of education, empowerment, and community service, strives to equip students with the essential skills and confidence needed for academic excellence and success in life, all while fostering a love for mathematics and problem-solving.
-                </div>
+          <div className="overview-text-row">
+            <div className="sec-title mb-20">
+              <div className="des-sec about-cont" style={{ fontSize: "17px" }}>
+                Agoura Math Circle is a community service initiative offering a
+                free educational program with a primary focus on cultivating
+                problem-solving skills that carves a path for the students to
+                succeed in both academics and beyond. Our goal is to create a
+                strong mathematical foundation for kids to maximize their
+                critical thinking potential and motivate them to aim for greater
+                heights in their careers. The organization offers diverse
+                learning opportunities to cater to students' varying interests
+                such as engineering, computer science, and problem solving for
+                national math competitions such as AMC and Math Kangaroo.
+                Additionally we hold monthly seminars from highly qualified STEM
+                professionals and prepare students for standardized testing.
+                Currently, we provide both online and on-site programs for the
+                Math Circle and online classes for Engineering Circle, Test
+                Preparation and Triangular Talks. Our latest addition is the
+                Satellite program collaborating with non profit organizations
+                worldwide to impart and promote the problem solving skills..
+              </div>
+              <div className="des-sec about-cont" style={{ fontSize: "17px" }}>
+                In summary, the Agoura Math Circle, founded on the principles of
+                education, empowerment, and community service, strives to equip
+                students with the essential skills and confidence needed for
+                academic excellence and success in life, all while fostering a
+                love for mathematics and problem-solving.
               </div>
             </div>
           </div>
@@ -124,7 +125,3 @@ const Overview = () => {
 };
 
 export default Overview;
-
-
-
-

@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Box,
-  Container,
-  Card,
-  Button,
-  Typography,
-} from "@mui/material";
+import { Box, Container, Card, Button, Typography } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 const videoData = [
@@ -56,10 +50,10 @@ const SubscribeYouTube = () => {
                 key={`video-${index}`}
                 sx={{
                   flex: "0 0 auto",
-                  width: { 
+                  width: {
                     xs: 280,
-                    sm: 300, 
-                    md: 320
+                    sm: 300,
+                    md: 320,
                   },
                   borderRadius: "16px",
                   overflow: "hidden",
@@ -81,7 +75,7 @@ const SubscribeYouTube = () => {
                   }}
                 >
                   <iframe
-                    src={`https://www.youtube.com/embed/${video.id}`}
+                    src={`https://www.youtube.com/embed/${video.id}?enablejsapi=1&rel=0&modestbranding=1`}
                     title={`YouTube video ${video.id}`}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -117,7 +111,6 @@ const SubscribeYouTube = () => {
           <Button
             variant="contained"
             href="https://www.youtube.com/c/AgouraMathCircle"
-            target="_blank"
             endIcon={<ArrowForwardIcon />}
             sx={{
               backgroundColor: "#53b50a",
@@ -158,11 +151,3 @@ const SubscribeYouTube = () => {
 };
 
 export default SubscribeYouTube;
-
-
-
-
-
-
-
-

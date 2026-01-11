@@ -17,24 +17,36 @@ import arrow9Img from "../assets/images/arrow-9.png";
 import arrow3Img from "../assets/images/arrow-3.png";
 import arrow7Img from "../assets/images/arrow-7.png";
 
+import Newsletter from "./Newsletter";
 // Styled components for custom styling
 const StyledFooter = styled(Box)(({ theme }) => ({
   color: "#eee",
   position: "relative",
   background: "linear-gradient(135deg, #102d47 0%, #1e3c72 100%)",
-  paddingTop: 0,
-  marginTop: 0,
+  paddingTop: "120px",
   zIndex: 1,
+  [theme.breakpoints.down("md")]: {
+    paddingTop: "80px",
+  },
+  [theme.breakpoints.down("sm")]: {
+    paddingTop: "60px",
+  },
 }));
 
 const FooterContent = styled(Box)(({ theme }) => ({
-  padding: "20px 0 10px 0",
+  paddingTop: "05px",
+  [theme.breakpoints.down("md")]: {
+    paddingTop: "10px",
+  },
+  [theme.breakpoints.down("sm")]: {
+    paddingTop: "10px",
+  },
 }));
 
 const FooterWidget = styled(Box)(({ theme }) => ({
-  margin: "40px 0px",
+  margin: "05px 0px",
   [theme.breakpoints.down("md")]: {
-    margin: "20px 0",
+    margin: "10px 0",
   },
 }));
 
@@ -179,10 +191,11 @@ const AnimatedArrow = styled(Box)(({ theme }) => ({
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-
   return (
     <>
+   
       <StyledFooter component="footer" id="sc-footer">
+      <Newsletter />
         <Container
           maxWidth={false}
           disableGutters

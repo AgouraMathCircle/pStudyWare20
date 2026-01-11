@@ -7,6 +7,7 @@ import Overview from "./src/components/Overview";
 import About from "./src/components/About";
 import MathCircle from "./src/components/MathCircle";
 import EngineeringCircle from "./src/components/EngineeringCircle";
+import Projects from "./src/components/Projects";
 import TestPreparation from "./src/components/TestPreparation";
 import SatelliteProgram from "./src/components/SatelliteProgram";
 import Contact from "./src/components/Contact";
@@ -75,6 +76,10 @@ const AppRoutes = () => {
               element={<EngineeringCircle />}
             />
             <Route
+              path="/about/projects"
+              element={<Projects />}
+            />
+            <Route
               path="/about/test-preparation"
               element={<TestPreparation />}
             />
@@ -82,6 +87,7 @@ const AppRoutes = () => {
               path="/about/satellite-program"
               element={<SatelliteProgram />}
             />
+            <Route path="/satellite-program" element={<SatelliteProgram />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/gallery/photo" element={<PhotoGallery />} />

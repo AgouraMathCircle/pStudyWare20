@@ -5,12 +5,20 @@
   background-color: #f8f9fa;
 }
 
+/* Main Content Wrapper - Remove spacing to eliminate gap between navbar and breadcrumb */
+.main-content {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 /* Breadcrumbs Styles */
 .sc-breadcrumbs {
   position: relative;
-  padding: 100px 0 80px;
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  padding: 80px 0 40px;
   overflow: hidden;
+  margin-top: 0;
 }
 
 .breadcrumbs-overlay {
@@ -24,7 +32,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(44, 62, 80, 0.8);
+  background: rgba(30, 60, 114, 0.8);
   z-index: 1;
 }
 
@@ -47,15 +55,14 @@
   position: relative;
   z-index: 2;
   text-align: center;
-  color: white;
 }
 
-.breadcrumbs-text .page-title {
+.page-title {
   font-size: 3rem;
   font-weight: 700;
+  color: #ffffff;
   margin-bottom: 20px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 2px;
 }
 
 .breadcrumbs-text ul {
@@ -66,129 +73,47 @@
   justify-content: center;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
-.breadcrumbs-text ul li {
-  display: inline-block;
+.breadcrumbs-text li {
+  color: #ffffff;
+  font-size: 1rem;
 }
 
-.breadcrumbs-text ul li a {
-  color: rgba(255, 255, 255, 0.8);
+.breadcrumbs-text li a {
+  color: #ffd700;
   text-decoration: none;
-  font-size: 1.1rem;
   transition: color 0.3s ease;
 }
 
-.breadcrumbs-text ul li a:hover {
-  color: white;
-  text-decoration: underline;
+.breadcrumbs-text li a:hover {
+  color: #ffffff;
 }
 
-.breadcrumbs-text ul li.active {
-  color: white;
-  font-weight: 500;
-  font-size: 1.1rem;
+.breadcrumbs-text li.active {
+  color: #ffffff;
 }
 
 /* Responsive breadcrumbs */
 @media (max-width: 768px) {
   .sc-breadcrumbs {
-    padding: 60px 0 40px;
+    padding: 60px 0 30px;
   }
 
-  .breadcrumbs-text .page-title {
+  .page-title {
     font-size: 2rem;
   }
+}
 
-  .breadcrumbs-text ul li a,
-  .breadcrumbs-text ul li.active {
-    font-size: 1rem;
+@media (max-width: 600px) {
+  .sc-breadcrumbs {
+    padding: 40px 0 20px;
   }
-}
 
-@media (max-width: 480px) {
-  .breadcrumbs-text .page-title {
-    font-size: 1.5rem;
+  .page-title {
+    font-size: 1.75rem;
   }
-}
-
-/* Header Banner Styles */
-.donate-header-banner {
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.donate-header-banner::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: radial-gradient(
-      circle at 20% 20%,
-      rgba(255, 255, 255, 0.1) 1px,
-      transparent 1px
-    ),
-    radial-gradient(
-      circle at 80% 80%,
-      rgba(255, 255, 255, 0.1) 1px,
-      transparent 1px
-    ),
-    radial-gradient(
-      circle at 40% 60%,
-      rgba(255, 255, 255, 0.1) 1px,
-      transparent 1px
-    );
-  background-size: 50px 50px, 30px 30px, 40px 40px;
-  opacity: 0.3;
-}
-
-/* Mathematical formulas overlay */
-.donate-math-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  opacity: 0.1;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 2px,
-    rgba(255, 255, 255, 0.1) 2px,
-    rgba(255, 255, 255, 0.1) 4px
-  );
-}
-
-/* Breadcrumb styles */
-.donate-breadcrumbs {
-  margin-bottom: 24px;
-}
-
-.donate-breadcrumbs .MuiBreadcrumbs-separator {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.donate-breadcrumb-link {
-  color: rgba(255, 255, 255, 0.8);
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.donate-breadcrumb-link:hover {
-  color: white;
-  text-decoration: underline;
-}
-
-/* Main title styles */
-.donate-main-title {
-  color: white;
-  font-weight: 700;
-  text-align: center;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 2px;
 }
 
 /* Content section styles */
@@ -405,10 +330,6 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .donate-main-title {
-    font-size: 2.5rem;
-  }
-
   .donate-section-title {
     font-size: 2rem;
   }
@@ -442,10 +363,6 @@
 }
 
 @media (max-width: 480px) {
-  .donate-main-title {
-    font-size: 2rem;
-  }
-
   .donate-section-title {
     font-size: 1.5rem;
   }
@@ -796,12 +713,6 @@
 
 /* Print styles */
 @media print {
-  .donate-header-banner {
-    background: #2c3e50 !important;
-    -webkit-print-color-adjust: exact;
-    color-adjust: exact;
-  }
-
   .donate-button {
     background: #1976d2 !important;
     -webkit-print-color-adjust: exact;

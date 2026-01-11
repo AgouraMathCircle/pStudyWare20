@@ -35,19 +35,19 @@ const cardData = [
     title: "For Students",
     image: studentImg,
     buttonText: "Register",
-    link: "/register-student",
+    link: "/studentregistration",
   },
   {
     title: "For Volunteers",
     image: volunteersImg,
     buttonText: "Register",
-    link: "/register-volunteer",
+    link: "/volunteerregistration",
   },
   {
     title: "For Schools",
     image: schoolsImg,
     buttonText: "More",
-    link: "/schools",
+    link: "/about/satellite-program",
   },
   {
     title: "Donate",
