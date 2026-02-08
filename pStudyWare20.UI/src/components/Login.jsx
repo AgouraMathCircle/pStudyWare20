@@ -22,7 +22,7 @@ import {
   Email,
   Lock,
   Facebook,
-  Twitter,
+  X,
   LinkedIn,
   Instagram,
   YouTube,
@@ -189,7 +189,6 @@ const Login = () => {
         // The redirect will be handled by the useEffect above
         console.log("Login successful:", response);
       } catch (error) {
-        // Display error message (same as lblMessage.Text in login.aspx.cs)
         setSubmitMessage("Invalid email Id or password. Please try again.");
         console.error("Login error:", error);
       } finally {
@@ -552,16 +551,16 @@ const Login = () => {
                       <Facebook />
                     </IconButton>
                     <IconButton
-                      href="https://twitter.com/Agouramathcirle"
+                      href="https://x.com/agouramath/"
                       target="_blank"
                       sx={{
-                        color: "#1da1f2",
+                        color: "#000000",
                         "&:hover": {
                           backgroundColor: "rgba(29, 161, 242, 0.1)",
                         },
                       }}
                     >
-                      <Twitter />
+                      <X />
                     </IconButton>
                     <IconButton
                       href="https://www.linkedin.com/in/agouramathcircle/"

@@ -16,45 +16,46 @@ import {
 } from "@mui/icons-material";
 import studentDashboardService from "../../../services/studentDashboardService";
 
-const DashboardMessages = ({ username, chapterId }) => {
-  const [dashboardMessages, setDashboardMessages] = useState({
+const DashboardMessages = ({
+  username,
+  chapterId,
+  dashboardMessages: propsDashboardMessages,
+  loading: propsLoading,
+}) => {
+  // When parent passes data (single fetch from StudentDashboard), use it and don't call API
+  const isControlled = propsDashboardMessages != null;
+  const [internalMessages, setInternalMessages] = useState({
     importantNotice: "",
     announcement: "",
     competitions: "",
     todoList: "",
   });
-  const [loading, setLoading] = useState(true);
+  const [internalLoading, setInternalLoading] = useState(!isControlled);
   const [error, setError] = useState(null);
 
-  // Load dashboard data from API
+  const dashboardMessages = isControlled ? propsDashboardMessages : internalMessages;
+  const loading = isControlled ? (propsLoading ?? false) : internalLoading;
+
+  // Only fetch when not controlled by parent (e.g. if used elsewhere without props)
   useEffect(() => {
+    if (isControlled || !username || !chapterId) {
+      if (isControlled) setError(null);
+      return;
+    }
+
+    let cancelled = false;
+
     const loadDashboardData = async () => {
-      if (!username || !chapterId) {
-        console.log(
-          "DashboardMessages: Missing username or chapterId, skipping API call"
-        );
-        setLoading(false);
-        return;
-      }
-
       try {
-        setLoading(true);
+        setInternalLoading(true);
         setError(null);
-
-        console.log(
-          "DashboardMessages: Fetching dashboard data for",
-          username,
-          chapterId
-        );
-
         const response = await studentDashboardService.getDashboardData(
           username,
           chapterId
         );
-
+        if (cancelled) return;
         if (response.isSuccess) {
-          // Set dashboard messages from API response
-          setDashboardMessages({
+          setInternalMessages({
             importantNotice: response.importantNotice || "",
             announcement: response.announcement || "",
             competitions: response.competitions || "",
@@ -64,15 +65,20 @@ const DashboardMessages = ({ username, chapterId }) => {
           setError(response.message || "Failed to load dashboard messages");
         }
       } catch (err) {
-        console.error("Error fetching dashboard messages:", err);
-        setError("Failed to load dashboard messages. Please try again.");
+        if (!cancelled) {
+          console.error("Error fetching dashboard messages:", err);
+          setError("Failed to load dashboard messages. Please try again.");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setInternalLoading(false);
       }
     };
 
     loadDashboardData();
-  }, [username, chapterId]);
+    return () => {
+      cancelled = true;
+    };
+  }, [isControlled, username, chapterId]);
 
   // Show loading state
   if (loading) {

@@ -52,6 +52,39 @@ namespace pStudyWare20.Repository.Implementations
         }
 
         /// <summary>
+        /// Get meeting schedule list for a specific user (student dashboard).
+        /// Uses AMC_spMeetingSchedule_Select with @UserName - matches legacy pStudyware_DashboardMessage.ascx.cs BingMeetingSchedule().
+        /// </summary>
+        public async Task<object> GetMeetingScheduleListByUserAsync(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+                throw new ArgumentException("Username is required for user-scoped meeting schedule.", nameof(username));
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand("AMC_spMeetingSchedule_Select", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                command.Parameters.Add(new SqlParameter("@UserName", username));
+
+                var dataTable = new DataTable();
+                using var adapter = new SqlDataAdapter(command);
+                adapter.Fill(dataTable);
+
+                return dataTable;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting meeting schedule list for user: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
         /// Get specific meeting schedule by Row ID
         /// </summary>
         public async Task<object> GetMeetingScheduleByIdAsync(string rowId)

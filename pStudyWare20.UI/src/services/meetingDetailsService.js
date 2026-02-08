@@ -4,13 +4,17 @@ const MEETING_DETAILS_API_BASE_URL = "/MeetingDetails";
 
 const meetingDetailsService = {
   /**
-   * Gets all meeting schedules
+   * Gets meeting schedules. When username is provided (student dashboard), returns only meetings for that user.
+   * When omitted (admin), returns all meeting schedules.
+   * @param {string} [username] - Optional. Student/instructor username (e.g. email) to filter schedules for that user
    * @returns {Promise<object>} Meeting schedule list response
    */
-  getAllMeetingSchedules: async () => {
+  getAllMeetingSchedules: async (username) => {
     try {
+      const params = username ? { username } : {};
       const response = await api.get(
-        `${MEETING_DETAILS_API_BASE_URL}/GetAllMeetingSchedules`
+        `${MEETING_DETAILS_API_BASE_URL}/GetAllMeetingSchedules`,
+        { params }
       );
       return response.data;
     } catch (error) {

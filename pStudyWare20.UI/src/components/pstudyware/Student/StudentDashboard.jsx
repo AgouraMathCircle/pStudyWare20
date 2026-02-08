@@ -38,7 +38,7 @@ import {
   YouTube as YouTubeIcon,
   VideoCall as VideoCallIcon,
 } from "@mui/icons-material";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import StudentHeader from "./StudentHeader";
@@ -76,6 +76,25 @@ const StudentDashboard = () => {
 
   // Trigger for refreshing data after registration
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Dashboard messages (fetched once and passed to DashboardMessages to avoid duplicate API call)
+  const [dashboardMessages, setDashboardMessages] = useState({
+    importantNotice: "",
+    announcement: "",
+    competitions: "",
+    todoList: "",
+  });
+  const [dashboardMessagesLoading, setDashboardMessagesLoading] = useState(false);
+
+  // Stable primitive values so child effects don't re-run when user object reference changes
+  const username = useMemo(
+    () => user?.email || user?.username || "",
+    [user?.email, user?.username]
+  );
+  const chapterId = useMemo(
+    () => user?.chapterId ?? user?.chapterID ?? 1,
+    [user?.chapterId, user?.chapterID]
+  );
 
   // Handle authentication and validation
   useEffect(() => {
@@ -160,93 +179,87 @@ const StudentDashboard = () => {
     return () => clearTimeout(timeout);
   }, [loading, authLoading]);
 
-  // Load registration status
+  // Load registration status (stable deps: username so we don't re-run when user object reference changes)
   useEffect(() => {
-    const loadRegistrationStatus = async () => {
-      if (!isValidated || !user || !user.email) {
-        return;
-      }
+    if (!isValidated || !username) return;
 
+    const abortController = new AbortController();
+    let cancelled = false;
+
+    const loadRegistrationStatus = async () => {
       try {
         setRegistrationLoading(true);
-        console.log(
-          "StudentDashboard: Fetching registration status for",
-          user.email
-        );
-
-        const response = await studentDashboardService.getRegistrationStatus(
-          user.email || user.username
-        );
-
-        console.log("StudentDashboard: Registration status response", response);
+        const response = await studentDashboardService.getRegistrationStatus(username);
+        if (cancelled) return;
 
         if (response.isSuccess && response.registrationEntries) {
           setRegistrationData(response.registrationEntries);
-          // Show registration section if there are entries
-          if (response.registrationEntries.length > 0) {
-            setShowRegistration(true);
-          } else {
-            setShowRegistration(false);
-          }
+          setShowRegistration(response.registrationEntries.length > 0);
         } else {
-          // No registration data or failed
           setShowRegistration(false);
-          console.log(
-            "StudentDashboard: No registration data available or failed to load"
-          );
         }
       } catch (err) {
-        console.error("Error fetching registration status:", err);
-        setShowRegistration(false);
+        if (!cancelled) {
+          console.error("Error fetching registration status:", err);
+          setShowRegistration(false);
+        }
       } finally {
-        setRegistrationLoading(false);
+        if (!cancelled) setRegistrationLoading(false);
       }
     };
 
     loadRegistrationStatus();
-  }, [isValidated, user, refreshTrigger]);
+    return () => {
+      cancelled = true;
+    };
+  }, [isValidated, username, refreshTrigger]);
 
-  // Load dashboard data and check for final exam visibility
+  // Single dashboard data fetch: messages + final exam visibility (avoids duplicate GetDashboardData from DashboardMessages)
   useEffect(() => {
+    if (!isValidated || !username) return;
+
+    let cancelled = false;
+
     const loadDashboardData = async () => {
-      if (!isValidated || !user || !user.email) {
-        return;
-      }
-
       try {
+        setDashboardMessagesLoading(true);
         setFinalExamLoading(true);
-        console.log(
-          "StudentDashboard: Fetching dashboard data for final exam status"
-        );
+        const response = await studentDashboardService.getDashboardData(username, chapterId);
+        if (cancelled) return;
 
-        const response = await studentDashboardService.getDashboardData(
-          user.email || user.username,
-          user.chapterId || user.chapterID || 1
-        );
-
-        console.log("StudentDashboard: Dashboard data response", response);
-
-        // Check if final exam should be shown
-        // Option 1: Check from API response (if backend provides this info)
-        if (response.isSuccess && response.showFinalExam !== undefined) {
-          setShowFinalExam(response.showFinalExam);
+        if (response.isSuccess) {
+          setDashboardMessages({
+            importantNotice: response.importantNotice || "",
+            announcement: response.announcement || "",
+            competitions: response.competitions || "",
+            todoList: response.todoList || "",
+          });
+          setShowFinalExam(
+            response.showFinalExam !== undefined
+              ? response.showFinalExam
+              : checkIfFinalExamPeriod()
+          );
         } else {
-          // Option 2: Check based on current date (exam period)
-          // For now, we'll enable it by default (matching old ASPX behavior: divExamButton.Visible = true)
-          // You can customize this logic based on your requirements
           setShowFinalExam(checkIfFinalExamPeriod());
         }
       } catch (err) {
-        console.error("Error fetching dashboard data for final exam:", err);
-        // Default to showing final exam if there's an error (matching old behavior)
-        setShowFinalExam(true);
+        if (!cancelled) {
+          console.error("Error fetching dashboard data:", err);
+          setShowFinalExam(true);
+        }
       } finally {
-        setFinalExamLoading(false);
+        if (!cancelled) {
+          setDashboardMessagesLoading(false);
+          setFinalExamLoading(false);
+        }
       }
     };
 
     loadDashboardData();
-  }, [isValidated, user, refreshTrigger]);
+    return () => {
+      cancelled = true;
+    };
+  }, [isValidated, username, chapterId, refreshTrigger]);
 
   // Helper function to check if it's final exam period
   const checkIfFinalExamPeriod = () => {
@@ -341,37 +354,19 @@ const StudentDashboard = () => {
       <StudentHeader user={user} />
       {/* Spacer to account for fixed StudentHeader */}
       <Box sx={{ height: "40px" }} />
-      <Container 
-        maxWidth="xl" 
-        sx={{ 
-          mb: 4, 
-          ml: { xs: 2, sm: 3, md: "1in", lg: "1in" },
-          mr: { xs: 2, sm: 3, md: "1in", lg: "1in" }
-        }}
-      >
+      <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
-          {/* Dashboard Messages */}
+          {/* Dashboard Messages (data from single parent fetch to avoid duplicate API call) */}
           <DashboardMessages
-            username={user?.email || user?.username}
-            chapterId={user?.chapterId || user?.chapterID || 1}
+            username={username}
+            chapterId={chapterId}
+            dashboardMessages={dashboardMessages}
+            loading={dashboardMessagesLoading}
           />
 
-          {/* Meeting Schedule Section - Centered on page */}
+          {/* Meeting Schedule Section */}
           <Grid item xs={12}>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "flex-start",
-                width: "100%",
-              }}
-            >
-              <Box sx={{ width: "100%", maxWidth: "600px" }}>
-                <StudentMeetingSchedule
-                  username={user?.email || user?.username}
-                />
-              </Box>
-            </Box>
+            <StudentMeetingSchedule username={username} />
           </Grid>
 
           {/* Registration Section - Conditionally Rendered */}
@@ -379,7 +374,7 @@ const StudentDashboard = () => {
             <Grid item xs={12}>
               <RegistrationSection
                 registrationData={registrationData}
-                username={user?.email || user?.username}
+                username={username}
                 onSuccess={handleRegistrationSuccess}
                 onError={handleRegistrationError}
               />
@@ -425,14 +420,14 @@ const StudentDashboard = () => {
 
           {/* Student Profile */}
           <StudentProfile
-            username={user?.email || user?.username}
-            chapterId={user?.chapterId || user?.chapterID || 1}
+            username={username}
+            chapterId={chapterId}
             key={`profile-${refreshTrigger}`}
           />
 
           {/* Report Card */}
           <ReportCard
-            username={user?.email || user?.username}
+            username={username}
             key={`reportcard-${refreshTrigger}`}
           />
         </Grid>

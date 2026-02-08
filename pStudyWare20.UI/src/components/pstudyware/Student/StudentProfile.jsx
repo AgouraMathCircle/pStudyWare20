@@ -122,35 +122,25 @@ const StudentProfile = ({ username, chapterId }) => {
     }
   };
 
-  // Load student profile data from API
+  // Load student profile data from API (cancelled guard avoids setState after unmount / duplicate runs)
   useEffect(() => {
-    const loadStudentProfile = async () => {
-      if (!username || !chapterId) {
-        console.log(
-          "StudentProfile: Missing username or chapterId, skipping API call"
-        );
-        setLoading(false);
-        return;
-      }
+    if (!username || !chapterId) {
+      setLoading(false);
+      return;
+    }
 
+    let cancelled = false;
+
+    const loadStudentProfile = async () => {
       try {
         setLoading(true);
         setError(null);
-
-        console.log(
-          "StudentProfile: Fetching profile data for",
-          username,
-          chapterId
-        );
-
         const response = await studentDashboardService.getStudentProfiles(
           username,
           chapterId
         );
-        console.log("StudentProfile: API response", response);
-
-        if (response.isSuccess && response.studentProfiles) {
-          // Use the array of profiles from the API
+        if (cancelled) return;
+        if (response.isSuccess && response.studentProfiles != null) {
           const profileArray = Array.isArray(response.studentProfiles)
             ? response.studentProfiles
             : [response.studentProfiles];
@@ -158,17 +148,23 @@ const StudentProfile = ({ username, chapterId }) => {
           setFilteredData(profileArray);
           setTotalRecords(profileArray.length);
         } else {
-          setError(response.message || "Failed to load student profiles");
+          setError(response?.message || "Failed to load student profiles");
         }
       } catch (err) {
-        console.error("Error fetching student profile:", err);
-        setError("Failed to load student profile. Please try again.");
+        if (!cancelled) {
+          console.error("Error fetching student profile:", err);
+          const serverMessage = err.response?.data?.message || err.message;
+          setError(serverMessage || "Failed to load student profile. Please try again.");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     loadStudentProfile();
+    return () => {
+      cancelled = true;
+    };
   }, [username, chapterId]);
 
   // Update pagination when filtered data changes

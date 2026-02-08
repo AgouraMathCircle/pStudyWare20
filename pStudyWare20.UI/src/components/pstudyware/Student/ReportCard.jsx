@@ -124,40 +124,44 @@ const ReportCard = ({ username: propUsername }) => {
     }
   };
 
-  // Load report card data from API
+  // Load report card data from API (cancelled guard avoids setState after unmount / duplicate runs)
   useEffect(() => {
-    const loadReportCard = async () => {
-      if (!username) {
-        console.log("ReportCard: Missing username, skipping API call");
-        setLoading(false);
-        return;
-      }
+    if (!username) {
+      setLoading(false);
+      return;
+    }
 
+    let cancelled = false;
+
+    const loadReportCard = async () => {
       try {
         setLoading(true);
         setError(null);
-
-        console.log("ReportCard: Fetching report card data for", username);
-
         const response = await studentDashboardService.getReportCard(username);
-        console.log("ReportCard: API response", response);
-
-        if (response.isSuccess && response.reportCardEntries) {
-          setReportCardData(response.reportCardEntries);
-          setFilteredData(response.reportCardEntries);
-          setTotalRecords(response.reportCardEntries.length);
+        if (cancelled) return;
+        if (response.isSuccess && response.reportCardEntries != null) {
+          const entries = Array.isArray(response.reportCardEntries) ? response.reportCardEntries : [];
+          setReportCardData(entries);
+          setFilteredData(entries);
+          setTotalRecords(entries.length);
         } else {
-          setError(response.message || "Failed to load report card");
+          setError(response?.message || "Failed to load report card");
         }
       } catch (err) {
-        console.error("Error fetching report card:", err);
-        setError("Failed to load report card. Please try again.");
+        if (!cancelled) {
+          console.error("Error fetching report card:", err);
+          const serverMessage = err.response?.data?.message || err.message;
+          setError(serverMessage || "Failed to load report card. Please try again.");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     loadReportCard();
+    return () => {
+      cancelled = true;
+    };
   }, [username]);
 
   // Update pagination when filtered data changes

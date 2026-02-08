@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -18,6 +18,24 @@ import {
 } from "@mui/icons-material";
 import meetingDetailsService from "../../../services/meetingDetailsService";
 
+// Module-level cache per username so GetAllMeetingSchedules is only called once per user per TTL
+const MEETING_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
+const meetingSchedulesCacheByUser = {}; // { [username]: { data: [...], time: number } }
+
+const getActiveMeetings = (response) => {
+  if (!response?.isSuccess) return null;
+  const schedules = response.meetingSchedules || [];
+  return schedules.filter(
+    (meeting) =>
+      meeting.active === true ||
+      meeting.Active === true ||
+      meeting.active === "1" ||
+      meeting.Active === "1" ||
+      meeting.active === "True" ||
+      meeting.Active === "True"
+  );
+};
+
 const StudentMeetingSchedule = ({ username }) => {
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,68 +43,69 @@ const StudentMeetingSchedule = ({ username }) => {
 
   // Helper to get property value (handles both camelCase and PascalCase)
   const getProp = (obj, propName) => {
-    // Try PascalCase first
     if (obj[propName] !== undefined) return obj[propName];
-    // Try camelCase
     const camelCase = propName.charAt(0).toLowerCase() + propName.slice(1);
     if (obj[camelCase] !== undefined) return obj[camelCase];
     return "";
   };
 
   useEffect(() => {
+    if (!username) {
+      setLoading(false);
+      return;
+    }
+
+    const now = Date.now();
+    const cached = meetingSchedulesCacheByUser[username];
+    const cacheValid = cached && cached.data && now - cached.time < MEETING_CACHE_TTL_MS;
+
+    if (cacheValid) {
+      setMeetings(cached.data);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
     const loadMeetings = async () => {
       try {
         setLoading(true);
-        console.log("StudentMeetingSchedule: Loading meetings for", username);
+        setError(null);
 
-        // Get all meetings using the GetAllMeetingSchedules endpoint
-        const response = await meetingDetailsService.getAllMeetingSchedules();
+        const response = await meetingDetailsService.getAllMeetingSchedules(username);
 
-        console.log("StudentMeetingSchedule: Response received", response);
+        if (cancelled) return;
 
-        if (response && response.isSuccess) {
-          const schedules = response.meetingSchedules || [];
-          console.log(
-            "StudentMeetingSchedule: Meetings found",
-            schedules.length
-          );
-
-          // Filter active meetings only (check both lowercase and PascalCase)
-          const activeMeetings = schedules.filter(
-            (meeting) =>
-              meeting.active === true ||
-              meeting.Active === true ||
-              meeting.active === "1" ||
-              meeting.Active === "1" ||
-              meeting.active === "True" ||
-              meeting.Active === "True"
-          );
-
-          console.log(
-            "StudentMeetingSchedule: Active meetings",
-            activeMeetings.length
-          );
+        const activeMeetings = getActiveMeetings(response);
+        if (activeMeetings != null) {
+          meetingSchedulesCacheByUser[username] = {
+            data: activeMeetings,
+            time: Date.now(),
+          };
           setMeetings(activeMeetings);
         } else {
           const errorMsg =
             response?.errorMessage || "Unable to load meeting schedules";
-          console.error("StudentMeetingSchedule: Error", errorMsg);
           setError(errorMsg);
         }
       } catch (err) {
-        console.error(
-          "StudentMeetingSchedule: Exception loading meetings",
-          err
-        );
-        setError(`Error loading meeting schedules: ${err.message}`);
+        if (!cancelled) {
+          console.error(
+            "StudentMeetingSchedule: Exception loading meetings",
+            err
+          );
+          setError(`Error loading meeting schedules: ${err.message}`);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    if (username) {
-      loadMeetings();
-    }
+    loadMeetings();
+    return () => {
+      cancelled = true;
+    };
   }, [username]);
 
   if (loading) {
