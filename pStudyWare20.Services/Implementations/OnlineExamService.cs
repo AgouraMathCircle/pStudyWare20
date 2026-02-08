@@ -32,15 +32,15 @@ namespace pStudyWare20.Services.Implementations
 
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var rows = JsonSerializer.Deserialize<List<System.Text.Json.JsonElement>>(result);
+                    if (rows != null)
                     {
-                        foreach (System.Data.DataRow row in dataTable.Rows)
+                        foreach (var row in rows)
                         {
                             response.StudentList.Add(new StudentListItem
                             {
-                                Value = row["Value"]?.ToString() ?? string.Empty,
-                                Text = row["Text"]?.ToString() ?? string.Empty
+                                Value = GetStringFromElement(row, "Value"),
+                                Text = GetStringFromElement(row, "Text")
                             });
                         }
                     }
@@ -242,6 +242,13 @@ namespace pStudyWare20.Services.Implementations
             }
 
             return response;
+        }
+
+        private static string GetStringFromElement(JsonElement row, string propertyName)
+        {
+            if (row.TryGetProperty(propertyName, out var prop))
+                return prop.ValueKind == JsonValueKind.Null || prop.ValueKind == JsonValueKind.Undefined ? string.Empty : (prop.GetString() ?? string.Empty);
+            return string.Empty;
         }
     }
 }

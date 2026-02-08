@@ -1,4 +1,5 @@
 import React from "react";
+import { useLocation } from "react-router-dom";
 import {
   Facebook,
   Twitter,
@@ -191,11 +192,26 @@ const AnimatedArrow = styled(Box)(({ theme }) => ({
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
+
   return (
     <>
    
-      <StyledFooter component="footer" id="sc-footer">
-      <Newsletter />
+      <StyledFooter 
+        component="footer" 
+        id="sc-footer"
+        sx={(theme) => ({
+          paddingTop: isHomePage ? "120px" : "40px",
+          [theme.breakpoints.down("md")]: {
+            paddingTop: isHomePage ? "80px" : "30px",
+          },
+          [theme.breakpoints.down("sm")]: {
+            paddingTop: isHomePage ? "60px" : "20px",
+          },
+        })}
+      >
+      {isHomePage && <Newsletter />}
         <Container
           maxWidth={false}
           disableGutters

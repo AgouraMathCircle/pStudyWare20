@@ -33,12 +33,12 @@ namespace pStudyWare20.Services.Implementations
                                 + " Interested For : " + volunteerDetail.InterestedFor + "<br/>"
                                 + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                SendEmail(adminEmail, volunteerDetail.Email, adminSubject, adminBody);
-                //if (adminEmailResult.Contains("Error"))
-                //{
-                //    return adminEmailResult;
-                //}
-
+               var adminEmailResult = SendEmail(adminEmail, volunteerDetail.Email, adminSubject, adminBody);
+                if (!adminEmailResult == true)
+                { 
+                    return adminEmailResult.ToString();
+                }
+                
                 // Email to Volunteer (matches old file logic)
                 string volunteerSubject = "Agoura Math Circle : New Volunteer Request confirmation for " + volunteerDetail.FirstName + " " + volunteerDetail.LastName + ".";
                 string volunteerBody = volunteerDetail.FirstName + " " + volunteerDetail.LastName + ",<Br>"
@@ -47,11 +47,11 @@ namespace pStudyWare20.Services.Implementations
                                     + " If you have any question, please email to support@agouramathcircle.org." + "<br/><br/>"
                                     + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                SendEmail(volunteerDetail.Email, adminEmail, volunteerSubject, volunteerBody);
-                //if (volunteerEmailResult.Contains("Error"))
-                //{
-                //    return volunteerEmailResult;
-                //}
+                var volunteerEmailResult = SendEmail(volunteerDetail.Email, adminEmail, volunteerSubject, volunteerBody);
+                if (!volunteerEmailResult == true)
+                {
+                    return volunteerEmailResult.ToString();
+                }
 
                 return "Emails sent successfully";
             }
@@ -229,12 +229,17 @@ namespace pStudyWare20.Services.Implementations
 
         private bool SendEmail(string SendTo, string SentFrom, string subject, string body)
         {
-            string AdminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"];
-
             try
             {
+                // Validate email addresses
+                if (string.IsNullOrEmpty(SendTo) || string.IsNullOrEmpty(SentFrom))
+                {
+                    System.Diagnostics.Trace.TraceError($"[SendEmail] Email addresses cannot be null or empty. To: {SendTo}, From: {SentFrom}");
+                    return false;
+                }
+
                 MailMessage message = new MailMessage();
-                message.From = new MailAddress(AdminEmailID);
+                message.From = new MailAddress(SentFrom);
                 message.To.Add(new MailAddress(SendTo));
                 message.IsBodyHtml = true;
                 message.Subject = subject;
@@ -247,52 +252,82 @@ namespace pStudyWare20.Services.Implementations
                 bool useDefaultCredentials = bool.TryParse(_configuration.GetSection("SmtpSettings")["UseDefaultCredentials"], out bool credentials) ? credentials : false;
                 int timeout = int.TryParse(_configuration.GetSection("SmtpSettings")["Timeout"], out int time) ? time : 30000;
 
-                SmtpClient smtpClient = new SmtpClient(smtpServer, smtpPort);
-                smtpClient.EnableSsl = enableSsl;
-                smtpClient.UseDefaultCredentials = useDefaultCredentials;
-                smtpClient.Timeout = timeout;
-                smtpClient.Send(message);
+                System.Diagnostics.Trace.TraceInformation($"[SendEmail] Attempting to send email. Server: {smtpServer}, Port: {smtpPort}, To: {SendTo}, From: {SentFrom}");
+
+                using (SmtpClient smtpClient = new SmtpClient(smtpServer, smtpPort))
+                {
+                    smtpClient.EnableSsl = enableSsl;
+                    smtpClient.UseDefaultCredentials = useDefaultCredentials;
+                    smtpClient.Timeout = timeout;
+                    smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
+                    
+                    smtpClient.Send(message);
+                }
+                
+                System.Diagnostics.Trace.TraceInformation($"[SendEmail] Email sent successfully to {SendTo}");
                 return true;
             }
-            catch (Exception)
+            catch (SmtpException smtpEx)
             {
+                // Log SMTP-specific errors for troubleshooting
+                System.Diagnostics.Trace.TraceError($"[SendEmail] SMTP Error sending email to {SendTo}: {smtpEx.Message}");
+                System.Diagnostics.Trace.TraceError($"[SendEmail] SMTP Status Code: {smtpEx.StatusCode}");
+                System.Diagnostics.Trace.TraceError($"[SendEmail] Inner Exception: {smtpEx.InnerException?.Message}");
+                System.Diagnostics.Trace.TraceError($"[SendEmail] Stack Trace: {smtpEx.StackTrace}");
+                return false;
+            }
+            catch (System.Net.Sockets.SocketException socketEx)
+            {
+                // Network/DNS related errors
+                System.Diagnostics.Trace.TraceError($"[SendEmail] Network Error sending email to {SendTo}: {socketEx.Message}");
+                System.Diagnostics.Trace.TraceError($"[SendEmail] Socket Error Code: {socketEx.SocketErrorCode}");
+                System.Diagnostics.Trace.TraceError($"[SendEmail] Stack Trace: {socketEx.StackTrace}");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                // Log general errors for troubleshooting
+                System.Diagnostics.Trace.TraceError($"[SendEmail] Error sending email to {SendTo}: {ex.Message}");
+                System.Diagnostics.Trace.TraceError($"[SendEmail] Exception Type: {ex.GetType().Name}");
+                System.Diagnostics.Trace.TraceError($"[SendEmail] Inner Exception: {ex.InnerException?.Message}");
+                System.Diagnostics.Trace.TraceError($"[SendEmail] Stack Trace: {ex.StackTrace}");
                 return false;
             }
         }
 
-        private bool SendEmailGroup(string SendTo, string SentFrom, string subject, string body, string SendBcc)
-        {
-            string AdminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"];
+        //private bool SendEmailGroup(string SendTo, string SentFrom, string subject, string body, string SendBcc)
+        //{
+        //    string AdminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"];
 
-            try
-            {
-                MailMessage message = new MailMessage();
-                message.From = new MailAddress(AdminEmailID);
-                message.To.Add(new MailAddress(SendTo));
-                message.Bcc.Add(new MailAddress(SendBcc));
-                message.IsBodyHtml = true;
-                message.Subject = subject;
-                message.Body = body;
+        //    try
+        //    {
+        //        MailMessage message = new MailMessage();
+        //        message.From = new MailAddress(AdminEmailID);
+        //        message.To.Add(new MailAddress(SendTo));
+        //        message.Bcc.Add(new MailAddress(SendBcc));
+        //        message.IsBodyHtml = true;
+        //        message.Subject = subject;
+        //        message.Body = body;
 
-                // Read SMTP settings from configuration
-                string smtpServer = _configuration.GetSection("SmtpSettings")["Server"] ?? "relay-hosting.secureserver.net";
-                int smtpPort = int.TryParse(_configuration.GetSection("SmtpSettings")["Port"], out int port) ? port : 25;
-                bool enableSsl = bool.TryParse(_configuration.GetSection("SmtpSettings")["EnableSsl"], out bool ssl) ? ssl : false;
-                bool useDefaultCredentials = bool.TryParse(_configuration.GetSection("SmtpSettings")["UseDefaultCredentials"], out bool credentials) ? credentials : false;
-                int timeout = int.TryParse(_configuration.GetSection("SmtpSettings")["Timeout"], out int time) ? time : 30000;
+        //        // Read SMTP settings from configuration
+        //        string smtpServer = _configuration.GetSection("SmtpSettings")["Server"] ?? "relay-hosting.secureserver.net";
+        //        int smtpPort = int.TryParse(_configuration.GetSection("SmtpSettings")["Port"], out int port) ? port : 25;
+        //        bool enableSsl = bool.TryParse(_configuration.GetSection("SmtpSettings")["EnableSsl"], out bool ssl) ? ssl : false;
+        //        bool useDefaultCredentials = bool.TryParse(_configuration.GetSection("SmtpSettings")["UseDefaultCredentials"], out bool credentials) ? credentials : false;
+        //        int timeout = int.TryParse(_configuration.GetSection("SmtpSettings")["Timeout"], out int time) ? time : 30000;
 
-                SmtpClient smtpClient = new SmtpClient(smtpServer, smtpPort);
-                smtpClient.EnableSsl = enableSsl;
-                smtpClient.UseDefaultCredentials = useDefaultCredentials;
-                smtpClient.Timeout = timeout;
-                smtpClient.Send(message);
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
+        //        SmtpClient smtpClient = new SmtpClient(smtpServer, smtpPort);
+        //        smtpClient.EnableSsl = enableSsl;
+        //        smtpClient.UseDefaultCredentials = useDefaultCredentials;
+        //        smtpClient.Timeout = timeout;
+        //        smtpClient.Send(message);
+        //        return true;
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return false;
+        //    }
+        //}
         private string? GetPropertyValue(object obj, string propertyName)
         {
             try

@@ -60,6 +60,13 @@ namespace pStudyWare20.Shared
     {
         [Display(Name = "Row ID")]
         public string RowId { get; set; } = "0";
+
+        /// <summary>
+        /// When set (e.g. student dashboard), use AMC_spMeetingSchedule_Select to return only meetings for this user.
+        /// When null/empty, use AMC_tblMeetingSchedule_Select for all records (admin).
+        /// </summary>
+        [Display(Name = "User Name")]
+        public string? UserName { get; set; }
     }
 
     /// <summary>

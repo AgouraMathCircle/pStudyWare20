@@ -38,10 +38,10 @@ namespace pStudyWare20.Services.Implementations
                 if (result)
                 {
                     // Send email notification to admin (matches InformMe() call in .aspx.cs line 107)
-                   // _emailUtility.SendEmailtoAdminForStudentRegistration(studentDetails);
+                    _emailUtility.SendEmailtoAdminForStudentRegistration(studentDetails);
 
                     // Send email notification to parent (matches InformParent() call in .aspx.cs line 108)
-                   // _emailUtility.SendEmailtoParentForStudentRegistration(studentDetails);
+                    _emailUtility.SendEmailtoParentForStudentRegistration(studentDetails);
 
                     // Set success message matching .aspx.cs line 103: txtstName.Text + " " + txtstLName.Text + " "
                     responseDetails.isSuccess = true;

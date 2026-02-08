@@ -18,41 +18,26 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
-        /// Get meeting schedule list
+        /// Get meeting schedule list. When request.UserName is set (student dashboard), uses AMC_spMeetingSchedule_Select
+        /// to return only meetings for that user (matches legacy pStudyware_DashboardMessage.ascx.cs). Otherwise returns all.
         /// </summary>
         public async Task<MeetingScheduleListResponse> GetMeetingScheduleListAsync(MeetingScheduleListRequest request)
         {
             try
             {
-                var meetingSchedulesData = await _meetingDetailsRepository.GetMeetingScheduleListAsync(request.RowId);
-                var meetingSchedulesList = new List<MeetingSchedule>();
-
-                if (meetingSchedulesData is DataTable dataTable && dataTable.Rows.Count > 0)
+                object meetingSchedulesData;
+                if (!string.IsNullOrWhiteSpace(request.UserName))
                 {
-                    foreach (DataRow row in dataTable.Rows)
-                    {
-                        var meetingSchedule = new MeetingSchedule
-                        {
-                            RowId = row["RowID"] != DBNull.Value ? Convert.ToInt32(row["RowID"]) : 0,
-                            ChapterId = row["ChapterID"]?.ToString() ?? "",
-                            ChapterName = dataTable.Columns.Contains("ChapterName") ? row["ChapterName"]?.ToString() ?? "" : "",
-                            Class = row["Class"]?.ToString() ?? "",
-                            Section = row["Section"]?.ToString() ?? "",
-                            MeetingProviderUrl = row["MeetingProviderURL"]?.ToString() ?? "",
-                            MeetingUrl = row["MeetingURL"]?.ToString() ?? "",
-                            MeetingId = row["MeetingID"]?.ToString() ?? "",
-                            Passcode = row["Passcode"]?.ToString() ?? "",
-                            AdminLogin = row["AdminLogin"]?.ToString() ?? "",
-                            AdminPassCode = row["AdminPassCode"]?.ToString() ?? "",
-                            IncludeSection = row["IncludeSection"]?.ToString() == "True" || row["IncludeSection"]?.ToString() == "1",
-                            Active = row["Active"]?.ToString() == "True" || row["Active"]?.ToString() == "1",
-                            MeetingTime = row["MeetingTime"]?.ToString() ?? "",
-                            MeetingDate = row["MeetingDate"]?.ToString() ?? ""
-                        };
-
-                        meetingSchedulesList.Add(meetingSchedule);
-                    }
+                    // Student/instructor/volunteer dashboard: only meetings for this user (legacy BingMeetingSchedule)
+                    meetingSchedulesData = await _meetingDetailsRepository.GetMeetingScheduleListByUserAsync(request.UserName.Trim());
                 }
+                else
+                {
+                    // Admin: all meeting schedules (AMC_tblMeetingSchedule_Select)
+                    meetingSchedulesData = await _meetingDetailsRepository.GetMeetingScheduleListAsync(request.RowId);
+                }
+
+                var meetingSchedulesList = MapDataTableToMeetingScheduleList(meetingSchedulesData);
 
                 return new MeetingScheduleListResponse
                 {
@@ -68,6 +53,37 @@ namespace pStudyWare20.Services.Implementations
                     ErrorMessage = ex.Message
                 };
             }
+        }
+
+        private static List<MeetingSchedule> MapDataTableToMeetingScheduleList(object meetingSchedulesData)
+        {
+            var meetingSchedulesList = new List<MeetingSchedule>();
+            if (meetingSchedulesData is not DataTable dataTable || dataTable.Rows.Count == 0)
+                return meetingSchedulesList;
+
+            foreach (DataRow row in dataTable.Rows)
+            {
+                var meetingSchedule = new MeetingSchedule
+                {
+                    RowId = dataTable.Columns.Contains("RowID") && row["RowID"] != DBNull.Value ? Convert.ToInt32(row["RowID"]) : 0,
+                    ChapterId = dataTable.Columns.Contains("ChapterID") ? row["ChapterID"]?.ToString() ?? "" : "",
+                    ChapterName = dataTable.Columns.Contains("ChapterName") ? row["ChapterName"]?.ToString() ?? "" : "",
+                    Class = dataTable.Columns.Contains("Class") ? row["Class"]?.ToString() ?? "" : "",
+                    Section = dataTable.Columns.Contains("Section") ? row["Section"]?.ToString() ?? "" : "",
+                    MeetingProviderUrl = dataTable.Columns.Contains("MeetingProviderURL") ? row["MeetingProviderURL"]?.ToString() ?? "" : "",
+                    MeetingUrl = dataTable.Columns.Contains("MeetingURL") ? row["MeetingURL"]?.ToString() ?? "" : "",
+                    MeetingId = dataTable.Columns.Contains("MeetingID") ? row["MeetingID"]?.ToString() ?? "" : "",
+                    Passcode = dataTable.Columns.Contains("Passcode") ? row["Passcode"]?.ToString() ?? "" : "",
+                    AdminLogin = dataTable.Columns.Contains("AdminLogin") ? row["AdminLogin"]?.ToString() ?? "" : "",
+                    AdminPassCode = dataTable.Columns.Contains("AdminPassCode") ? row["AdminPassCode"]?.ToString() ?? "" : "",
+                    IncludeSection = dataTable.Columns.Contains("IncludeSection") && (row["IncludeSection"]?.ToString() == "True" || row["IncludeSection"]?.ToString() == "1"),
+                    Active = dataTable.Columns.Contains("Active") && (row["Active"]?.ToString() == "True" || row["Active"]?.ToString() == "1"),
+                    MeetingTime = dataTable.Columns.Contains("MeetingTime") ? row["MeetingTime"]?.ToString() ?? "" : "",
+                    MeetingDate = dataTable.Columns.Contains("MeetingDate") ? row["MeetingDate"]?.ToString() ?? "" : ""
+                };
+                meetingSchedulesList.Add(meetingSchedule);
+            }
+            return meetingSchedulesList;
         }
 
         /// <summary>

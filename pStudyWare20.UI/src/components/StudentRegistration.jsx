@@ -49,7 +49,7 @@ const validationSchema = yup.object({
     .required("Parent phone number is required")
     .matches(
       /^[01]?[- .]?(\([2-9]\d{2}\)|[2-9]\d{2})[- .]?\d{3}[- .]?\d{4}$/,
-      "Please enter a valid phone number"
+      "Please enter a valid phone number",
     ),
   city: yup
     .string()
@@ -75,7 +75,7 @@ const validationSchema = yup.object({
     then: (schema) =>
       schema
         .required(
-          "Student email is required when using student email as username"
+          "Student email is required when using student email as username",
         )
         .email("Please enter a valid student email address"),
     otherwise: (schema) =>
@@ -187,7 +187,7 @@ const StudentRegistration = () => {
         console.error("Error loading dropdown data:", error);
         showSnackbar(
           "Error loading form data. Please refresh the page.",
-          "error"
+          "error",
         );
       }
     };
@@ -249,7 +249,7 @@ const StudentRegistration = () => {
       if (response && response.isSuccess !== false) {
         showSnackbar(
           "Registration submitted successfully! We will review and update your enrollment status by email.",
-          "success"
+          "success",
         );
 
         // Reset form after successful submission
@@ -262,14 +262,14 @@ const StudentRegistration = () => {
       } else {
         showSnackbar(
           response?.ErrorMessage || "Registration failed. Please try again.",
-          "error"
+          "error",
         );
       }
     } catch (error) {
       console.error("Registration error:", error);
       showSnackbar(
         error.message || "Failed to submit registration. Please try again.",
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
@@ -410,7 +410,6 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            size="small"
                             label="First Name *"
                             error={!!errors.parentFirstName}
                             helperText={errors.parentFirstName?.message}
@@ -428,7 +427,6 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            size="small"
                             label="Last Name *"
                             error={!!errors.parentLastName}
                             helperText={errors.parentLastName?.message}
@@ -445,7 +443,6 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            size="small"
                             label="Email ID *"
                             type="email"
                             error={!!errors.parentEmail}
@@ -463,7 +460,6 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            size="small"
                             label="Phone (999-999-9999) *"
                             placeholder="999-999-9999"
                             error={!!errors.parentPhoneNo}
@@ -481,7 +477,6 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            size="small"
                             label="City *"
                             error={!!errors.city}
                             helperText={errors.city?.message}
@@ -498,7 +493,6 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            size="small"
                             label="State *"
                             error={!!errors.state}
                             helperText={errors.state?.message}
@@ -515,7 +509,6 @@ const StudentRegistration = () => {
                           <FormControl
                             fullWidth
                             error={!!errors.country}
-                            size="small"
                             sx={{ width: "100%" }}
                           >
                             <InputLabel>Country *</InputLabel>
@@ -565,12 +558,12 @@ const StudentRegistration = () => {
                             >
                               <FormControlLabel
                                 value="P"
-                                control={<Radio size="small" />}
+                                control={<Radio />}
                                 label="Parent Email as User Name"
                               />
                               <FormControlLabel
                                 value="S"
-                                control={<Radio size="small" />}
+                                control={<Radio />}
                                 label="Student Email as User Name"
                               />
                             </RadioGroup>
@@ -624,7 +617,6 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            size="small"
                             label="Student First Name *"
                             error={!!errors.studentFirstName}
                             helperText={errors.studentFirstName?.message}
@@ -642,7 +634,6 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            size="small"
                             label="Student Last Name *"
                             error={!!errors.studentLastName}
                             helperText={errors.studentLastName?.message}
@@ -659,7 +650,6 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            size="small"
                             label="Student Email ID"
                             type="email"
                             error={!!errors.studentEmail}
@@ -683,7 +673,6 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            size="small"
                             label="School *"
                             error={!!errors.studentSchoolName}
                             helperText={errors.studentSchoolName?.message}
@@ -700,7 +689,6 @@ const StudentRegistration = () => {
                           <FormControl
                             fullWidth
                             error={!!errors.studentGrade}
-                            size="small"
                             sx={{ width: "100%" }}
                           >
                             <InputLabel>Grade *</InputLabel>
@@ -730,7 +718,6 @@ const StudentRegistration = () => {
                           <FormControl
                             fullWidth
                             error={!!errors.sessionId}
-                            size="small"
                             sx={{ width: "100%" }}
                           >
                             <InputLabel>Register For *</InputLabel>
@@ -760,7 +747,6 @@ const StudentRegistration = () => {
                           <FormControl
                             fullWidth
                             error={!!errors.locationId}
-                            size="small"
                             sx={{ width: "100%" }}
                           >
                             <InputLabel>Course/Location *</InputLabel>
@@ -861,7 +847,6 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            size="small"
                             label="Liability Signature *"
                             error={!!errors.liabilitySignature}
                             helperText={errors.liabilitySignature?.message}
@@ -885,7 +870,6 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            size="small"
                             label="Signature *"
                             error={!!errors.ruleSignature}
                             helperText={errors.ruleSignature?.message}
@@ -951,8 +935,8 @@ const StudentRegistration = () => {
                       backgroundColor: loading
                         ? "#53b50a"
                         : submitButtonHover
-                        ? "#4a7c59"
-                        : "#53b50a",
+                          ? "#4a7c59"
+                          : "#53b50a",
                       color: loading ? "#53b50a" : "#ffffff",
                       border: "none",
                       borderRadius: "25px",

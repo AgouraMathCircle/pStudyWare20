@@ -174,17 +174,21 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Get all meeting schedules (GET endpoint for easier access)
+        /// Get meeting schedules. When username is provided (e.g. student dashboard), returns only meetings for that user
+        /// via AMC_spMeetingSchedule_Select (matches legacy pStudyware_DashboardMessage.ascx.cs BingMeetingSchedule()).
+        /// When username is not provided (admin), returns all schedules via AMC_tblMeetingSchedule_Select.
         /// </summary>
+        /// <param name="username">Optional. When set, returns only schedules for this user (student/instructor/volunteer).</param>
         /// <returns>Meeting schedule list response</returns>
         [HttpGet("GetAllMeetingSchedules")]
-        public async Task<IActionResult> GetAllMeetingSchedules()
+        public async Task<IActionResult> GetAllMeetingSchedules([FromQuery] string? username = null)
         {
             try
             {
                 var request = new MeetingScheduleListRequest
                 {
-                    RowId = "0"
+                    RowId = "0",
+                    UserName = string.IsNullOrWhiteSpace(username) ? null : username.Trim()
                 };
 
                 var response = await _meetingDetailsService.GetMeetingScheduleListAsync(request);

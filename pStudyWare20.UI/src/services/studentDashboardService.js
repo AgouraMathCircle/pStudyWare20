@@ -11,8 +11,9 @@ const studentDashboardService = {
    */
   getDashboardData: async (username, chapterId) => {
     try {
+      const encoded = encodeURIComponent(username);
       const response = await api.get(
-        `${STUDENT_DASHBOARD_API_BASE_URL}/GetDashboardData/${username}/${chapterId}`
+        `${STUDENT_DASHBOARD_API_BASE_URL}/GetDashboardData/${encoded}/${chapterId}`
       );
       return response.data;
     } catch (error) {
@@ -29,8 +30,9 @@ const studentDashboardService = {
    */
   getStudentProfile: async (username, chapterId) => {
     try {
+      const encoded = encodeURIComponent(username);
       const response = await api.get(
-        `${STUDENT_DASHBOARD_API_BASE_URL}/GetStudentProfile/${username}/${chapterId}`
+        `${STUDENT_DASHBOARD_API_BASE_URL}/GetStudentProfile/${encoded}/${chapterId}`
       );
       console.log("API Response:", response.data);
       return response.data;
@@ -66,8 +68,9 @@ const studentDashboardService = {
    */
   getStudentProfiles: async (username, chapterId) => {
     try {
+      const encoded = encodeURIComponent(username);
       const response = await api.get(
-        `${STUDENT_DASHBOARD_API_BASE_URL}/GetStudentProfiles/${username}/${chapterId}`
+        `${STUDENT_DASHBOARD_API_BASE_URL}/GetStudentProfiles/${encoded}/${chapterId}`
       );
       console.log("API Response (multiple profiles):", response.data);
       return response.data;
@@ -84,8 +87,9 @@ const studentDashboardService = {
    */
   getReportCard: async (username) => {
     try {
+      const encoded = encodeURIComponent(username);
       const response = await api.get(
-        `${STUDENT_DASHBOARD_API_BASE_URL}/GetReportCard/${username}`
+        `${STUDENT_DASHBOARD_API_BASE_URL}/GetReportCard/${encoded}`
       );
       return response.data;
     } catch (error) {
@@ -101,8 +105,9 @@ const studentDashboardService = {
    */
   getRegistrationStatus: async (username) => {
     try {
+      const encoded = encodeURIComponent(username);
       const response = await api.get(
-        `${STUDENT_DASHBOARD_API_BASE_URL}/GetRegistrationStatus/${username}`
+        `${STUDENT_DASHBOARD_API_BASE_URL}/GetRegistrationStatus/${encoded}`
       );
       return response.data;
     } catch (error) {

@@ -31,23 +31,43 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spGetOnlineExamStudentList", connection)
+                using var command = new SqlCommand("AMC_spSelectStudentList", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
 
                 command.Parameters.Add(new SqlParameter("@Username", request.Username ?? ""));
+                command.Parameters.Add(new SqlParameter("@Mode", request.Type ?? ""));
 
                 var dataTable = new DataTable();
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                return DataTableToJson(dataTable);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error getting online exam student list: {ex.Message}", ex);
             }
+        }
+
+        /// <summary>
+        /// Converts DataTable to JSON-serializable list (avoids serializing System.Type in DataColumn.DataType).
+        /// </summary>
+        private static string DataTableToJson(DataTable dataTable)
+        {
+            var list = new List<Dictionary<string, object?>>();
+            foreach (DataRow row in dataTable.Rows)
+            {
+                var dict = new Dictionary<string, object?>();
+                foreach (DataColumn col in dataTable.Columns)
+                {
+                    var val = row[col];
+                    dict[col.ColumnName] = val == DBNull.Value ? null : val;
+                }
+                list.Add(dict);
+            }
+            return System.Text.Json.JsonSerializer.Serialize(list);
         }
 
         /// <summary>
