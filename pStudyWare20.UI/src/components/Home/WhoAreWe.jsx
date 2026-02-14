@@ -39,6 +39,18 @@ const fadeInUp = keyframes`
   }
 `;
 
+// Description: slide in from right to left
+const slideInFromRight = keyframes`
+  0% {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+`;
+
 const WhoAreWe = () => {
   const [currentDescriptionIndex, setCurrentDescriptionIndex] = useState(0);
 
@@ -48,13 +60,13 @@ const WhoAreWe = () => {
     "Agoura Math Circle offers diverse opportunities to cater to students' varied interests. Currently, we provide both online and on-site programs for math, and online programs for engineering and test preparation. Agoura Engineering Circle specifically allows high school students to apply their math skills in engineering contexts, and our test preparation courses assist students in achieving their desired scores in standardized tests such as the PSAT, SAT, and ACT. As part of our Satellite program, we also collaborate with students, teachers, schools, and educational institutions to support the setup of their own clubs, study groups, or enrichment classes. Additionally, for young learners worldwide seeking to explore mathematical concepts, we maintain a dedicated YouTube channel.",
   ];
 
-  // Auto-rotate descriptions every 5 seconds
+  // Auto-rotate descriptions every 5 seconds (stay for 5 sec)
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentDescriptionIndex((prevIndex) =>
-        prevIndex === descriptions.length - 1 ? 0 : prevIndex + 1
+        prevIndex === descriptions.length - 1 ? 0 : prevIndex + 1,
       );
-    }, 5000);
+    }, 5000); // 5 seconds
 
     return () => clearInterval(interval);
   }, [descriptions.length]);
@@ -142,7 +154,7 @@ const WhoAreWe = () => {
                 className="who-description"
                 key={currentDescriptionIndex}
                 sx={{
-                  animation: `${fadeInUp} 0.8s ease-out`,
+                  animation: `${slideInFromRight} 0.7s ease-out both`,
                 }}
               >
                 {descriptions[currentDescriptionIndex]}
@@ -159,7 +171,7 @@ const WhoAreWe = () => {
                 variant="contained"
                 endIcon={<ArrowForwardIcon />}
                 component="a"
-                href="http://localhost:5173/about/math-circle"
+                href="/about/math-circle"
               >
                 Learn More
               </Button>

@@ -310,11 +310,11 @@ const StudentRegistration = () => {
           {/* Header */}
           <div
             className="sec-title text-center"
-            style={{ marginBottom: "0px" }}
+            style={{ marginBottom: "5px" }}
           >
             <h3
               className="title"
-              style={{ fontSize: "1.75rem", marginBottom: "0px" }}
+              style={{ fontSize: "1.75rem", marginBottom: "10px" }}
             >
               Register for New Student
             </h3>
@@ -323,25 +323,24 @@ const StudentRegistration = () => {
           {/* Important Notice */}
           <div
             className="important-notice"
-            style={{ marginBottom: "0px", paddingBottom: "0px" }}
+            style={{ marginBottom: "0px", paddingBottom: "10px" }}
           >
             <h6
               style={{
                 color: "#d32f2f",
                 fontWeight: "bold",
-                marginBottom: "15px",
               }}
             >
               <strong>Important:</strong>
             </h6>
             <p style={{ marginBottom: "15px" }}>
-              Important: Registration for the Fall 2025 Semester is closed now.
-              We invite you to register for our upcoming Spring 2026 Semester.
-              Thank you for your interest in Agoura Math Circle! Existing
-              students, please do not use this page to register for ONLINE or
-              ONSITE Math Circle classes. Instead, follow the separate
-              registration instructions provided for returning students. This
-              page is for new students only. .
+              Registration for the Fall 2025 Semester is closed now. We invite
+              you to register for our upcoming Spring 2026 Semester. Thank you
+              for your interest in Agoura Math Circle! Existing students, please
+              do not use this page to register for ONLINE or ONSITE Math Circle
+              classes. Instead, follow the separate registration instructions
+              provided for returning students. This page is for new students
+              only. .
             </p>
             <p style={{ marginBottom: "15px", color: "#d32f2f" }}>
               <strong>

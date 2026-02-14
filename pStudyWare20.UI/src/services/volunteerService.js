@@ -6,7 +6,7 @@ class VolunteerService {
     try {
       const response = await api.post(
         "/VolunteerRegistration/VolunteerRegistration",
-        volunteerData
+        volunteerData,
       );
       return response.data;
     } catch (error) {
@@ -18,24 +18,29 @@ class VolunteerService {
   async getLocations() {
     // Mock data - replace with actual API call when backend is ready
     return [
-      { id: 1, name: "Math Circle - Onsite (Agoura)" },
-      { id: 2, name: "Math Circle - Virtual Training" },
-      { id: 3, name: "Engineering Circle - Virtual Training" },
-      { id: 4, name: "SAT/PSAT - Virtual Training" },
-      { id: 5, name: "ACT - Virtual Training" },
-      { id: 6, name: "Math Circle - Hybrid (Agoura + Virtual)" },
-      { id: 7, name: "Engineering Circle - Onsite (Agoura)" },
-      { id: 8, name: "Test Preparation - Onsite (Agoura)" },
+      {
+        id: 1,
+        name: "Agoura Math Circle - Onsite , Woodland Hills, California",
+      },
+      { id: 2, name: "Online Math Circle - Internet, Zoom Meeting" },
+      { id: 3, name: "Introduction to Data Science - Internet, Zoom Meeting" },
+      {
+        id: 4,
+        name: "Introduction to Artificial Intelligence - Internet , Agoura Hills",
+      },
+      { id: 5, name: "SAT/PSAT - Internet , Zoom Meeting" },
+      { id: 6, name: "ACT - Internet , Zoom Meeting" },
+      {
+        id: 7,
+        name: "Introduction to Mobile App Development - Internet , Agoura Hills",
+      },
+      { id: 8, name: "Sai Krushna Vidya Mandir - Satellite Program, India" },
     ];
   }
 
   // Get session options (mock data for now)
   async getSessions() {
-    return [
-      { id: "F2024", name: "Fall Session 2024" },
-      { id: "S2025", name: "Spring Session 2025" },
-      { id: "F2025", name: "Fall Session 2025" },
-    ];
+    return [{ id: "S2026", name: "Spring Session 2026" }];
   }
 
   // Get grade options (mock data for now)
@@ -55,7 +60,6 @@ class VolunteerService {
   // Get interested options (mock data for now)
   async getInterestedOptions() {
     return [
-      { value: "0", label: "--Select--" },
       { value: "Tutoring", label: "Tutoring" },
       { value: "Document Review", label: "Document Reviewer" },
       { value: "Class Coordinator", label: "Class Coordinator" },

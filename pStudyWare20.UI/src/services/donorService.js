@@ -153,19 +153,20 @@ class DonorService {
   }
 
   /**
-   * Group donors by donation level
+   * Group donors by donation level, sorted in order: DIAMOND, PLATINUM, GOLD, SILVER, BRONZE
    * @param {Array} donors - Array of donor objects
-   * @returns {Object} Grouped donors by level
+   * @returns {Object} Grouped donors by level (keys in level order)
    */
   groupDonorsByLevel(donors) {
-    const levels = ["Diamond", "Platinum", "Gold", "Silver", "Bronze"];
+    const LEVEL_ORDER = ["DIAMOND", "PLATINUM", "GOLD", "SILVER", "BRONZE"];
     const grouped = {};
 
-    levels.forEach((level) => {
+    LEVEL_ORDER.forEach((level) => {
       grouped[level] = donors.filter(
-        (donor) =>
-          donor.donationLevel &&
-          donor.donationLevel.toLowerCase() === level.toLowerCase()
+        (donor) => {
+          const donorLevel = (donor.donorLevel || donor.donationLevel || "BRONZE").toUpperCase();
+          return donorLevel === level;
+        }
       );
     });
 

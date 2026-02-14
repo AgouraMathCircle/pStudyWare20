@@ -106,7 +106,7 @@ const SubscribeYouTube = () => {
               textAlign: "center",
             }}
           >
-            Subscribe YouTube for More Course Videos
+            Subscribe to YouTube for More Course Videos
           </Typography>
           <Button
             variant="contained"
@@ -128,7 +128,7 @@ const SubscribeYouTube = () => {
               },
             }}
           >
-            Subscribe Our Channel
+            Subscribe to Our Channel
           </Button>
         </Box>
       </Container>

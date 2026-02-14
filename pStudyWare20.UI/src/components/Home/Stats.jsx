@@ -287,7 +287,7 @@ const Stats = () => {
             <Box sx={{ textAlign: { xs: "center", md: "left" } }}>
               <Button
                 endIcon={<ArrowForwardIcon />}
-                href="http://localhost:5173/about/math-circle"
+                href="/about/math-circle"
                 sx={{
                   backgroundColor: "#53b50a",
                   color: "#fff",
