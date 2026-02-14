@@ -81,13 +81,11 @@ const WhatWeDo = () => {
                 <br />
                 Satellite Program -
                 <a href="/studentregistration">
-                  Register
+                  <button className="active">Register</button>
                 </a>
                 <br />
                 Math Kangraoo -{" "}
-                <a
-                  href="https://mathkangaroo.oasis-lms.com/Public/Catalog/Home.aspx?Criteria=44&Option=503&tab=2"
-                >
+                <a href="https://mathkangaroo.oasis-lms.com/Public/Catalog/Home.aspx?Criteria=44&Option=503&tab=2">
                   Register
                 </a>
               </Box>
@@ -109,26 +107,26 @@ const WhatWeDo = () => {
                 className="what-we-do-card-title what-we-do-card-title--small"
                 component="h5"
               >
-                <a href="#">Fall Semester 2025</a>
+                <a href="#">Spring Semester 2026</a>
               </Typography>
               <Box className="what-we-do-des" component="div">
-                08/23/2025: 2.00 - 5.00 PM (SATURDAY)
+                01/24/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                09/06/2025: 2.00 - 5.00 PM (SATURDAY)
+                02/07/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                09/20/2025: 2.00 - 5.00 PM (SATURDAY)
+                02/21/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                10/04/2025: 2.00 - 5.00 PM (SATURDAY)
+                03/07/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                10/18/2025: 2.00 - 5.00 PM (SATURDAY)
+                03/21/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                11/01/2025: 2.00 - 5.00 PM (SATURDAY)
+                04/04/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                11/15/2025: 2.00 - 5.00 PM (SATURDAY)
+                04/18/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                12/06/2025: 2.00 - 5.00 PM (SATURDAY)
+                05/02/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                12/20/2025: 2.00 - 5.00 PM FINAL EXAM
+                05/16/2026 : 2.00 - 5.00 PM FINAL EXAM
               </Box>
             </Box>
           </Box>

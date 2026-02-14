@@ -5,10 +5,7 @@ class StudentService {
   async registerStudent(studentData) {
     try {
       console.log("Submitting student registration:", studentData);
-      const response = await api.post(
-        "/StudentRegistration",
-        studentData
-      );
+      const response = await api.post("/StudentRegistration", studentData);
       console.log("Student registration response:", response.data);
       return response.data;
     } catch (error) {
@@ -22,7 +19,7 @@ class StudentService {
     try {
       const response = await api.post(
         "/StudentRegistration/GetStudentsList",
-        studentlist
+        studentlist,
       );
       return response.data;
     } catch (error) {
@@ -35,7 +32,7 @@ class StudentService {
     try {
       const response = await api.post(
         "/StudentRegistration/GetStudentsReportCard",
-        userName
+        userName,
       );
       return response.data;
     } catch (error) {
@@ -48,7 +45,7 @@ class StudentService {
     try {
       const response = await api.post(
         "/StudentRegistration/UpdateStudentsReportCard",
-        studentsReportCard
+        studentsReportCard,
       );
       return response.data;
     } catch (error) {
@@ -61,7 +58,7 @@ class StudentService {
     try {
       const response = await api.post(
         "/StudentRegistration/GetMeetingSchedule",
-        userName
+        userName,
       );
       return response.data;
     } catch (error) {
@@ -74,7 +71,7 @@ class StudentService {
     try {
       const response = await api.post(
         "/StudentRegistration/GetDashboardMessage",
-        chapterID
+        chapterID,
       );
       return response.data;
     } catch (error) {
@@ -87,7 +84,7 @@ class StudentService {
     try {
       const response = await api.post(
         "/StudentRegistration/GetStudentDetail",
-        studentID
+        studentID,
       );
       return response.data;
     } catch (error) {
@@ -100,7 +97,7 @@ class StudentService {
     try {
       const response = await api.post(
         "/StudentRegistration/UpdateStudentDetail",
-        studentDetail
+        studentDetail,
       );
       return response.data;
     } catch (error) {
@@ -113,7 +110,7 @@ class StudentService {
     try {
       const response = await api.post(
         "/StudentRegistration/GetReportcard",
-        studentlist
+        studentlist,
       );
       return response.data;
     } catch (error) {
@@ -125,22 +122,31 @@ class StudentService {
   async getLocations() {
     // Mock data - replace with actual API call when backend is ready
     return [
-      { id: 1, name: "Math Circle - Onsite (Agoura)" },
-      { id: 2, name: "Math Circle - Virtual Training" },
-      { id: 3, name: "Engineering Circle - Virtual Training" },
-      { id: 4, name: "SAT/PSAT - Virtual Training" },
-      { id: 5, name: "ACT - Virtual Training" },
-      { id: 6, name: "Math Circle - Hybrid (Agoura + Virtual)" },
-      { id: 7, name: "Engineering Circle - Onsite (Agoura)" },
-      { id: 8, name: "Test Preparation - Onsite (Agoura)" },
+      {
+        id: 1,
+        name: "Agoura Math Circle - Onsite , Woodland Hills, California",
+      },
+      { id: 2, name: "Online Math Circle - Internet, Zoom Meeting" },
+      { id: 3, name: "Introduction to Data Science - Internet, Zoom Meeting" },
+      {
+        id: 4,
+        name: "Introduction to Artificial Intelligence - Internet , Agoura Hills",
+      },
+      { id: 5, name: "SAT/PSAT - Internet , Zoom Meeting" },
+      { id: 6, name: "ACT - Internet , Zoom Meeting" },
+      {
+        id: 7,
+        name: "Introduction to Mobile App Development - Internet , Agoura Hills",
+      },
+      { id: 8, name: "Sai Krushna Vidya Mandir - Satellite Program, India" },
     ];
   }
 
   // Get session options (mock data for now)
   async getSessions() {
     return [
-      { id: "S2025", name: "Spring Semester 2025" },
-      { id: "F2025", name: "Fall Semester 2025" },
+      { id: "F2026", name: "Fall Semester 2026" },
+      { id: "S2026", name: "Spring Semester 2026" },
     ];
   }
 
@@ -418,31 +424,49 @@ class StudentService {
       // Server responded with error status
       const { status, data } = error.response;
       console.error(`API Error ${status}:`, data);
-      
+
       switch (status) {
         case 400:
-          return new Error(data.message || "Invalid request data. Please check your input.");
+          return new Error(
+            data.message || "Invalid request data. Please check your input.",
+          );
         case 401:
-          return new Error(data.message || "Unauthorized access. Please login again.");
+          return new Error(
+            data.message || "Unauthorized access. Please login again.",
+          );
         case 403:
-          return new Error(data.message || "Access denied. You don't have permission.");
+          return new Error(
+            data.message || "Access denied. You don't have permission.",
+          );
         case 404:
-          return new Error(data.message || "API endpoint not found. Please check the URL.");
+          return new Error(
+            data.message || "API endpoint not found. Please check the URL.",
+          );
         case 422:
-          return new Error(data.message || "Validation failed. Please check your input data.");
+          return new Error(
+            data.message || "Validation failed. Please check your input data.",
+          );
         case 500:
-          return new Error(data.message || "Internal server error. Please try again later.");
+          return new Error(
+            data.message || "Internal server error. Please try again later.",
+          );
         default:
-          return new Error(data.message || `Server error (${status}). Please try again.`);
+          return new Error(
+            data.message || `Server error (${status}). Please try again.`,
+          );
       }
     } else if (error.request) {
       // Network error
       console.error("Network Error:", error.request);
-      return new Error("Network error. Please check your internet connection and try again.");
+      return new Error(
+        "Network error. Please check your internet connection and try again.",
+      );
     } else {
       // Other error
       console.error("Unexpected Error:", error);
-      return new Error(error.message || "An unexpected error occurred. Please try again.");
+      return new Error(
+        error.message || "An unexpected error occurred. Please try again.",
+      );
     }
   }
 }

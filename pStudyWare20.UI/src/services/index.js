@@ -2,6 +2,7 @@ export { default as api } from "./api";
 export { default as authService } from "./authService";
 export { default as userService } from "./userService";
 export { default as donateService } from "./donateService";
+export { default as donorService } from "./donorService";
 export { default as studentDashboardService } from "./studentDashboardService";
 export { default as instructorService } from "./instructorService";
 export { default as documentService } from "./documentService";

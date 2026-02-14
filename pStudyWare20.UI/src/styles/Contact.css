@@ -461,15 +461,30 @@
   position: relative;
 }
 
+.form-group.label-floating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .form-group.label-floating .control-label {
-  position: absolute;
-  top: -10px;
-  left: 10px;
-  background-color: #ffffff;
-  padding: 0 5px;
+  flex-shrink: 0;
+  min-width: 80px;
   font-size: 0.875rem;
   color: #373737;
-  z-index: 1;
+  font-weight: 700;
+}
+
+.form-group.label-floating .form-control {
+  flex: 1;
+}
+
+.form-group.label-floating:has(textarea) {
+  align-items: flex-start;
+}
+
+.form-group.label-floating:has(textarea) .control-label {
+  padding-top: 14px;
 }
 
 .form-control {
@@ -483,6 +498,16 @@
   border-radius: 4px;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
   box-sizing: border-box;
+  min-height: 48px;
+  overflow: visible;
+}
+
+input.form-control {
+  height: 52px;
+  min-height: 52px;
+  padding: 14px 15px;
+  line-height: 1.5;
+  vertical-align: middle;
 }
 
 .form-control:focus {
@@ -498,6 +523,8 @@
 textarea.form-control {
   resize: vertical;
   min-height: 120px;
+  overflow: auto;
+  padding: 12px 15px;
 }
 
 .help-block {

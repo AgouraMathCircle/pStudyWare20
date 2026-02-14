@@ -10,7 +10,7 @@ import WhatWeDo from "./Home/WhatWeDo";
 import Stats from "./Home/Stats";
 import VideoGallery from "./Home/VideoGallery";
 import Team from "./Home/Team";
-import Sponsors from "./Home/Sponsors";
+import Sponsors from "./common/Sponsors";
 import JoinUs from "./Home/WhyWaitJoinUs";
 import YouTubeCoursesSection from "./Home/YouTubeCoursesSection";
 import "../styles/Home.css";

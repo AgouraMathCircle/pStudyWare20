@@ -43,7 +43,7 @@ const Newsletter = () => {
                 textAlign: { xs: "center", lg: "left" },
               }}
             >
-              Subscribe Our Newsletter
+              Subscribe To Our Newsletter
             </Typography>
             <Typography
               variant="body1"

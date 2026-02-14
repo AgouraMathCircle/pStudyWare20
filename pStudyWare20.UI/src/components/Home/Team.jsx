@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -6,8 +6,13 @@ import {
   Card,
   CardContent,
   CardMedia,
+  IconButton,
+  useTheme,
+  useMediaQuery,
   keyframes,
 } from "@mui/material";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 // Import images from src/assets
 import teamMember1 from "../../assets/images/team/1.jpg";
 import teamMember2 from "../../assets/images/team/2.jpg";
@@ -96,30 +101,36 @@ const Team = () => {
     },
   ];
 
-  const [currentSet, setCurrentSet] = useState(0);
-  const membersPerSet = 3;
-  const totalSets = teamMembers.length; // 10 sets (one for each starting position)
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
 
-  // Auto-advance to next set of 3
+  const itemsPerSlide = isMobile ? 1 : 3;
+  const totalSlides = useMemo(
+    () => Math.ceil(teamMembers.length / itemsPerSlide),
+    [itemsPerSlide, teamMembers.length]
+  );
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSet((prev) => (prev + 1) % totalSets);
-    }, 4000); // Change set every 4 seconds
+    setIndex((i) => (i >= totalSlides ? 0 : i));
+  }, [totalSlides]);
 
-    return () => clearInterval(interval);
-  }, [totalSets]);
+  useEffect(() => {
+    if (paused || totalSlides <= 1) return;
+    const t = setInterval(() => {
+      setIndex((i) => (i + 1) % totalSlides);
+    }, 5000);
+    return () => clearInterval(t);
+  }, [paused, totalSlides]);
 
-  // Get current set of 3 members (with wrap-around)
-  const getCurrentSetMembers = () => {
-    const members = [];
+  const next = () => setIndex((i) => (i + 1) % totalSlides);
+  const prev = () => setIndex((i) => (i - 1 + totalSlides) % totalSlides);
 
-    for (let i = 0; i < membersPerSet; i++) {
-      const index = (currentSet + i) % teamMembers.length;
-      members.push(teamMembers[index]);
-    }
-
-    return members;
-  };
+  const slice = teamMembers.slice(
+    index * itemsPerSlide,
+    index * itemsPerSlide + itemsPerSlide
+  );
 
   return (
     <Box
@@ -172,8 +183,10 @@ const Team = () => {
           </Typography>
         </Box>
 
-        {/* Team Members Step-based Carousel (3 at a time) */}
+        {/* Team Members Carousel (same as Sponsors) */}
         <Box
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
           sx={{
             overflow: "hidden",
             width: "100%",
@@ -185,14 +198,15 @@ const Team = () => {
             sx={{
               display: "flex",
               justifyContent: "center",
+              alignItems: "center",
               gap: { xs: 2, sm: 2.5, md: 3 },
-              transition: "transform 0.8s ease-in-out",
+              flexWrap: "wrap",
+              minHeight: 400,
             }}
           >
-            {/* Current set of 3 members */}
-            {getCurrentSetMembers().map((member, index) => (
+            {slice.map((member, i) => (
               <Card
-                key={`team-${member.id}-${currentSet}-${index}`}
+                key={`team-${member.id}-${index}-${i}`}
                 sx={{
                   flex: "0 0 auto",
                   width: {
@@ -207,7 +221,7 @@ const Team = () => {
                   transition: "all 0.5s ease",
                   height: "100%",
                   animation: `${fadeInAnimation} 0.6s ease-out ${
-                    index * 0.1
+                    i * 0.1
                   }s both`,
                   "&:hover": {
                     transform: "translateY(-10px)",
@@ -267,6 +281,61 @@ const Team = () => {
               </Card>
             ))}
           </Box>
+
+          {totalSlides > 1 && (
+            <>
+              <IconButton
+                onClick={prev}
+                sx={{
+                  position: "absolute",
+                  left: { xs: -8, sm: -48 },
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  bgcolor: "rgba(255,255,255,0.9)",
+                  "&:hover": { bgcolor: "white" },
+                  boxShadow: 1,
+                }}
+              >
+                <ChevronLeftIcon />
+              </IconButton>
+              <IconButton
+                onClick={next}
+                sx={{
+                  position: "absolute",
+                  right: { xs: -8, sm: -48 },
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  bgcolor: "rgba(255,255,255,0.9)",
+                  "&:hover": { bgcolor: "white" },
+                  boxShadow: 1,
+                }}
+              >
+                <ChevronRightIcon />
+              </IconButton>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 0.5,
+                  mt: 2,
+                }}
+              >
+                {Array.from({ length: totalSlides }).map((_, i) => (
+                  <Box
+                    key={i}
+                    onClick={() => setIndex(i)}
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      bgcolor: index === i ? "primary.main" : "grey.400",
+                      cursor: "pointer",
+                    }}
+                  />
+                ))}
+              </Box>
+            </>
+          )}
         </Box>
       </Container>
     </Box>

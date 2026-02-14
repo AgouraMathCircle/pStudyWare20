@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  Container,
-  keyframes,
-} from "@mui/material";
+import { Box, Typography, Button, Container, keyframes } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import satelliteLogoImg from "../../assets/images/about/Satellite_logo.jpg";
 import triangularTalksLogoImg from "../../assets/images/talk/Triangular-Talks-Logo.png";
@@ -55,7 +49,12 @@ const fadeInAnimation = keyframes`
 
 const CtaSection = () => {
   // Duplicate images for seamless continuous loop
-  const allClassImages = [...classImages, ...classImages, ...classImages, ...classImages];
+  const allClassImages = [
+    ...classImages,
+    ...classImages,
+    ...classImages,
+    ...classImages,
+  ];
 
   return (
     <>
@@ -88,8 +87,8 @@ const CtaSection = () => {
             >
               <Typography className="cta-badge">Agoura Math Circle</Typography>
               <Typography variant="h2" className="cta-title">
-                AMC&apos;s Fall Semester 2025 starts on Saturday, August 23,
-                2025.
+                AMC&apos;s Spring Semester 2026 starts on Saturday, January 24,
+                2026.
               </Typography>
               <Button
                 className="cta-primary-button"
@@ -107,7 +106,7 @@ const CtaSection = () => {
                 animation: `${fadeInAnimation} 0.8s ease-out 0.25s both`,
               }}
             >
-              <Box 
+              <Box
                 className="cta-gallery-viewport"
                 sx={{
                   overflow: "hidden",
@@ -115,7 +114,7 @@ const CtaSection = () => {
                   position: "relative",
                 }}
               >
-                <Box 
+                <Box
                   className="cta-gallery-track"
                   sx={{
                     display: "flex",
@@ -128,10 +127,7 @@ const CtaSection = () => {
                 >
                   {/* All Images - Duplicated for seamless loop */}
                   {allClassImages.map((image, index) => (
-                    <Box 
-                      className="img-p" 
-                      key={`class-image-${index}`}
-                    >
+                    <Box className="img-p" key={`class-image-${index}`}>
                       <Box className="img-part position-relative">
                         <Box
                           component="img"
