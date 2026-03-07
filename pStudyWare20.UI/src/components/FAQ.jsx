@@ -24,9 +24,18 @@ const FAQ = () => {
     setExpanded(isExpanded ? panel : null);
   };
 
+  // FAQ Data
+  // Includes an array of question-answer pairs
+  //
+  // == Each FAQ object contains ==
+  // question: string - The FAQ question
+  // answer: string - The FAQ answer
+  // videoLink: string (optional) - URL to a related video or resource, if available
+  // videoTitle: string (optional) - Title for the video link, if not provided defaults to "Watch Video"
+  
   const faqData = [
     {
-      question: "How can I register a student?",
+      question: "How to register a student?",
       answer:
         "To register an existing student, navigate to the dashboard and check the reenrollment option for existing students during the registration window. For new students, complete the form, and the system will automatically add them to the wait-list. Screening profiles and allocating spots are based on availability.",
       videoLink: "https://youtu.be/M0akh5uwhF8",
@@ -48,18 +57,18 @@ const FAQ = () => {
     },
     {
       question:
-        "I've completed registration, but haven't received my login credentials. What should I do?",
+        "Completed registration, no login credentials received, what to do?",
       answer:
-        "Check your spam folder for login credentials. If they are not present, try logging in with your registered email ID and use the 'forgot password' to reset your password.",
+        "Check your spam folder for login credentials. If not present, try logging in with your registered email ID and use the 'forgot password' to reset your password.",
     },
     {
       question:
-        "I've received an email with login details, yet I'm unable to login with the default password. What should I do?",
+        "Received email with login details, yet unable to login with default password, what to do?",
       answer:
         "Reset your password using the 'forgot password' option. If the problem persists, email support@agouramathcircle.org.",
     },
     {
-      question: "Where can I find the homework?",
+      question: "Where can I find homework?",
       answer:
         "Login with student/parent credentials, click on 'Class Materials,' and locate the homework section.",
     },
@@ -70,24 +79,24 @@ const FAQ = () => {
       videoLink: "https://youtu.be/iMKokyQ8IzY",
     },
     {
-      question: "How do I upload scores for quiz, classwork, and homework?",
+      question: "How to upload scores for quiz, classwork, and homework?",
       answer:
-        "For onsite, coordinators manage scores. For online, parents play a vital role in entering the scores into the student report card on the website.",
+        "For onsite, coordinators manage scores. For online, parents play a vital role in entering the scores into the student report in the website.",
       videoLink: "https://youtu.be/ehuPdwX02OU",
     },
     {
-      question: "When do I register for AMC 8, AMC 10, and Math Kangaroo?",
+      question: "When to register for AMC 8, AMC 10, and Math Kangaroo?",
       answer:
         "Look out for emails from support@AgouraMathCircle.org for registration information.",
     },
     {
-      question: "What should I do if my student misses a class?",
+      question: "What to do if we skip a class?",
       answer:
         "Inform the class coordinator via the website message center to mark the student absent. Support will be provided to catch up in the following class.",
       videoLink: "https://youtu.be/8jqPdXlUlDs",
     },
     {
-      question: "I forgot to bring my homework, what should I do?",
+      question: "Forgot to bring homework, what to do?",
       answer: "Bring it to the next class.",
     },
     {
@@ -96,33 +105,35 @@ const FAQ = () => {
         "No, the class material and structure are the same. The only difference is parent involvement in correcting and entering scores for the online program.",
     },
     {
-      question: "How should I prepare before for class?",
+      question: "How to prepare before the class?",
       answer:
         "Watch relevant YouTube videos and review class materials beforehand. Lecture notes and class work are available 1-2 days before the session.",
     },
     {
-      question: "What should I bring to class?",
+      question: "What to bring for the class?",
       answer:
-        "Carry stationary supplies. Onsite students bring homework and online students must print the quiz, lecture notes, and classwork.",
+        "Carry stationary supplies. Onsite students bring homework and online students print quiz, lecture Notes, and classwork.",
     },
     {
-      question: "How should I correct incorrect or missing scores?",
+      question: "How to correct wrong or missed scores?",
       answer:
         "Onsite - Email the class coordinator via the website message center. Online - Parents can make the necessary corrections to the score.",
       videoLink: "https://youtu.be/ehuPdwX02OU",
     },
     {
-      question: "How is each class structured?",
+      question: "How Is each class structured?",
       answer:
-        "The classes start at 2pm and end at 5pm PST. At 2pm we begin each class with a 15 mins quiz based on last session topic. At 2.15pm we go over the Lecture Notes and start with a new topic for the day. At 3.00pm we have our classwork where kids can work individually or in groups to solve the problems. At 3.45pm we have a break for the students. At 4.00pm we have Classwork Solutions where the Instructors explain the solutions for each problem. At 5.00pm the class ends.",
+        "The classes start at 2pm and end at 5pm PST. 2pm - We begin each class with a 15 mins quiz based on last session topic. 2.15pm - Lecture Notes- Start with a new topic for the day. 3.00pm - Classwork - Kids work individually or in groups to solve the problems. 3.45pm - Break. 4.00pm - Classwork Solutions - The Instructors explain the solutions for each problem. 5.00pm - Class ends.",
     },
     {
       question: "How can I volunteer?",
       answer:
         "We welcome parents and high school students to volunteer. It takes a village to run a free program like this without compromising the high standards of the organization. We encourage students to complete Senior Advance class before signing up as a volunteer. Register using the following link: Volunteer Registration. Student volunteers - If you have already signed up for a learning program and have a student account, use a different email id while signing up as a volunteer. Parents volunteers - If you already have an account for kid(s), use a different id to sign up for the volunteer registration.",
+      videoLink: "/volunteerregistration",
+      videoTitle: "Register as Volunteer",
     },
     {
-      question: "How can I get extra help for my children if they are having trouble understanding the class?",
+      question: "How to get extra help for the kid?",
       answer:
         "Student volunteers are available from 1.30 pm to provide necessary help.",
     },
@@ -146,13 +157,13 @@ const FAQ = () => {
         "Yes, only when sick or out of station. Inform the coordinator for the Zoom link.",
     },
     {
-      question: "How do I submit a timesheet entry as a volunteer?",
+      question: "How to enter a timesheet?",
       answer:
         "We highly encourage the high school students to clock their hours for service hours.",
       videoLink: "https://youtu.be/UP5H360d0pw",
     },
     {
-      question: "How do the VIRTUAL classes work?",
+      question: "How does the VIRTUAL classes work?",
       answer:
         "VIRTUAL students have access to the same class material as the onsite students. The class material includes lecture notes, classwork, quiz, and homework. We provide the solutions and answer keys to quiz, classwork and homework the following week. Parents can download these and work with their students. We encourage kids to watch Youtube videos uploaded for each session.",
     },
@@ -172,7 +183,7 @@ const FAQ = () => {
         "Yes, we do organize AMC 8, Kangaroo Maths and Geometry bee each year. We encourage students to participate in these.",
     },
     {
-      question: "Website guide: Student Login",
+      question: "Website guide - With Student Login",
       answer: "",
       videoLink: "https://youtu.be/LwUHzL2J7YI",
     },
@@ -279,7 +290,7 @@ const FAQ = () => {
                             rel="noopener noreferrer"
                           >
                             {" "}
-                            Watch Video
+                            {faq.videoTitle ? faq.videoTitle : " Watch Video"}
                           </a>
                         )}
                       </Typography>

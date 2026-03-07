@@ -32,21 +32,21 @@ namespace pStudyWare20.Services.Implementations
 
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var list = JsonSerializer.Deserialize<List<AlertListRowDto>>(result);
+                    if (list != null)
                     {
-                        foreach (System.Data.DataRow row in dataTable.Rows)
+                        foreach (var row in list)
                         {
                             response.PostMessages.Add(new PostMessage
                             {
-                                MessageID = Convert.ToInt32(row["MessageID"]),
-                                PostedBy = row["PostedBy"]?.ToString() ?? string.Empty,
-                                PostedDate = row["PostedDate"]?.ToString() ?? string.Empty,
-                                Active = Convert.ToBoolean(row["Active"]),
-                                Message = row["Message"]?.ToString() ?? string.Empty,
-                                AlertDate = row["AlertDate"]?.ToString() ?? string.Empty,
-                                Description = row["Description"]?.ToString() ?? string.Empty,
-                                RowID = Convert.ToInt32(row["RowID"])
+                                MessageID = row.MessageID,
+                                RowID = row.RowID,
+                                PostedBy = row.PostedBy,
+                                PostedDate = row.PostedDate,
+                                AlertDate = row.AlertDate,
+                                Description = row.Description,
+                                Message = row.Message,
+                                Active = row.Active
                             });
                         }
                     }

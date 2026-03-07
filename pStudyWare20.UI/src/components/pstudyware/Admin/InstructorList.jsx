@@ -58,7 +58,7 @@ const InstructorList = ({
   // Handle page change
   const handlePageChange = (page) => {
     const totalPages = Math.ceil(
-      (filteredAndSortedInstructors?.length || 0) / pageSize
+      (filteredAndSortedInstructors?.length || 0) / pageSize,
     );
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -70,7 +70,7 @@ const InstructorList = ({
   const handleGoToPage = () => {
     const page = parseInt(goToPageInput);
     const totalPages = Math.ceil(
-      (filteredAndSortedInstructors?.length || 0) / pageSize
+      (filteredAndSortedInstructors?.length || 0) / pageSize,
     );
     if (!isNaN(page) && page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -238,16 +238,18 @@ const InstructorList = ({
   }, [filteredAndSortedInstructors, currentPage, pageSize]);
 
   const totalPages = Math.ceil(
-    (filteredAndSortedInstructors?.length || 0) / pageSize
+    (filteredAndSortedInstructors?.length || 0) / pageSize,
   );
   const totalRecords = filteredAndSortedInstructors?.length || 0;
+
+  const cellPadding = "0 8px";
 
   return (
     <Box>
       {/* Header */}
       <Box
         sx={{
-          mb: 2,
+          mb: 1,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -305,7 +307,6 @@ const InstructorList = ({
           backgroundColor: "#4caf50",
           p: 0.5,
           borderRadius: 1,
-          mb: 1.5,
           display: "flex",
           alignItems: "center",
           gap: 1,
@@ -413,8 +414,9 @@ const InstructorList = ({
             color: "#4caf50",
             fontSize: "0.75rem",
             textTransform: "none",
-            px: 1.5,
-            py: 0.25,
+            minHeight: 32,
+            py: 0,
+            px: 1,
             "&:hover": { backgroundColor: "#f5f5f5" },
           }}
         >
@@ -423,126 +425,144 @@ const InstructorList = ({
       </Box>
 
       {/* Table */}
-      <TableContainer component={Paper} sx={{ mb: 2, width: "100%" }}>
-        <Table sx={{ width: "100%", tableLayout: "fixed" }}>
+      <TableContainer component={Paper} sx={{ width: "100%" }}>
+        <Table
+          sx={{
+            width: "100%",
+            tableLayout: "fixed",
+            "& .MuiTableCell-root": { paddingTop: 0, paddingBottom: 0 },
+          }}
+          size="small"
+        >
           <TableHead>
             <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
-                  width: "8%",
+                  width: "4%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
-                Actions
+                Edit
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
-                  width: "7%",
+                  width: "4%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
+                }}
+              >
+                Delete
+              </TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: 400,
+                  borderRight: "1px solid #4caf50",
+                  width: "6%",
+                  fontSize: "0.75rem",
+                  padding: cellPadding,
                 }}
               >
                 ID
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "10%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 First Name
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "10%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Last Name
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
-                  width: "12%",
+                  width: "11%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Chapter
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
-                  width: "10%",
+                  width: "8%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Type
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "10%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Class
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "10%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Username
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
-                  width: "12%",
+                  width: "10%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Email
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "8%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Phone
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   width: "7%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Status
@@ -559,40 +579,46 @@ const InstructorList = ({
                   <TableCell
                     sx={{
                       borderRight: "1px solid #4caf50",
-                      width: "8%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
+                      verticalAlign: "middle",
                     }}
                   >
-                    <Box sx={{ display: "flex", gap: 0.5 }}>
-                      <Tooltip title="Edit Instructor">
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          onClick={() => onEdit(instructor)}
-                          sx={{ fontSize: "0.75rem", padding: "2px" }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete Instructor">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDeleteClick(instructor)}
-                          sx={{ fontSize: "0.75rem", padding: "2px" }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
+                    <Tooltip title="Edit Instructor">
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => onEdit(instructor)}
+                        sx={{ padding: "2px" }}
+                      >
+                        <EditIcon sx={{ fontSize: "1rem" }} />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                   <TableCell
                     sx={{
                       borderRight: "1px solid #4caf50",
-                      width: "7%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
+                      verticalAlign: "middle",
+                    }}
+                  >
+                    <Tooltip title="Delete Instructor">
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDeleteClick(instructor)}
+                        sx={{ padding: "2px" }}
+                      >
+                        <DeleteIcon sx={{ fontSize: "1rem" }} />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      borderRight: "1px solid #4caf50",
+                      fontSize: "0.75rem",
+                      padding: cellPadding,
                     }}
                   >
                     {instructor.instructorID || "-"}
@@ -600,39 +626,50 @@ const InstructorList = ({
                   <TableCell
                     sx={{
                       borderRight: "1px solid #4caf50",
-                      width: "10%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    {instructor.firstName || "-"}
+                    <Tooltip title={instructor.firstName ?? "-"}>
+                      <span>{instructor.firstName || "-"}</span>
+                    </Tooltip>
                   </TableCell>
                   <TableCell
                     sx={{
                       borderRight: "1px solid #4caf50",
-                      width: "10%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    {instructor.lastName || "-"}
+                    <Tooltip title={instructor.lastName ?? "-"}>
+                      <span>{instructor.lastName || "-"}</span>
+                    </Tooltip>
                   </TableCell>
                   <TableCell
                     sx={{
                       borderRight: "1px solid #4caf50",
-                      width: "12%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    {instructor.chapterName || "-"}
+                    <Tooltip title={instructor.chapterName ?? "-"}>
+                      <span>{instructor.chapterName || "-"}</span>
+                    </Tooltip>
                   </TableCell>
                   <TableCell
                     sx={{
                       borderRight: "1px solid #4caf50",
-                      width: "10%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                     }}
                   >
                     {getInstructorTypeText(instructor.instructorType) || "-"}
@@ -640,45 +677,50 @@ const InstructorList = ({
                   <TableCell
                     sx={{
                       borderRight: "1px solid #4caf50",
-                      width: "10%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
-                    }}
-                  >
-                    {getClassText(instructor.class) || "-"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      width: "10%",
-                      fontSize: "0.75rem",
-                      padding: "3px 5px",
-                    }}
-                  >
-                    {instructor.userName || "-"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      width: "12%",
-                      fontSize: "0.75rem",
-                      padding: "3px 5px",
-                      maxWidth: 150,
+                      padding: cellPadding,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
                     }}
                   >
-                    <Tooltip title={instructor.emailID || "-"}>
+                    <Tooltip title={getClassText(instructor.class) || "-"}>
+                      <span>{getClassText(instructor.class) || "-"}</span>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      borderRight: "1px solid #4caf50",
+                      fontSize: "0.75rem",
+                      padding: cellPadding,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <Tooltip title={instructor.userName ?? "-"}>
+                      <span>{instructor.userName || "-"}</span>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      borderRight: "1px solid #4caf50",
+                      fontSize: "0.75rem",
+                      padding: cellPadding,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <Tooltip title={instructor.emailID ?? "-"}>
                       <span>{instructor.emailID || "-"}</span>
                     </Tooltip>
                   </TableCell>
                   <TableCell
                     sx={{
                       borderRight: "1px solid #4caf50",
-                      width: "8%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                     }}
                   >
                     {instructor.contactPhone || "-"}
@@ -687,7 +729,7 @@ const InstructorList = ({
                     sx={{
                       width: "7%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                     }}
                   >
                     {getStatusDisplay(instructor.memberStatus)}
@@ -697,9 +739,9 @@ const InstructorList = ({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={11}
+                  colSpan={12}
                   align="center"
-                  sx={{ fontSize: "0.75rem", padding: "3px 5px", py: 3 }}
+                  sx={{ fontSize: "0.75rem", padding: cellPadding, py: 3 }}
                 >
                   <Typography
                     variant="body2"
@@ -771,8 +813,9 @@ const InstructorList = ({
           </Typography>
           <Select
             size="small"
-            value={currentPage}
-            onChange={(e) => handlePageChange(e.target.value)}
+            value={totalPages > 0 ? currentPage : ""}
+            onChange={(e) => handlePageChange(Number(e.target.value))}
+            disabled={totalPages === 0}
             sx={{
               color: "white",
               minWidth: 50,
@@ -781,11 +824,23 @@ const InstructorList = ({
               "& .MuiSelect-icon": { color: "white" },
             }}
           >
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <MenuItem key={page} value={page} sx={{ fontSize: "0.75rem" }}>
-                {page}
+            {totalPages > 0 ? (
+              Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <MenuItem
+                    key={page}
+                    value={page}
+                    sx={{ fontSize: "0.75rem" }}
+                  >
+                    {page}
+                  </MenuItem>
+                ),
+              )
+            ) : (
+              <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
+                -
               </MenuItem>
-            ))}
+            )}
           </Select>
         </Box>
 
@@ -798,7 +853,7 @@ const InstructorList = ({
           {totalRecords > 0
             ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
                 currentPage * pageSize,
-                totalRecords
+                totalRecords,
               )}`
             : "0"}{" "}
           of {totalRecords}
@@ -835,8 +890,9 @@ const InstructorList = ({
               backgroundColor: "white",
               color: "#4caf50",
               fontSize: "0.75rem",
-              px: 1,
-              py: 0.25,
+              minHeight: 32,
+              py: 0,
+              px: 0.75,
               "&:hover": { backgroundColor: "#f5f5f5" },
             }}
           >
@@ -861,7 +917,11 @@ const InstructorList = ({
           <Button onClick={handleDeleteCancel} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
+          >
             Delete
           </Button>
         </DialogActions>
@@ -871,4 +931,3 @@ const InstructorList = ({
 };
 
 export default InstructorList;
-

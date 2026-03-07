@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
@@ -9,6 +10,7 @@ namespace pStudyWare20.API.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class StudentWaitingListController : ControllerBase
     {
         private readonly IStudentWaitingListService _service;
@@ -30,6 +32,22 @@ namespace pStudyWare20.API.Controllers
         [HttpPost("GetStudentWaitingList")]
         public async Task<ActionResult<StudentWaitingListResponse>> GetStudentWaitingList([FromBody] GetStudentWaitingListRequest request)
         {
+            if (request == null)
+            {
+                return BadRequest(new StudentWaitingListResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "Request body is required."
+                });
+            }
+            if (string.IsNullOrWhiteSpace(request.Username))
+            {
+                return BadRequest(new StudentWaitingListResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "Username is required."
+                });
+            }
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);

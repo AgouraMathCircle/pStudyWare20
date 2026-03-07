@@ -9,6 +9,12 @@
     "lint": "eslint src/components/ src/services/ --ext .js,.jsx",
     "preview": "vite preview"
   },
+  "overrides": {
+    "react-material-ui-carousel": {
+      "react": "$react",
+      "react-dom": "$react-dom"
+    }
+  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",

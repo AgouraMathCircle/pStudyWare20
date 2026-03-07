@@ -23,33 +23,33 @@ const SystemSupport = () => {
   const supportLinks = [
     {
       label: "Waiting List",
-      href: "../Pstudyware/StudentWaitingList.aspx",
-      isReact: false,
+      href: "/pstudyware/admin/Studentwaiting-list",
+      isReact: true,
     },
     {
       label: "Volunteers Request",
-      href: "../Pstudyware/VolunteersRequest.aspx",
-      isReact: false,
+      href: "/pstudyware/admin/volunteers-request",
+      isReact: true,
     },
     {
       label: "Time Sheet",
-      href: "../Pstudyware/TimeSheetTracking.aspx",
-      isReact: false,
+      href: "/pstudyware/admin/time-sheet-tracking",
+      isReact: true,
     },
     {
       label: "Special Events Registration List",
-      href: "../Pstudyware/SpecialEventsRegistration.aspx",
-      isReact: false,
+      href: "/pstudyware/admin/special-events-registration",
+      isReact: true,
     },
     {
       label: "Upload Online Exam Answer Key",
-      href: "../Pstudyware/UploadAnswerKey.aspx",
-      isReact: false,
+      href: "/pstudyware/admin/upload-answer-key",
+      isReact: true,
     },
     {
       label: "Update Lookup",
-      href: "../Pstudyware/UpdateLookupSemester.aspx",
-      isReact: false,
+      href: "/pstudyware/admin/update-lookup-semester",
+      isReact: true,
     },
     {
       label: "Meeting Schedule",
@@ -63,8 +63,13 @@ const SystemSupport = () => {
     },
     {
       label: "Post Message",
-      href: "../Pstudyware/Postmessage.aspx",
-      isReact: false,
+      href: "/pstudyware/admin/post-message",
+      isReact: true,
+    },
+    {
+      label: "Report Card",
+      href: "/pstudyware/admin/report-card",
+      isReact: true,
     },
   ];
 
@@ -95,15 +100,16 @@ const SystemSupport = () => {
         }}
       />
       <CardContent sx={{ p: 0, maxHeight: 500, overflowY: "auto" }}>
-        <List dense sx={{ py: 0 }}>
+        <List dense disablePadding sx={{ py: 0 }}>
           {supportLinks.map((link, index) => (
             <React.Fragment key={index}>
-              <ListItem disablePadding>
+              <ListItem disablePadding sx={{ minHeight: 0 }}>
                 <ListItemButton
                   onClick={() => handleLinkClick(link)}
                   sx={{
-                    py: 0.5,
+                    py: 0.25,
                     px: 1.5,
+                    minHeight: 32,
                     "&:hover": {
                       backgroundColor: (theme) => theme.palette.action.hover,
                     },

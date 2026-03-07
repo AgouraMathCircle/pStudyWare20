@@ -7,8 +7,6 @@ import {
   Typography,
   CircularProgress,
   Grid,
-  Card,
-  CardContent,
 } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
@@ -52,7 +50,7 @@ const Documents = () => {
         // Check admin privileges
         const privilegesResponse =
           await adminDashboardService.checkAdminPrivileges(
-            user.email || user.username
+            user.email || user.username,
           );
 
         const isAdmin = privilegesResponse?.isAdmin === true;
@@ -70,18 +68,19 @@ const Documents = () => {
 
         // Get documents list - show all documents for admin (not just published)
         const response = await documentService.getDocumentsList(
-          user.email || user.username
+          user.email || user.username,
         );
 
         console.log("Documents: Document data response", response);
 
         if (response.isSuccess) {
           // Show all documents for admin (both published and unpublished)
-          setDocuments(response.documents || []);
+          const docs = response.documents;
+          setDocuments(Array.isArray(docs) ? docs : []);
         } else {
           showMessage(
             response.errorMessage || "Failed to load documents list",
-            "error"
+            "error",
           );
         }
       } catch (err) {
@@ -151,7 +150,7 @@ const Documents = () => {
       } else {
         showMessage(
           response.errorMessage || "Failed to delete document",
-          "error"
+          "error",
         );
       }
     } catch (err) {
@@ -175,7 +174,7 @@ const Documents = () => {
       } else {
         showMessage(
           response.errorMessage || "Failed to publish document",
-          "error"
+          "error",
         );
       }
     } catch (err) {
@@ -214,7 +213,7 @@ const Documents = () => {
       } else {
         showMessage(
           response.errorMessage || "Failed to upload document",
-          "error"
+          "error",
         );
       }
     } catch (err) {
@@ -230,16 +229,17 @@ const Documents = () => {
     try {
       setLoading(true);
       const response = await documentService.getDocumentsList(
-        user.email || user.username
+        user.email || user.username,
       );
 
       if (response.isSuccess) {
-        setDocuments(response.documents || []);
+        const docs = response.documents;
+        setDocuments(Array.isArray(docs) ? docs : []);
         showMessage("Documents refreshed!", "success");
       } else {
         showMessage(
           response.errorMessage || "Failed to refresh documents",
-          "error"
+          "error",
         );
       }
     } catch (err) {
@@ -295,32 +295,23 @@ const Documents = () => {
       {/* Spacer to account for fixed AdminHeader */}
       <Box sx={{ height: "72px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Card
-              sx={{
-                backgroundColor: "white",
-                borderRadius: 2,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                overflow: "hidden",
-              }}
-            >
-              <CardContent sx={{ p: 0 }}>
-                <AdminDocumentList
-                  documents={documents}
-                  onRefresh={handleRefresh}
-                  onView={handleView}
-                  onDownload={handleDownload}
-                  onDelete={handleDelete}
-                  onPublish={handlePublish}
-                  onOpenVideo={handleOpenVideo}
-                  onAdd={handleAdd}
-                  canAddDocument={adminPrivileges.canAddDocument}
-                  canDeleteDocument={adminPrivileges.canDeleteDocument}
-                  canPublishDocument={adminPrivileges.canPublishDocument}
-                />
-              </CardContent>
-            </Card>
+            <Box>
+              <AdminDocumentList
+                documents={documents}
+                onRefresh={handleRefresh}
+                onView={handleView}
+                onDownload={handleDownload}
+                onDelete={handleDelete}
+                onPublish={handlePublish}
+                onOpenVideo={handleOpenVideo}
+                onAdd={handleAdd}
+                canAddDocument={adminPrivileges.canAddDocument}
+                canDeleteDocument={adminPrivileges.canDeleteDocument}
+                canPublishDocument={adminPrivileges.canPublishDocument}
+              />
+            </Box>
           </Grid>
         </Grid>
       </Container>

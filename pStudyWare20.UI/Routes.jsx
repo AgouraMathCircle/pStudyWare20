@@ -6,6 +6,9 @@ import Home from "./src/components/Home";
 import Overview from "./src/components/Overview";
 import About from "./src/components/About";
 import MathCircle from "./src/components/MathCircle";
+import Leadership from "./src/components/Leadership";
+import OurTeam from "./src/components/OurTeam";
+import Alumini from "./src/components/Alumini";
 import EngineeringCircle from "./src/components/EngineeringCircle";
 import Projects from "./src/components/Projects";
 import TestPreparation from "./src/components/TestPreparation";
@@ -31,6 +34,7 @@ import StudentRegistration from "./src/components/StudentRegistration";
 import VolunteerRegistration from "./src/components/VolunteerRegistration";
 import FAQ from "./src/components/FAQ";
 import Resources from "./src/components/Resources";
+import Internship from "./src/components/Internship";
 import Rules from "./src/components/Rules";
 import Login from "./src/components/Login";
 import ProtectedRoute from "./src/components/ProtectedRoute";
@@ -54,6 +58,14 @@ import {
   Documents,
 } from "./src/components/pstudyware/Admin";
 import RegisteredStudentList from "./src/components/pstudyware/Admin/RegisteredStudentList";
+import StudentWaitingList from "./src/components/pstudyware/Admin/StudentWaitingList";
+import VolunteersRequest from "./src/components/pstudyware/Admin/VolunteersRequest";
+import TimeSheetTracking from "./src/components/pstudyware/Admin/TimeSheetTracking";
+import SpecialEventsRegistration from "./src/components/pstudyware/Admin/SpecialEventsRegistration";
+import PostMessage from "./src/components/pstudyware/Admin/PostMessage";
+import UploadAnswerKey from "./src/components/pstudyware/Admin/UploadAnswerKey";
+import UpdateLookupSemester from "./src/components/pstudyware/Admin/UpdateLookupSemester";
+import AdminReportCard from "./src/components/pstudyware/Admin/AdminReportCard";
 import SentEmail from "./src/components/pstudyware/Common/SentEmail";
 import {
   DocumentsRepository,
@@ -75,10 +87,7 @@ const AppRoutes = () => {
               path="/about/engineering-circle"
               element={<EngineeringCircle />}
             />
-            <Route
-              path="/about/projects"
-              element={<Projects />}
-            />
+            <Route path="/about/projects" element={<Projects />} />
             <Route
               path="/about/test-preparation"
               element={<TestPreparation />}
@@ -137,11 +146,17 @@ const AppRoutes = () => {
               element={<StudentRegistration />}
             />
             <Route
+              path="/registration/student"
+              element={<StudentRegistration />}
+            />
+
+            <Route
               path="/volunteerregistration"
               element={<VolunteerRegistration />}
             />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/internship" element={<Internship />} />
             <Route path="/rules" element={<Rules />} />
             <Route path="/login" element={<Login />} />
 
@@ -211,6 +226,13 @@ const AppRoutes = () => {
                   <StudentDocuments />
                 </RoleProtectedRoute>
               }
+            />
+            <Route path="/Leadership" element={<Leadership />} />
+            <Route path="/ourteam" element={<OurTeam />} />
+            <Route path="/Alumini" element={<Alumini />} />
+            <Route
+              path="/studentregistration"
+              element={<StudentRegistration />}
             />
             <Route
               path="/pstudyware/student/my-documents"
@@ -318,6 +340,182 @@ const AppRoutes = () => {
                   allowedMemberTypes={["A"]}
                 >
                   <RegisteredStudentList />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/Studentwaiting-list"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <StudentWaitingList />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/Studentwaiting-list"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <StudentWaitingList />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/volunteers-request"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <VolunteersRequest />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/volunteers-request"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <VolunteersRequest />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/time-sheet-tracking"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <TimeSheetTracking />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/time-sheet-tracking"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <TimeSheetTracking />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/special-events-registration"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <SpecialEventsRegistration />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/special-events-registration"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <SpecialEventsRegistration />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/post-message"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <PostMessage />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/post-message"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <PostMessage />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/upload-answer-key"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <UploadAnswerKey />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/upload-answer-key"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <UploadAnswerKey />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/update-lookup-semester"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <UpdateLookupSemester />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/update-lookup-semester"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <UpdateLookupSemester />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/report-card"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin", "Instructor"]}
+                  allowedMemberTypes={["A", "I"]}
+                >
+                  <AdminReportCard />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/report-card"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin", "Instructor"]}
+                  allowedMemberTypes={["A", "I"]}
+                >
+                  <AdminReportCard />
                 </RoleProtectedRoute>
               }
             />

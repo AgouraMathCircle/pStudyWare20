@@ -1,0 +1,242 @@
+/* Internship Component Styles */
+
+.internship-page {
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+/* Breadcrumbs Styling */
+.sc-breadcrumbs {
+  position: relative;
+  padding: 60px 0;
+  text-align: center;
+  color: white;
+}
+
+.breadcrumbs-overlay {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.breadcrumbs-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.breadcrumbs-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.breadcrumbs-overlay::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(28, 61, 90, 0.65);
+  z-index: 2;
+}
+
+.breadcrumbs-text {
+  position: relative;
+  z-index: 3;
+}
+
+.breadcrumbs-text.white-color {
+  color: #ffffff;
+}
+
+.page-title {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.breadcrumbs-text ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.breadcrumbs-text ul li {
+  display: inline-block;
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.breadcrumbs-text ul li a {
+  color: #ffffff;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.breadcrumbs-text ul li a:hover {
+  color: #e0e0e0;
+}
+
+/* Internship Card Styles */
+.internship-card {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.internship-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+.internship-card .MuiCardContent-root {
+  padding: 20px;
+}
+
+.internship-card h5 {
+  color: #1c3d5a;
+  font-weight: 700;
+  margin-bottom: 12px;
+  line-height: 1.3;
+  font-size: 16px;
+}
+
+.internship-card .MuiChip-root {
+  height: 32px;
+  background: #f0f0f0;
+  color: #1c3d5a;
+}
+
+/* Schedule Section */
+.schedule-section {
+  background: #f9f9f9;
+  padding: 30px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 40px;
+}
+
+.schedule-section h4 {
+  color: #1c3d5a;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.schedule-section p {
+  color: #555555;
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Contact Info Section */
+.contact-info-section {
+  background: #1c3d5a;
+  color: #ffffff;
+  padding: 30px;
+  border-radius: 8px;
+  margin-bottom: 40px;
+}
+
+.contact-info-section h4 {
+  color: #ffffff;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.contact-info-section .MuiLink-root {
+  color: #53b50a;
+}
+
+.contact-info-section .MuiLink-root:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 36px;
+  }
+
+  .breadcrumbs-text ul {
+    gap: 4px;
+  }
+
+  .breadcrumbs-text ul li {
+    font-size: 14px;
+  }
+
+  .internship-card h5 {
+    font-size: 14px;
+  }
+
+  .schedule-section {
+    padding: 20px;
+  }
+
+  .schedule-section h4 {
+    font-size: 18px;
+  }
+
+  .contact-info-section {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 28px;
+  }
+
+  .breadcrumbs-overlay {
+    min-height: 200px;
+  }
+
+  .breadcrumbs-text {
+    padding: 0 20px;
+  }
+
+  .internship-card .MuiCardContent-root {
+    padding: 15px;
+  }
+
+  .internship-card h5 {
+    font-size: 13px;
+  }
+}
+
+/* Animation for arrow elements */
+.animated-arrow-1,
+.animated-arrow-2,
+.animated-arrow-3 {
+  position: absolute;
+  opacity: 0.15;
+  z-index: 0;
+}
+
+/* Print Styles */
+@media print {
+  .breadcrumbs-overlay {
+    background: #1c3d5a;
+  }
+
+  .internship-card {
+    page-break-inside: avoid;
+  }
+}

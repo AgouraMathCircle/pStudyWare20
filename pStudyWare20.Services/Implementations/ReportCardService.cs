@@ -57,19 +57,28 @@ namespace pStudyWare20.Services.Implementations
             {
                 var scoreData = await _reportCardRepository.GetScoreDetailsAsync(request.ReportCardId);
 
-                if (scoreData is DataSet dataSet && dataSet.Tables[0].Rows.Count > 0)
+                DataRow row = null;
+                if (scoreData is DataSet dataSet && dataSet.Tables.Count > 0 && dataSet.Tables[0].Rows.Count > 0)
                 {
-                    var row = dataSet.Tables[0].Rows[0];
+                    row = dataSet.Tables[0].Rows[0];
+                }
+                else if (scoreData is DataTable dataTable && dataTable.Rows.Count > 0)
+                {
+                    row = dataTable.Rows[0];
+                }
+
+                if (row != null)
+                {
                     var scoreDetails = new ScoreDetails
                     {
-                        StudentId = row["StudentID"].ToString() ?? "",
-                        StudentName = row["StudentName"].ToString() ?? "",
-                        Group = row["Group"].ToString() ?? "",
-                        ExamType = row["ExamType"].ToString() ?? "",
-                        ExamDate = row["ExamDate"].ToString() ?? "",
-                        TotalCredit = row["TotalCredit"].ToString() ?? "",
-                        ReceivedCredit = row["ReceivedCredit"].ToString() ?? "",
-                        Comments = row["Comments"].ToString() ?? ""
+                        StudentId = GetString(row, "StudentID"),
+                        StudentName = GetString(row, "StudentName"),
+                        Group = GetString(row, "Group"),
+                        ExamType = GetString(row, "ExamType"),
+                        ExamDate = GetString(row, "ExamDate"),
+                        TotalCredit = GetString(row, "TotalCredit"),
+                        ReceivedCredit = GetString(row, "ReceivedCredit"),
+                        Comments = GetString(row, "Comments")
                     };
 
                     return new GetScoreDetailsResponse
@@ -93,6 +102,20 @@ namespace pStudyWare20.Services.Implementations
                     ErrorMessage = ex.Message
                 };
             }
+        }
+
+        private static string GetString(DataRow row, string columnName)
+        {
+            if (row?.Table?.Columns == null) return "";
+            foreach (DataColumn col in row.Table.Columns)
+            {
+                if (string.Equals(col.ColumnName, columnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var val = row[col.ColumnName];
+                    return val == null || val == DBNull.Value ? "" : (val.ToString() ?? "");
+                }
+            }
+            return "";
         }
 
         /// <summary>

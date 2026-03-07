@@ -241,7 +241,7 @@ const Navbar = () => {
       icon: <MessageIcon fontSize="small" />,
     },
     {
-      label: "Change Password",
+      label: "Password",
       href: "/pstudyware/admin/update-password",
       icon: <LockIcon fontSize="small" />,
     },
@@ -452,7 +452,7 @@ const Navbar = () => {
                       handleNavigation(
                         subItem.href,
                         subItem.external,
-                        subItem.action
+                        subItem.action,
                       )
                     }
                   >
@@ -533,7 +533,7 @@ const Navbar = () => {
                   handleNavigation(
                     subItem.href,
                     subItem.external,
-                    subItem.action
+                    subItem.action,
                   )
                 }
                 sx={{

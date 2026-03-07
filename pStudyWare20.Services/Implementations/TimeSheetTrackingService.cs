@@ -250,33 +250,72 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
-        /// Convert DataTable to TimeSheetTrackingEntry list
+        /// Resolve column name case-insensitively; try preferred then alternates.
+        /// </summary>
+        private static string ResolveColumnName(DataTable table, string preferred, params string[] alternates)
+        {
+            if (table?.Columns == null) return null;
+            var names = new[] { preferred }.Concat(alternates ?? Array.Empty<string>());
+            foreach (var name in names)
+            {
+                foreach (DataColumn col in table.Columns)
+                {
+                    if (string.Equals(col.ColumnName, name, StringComparison.OrdinalIgnoreCase))
+                        return col.ColumnName;
+                }
+            }
+            return null;
+        }
+
+        private static object GetValue(DataRow row, DataTable table, string preferred, params string[] alternates)
+        {
+            var col = ResolveColumnName(table, preferred, alternates);
+            if (col == null) return DBNull.Value;
+            var val = row[col];
+            return val ?? DBNull.Value;
+        }
+
+        /// <summary>
+        /// Convert DataTable to TimeSheetTrackingEntry list (supports mLogID/LogID, DateVolunteer/VolunteerDate, etc.).
         /// </summary>
         private List<TimeSheetTrackingEntry> ConvertDataTableToTimeSheetEntries(DataTable dataTable)
         {
             var entries = new List<TimeSheetTrackingEntry>();
 
-            if (dataTable != null && dataTable.Rows.Count > 0)
+            if (dataTable == null || dataTable.Rows == null || dataTable.Rows.Count == 0)
+                return entries;
+
+            var table = dataTable;
+            foreach (DataRow row in dataTable.Rows)
             {
-                foreach (DataRow row in dataTable.Rows)
+                try
                 {
+                    var logIdVal = GetValue(row, table, "mLogID", "LogID", "LogId");
+                    var dateVal = GetValue(row, table, "DateVolunteer", "VolunteerDate", "VolunteerDate");
+                    var createdVal = GetValue(row, table, "CreatedDate");
+                    var modifiedVal = GetValue(row, table, "ModifiedDate");
+
                     var entry = new TimeSheetTrackingEntry
                     {
-                        LogID = Convert.ToInt32(row["mLogID"]),
-                        Username = row["Username"]?.ToString() ?? "",
-                        TaskName = row["TaskName"]?.ToString() ?? "",
-                        VolunteerDate = Convert.ToDateTime(row["DateVolunteer"]),
-                        StartHour = row["StartHour"]?.ToString() ?? "",
-                        StartMin = row["StartMin"]?.ToString() ?? "",
-                        StartType = row["StartType"]?.ToString() ?? "",
-                        EndHour = row["EndHour"]?.ToString() ?? "",
-                        EndMin = row["EndMin"]?.ToString() ?? "",
-                        EndType = row["EndType"]?.ToString() ?? "",
-                        TaskDescription = row["TaskDescription"]?.ToString() ?? "",
-                        CreatedDate = row["CreatedDate"] != DBNull.Value ? Convert.ToDateTime(row["CreatedDate"]) : null,
-                        ModifiedDate = row["ModifiedDate"] != DBNull.Value ? Convert.ToDateTime(row["ModifiedDate"]) : null
+                        LogID = logIdVal != null && logIdVal != DBNull.Value ? Convert.ToInt32(logIdVal) : 0,
+                        Username = GetValue(row, table, "Username", "UserName")?.ToString() ?? "",
+                        TaskName = GetValue(row, table, "TaskName")?.ToString() ?? "",
+                        VolunteerDate = dateVal != null && dateVal != DBNull.Value ? Convert.ToDateTime(dateVal) : default,
+                        StartHour = GetValue(row, table, "StartHour")?.ToString() ?? "",
+                        StartMin = GetValue(row, table, "StartMin")?.ToString() ?? "",
+                        StartType = GetValue(row, table, "StartType")?.ToString() ?? "",
+                        EndHour = GetValue(row, table, "EndHour")?.ToString() ?? "",
+                        EndMin = GetValue(row, table, "EndMin")?.ToString() ?? "",
+                        EndType = GetValue(row, table, "EndType")?.ToString() ?? "",
+                        TaskDescription = GetValue(row, table, "TaskDescription")?.ToString() ?? "",
+                        CreatedDate = createdVal != null && createdVal != DBNull.Value ? Convert.ToDateTime(createdVal) : null,
+                        ModifiedDate = modifiedVal != null && modifiedVal != DBNull.Value ? Convert.ToDateTime(modifiedVal) : null
                     };
                     entries.Add(entry);
+                }
+                catch
+                {
+                    // Skip malformed row
                 }
             }
 

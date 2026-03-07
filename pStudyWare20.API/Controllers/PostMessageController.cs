@@ -11,10 +11,12 @@ namespace pStudyWare20.API.Controllers
     public class PostMessageController : ControllerBase
     {
         private readonly IPostMessageService _postMessageService;
+        private readonly ILogger<PostMessageController> _logger;
 
-        public PostMessageController(IPostMessageService postMessageService)
+        public PostMessageController(IPostMessageService postMessageService, ILogger<PostMessageController> logger)
         {
             _postMessageService = postMessageService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -63,6 +65,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "InsertOrUpdatePostMessage error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while saving post message", error = ex.Message });
             }
         }
@@ -88,6 +91,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "DeletePostMessage error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while deleting post message", error = ex.Message });
             }
         }

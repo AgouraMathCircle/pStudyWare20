@@ -18,7 +18,7 @@
 }
 
 .breadcrumbs-overlay::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -94,13 +94,17 @@
 }
 
 .sc-about::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(30, 60, 114, 0.05) 0%, rgba(42, 82, 152, 0.05) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(30, 60, 114, 0.05) 0%,
+    rgba(42, 82, 152, 0.05) 100%
+  );
   z-index: 0;
 }
 
@@ -126,7 +130,7 @@
     padding-left: 15px;
     margin-left: 0;
   }
-  
+
   .img-p {
     margin-right: 0;
     margin-bottom: 40px;
@@ -136,10 +140,13 @@
 .img-part {
   border-radius: 15px;
   overflow: visible;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1),
-              8px 8px 0 rgba(0, 0, 0, 0.3),
-              0 8px 0 rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.1),
+    8px 8px 0 rgba(0, 0, 0, 0.3),
+    0 8px 0 rgba(0, 0, 0, 0.3);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
   position: relative;
   border: 3px solid #ffffff;
   background: #ffffff;
@@ -149,9 +156,10 @@
 
 .img-part:hover {
   transform: translateY(-12px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15),
-              12px 12px 0 rgba(0, 0, 0, 0.4),
-              0 12px 0 rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    12px 12px 0 rgba(0, 0, 0, 0.4),
+    0 12px 0 rgba(0, 0, 0, 0.4);
 }
 
 .img-part img {
@@ -194,7 +202,7 @@
 }
 
 .title::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -10px;
   left: 0;
@@ -267,7 +275,7 @@
 }
 
 .check-square li::before {
-  content: '✓';
+  content: "✓";
   position: absolute;
   left: 0;
   top: 0;
@@ -285,13 +293,14 @@
 }
 
 .counter-bg1::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>')
+    repeat;
   background-size: 20px 20px;
   opacity: 0.3;
 }
@@ -517,7 +526,8 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -526,7 +536,8 @@
 }
 
 @keyframes leftRight {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0px);
   }
   50% {
@@ -535,7 +546,8 @@
 }
 
 @keyframes upDown {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -548,31 +560,31 @@
   .page-title {
     font-size: 2.5rem;
   }
-  
+
   .title {
     font-size: 2rem;
   }
-  
+
   .pl-90 {
     padding-left: 15px;
   }
-  
+
   .md-mb-115 {
     margin-bottom: 50px;
   }
-  
+
   .md-pt-40 {
     padding-top: 40px;
   }
-  
+
   .md-pb-70 {
     padding-bottom: 70px;
   }
-  
+
   .counter-title {
     font-size: 2.5rem;
   }
-  
+
   .team-img img {
     height: 250px;
   }
@@ -582,45 +594,45 @@
   .sc-breadcrumbs {
     padding: 60px 0 30px;
   }
-  
+
   .page-title {
     font-size: 2rem;
   }
-  
+
   .title {
     font-size: 1.8rem;
   }
-  
+
   .breadcrumbs-text ul {
     flex-direction: column;
     gap: 5px;
   }
-  
+
   .about-cont {
     font-size: 16px !important;
     text-align: left;
   }
-  
+
   .md-pl-15 {
     padding-left: 15px;
   }
-  
+
   .counter-item {
     padding: 20px 15px;
   }
-  
+
   .counter-title {
     font-size: 2rem;
   }
-  
+
   .team-img img {
     height: 200px;
   }
-  
+
   .team-social {
     gap: 10px;
   }
-  
+
   .social-icon {
     width: 35px;
     height: 35px;
@@ -631,23 +643,23 @@
   .page-title {
     font-size: 1.8rem;
   }
-  
+
   .title {
     font-size: 1.5rem;
   }
-  
+
   .about-cont {
     font-size: 15px !important;
   }
-  
+
   .sc-breadcrumbs {
     padding: 50px 0 25px;
   }
-  
+
   .counter-title {
     font-size: 1.8rem;
   }
-  
+
   .team-img img {
     height: 180px;
   }
@@ -711,16 +723,16 @@
     background: #1e3c72 !important;
     color: #ffffff !important;
   }
-  
+
   .img-part,
   .team-wrap {
     box-shadow: none;
   }
-  
+
   .title {
     color: #1e3c72 !important;
   }
-  
+
   .animated-arrow {
     display: none;
   }
@@ -731,11 +743,11 @@
   .title {
     color: #000000;
   }
-  
+
   .about-cont {
     color: #000000;
   }
-  
+
   .breadcrumbs-text li a {
     color: #ffff00;
   }
@@ -750,4 +762,4 @@
     transition: none;
     animation: none;
   }
-} 
+}

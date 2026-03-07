@@ -14,10 +14,12 @@ namespace pStudyWare20.API.Controllers
     public class TimeSheetTrackingController : ControllerBase
     {
         private readonly ITimeSheetTrackingService _timeSheetTrackingService;
+        private readonly ILogger<TimeSheetTrackingController> _logger;
 
-        public TimeSheetTrackingController(ITimeSheetTrackingService timeSheetTrackingService)
+        public TimeSheetTrackingController(ITimeSheetTrackingService timeSheetTrackingService, ILogger<TimeSheetTrackingController> logger)
         {
             _timeSheetTrackingService = timeSheetTrackingService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -46,6 +48,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetTimeSheetTrackingList error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while getting timesheet tracking list", error = ex.Message });
             }
         }
@@ -76,6 +79,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "UpdateTimeSheetTracking error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while updating timesheet tracking", error = ex.Message });
             }
         }
@@ -100,6 +104,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "DeleteTimeSheetTracking error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while deleting timesheet tracking", error = ex.Message });
             }
         }
@@ -130,6 +135,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "UpsertTimeSheetTracking error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while saving timesheet tracking", error = ex.Message });
             }
         }
@@ -160,6 +166,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "HandleTimeSheetTrackingAction error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while handling timesheet tracking action", error = ex.Message });
             }
         }
@@ -192,6 +199,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetDashboardData error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while getting timesheet tracking dashboard data", error = ex.Message });
             }
         }
@@ -217,6 +225,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "CheckTimeSheetTrackingPrivileges error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while checking timesheet tracking privileges", error = ex.Message });
             }
         }
@@ -248,6 +257,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetAllTimeSheetTrackingEntries error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while getting all timesheet tracking entries", error = ex.Message });
             }
         }
@@ -272,6 +282,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "DeleteTimeSheetTracking by id error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while deleting timesheet tracking", error = ex.Message });
             }
         }
@@ -305,6 +316,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetTimeSheetTrackingForEdit error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while getting timesheet tracking for edit", error = ex.Message });
             }
         }

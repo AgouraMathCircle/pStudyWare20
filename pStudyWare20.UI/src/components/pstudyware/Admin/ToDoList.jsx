@@ -105,7 +105,7 @@ const ToDoList = ({
         {/* Quick Links */}
         <Box sx={{ mb: 2 }}>
           <Link
-            href="../documents/AMC_Curriculam.pdf"
+            href="/pstudyware/Documents/AMC_Curriculam.pdf"
             target="_blank"
             rel="noopener noreferrer"
             underline="hover"

@@ -98,7 +98,7 @@ const Contact = () => {
                   <div className="row">
                     <div className="col-md-6">
                       <div className="find-widget">
-                        <a href="#" className="contact-title-link">
+                        <a href="#" className="contact-title-link" style={{minHeight:0}}>
                           Agoura Chapter El Camino Real High School
                         </a>
                       </div>
@@ -121,7 +121,7 @@ const Contact = () => {
                     </div>
                     <div className="col-md-6">
                       <div className="find-widget">
-                        <a href="#" className="contact-title-link">
+                        <a href="#" className="contact-title-link" style={{minHeight:0}}>
                           Agoura Engineering Circle
                         </a>
                       </div>
@@ -140,7 +140,7 @@ const Contact = () => {
                   <div className="row pt-10">
                     <div className="col-md-6">
                       <div className="find-widget">
-                        <a href="#" className="contact-title-link">
+                        <a href="#" className="contact-title-link" style={{minHeight:0}}>
                           Online Chapter
                         </a>
                       </div>
@@ -156,7 +156,7 @@ const Contact = () => {
                     </div>
                     <div className="col-md-6">
                       <div className="find-widget">
-                        <a href="#" className="contact-title-link">
+                        <a href="#" className="contact-title-link" style={{minHeight:0}}>
                           ACT/SAT/PSAT
                         </a>
                       </div>

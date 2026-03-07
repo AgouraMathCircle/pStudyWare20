@@ -7,8 +7,6 @@ import {
   Typography,
   CircularProgress,
   Grid,
-  Card,
-  CardContent,
 } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
 import instructorService from "../../../services/instructorService";
@@ -286,31 +284,22 @@ const InstructorManagement = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: "72px" }} />
+      <Box sx={{ height: "35px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Card
-              sx={{
-                backgroundColor: "white",
-                borderRadius: 2,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                overflow: "hidden",
-              }}
-            >
-              <CardContent sx={{ p: 0 }}>
-                <InstructorList
-                  instructors={instructors}
-                  onExportToExcel={handleExportToExcel}
-                  canExportData={adminPrivileges.canExportData}
-                  onRefresh={handleRefresh}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onAdd={handleAdd}
-                  canAddInstructor={adminPrivileges.canAddInstructor}
-                />
-              </CardContent>
-            </Card>
+            <Box>
+              <InstructorList
+                instructors={instructors}
+                onExportToExcel={handleExportToExcel}
+                canExportData={adminPrivileges.canExportData}
+                onRefresh={handleRefresh}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onAdd={handleAdd}
+                canAddInstructor={adminPrivileges.canAddInstructor}
+              />
+            </Box>
           </Grid>
         </Grid>
       </Container>

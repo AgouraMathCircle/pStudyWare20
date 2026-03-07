@@ -18,7 +18,7 @@ namespace pStudyWare20.Repository.Implementations
         public SpecialEventsRegistrationRepository(AMC_DBContext context, IConfiguration configuration)
         {
             _context = context;
-            _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new ArgumentNullException(nameof(configuration));
+            _connectionString = configuration?.GetConnectionString("DefaultConnection") ?? "";
         }
 
         /// <summary>
@@ -26,6 +26,8 @@ namespace pStudyWare20.Repository.Implementations
         /// </summary>
         public async Task<object> GetSpecialEventsRegistrationListAsync(string username)
         {
+            if (string.IsNullOrWhiteSpace(_connectionString))
+                throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
             try
             {
                 using var connection = new SqlConnection(_connectionString);
@@ -55,6 +57,8 @@ namespace pStudyWare20.Repository.Implementations
         /// </summary>
         public async Task<object> DeleteSpecialEventsRegistrationAsync(string requestId)
         {
+            if (string.IsNullOrWhiteSpace(_connectionString))
+                throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
             try
             {
                 using var connection = new SqlConnection(_connectionString);
@@ -84,6 +88,8 @@ namespace pStudyWare20.Repository.Implementations
         /// </summary>
         public async Task<object> GetSpecialEventsRegistrationListForExportAsync(string username)
         {
+            if (string.IsNullOrWhiteSpace(_connectionString))
+                throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
             try
             {
                 using var connection = new SqlConnection(_connectionString);

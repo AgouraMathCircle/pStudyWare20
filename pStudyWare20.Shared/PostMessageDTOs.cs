@@ -122,4 +122,19 @@ namespace pStudyWare20.Shared
         [Display(Name = "Message")]
         public string Message { get; set; } = string.Empty;
     }
+
+    /// <summary>
+    /// Serializable row DTO for alert list (avoids DataTable/Type serialization)
+    /// </summary>
+    public class AlertListRowDto
+    {
+        public int MessageID { get; set; }
+        public int RowID { get; set; }
+        public string PostedBy { get; set; } = string.Empty;
+        public string PostedDate { get; set; } = string.Empty;
+        public string AlertDate { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+        public bool Active { get; set; }
+    }
 }

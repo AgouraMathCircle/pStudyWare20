@@ -18,7 +18,7 @@ namespace pStudyWare20.Repository.Implementations
         public TimeSheetTrackingRepository(AMC_DBContext context, IConfiguration configuration)
         {
             _context = context;
-            _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new ArgumentNullException(nameof(configuration));
+            _connectionString = configuration?.GetConnectionString("DefaultConnection") ?? "";
         }
 
         /// <summary>
@@ -26,12 +26,14 @@ namespace pStudyWare20.Repository.Implementations
         /// </summary>
         public async Task<DataTable> GetTimeSheetTrackingListAsync(string username)
         {
+            if (string.IsNullOrWhiteSpace(_connectionString))
+                throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
             try
             {
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spGetTimeSheetTrackingList", connection)
+                using var command = new SqlCommand("AMC_spGetTimesheetList", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
@@ -51,16 +53,18 @@ namespace pStudyWare20.Repository.Implementations
         }
 
         /// <summary>
-        /// Get timesheet tracking entry by LogID for editing
+        /// Get timesheet tracking entry by LogID for editing (uses same list SP; service filters by LogID).
         /// </summary>
         public async Task<DataTable> GetTimeSheetTrackingForEditAsync(string username)
         {
+            if (string.IsNullOrWhiteSpace(_connectionString))
+                throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
             try
             {
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spGetTimeSheetTrackingForEdit", connection)
+                using var command = new SqlCommand("AMC_spGetTimesheetList", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
@@ -84,6 +88,8 @@ namespace pStudyWare20.Repository.Implementations
         /// </summary>
         public async Task<DataTable> DeleteTimeSheetTrackingAsync(int logId)
         {
+            if (string.IsNullOrWhiteSpace(_connectionString))
+                throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
             try
             {
                 using var connection = new SqlConnection(_connectionString);
@@ -113,6 +119,8 @@ namespace pStudyWare20.Repository.Implementations
         /// </summary>
         public async Task<DataTable> UpsertTimeSheetTrackingAsync(UpsertTimeSheetTrackingRequest request)
         {
+            if (string.IsNullOrWhiteSpace(_connectionString))
+                throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
             try
             {
                 using var connection = new SqlConnection(_connectionString);

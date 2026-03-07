@@ -16,7 +16,7 @@ const AdminChangePassword = () => {
           <CardContent sx={{ textAlign: "center", py: 8 }}>
             <LockIcon sx={{ fontSize: 80, color: "primary.main", mb: 2 }} />
             <Typography variant="h4" gutterBottom>
-              Change Password
+              Password
             </Typography>
             <Typography variant="body1" color="textSecondary">
               This page is under development. It will include password
