@@ -40,7 +40,7 @@ class AuthService {
         localStorage.setItem(config.auth.tokenKey, token);
         localStorage.setItem(
           config.auth.userDataKey,
-          JSON.stringify(userDataToStore)
+          JSON.stringify(userDataToStore),
         );
       }
 
@@ -251,7 +251,7 @@ class AuthService {
     } else if (error.request) {
       // Network error - provide more helpful message
       return new Error(
-        "Network error. Please check if the API server is running on https://localhost:7146"
+        "Network error. Please check if the API server is running on https://localhost:7146",
       );
     } else {
       // Other error

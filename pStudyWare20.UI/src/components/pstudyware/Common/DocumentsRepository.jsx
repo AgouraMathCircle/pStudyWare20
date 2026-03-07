@@ -26,6 +26,7 @@ import {
   CircularProgress,
   Chip,
   Container,
+  Grid,
 } from "@mui/material";
 import {
   Visibility as ViewIcon,
@@ -99,7 +100,7 @@ const DocumentsRepository = () => {
       } else {
         showMessage(
           response?.errorMessage || "Failed to load documents",
-          "error"
+          "error",
         );
       }
     } catch (error) {
@@ -187,7 +188,7 @@ const DocumentsRepository = () => {
     if (!docID || docID === 0) {
       showMessage(
         "You cannot delete this document. Document has been posted already.",
-        "error"
+        "error",
       );
       return;
     }
@@ -201,7 +202,7 @@ const DocumentsRepository = () => {
     try {
       const response = await documentService.deleteDocument(
         documentToDelete.docID.toString(),
-        documentToDelete.docName
+        documentToDelete.docName,
       );
 
       if (response?.isSuccess) {
@@ -210,7 +211,7 @@ const DocumentsRepository = () => {
       } else {
         showMessage(
           response?.errorMessage || "Failed to delete document",
-          "error"
+          "error",
         );
       }
     } catch (error) {
@@ -239,7 +240,7 @@ const DocumentsRepository = () => {
       if (!isValid) {
         showMessage(
           "Sorry, we can accept only Word, Excel and PowerPoint files.",
-          "error"
+          "error",
         );
         event.target.value = "";
         return;
@@ -290,7 +291,7 @@ const DocumentsRepository = () => {
       } else {
         showMessage(
           response?.errorMessage || "Failed to upload document",
-          "error"
+          "error",
         );
       }
     } catch (error) {
@@ -335,6 +336,8 @@ const DocumentsRepository = () => {
   const endIndex = startIndex + pageSize;
   const displayedData = filteredDocuments.slice(startIndex, endIndex);
 
+  const cellPadding = "0 8px";
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" p={4}>
@@ -345,457 +348,587 @@ const DocumentsRepository = () => {
 
   return (
     <Box>
-      {/* Container with margins */}
-      <Container maxWidth="xl" sx={{ mb: 4, px: "1in" }}>
-        {/* Title Section */}
-        <Box sx={{ p: 2, backgroundColor: "#f5f5f5" }}>
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 600, color: "#4caf50", mb: 1 }}
-          >
-            Documents List
-          </Typography>
-        </Box>
-        {/* Green Header with Search Controls */}
-        <Box
-          sx={{
-            backgroundColor: "#4caf50",
-            padding: "12px 16px",
-            display: "flex",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 2,
-          }}
-        >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography
-            sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
-          >
-            Search By:
-          </Typography>
-          <Select
-            value={searchBy}
-            onChange={(e) => setSearchBy(e.target.value)}
-            size="small"
-            sx={{
-              color: "white",
-              fontSize: "0.75rem",
-              minWidth: 120,
-              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
-              "& .MuiSelect-icon": { color: "white" },
-            }}
-          >
-            <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
-              Select Column
-            </MenuItem>
-            <MenuItem value="CLASS" sx={{ fontSize: "0.75rem" }}>
-              Class
-            </MenuItem>
-            <MenuItem value="TOPICS" sx={{ fontSize: "0.75rem" }}>
-              Topics
-            </MenuItem>
-            <MenuItem value="DESCRIPTION" sx={{ fontSize: "0.75rem" }}>
-              Description
-            </MenuItem>
-            <MenuItem value="SESSION" sx={{ fontSize: "0.75rem" }}>
-              Session
-            </MenuItem>
-            <MenuItem value="DOC_NAME" sx={{ fontSize: "0.75rem" }}>
-              Document Name
-            </MenuItem>
-          </Select>
-        </Box>
-
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography
-            sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
-          >
-            Criteria:
-          </Typography>
-          <Select
-            value={searchCriteria}
-            onChange={(e) => setSearchCriteria(e.target.value)}
-            size="small"
-            sx={{
-              color: "white",
-              fontSize: "0.75rem",
-              minWidth: 100,
-              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
-              "& .MuiSelect-icon": { color: "white" },
-            }}
-          >
-            <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
-              Equals
-            </MenuItem>
-            <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
-              Contains
-            </MenuItem>
-            <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>
-              Starts With
-            </MenuItem>
-          </Select>
-        </Box>
-
-        <TextField
-          size="small"
-          placeholder="Search Text"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-          sx={{
-            minWidth: 150,
-            "& .MuiOutlinedInput-root": {
-              backgroundColor: "white",
-              fontSize: "0.75rem",
-            },
-          }}
-        />
-
-        <Button
-          variant="contained"
-          size="small"
-          onClick={handleSearch}
-          sx={{
-            backgroundColor: "white",
-            color: "#4caf50",
-            fontSize: "0.75rem",
-            textTransform: "none",
-            px: 1.5,
-            py: 0.25,
-            "&:hover": { backgroundColor: "#f5f5f5" },
-          }}
-        >
-          Find
-        </Button>
-
-        <Box sx={{ flexGrow: 1 }} />
-
-        <Tooltip title="Refresh">
-          <IconButton onClick={loadDocuments} sx={{ color: "white", p: 0.5 }}>
-            <RefreshIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Box>
-
-      {/* Table */}
-      <TableContainer component={Paper} sx={{ mb: 2, width: "100%" }}>
-        <Table sx={{ width: "100%", tableLayout: "fixed" }}>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
-              <TableCell
+      <Container maxWidth="xl" sx={{ mb: 4 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Box>
+              {/* Header: title + buttons */}
+              <Box sx={{ height: "25px" }} />
+              <Box
                 sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "10%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
+                  mb: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 2,
                 }}
               >
-                Actions
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "8%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Doc #
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "10%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Class
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "15%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Topics
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "12%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Description
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "20%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Name
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "15%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Session
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                  width: "10%",
-                }}
-              >
-                Posted Date
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {displayedData.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={8}
-                  align="center"
-                  sx={{ py: 4, fontSize: "0.875rem" }}
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 600, color: "#4caf50", mb: 1 }}
                 >
-                  <Typography variant="body1" color="textSecondary">
-                    {searchText
-                      ? "No documents found matching your search."
-                      : "No documents available."}
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              displayedData.map((doc, index) => (
-                <TableRow key={doc.docID || index} hover>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: "8px 12px",
-                    }}
+                  Documents List
+                </Typography>
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    startIcon={<RefreshIcon />}
+                    onClick={loadDocuments}
+                    sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
                   >
-                    <Box sx={{ display: "flex", gap: 0.5 }}>
-                      <Tooltip title="View/Print">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleView(doc.docName)}
-                          sx={{ color: "#4caf50" }}
-                        >
-                          <ViewIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      {!isStudent && (
-                        <Tooltip title="Delete">
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              handleDeleteClick(
-                                doc.docID || doc.documentID,
-                                doc.docName
-                              )
-                            }
-                            sx={{ color: "#f44336" }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: "8px 12px",
-                    }}
-                  >
-                    {doc.docID || doc.mDocID || "N/A"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: "8px 12px",
-                    }}
-                  >
-                    <Chip
-                      label={doc.class || "N/A"}
+                    Refresh
+                  </Button>
+                  {!isStudent && (
+                    <Button
+                      variant="contained"
+                      color="success"
                       size="small"
-                      sx={{
-                        backgroundColor: "#4caf50",
-                        color: "white",
-                        fontSize: "0.7rem",
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell
+                      startIcon={<UploadIcon />}
+                      onClick={() => setShowUploadForm(true)}
+                      sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                    >
+                      Upload Documents
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Search Bar */}
+              <Box
+                sx={{
+                  backgroundColor: "#4caf50",
+                  p: 0.5,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  flexWrap: "wrap",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <Typography
                     sx={{
-                      borderRight: "1px solid #4caf50",
+                      color: "white",
                       fontSize: "0.75rem",
-                      padding: "8px 12px",
-                    }}
-                  >
-                    {doc.topics || "N/A"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: "8px 12px",
-                    }}
-                  >
-                    {doc.description || "N/A"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: "8px 12px",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
                     }}
                   >
-                    <Tooltip title={doc.docName || doc.mDocName}>
-                      <span>{doc.docName || doc.mDocName || "N/A"}</span>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell
+                    Search By:
+                  </Typography>
+                  <Select
+                    value={searchBy}
+                    onChange={(e) => setSearchBy(e.target.value)}
+                    size="small"
                     sx={{
-                      borderRight: "1px solid #4caf50",
+                      color: "white",
                       fontSize: "0.75rem",
-                      padding: "8px 12px",
+                      minWidth: 120,
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "white",
+                      },
+                      "& .MuiSelect-icon": { color: "white" },
                     }}
                   >
-                    {doc.session || doc.mSession || "N/A"}
-                  </TableCell>
-                  <TableCell
+                    <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
+                      Select Column
+                    </MenuItem>
+                    <MenuItem value="CLASS" sx={{ fontSize: "0.75rem" }}>
+                      Class
+                    </MenuItem>
+                    <MenuItem value="TOPICS" sx={{ fontSize: "0.75rem" }}>
+                      Topics
+                    </MenuItem>
+                    <MenuItem value="DESCRIPTION" sx={{ fontSize: "0.75rem" }}>
+                      Description
+                    </MenuItem>
+                    <MenuItem value="SESSION" sx={{ fontSize: "0.75rem" }}>
+                      Session
+                    </MenuItem>
+                    <MenuItem value="DOC_NAME" sx={{ fontSize: "0.75rem" }}>
+                      Document Name
+                    </MenuItem>
+                  </Select>
+                </Box>
+
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <Typography
                     sx={{
+                      color: "white",
                       fontSize: "0.75rem",
-                      padding: "8px 12px",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    {formatDate(doc.uploadedDate || doc.insertDate)}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                    Criteria:
+                  </Typography>
+                  <Select
+                    value={searchCriteria}
+                    onChange={(e) => setSearchCriteria(e.target.value)}
+                    size="small"
+                    sx={{
+                      color: "white",
+                      fontSize: "0.75rem",
+                      minWidth: 100,
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "white",
+                      },
+                      "& .MuiSelect-icon": { color: "white" },
+                    }}
+                  >
+                    <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
+                      Equals
+                    </MenuItem>
+                    <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
+                      Contains
+                    </MenuItem>
+                    <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>
+                      Starts With
+                    </MenuItem>
+                  </Select>
+                </Box>
 
-      {/* Pagination Controls */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "8px 16px",
-          backgroundColor: "#f5f5f5",
-          borderTop: "1px solid #4caf50",
-        }}
-      >
-        <Typography sx={{ fontSize: "0.75rem" }}>
-          Records {startIndex + 1} to {Math.min(endIndex, totalRecords)} of{" "}
-          {totalRecords}
-        </Typography>
+                <TextField
+                  size="small"
+                  placeholder="Search Text"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                  sx={{
+                    minWidth: 150,
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "white",
+                      fontSize: "0.75rem",
+                    },
+                  }}
+                />
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <IconButton
-            size="small"
-            onClick={() => handlePageChange(1)}
-            disabled={currentPage === 1}
-            sx={{ color: "#4caf50" }}
-          >
-            <FirstPageIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            sx={{ color: "#4caf50" }}
-          >
-            <PrevPageIcon fontSize="small" />
-          </IconButton>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={handleSearch}
+                  sx={{
+                    backgroundColor: "white",
+                    color: "#4caf50",
+                    fontSize: "0.75rem",
+                    textTransform: "none",
+                    minHeight: 32,
+                    py: 0,
+                    px: 1,
+                    "&:hover": { backgroundColor: "#f5f5f5" },
+                  }}
+                >
+                  Find
+                </Button>
+              </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Typography sx={{ fontSize: "0.75rem" }}>Page</Typography>
-            <TextField
-              size="small"
-              value={goToPageInput}
-              onChange={(e) => setGoToPageInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleGoToPage()}
-              onBlur={handleGoToPage}
-              sx={{
-                width: "50px",
-                "& .MuiOutlinedInput-root": {
-                  fontSize: "0.75rem",
-                  height: "28px",
-                },
-              }}
-            />
-            <Typography sx={{ fontSize: "0.75rem" }}>
-              of {totalPages}
-            </Typography>
-          </Box>
+              {/* Table */}
+              <TableContainer component={Paper} sx={{ width: "100%" }}>
+                <Table
+                  sx={{
+                    width: "100%",
+                    tableLayout: "fixed",
+                    "& .MuiTableCell-root": { paddingTop: 0, paddingBottom: 0 },
+                  }}
+                  size="small"
+                >
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
+                      <TableCell
+                        sx={{
+                          fontWeight: 400,
+                          borderRight: "1px solid #4caf50",
+                          width: "5%",
+                          fontSize: "0.75rem",
+                          padding: cellPadding,
+                        }}
+                      >
+                        View
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 400,
+                          borderRight: "1px solid #4caf50",
+                          width: "5%",
+                          fontSize: "0.75rem",
+                          padding: cellPadding,
+                        }}
+                      >
+                        Delete
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 400,
+                          borderRight: "1px solid #4caf50",
+                          width: "6%",
+                          fontSize: "0.75rem",
+                          padding: cellPadding,
+                        }}
+                      >
+                        Doc #
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 400,
+                          borderRight: "1px solid #4caf50",
+                          width: "8%",
+                          fontSize: "0.75rem",
+                          padding: cellPadding,
+                        }}
+                      >
+                        Class
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 400,
+                          borderRight: "1px solid #4caf50",
+                          width: "12%",
+                          fontSize: "0.75rem",
+                          padding: cellPadding,
+                        }}
+                      >
+                        Topics
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 400,
+                          borderRight: "1px solid #4caf50",
+                          width: "10%",
+                          fontSize: "0.75rem",
+                          padding: cellPadding,
+                        }}
+                      >
+                        Description
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 400,
+                          borderRight: "1px solid #4caf50",
+                          width: "18%",
+                          fontSize: "0.75rem",
+                          padding: cellPadding,
+                        }}
+                      >
+                        Name
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 400,
+                          borderRight: "1px solid #4caf50",
+                          width: "12%",
+                          fontSize: "0.75rem",
+                          padding: cellPadding,
+                        }}
+                      >
+                        Session
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontWeight: 400,
+                          width: "8%",
+                          fontSize: "0.75rem",
+                          padding: cellPadding,
+                        }}
+                      >
+                        Posted Date
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {displayedData.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={9}
+                          align="center"
+                          sx={{
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
+                            py: 3,
+                          }}
+                        >
+                          <Typography
+                            variant="body2"
+                            color="textSecondary"
+                            sx={{ fontSize: "0.75rem" }}
+                          >
+                            {searchText
+                              ? "No documents found matching your search."
+                              : "No documents available."}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      displayedData.map((doc, index) => (
+                        <TableRow
+                          key={doc.docID || index}
+                          sx={{
+                            "&:nth-of-type(odd)": {
+                              backgroundColor: "#f9f9f9",
+                            },
+                          }}
+                        >
+                          <TableCell
+                            sx={{
+                              borderRight: "1px solid #4caf50",
+                              fontSize: "0.75rem",
+                              padding: cellPadding,
+                              verticalAlign: "middle",
+                            }}
+                          >
+                            <Tooltip title="View/Print">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleView(doc.docName)}
+                                sx={{ padding: "2px" }}
+                              >
+                                <ViewIcon sx={{ fontSize: "1rem" }} />
+                              </IconButton>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              borderRight: "1px solid #4caf50",
+                              fontSize: "0.75rem",
+                              padding: cellPadding,
+                              verticalAlign: "middle",
+                            }}
+                          >
+                            {!isStudent ? (
+                              <Tooltip title="Delete">
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() =>
+                                    handleDeleteClick(
+                                      doc.docID || doc.documentID,
+                                      doc.docName,
+                                    )
+                                  }
+                                  sx={{ padding: "2px" }}
+                                >
+                                  <DeleteIcon sx={{ fontSize: "1rem" }} />
+                                </IconButton>
+                              </Tooltip>
+                            ) : (
+                              "–"
+                            )}
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              borderRight: "1px solid #4caf50",
+                              fontSize: "0.75rem",
+                              padding: cellPadding,
+                            }}
+                          >
+                            {doc.docID || doc.mDocID || "N/A"}
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              borderRight: "1px solid #4caf50",
+                              fontSize: "0.75rem",
+                              padding: cellPadding,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            <Tooltip title={doc.class ?? "-"}>
+                              <span>{doc.class ?? "-"}</span>
+                            </Tooltip>
+                          </TableCell>
+                          {/* <TableCell
+                            sx={{
+                              borderRight: "1px solid #4caf50",
+                              fontSize: "0.75rem",
+                              padding: cellPadding,
+                            }}
+                          >
+                            <Chip
+                              label={doc.class || "N/A"}
+                              size="small"
+                              sx={{
+                                backgroundColor: "#4caf50",
+                                color: "white",
+                                fontSize: "0.7rem",
+                              }}
+                            />
+                          </TableCell> */}
+                          <TableCell
+                            sx={{
+                              borderRight: "1px solid #4caf50",
+                              fontSize: "0.75rem",
+                              padding: cellPadding,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            <Tooltip title={doc.topics || "N/A"}>
+                              <span>{doc.topics || "N/A"}</span>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              borderRight: "1px solid #4caf50",
+                              fontSize: "0.75rem",
+                              padding: cellPadding,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            <Tooltip title={doc.description || "N/A"}>
+                              <span>{doc.description || "N/A"}</span>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              borderRight: "1px solid #4caf50",
+                              fontSize: "0.75rem",
+                              padding: cellPadding,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            <Tooltip
+                              title={doc.docName || doc.mDocName || "N/A"}
+                            >
+                              <span>
+                                {doc.docName || doc.mDocName || "N/A"}
+                              </span>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              borderRight: "1px solid #4caf50",
+                              fontSize: "0.75rem",
+                              padding: cellPadding,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            <Tooltip
+                              title={doc.session || doc.mSession || "N/A"}
+                            >
+                              <span>
+                                {doc.session || doc.mSession || "N/A"}
+                              </span>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell
+                            sx={{ fontSize: "0.75rem", padding: cellPadding }}
+                          >
+                            {formatDate(doc.uploadedDate || doc.insertDate)}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
 
-          <IconButton
-            size="small"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            sx={{ color: "#4caf50" }}
-          >
-            <NextPageIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={() => handlePageChange(totalPages)}
-            disabled={currentPage === totalPages}
-            sx={{ color: "#4caf50" }}
-          >
-            <LastPageIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      </Box>
-
-      {/* Upload Button (for non-students) */}
-      {!isStudent && (
-        <Box sx={{ p: 2 }}>
-          <Button
-            variant="contained"
-            startIcon={<UploadIcon />}
-            onClick={() => setShowUploadForm(true)}
-            sx={{
-              backgroundColor: "#4caf50",
-              "&:hover": { backgroundColor: "#45a049" },
-            }}
-          >
-            Upload Documents
-          </Button>
-        </Box>
-      )}
+              {/* Pagination Bar */}
+              <Box
+                sx={{
+                  backgroundColor: "#4caf50",
+                  p: 0.5,
+                  borderRadius: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 1,
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+                  <IconButton
+                    size="small"
+                    sx={{ color: "white", padding: "2px" }}
+                    onClick={() => handlePageChange(1)}
+                    disabled={currentPage === 1}
+                  >
+                    <FirstPageIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    sx={{ color: "white", padding: "2px" }}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    <PrevPageIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    sx={{ color: "white", padding: "2px" }}
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <NextPageIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    sx={{ color: "white", padding: "2px" }}
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <LastPageIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+                <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                  Page(s): {currentPage} of {totalPages}
+                </Typography>
+                <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                  Record(s):{" "}
+                  {totalRecords > 0
+                    ? `${startIndex + 1} - ${Math.min(endIndex, totalRecords)}`
+                    : "0"}{" "}
+                  of {totalRecords}
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+                  <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                    Go to Page Number:
+                  </Typography>
+                  <TextField
+                    size="small"
+                    type="number"
+                    value={goToPageInput}
+                    onChange={(e) => setGoToPageInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") handleGoToPage();
+                    }}
+                    sx={{
+                      width: 50,
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: "white",
+                        fontSize: "0.75rem",
+                      },
+                    }}
+                    inputProps={{ min: 1, max: totalPages }}
+                  />
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={handleGoToPage}
+                    sx={{
+                      backgroundColor: "white",
+                      color: "#4caf50",
+                      fontSize: "0.75rem",
+                      minHeight: 32,
+                      py: 0,
+                      px: 0.75,
+                      "&:hover": { backgroundColor: "#f5f5f5" },
+                    }}
+                  >
+                    Go
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          </Grid>
+        </Grid>
       </Container>
 
       {/* Upload Form Dialog */}
@@ -805,7 +938,9 @@ const DocumentsRepository = () => {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Upload Class Material (Only Word/Excel Documents)</DialogTitle>
+        <DialogTitle>
+          Upload Class Material (Only Word/Excel Documents)
+        </DialogTitle>
         <DialogContent>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
             <TextField
@@ -838,16 +973,22 @@ const DocumentsRepository = () => {
                 <MenuItem value="Quiz Solution">Quiz Solution</MenuItem>
                 <MenuItem value="Lecture Notes">Lecture Notes</MenuItem>
                 <MenuItem value="Class Work">Class Work</MenuItem>
-                <MenuItem value="Class Work Solution">Class Work Solution</MenuItem>
+                <MenuItem value="Class Work Solution">
+                  Class Work Solution
+                </MenuItem>
                 <MenuItem value="Home Work">Home Work</MenuItem>
-                <MenuItem value="Home Work Solution">Home Work Solution</MenuItem>
+                <MenuItem value="Home Work Solution">
+                  Home Work Solution
+                </MenuItem>
                 <MenuItem value="Answer Key">Answer Key</MenuItem>
                 <MenuItem value="Placement Test">Placement Test</MenuItem>
                 <MenuItem value="AMC 8 PreTest">AMC 8 PreTest</MenuItem>
                 <MenuItem value="Math Kangaroo PreTest">
                   Math Kangaroo PreTest
                 </MenuItem>
-                <MenuItem value="Math Count PreTest">Math Count PreTest</MenuItem>
+                <MenuItem value="Math Count PreTest">
+                  Math Count PreTest
+                </MenuItem>
                 <MenuItem value="Miscellaneous">Miscellaneous</MenuItem>
                 <MenuItem value="Final Exam">Final Exam</MenuItem>
               </Select>
@@ -894,13 +1035,19 @@ const DocumentsRepository = () => {
               <InputLabel>Class</InputLabel>
               <Select
                 value={uploadForm.class}
-                onChange={(e) => handleUploadFormChange("class", e.target.value)}
+                onChange={(e) =>
+                  handleUploadFormChange("class", e.target.value)
+                }
               >
                 <MenuItem value="Junior Beginner">Junior Beginner</MenuItem>
-                <MenuItem value="Junior Intermediate">Junior Intermediate</MenuItem>
+                <MenuItem value="Junior Intermediate">
+                  Junior Intermediate
+                </MenuItem>
                 <MenuItem value="Junior Advanced">Junior Advanced</MenuItem>
                 <MenuItem value="Senior Beginner">Senior Beginner</MenuItem>
-                <MenuItem value="Senior Intermediate">Senior Intermediate</MenuItem>
+                <MenuItem value="Senior Intermediate">
+                  Senior Intermediate
+                </MenuItem>
                 <MenuItem value="Senior Advanced">Senior Advanced</MenuItem>
               </Select>
             </FormControl>
@@ -909,7 +1056,9 @@ const DocumentsRepository = () => {
               <InputLabel>Publish</InputLabel>
               <Select
                 value={uploadForm.publish}
-                onChange={(e) => handleUploadFormChange("publish", e.target.value)}
+                onChange={(e) =>
+                  handleUploadFormChange("publish", e.target.value)
+                }
               >
                 <MenuItem value="0">No</MenuItem>
                 <MenuItem value="1">Yes</MenuItem>
@@ -972,4 +1121,3 @@ const DocumentsRepository = () => {
 };
 
 export default DocumentsRepository;
-

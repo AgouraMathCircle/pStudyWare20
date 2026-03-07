@@ -151,8 +151,24 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.img-part img.img-small {
-  max-width: 50%;
+@media (max-width: 1200px) {
+  .img-part img.img-small {
+    width: 100vw, 1200px;
+  }
+
+  .resource-link {
+    width: 100vw;
+  }
+}
+
+@media (min-width: 1199px) {
+  .img-part img.img-small {
+    width: min(40vw, calc(1200 * 0.4px));
+  }
+
+  .resource-link {
+    max-width: min(40vw, calc(1200 * 0.4px));
+  }
 }
 
 /* Animated Arrows */
@@ -297,6 +313,7 @@
   display: flex;
   flex-wrap: wrap;
   margin: 0 -15px;
+  justify-content: space-between;
 }
 
 .col-lg-12 {

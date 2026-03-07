@@ -13,7 +13,6 @@ import { useAuth } from "../../../contexts/AuthContext";
 import adminDashboardService from "../../../services/adminDashboardService";
 import AdminHeader from "./AdminHeader";
 import EnrolledStudents from "./EnrolledStudents";
-import WaitingList from "./WaitingList";
 import ToDoList from "./ToDoList";
 import SystemSupport from "./SystemSupport";
 import StudentList from "./StudentList";
@@ -29,7 +28,6 @@ const AdminDashboard = () => {
   // Dashboard data state
   const [dashboardData, setDashboardData] = useState(null);
   const [studentCounts, setStudentCounts] = useState({});
-  const [waitingListCounts, setWaitingListCounts] = useState({});
   const [userTrackingSummary, setUserTrackingSummary] = useState([]);
   const [studentList, setStudentList] = useState([]);
   const [message, setMessage] = useState("");
@@ -146,9 +144,6 @@ const AdminDashboard = () => {
           if (response.dashboardMessage) {
             setMessage(response.dashboardMessage.message || "");
             setStudentCounts(response.dashboardMessage.studentCounts || {});
-            setWaitingListCounts(
-              response.dashboardMessage.waitingListCounts || {}
-            );
           }
 
           // Extract user tracking summary
@@ -287,10 +282,10 @@ const AdminDashboard = () => {
     <Box className="admin-dashboard">
       <AdminHeader user={user} />
       {/* Spacer to account for fixed AdminHeader */}
-      <Box sx={{ height: "72px" }} />
+      <Box sx={{ height: "35px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
-          {/* Top Row: To-Do List, Enrolled Students, Waiting List, System Support */}
+          {/* Top Row: To-Do List, Enrolled Students, System Support */}
           <Box
             sx={{
               flex: 1,
@@ -319,19 +314,6 @@ const AdminDashboard = () => {
             }}
           >
             <EnrolledStudents studentCounts={studentCounts} />
-          </Box>
-
-          <Box
-            sx={{
-              flex: 1,
-              minWidth: {
-                xs: "100%",
-                sm: "calc(50% - 8px)",
-                md: "calc(25% - 12px)",
-              },
-            }}
-          >
-            <WaitingList waitingListCounts={waitingListCounts} />
           </Box>
 
           <Box

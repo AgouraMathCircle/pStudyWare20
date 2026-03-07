@@ -60,6 +60,12 @@ namespace pStudyWare20.Shared
         [Required(ErrorMessage = "Student ID is required")]
         public string StudentID { get; set; } = string.Empty;
 
+        [Display(Name = "Group / Class")]
+        public string Group { get; set; } = string.Empty;
+
+        [Display(Name = "Exam Date")]
+        public string ExamDate { get; set; } = string.Empty;
+
         [Display(Name = "Quiz Total Score")]
         [Required(ErrorMessage = "Quiz Total Score is required")]
         public string QuizTotalScore { get; set; } = "5";
@@ -93,6 +99,24 @@ namespace pStudyWare20.Shared
         [Display(Name = "Home Work Comments")]
         public string HomeWorkComments { get; set; } = string.Empty;
 
+        [Display(Name = "Final Exam Total Score")]
+        public string FinalExamTotalScore { get; set; } = "0";
+
+        [Display(Name = "Final Exam Received Score")]
+        public string FinalExamReceivedScore { get; set; } = string.Empty;
+
+        [Display(Name = "Final Exam Comments")]
+        public string FinalExamComments { get; set; } = string.Empty;
+
+        [Display(Name = "Placement Test Total Score")]
+        public string PlacementTestTotalScore { get; set; } = "0";
+
+        [Display(Name = "Placement Test Received Score")]
+        public string PlacementTestReceivedScore { get; set; } = string.Empty;
+
+        [Display(Name = "Placement Test Comments")]
+        public string PlacementTestComments { get; set; } = string.Empty;
+
         [Display(Name = "Session")]
         [Required(ErrorMessage = "Session is required")]
         public string Session { get; set; } = string.Empty;
@@ -106,6 +130,12 @@ namespace pStudyWare20.Shared
         [Display(Name = "Report ID")]
         [Required(ErrorMessage = "Report ID is required")]
         public string ReportID { get; set; } = string.Empty;
+
+        [Display(Name = "Group / Class")]
+        public string Group { get; set; } = string.Empty;
+
+        [Display(Name = "Exam Date")]
+        public string ExamDate { get; set; } = string.Empty;
 
         [Display(Name = "Type")]
         [Required(ErrorMessage = "Type is required")]

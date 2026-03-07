@@ -129,9 +129,6 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Student Counts")]
         public Dictionary<string, int> StudentCounts { get; set; } = new Dictionary<string, int>();
-
-        [Display(Name = "Waiting List Counts")]
-        public Dictionary<string, int> WaitingListCounts { get; set; } = new Dictionary<string, int>();
     }
 
     /// <summary>

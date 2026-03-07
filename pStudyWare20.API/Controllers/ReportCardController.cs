@@ -14,10 +14,12 @@ namespace pStudyWare20.API.Controllers
     public class ReportCardController : ControllerBase
     {
         private readonly IReportCardService _reportCardService;
+        private readonly ILogger<ReportCardController> _logger;
 
-        public ReportCardController(IReportCardService reportCardService)
+        public ReportCardController(IReportCardService reportCardService, ILogger<ReportCardController> logger)
         {
             _reportCardService = reportCardService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -30,15 +32,15 @@ namespace pStudyWare20.API.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
+                if (request == null)
+                    request = new ReportCardListRequest();
 
-                // Get username from JWT token if not provided in request
+                if (string.IsNullOrEmpty(request.Username))
+                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    return BadRequest(new ReportCardListResponse { IsSuccess = false, ErrorMessage = "Username is required." });
                 }
 
                 var response = await _reportCardService.GetReportCardListAsync(request);
@@ -46,6 +48,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetReportCardList error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while getting report card list", error = ex.Message });
             }
         }
@@ -71,6 +74,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetScoreDetails error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while getting score details", error = ex.Message });
             }
         }
@@ -96,6 +100,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "DeleteStudentScore error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while deleting student score", error = ex.Message });
             }
         }
@@ -121,6 +126,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "AddStudentScore error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while adding student score", error = ex.Message });
             }
         }
@@ -146,6 +152,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "UpdateStudentScore error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while updating student score", error = ex.Message });
             }
         }
@@ -176,6 +183,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "ViewReport error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while viewing report", error = ex.Message });
             }
         }
@@ -207,6 +215,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "SendEmail error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while sending email", error = ex.Message });
             }
         }
@@ -232,6 +241,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "ImportScoresFromExcel error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while importing scores from Excel", error = ex.Message });
             }
         }
@@ -269,6 +279,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "ExportToExcel error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while exporting to Excel", error = ex.Message });
             }
         }
@@ -300,6 +311,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "SendStudentReportEmail error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while sending student report email", error = ex.Message });
             }
         }
@@ -332,6 +344,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetDashboardData error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while getting report card dashboard data", error = ex.Message });
             }
         }
@@ -366,6 +379,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "CheckReportCardPrivileges error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while checking report card privileges", error = ex.Message });
             }
         }
@@ -391,6 +405,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "HandleScoreAction error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while handling score action", error = ex.Message });
             }
         }
@@ -422,6 +437,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetAllReportCards error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while getting all report cards", error = ex.Message });
             }
         }
@@ -447,6 +463,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "DeleteScore by id error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while deleting score", error = ex.Message });
             }
         }
@@ -472,6 +489,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetScoreDetails by id error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while getting score details", error = ex.Message });
             }
         }

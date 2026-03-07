@@ -18,14 +18,16 @@ namespace pStudyWare20.Repository.Implementations
                 public ReportCardRepository(AMC_DBContext context, IConfiguration configuration)
                 {
                         _context = context;
-                        _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new ArgumentNullException(nameof(configuration));
+                        _connectionString = configuration?.GetConnectionString("DefaultConnection") ?? "";
                 }
 
                 /// <summary>
-                /// Get report card list
+                /// Get report card list (uses AMC_spGetReportCardList; if missing in DB, try AMC_spReportCard with @Username)
                 /// </summary>
                 public async Task<object> GetReportCardListAsync(string username)
                 {
+                        if (string.IsNullOrWhiteSpace(_connectionString))
+                            throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
                         try
                         {
                                 using var connection = new SqlConnection(_connectionString);
@@ -55,12 +57,14 @@ namespace pStudyWare20.Repository.Implementations
                 /// </summary>
                 public async Task<object> GetScoreDetailsAsync(string reportCardId)
                 {
+                        if (string.IsNullOrWhiteSpace(_connectionString))
+                            throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
                         try
                         {
                                 using var connection = new SqlConnection(_connectionString);
                                 await connection.OpenAsync();
 
-                                using var command = new SqlCommand("AMC_spGetScoreDetails", connection)
+                                using var command = new SqlCommand("AMC_spReportCard", connection)
                                 {
                                         CommandType = CommandType.StoredProcedure
                                 };
@@ -84,6 +88,8 @@ namespace pStudyWare20.Repository.Implementations
                 /// </summary>
                 public async Task<object> DeleteStudentScoreAsync(string reportCardId)
                 {
+                        if (string.IsNullOrWhiteSpace(_connectionString))
+                            throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
                         try
                         {
                                 using var connection = new SqlConnection(_connectionString);
@@ -113,6 +119,8 @@ namespace pStudyWare20.Repository.Implementations
                 /// </summary>
                 public async Task<object> AddStudentScoreAsync(AddStudentScoreRequest request)
                 {
+                        if (string.IsNullOrWhiteSpace(_connectionString))
+                            throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
                         try
                         {
                                 using var connection = new SqlConnection(_connectionString);
@@ -124,6 +132,8 @@ namespace pStudyWare20.Repository.Implementations
                                 };
 
                                 command.Parameters.Add(new SqlParameter("@StudentID", request.StudentID ?? ""));
+                                command.Parameters.Add(new SqlParameter("@Group", request.Group ?? ""));
+                                command.Parameters.Add(new SqlParameter("@ExamDate", request.ExamDate ?? ""));
                                 command.Parameters.Add(new SqlParameter("@QuizTotalScore", request.QuizTotalScore ?? "5"));
                                 command.Parameters.Add(new SqlParameter("@QuizReceivedScore", request.QuizReceivedScore ?? ""));
                                 command.Parameters.Add(new SqlParameter("@QuizComments", request.QuizComments ?? ""));
@@ -133,6 +143,12 @@ namespace pStudyWare20.Repository.Implementations
                                 command.Parameters.Add(new SqlParameter("@HomeWorkTotalScore", request.HomeWorkTotalScore ?? "10"));
                                 command.Parameters.Add(new SqlParameter("@HomeWorkReceivedScore", request.HomeWorkReceivedScore ?? ""));
                                 command.Parameters.Add(new SqlParameter("@HomeWorkComments", request.HomeWorkComments ?? ""));
+                                command.Parameters.Add(new SqlParameter("@FinalExamTotalScore", request.FinalExamTotalScore ?? "0"));
+                                command.Parameters.Add(new SqlParameter("@FinalExamReceivedScore", request.FinalExamReceivedScore ?? ""));
+                                command.Parameters.Add(new SqlParameter("@FinalExamComments", request.FinalExamComments ?? ""));
+                                command.Parameters.Add(new SqlParameter("@PlacementTestTotalScore", request.PlacementTestTotalScore ?? "0"));
+                                command.Parameters.Add(new SqlParameter("@PlacementTestReceivedScore", request.PlacementTestReceivedScore ?? ""));
+                                command.Parameters.Add(new SqlParameter("@PlacementTestComments", request.PlacementTestComments ?? ""));
                                 command.Parameters.Add(new SqlParameter("@Session", request.Session ?? ""));
 
                                 var dataTable = new DataTable();
@@ -152,6 +168,8 @@ namespace pStudyWare20.Repository.Implementations
                 /// </summary>
                 public async Task<object> UpdateStudentScoreAsync(UpdateStudentScoreRequest request)
                 {
+                        if (string.IsNullOrWhiteSpace(_connectionString))
+                            throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
                         try
                         {
                                 using var connection = new SqlConnection(_connectionString);
@@ -163,6 +181,8 @@ namespace pStudyWare20.Repository.Implementations
                                 };
 
                                 command.Parameters.Add(new SqlParameter("@ReportID", request.ReportID ?? ""));
+                                command.Parameters.Add(new SqlParameter("@Group", request.Group ?? ""));
+                                command.Parameters.Add(new SqlParameter("@ExamDate", request.ExamDate ?? ""));
                                 command.Parameters.Add(new SqlParameter("@Type", request.Type ?? ""));
                                 command.Parameters.Add(new SqlParameter("@TotalScore", request.TotalScore ?? ""));
                                 command.Parameters.Add(new SqlParameter("@ReceivedScore", request.ReceivedScore ?? ""));
@@ -185,12 +205,14 @@ namespace pStudyWare20.Repository.Implementations
                 /// </summary>
                 public async Task<object> GetSemesterReportAsync(string username, string @class)
                 {
+                        if (string.IsNullOrWhiteSpace(_connectionString))
+                            throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
                         try
                         {
                                 using var connection = new SqlConnection(_connectionString);
                                 await connection.OpenAsync();
 
-                                using var command = new SqlCommand("AMC_spGetSemesterReport", connection)
+                                using var command = new SqlCommand("AMC_spReportCard_SemesterReport", connection)
                                 {
                                         CommandType = CommandType.StoredProcedure
                                 };
@@ -215,12 +237,14 @@ namespace pStudyWare20.Repository.Implementations
                 /// </summary>
                 public async Task<object> GetSummaryReportAsync(string username, string reportDate, string @class)
                 {
+                        if (string.IsNullOrWhiteSpace(_connectionString))
+                            throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
                         try
                         {
                                 using var connection = new SqlConnection(_connectionString);
                                 await connection.OpenAsync();
 
-                                using var command = new SqlCommand("AMC_spGetSummaryReport", connection)
+                                using var command = new SqlCommand("AMC_spReportCard_SummaryReport", connection)
                                 {
                                         CommandType = CommandType.StoredProcedure
                                 };
@@ -246,12 +270,14 @@ namespace pStudyWare20.Repository.Implementations
                 /// </summary>
                 public async Task<object> GetClassListByInstructorAsync(string username)
                 {
+                        if (string.IsNullOrWhiteSpace(_connectionString))
+                            throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
                         try
                         {
                                 using var connection = new SqlConnection(_connectionString);
                                 await connection.OpenAsync();
 
-                                using var command = new SqlCommand("AMC_spGetClassListByInstructor", connection)
+                                using var command = new SqlCommand("AMC_spSelectClassListbyInstructor", connection)
                                 {
                                         CommandType = CommandType.StoredProcedure
                                 };
@@ -275,6 +301,8 @@ namespace pStudyWare20.Repository.Implementations
                 /// </summary>
                 public async Task<object> GetStudentListAsync(string username)
                 {
+                        if (string.IsNullOrWhiteSpace(_connectionString))
+                            throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
                         try
                         {
                                 using var connection = new SqlConnection(_connectionString);
@@ -304,6 +332,8 @@ namespace pStudyWare20.Repository.Implementations
                 /// </summary>
                 public async Task<object> GetClassListAsync(string username)
                 {
+                        if (string.IsNullOrWhiteSpace(_connectionString))
+                            throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
                         try
                         {
                                 using var connection = new SqlConnection(_connectionString);
@@ -333,6 +363,8 @@ namespace pStudyWare20.Repository.Implementations
                 /// </summary>
                 public async Task<object> GetReportDateListAsync(string username)
                 {
+                        if (string.IsNullOrWhiteSpace(_connectionString))
+                            throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
                         try
                         {
                                 using var connection = new SqlConnection(_connectionString);
@@ -362,6 +394,8 @@ namespace pStudyWare20.Repository.Implementations
                 /// </summary>
                 public async Task<object> GetClassScheduleAsync(string username, string type)
                 {
+                        if (string.IsNullOrWhiteSpace(_connectionString))
+                            throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
                         try
                         {
                                 using var connection = new SqlConnection(_connectionString);

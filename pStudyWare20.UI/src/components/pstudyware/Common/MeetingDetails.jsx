@@ -8,6 +8,7 @@ import {
   Alert,
   Snackbar,
   CircularProgress,
+  Grid,
 } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -213,56 +214,73 @@ const MeetingDetails = () => {
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Paper elevation={3} sx={{ p: 3 }}>
-        {/* Header */}
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={3}
-        >
-          <Typography variant="h5" component="h1">
-            Meeting Schedule List
-          </Typography>
-          {privileges.canAddMeetings && !showForm && (
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={handleAddMeeting}
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Box>
+            {/* Header */}
+            <Box
+              sx={{
+                mb: 1,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 2,
+              }}
             >
-              Add Meeting
-            </Button>
-          )}
-        </Box>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 600,
+                  color: "#1976d2",
+                  fontSize: "1rem",
+                }}
+              >
+                Meeting Schedule List
+              </Typography>
+              {privileges.canAddMeetings && !showForm && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddMeeting}
+                  sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                >
+                  Add Meeting
+                </Button>
+              )}
+            </Box>
 
-        {/* Message Display */}
-        {snackbar.open && snackbar.severity === "success" && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {snackbar.message}
-          </Alert>
-        )}
+            {/* Message Display */}
+            {snackbar.open && snackbar.severity === "success" && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {snackbar.message}
+              </Alert>
+            )}
 
-        {/* Meeting List */}
-        {!showForm && (
-          <MeetingList
-            meetings={meetings}
-            onEdit={handleEditMeeting}
-            canEdit={privileges.canEditMeetings}
-          />
-        )}
+            {/* Meeting List */}
+            {!showForm && (
+              <MeetingList
+                meetings={meetings}
+                onEdit={handleEditMeeting}
+                canEdit={privileges.canEditMeetings}
+              />
+            )}
 
-        {/* Meeting Form */}
-        {showForm && (
-          <MeetingForm
-            meeting={selectedMeeting}
-            chapters={chapters}
-            onSubmit={handleSubmitMeeting}
-            onCancel={handleCancelForm}
-            isSystemAdmin={privileges.isSystemAdmin}
-          />
-        )}
-      </Paper>
+            {/* Meeting Form */}
+            {showForm && (
+              <MeetingForm
+                meeting={selectedMeeting}
+                chapters={chapters}
+                onSubmit={handleSubmitMeeting}
+                onCancel={handleCancelForm}
+                isSystemAdmin={privileges.isSystemAdmin}
+              />
+            )}
+          </Box>
+        </Grid>
+      </Grid>
 
       {/* Snackbar for notifications */}
       <Snackbar

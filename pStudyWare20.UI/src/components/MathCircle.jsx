@@ -454,6 +454,12 @@ const DownloadSection = () => {
                   backgroundColor: "#4c8c2b",
                 },
               }}
+               onClick={() =>
+                window.open(
+                  "https://play.google.com/store/apps/details?id=io.cordova.myapp26c528.",
+                  "_blank"
+                )
+              }
             >
               Android App →
             </Button>
@@ -476,27 +482,31 @@ const DownloadSection = () => {
           >
             Subscribe Youtube for More Course Videos
           </Typography>
-
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: "#58a82d",
-              color: "white",
-              px: 5,
-              py: 1.2,
-              borderRadius: "5px",
-              fontWeight: 600,
-              textTransform: "none",
-              transform: isVisible ? "translateY(0)" : "translateY(50px)",
-              opacity: isVisible ? 1 : 0,
-              transition: "all 0.8s ease-out 0.4s",
-              "&:hover": {
-                backgroundColor: "#4c8c2b",
-              },
-            }}
-          >
-            Subscribe Our Channel →
-          </Button>
+<Button
+  component="a"
+  href="https://www.youtube.com/@AgouraMathCircle"
+  target="_blank"
+  rel="noopener noreferrer"
+  variant="contained"
+  sx={{
+    backgroundColor: "#58a82d",
+    color: "white",
+    px: 5,
+    py: 1.2,
+    borderRadius: "5px",
+    fontWeight: 600,
+    textTransform: "none",
+    transform: isVisible ? "translateY(0)" : "translateY(50px)",
+    opacity: isVisible ? 1 : 0,
+    transition: "all 0.8s ease-out 0.4s",
+    "&:hover": {
+      backgroundColor: "#4c8c2b",
+    },
+  }}
+>
+  Subscribe Our Channel →
+</Button>
+          
         </Grid>
       </Grid>
     </Box>
@@ -818,7 +828,7 @@ const MathCircle = () => {
                       <Box sx={{ textAlign: "center" }}>
                         <Button
                           variant="contained"
-                          onClick={() => handleNavigation("/about/leadership")}
+                          onClick={() => handleNavigation("/Leadership")}
                           sx={{
                             backgroundColor: "#58a82d",
                             color: "white",
@@ -844,7 +854,7 @@ const MathCircle = () => {
                       <Box sx={{ textAlign: "center" }}>
                         <Button
                           variant="contained"
-                          onClick={() => handleNavigation("/our-team")}
+                          onClick={() => handleNavigation("/ourteam")}
                           sx={{
                             backgroundColor: "#58a82d",
                             color: "white",
@@ -870,7 +880,7 @@ const MathCircle = () => {
                       <Box sx={{ textAlign: "center" }}>
                         <Button
                           variant="contained"
-                          onClick={() => handleNavigation("/alumini")}
+                          onClick={() => handleNavigation("/Alumini")}
                           sx={{
                             backgroundColor: "#58a82d",
                             color: "white",

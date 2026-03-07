@@ -190,133 +190,58 @@ const StudentMeetingSchedule = ({ username }) => {
                   backgroundColor: "#fafafa",
                 }}
               >
-                {/* Class and Section Header - Medium font, Green, Underlined */}
                 <Typography
                   sx={{
-                    color: "#4caf50",
-                    fontWeight: 700,
-                    textDecoration: "underline",
-                    mb: 1,
+                    color: "#333",
                     fontSize: "1rem",
+                    lineHeight: 1.6,
                   }}
+                  component="div"
                 >
-                  {chapterName || className}
-                  {section && ` - Section ${section}`}
-                </Typography>
-
-                {/* Meeting URL - Small font, Wraps to 2 lines */}
-                <Box
-                  sx={{ display: "flex", alignItems: "flex-start", mb: 0.5 }}
-                >
-                  <Typography
-                    component="span"
-                    sx={{
-                      fontWeight: 700,
-                      mr: 1,
-                      minWidth: "90px",
-                      fontSize: "0.75rem",
-                      color: "#000000",
-                      flexShrink: 0,
-                    }}
-                  >
-                    URL:
-                  </Typography>
+                  {/* Sentence: "[Class] [Section] is on [Date]." */}
+                  <Box component="span" sx={{ color: "#4caf50", fontWeight: 600 }}>
+                    {chapterName || className}
+                    {section ? ` Section ${section}` : ""}
+                  </Box>
+                  {" is on "}
+                  <Box component="span" sx={{ fontWeight: 600 }}>
+                    {meetingDate}
+                    {meetingTime ? ` at ${meetingTime} (PST)` : ""}.
+                  </Box>
+                  {" Join at "}
                   <Link
                     href={meetingURL}
                     target="_blank"
                     rel="noopener noreferrer"
                     sx={{
                       color: "#1976d2",
-                      wordBreak: "break-word",
-                      overflowWrap: "break-word",
+                      fontWeight: 600,
                       textDecoration: "underline",
-                      fontSize: "0.75rem",
-                      lineHeight: 1.4,
-                      display: "inline-block",
-                      maxWidth: "calc(100% - 100px)",
                       "&:hover": { textDecoration: "underline" },
                     }}
                   >
-                    {meetingURL}
+                    Launch meeting
                   </Link>
-                </Box>
-
-                {/* Date/Time - Small font, Green values */}
-                <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
-                  <Typography
-                    component="span"
-                    sx={{
-                      fontWeight: 700,
-                      mr: 1,
-                      minWidth: "90px",
-                      fontSize: "0.75rem",
-                      color: "#000000",
-                    }}
-                  >
-                    Date/Time:
-                  </Typography>
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: "#4caf50",
-                      fontSize: "0.75rem",
-                    }}
-                  >
-                    {meetingDate} {meetingTime} (PST)
-                  </Typography>
-                </Box>
-
-                {/* Meeting ID - Small font, Green value */}
-                <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
-                  <Typography
-                    component="span"
-                    sx={{
-                      fontWeight: 700,
-                      mr: 1,
-                      minWidth: "90px",
-                      fontSize: "0.75rem",
-                      color: "#000000",
-                    }}
-                  >
-                    Meeting ID:
-                  </Typography>
-                  <Typography
-                    component="span"
-                    sx={{
-                      color: "#4caf50",
-                      fontSize: "0.75rem",
-                    }}
-                  >
-                    {meetingID}
-                  </Typography>
-                </Box>
-
-                {/* Passcode - Small font, Green value */}
-                {passcode && (
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
-                    <Typography
-                      component="span"
-                      sx={{
-                        fontWeight: 700,
-                        mr: 1,
-                        minWidth: "90px",
-                        fontSize: "0.75rem",
-                        color: "#000000",
-                      }}
-                    >
-                      Passcode:
-                    </Typography>
-                    <Typography
-                      component="span"
-                      sx={{
-                        color: "#4caf50",
-                        fontSize: "0.75rem",
-                      }}
-                    >
-                      {passcode}
-                    </Typography>
-                  </Box>
-                )}
+                  {meetingID && (
+                    <>
+                      {" Meeting ID: "}
+                      <Box component="span" sx={{ color: "#4caf50", fontWeight: 500 }}>
+                        {meetingID}
+                      </Box>
+                      {passcode ? ". " : "."}
+                    </>
+                  )}
+                  {passcode && (
+                    <>
+                      {meetingID ? ". " : " "}
+                      {"Passcode: "}
+                      <Box component="span" sx={{ color: "#4caf50", fontWeight: 500 }}>
+                        {passcode}
+                      </Box>
+                      .
+                    </>
+                  )}
+                </Typography>
               </Box>
             );
           })}

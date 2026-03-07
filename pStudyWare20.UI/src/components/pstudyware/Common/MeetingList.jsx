@@ -14,6 +14,27 @@ import {
 import { Edit as EditIcon } from "@mui/icons-material";
 
 const MeetingList = ({ meetings, onEdit, canEdit }) => {
+  const cellPadding = "0 8px";
+  const baseHeaderSx = {
+    fontWeight: 600,
+    borderRight: "1px solid #4caf50",
+    fontSize: "0.75rem",
+    padding: cellPadding,
+    whiteSpace: "nowrap",
+  };
+  const baseCellSx = {
+    borderRight: "1px solid #4caf50",
+    fontSize: "0.75rem",
+    fontWeight: 400,
+    padding: cellPadding,
+  };
+  const urlColumnSx = {
+    maxWidth: 200,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  };
+
   // Helper to get property value (handles both camelCase and PascalCase)
   const getProp = (obj, propName) => {
     // Try PascalCase first
@@ -41,132 +62,38 @@ const MeetingList = ({ meetings, onEdit, canEdit }) => {
 
   return (
     <Box>
-      <TableContainer component={Paper} sx={{ mb: 2 }}>
-        <Table sx={{ minWidth: 950 }} size="small">
+      <TableContainer component={Paper} sx={{ width: "100%" }}>
+        <Table
+          sx={{
+            width: "100%",
+            tableLayout: "auto",
+            "& .MuiTableCell-root": { paddingTop: 0, paddingBottom: 0 },
+          }}
+          size="small"
+        >
           <TableHead>
             <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
               {canEdit && (
                 <TableCell
                   sx={{
-                    fontWeight: 600,
-                    borderRight: "1px solid #ddd",
-                    fontSize: "0.5rem",
-                    padding: "8px 4px",
+                    ...baseHeaderSx,
                     textAlign: "center",
                   }}
                 >
                   Edit
                 </TableCell>
               )}
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #ddd",
-                  fontSize: "0.75rem",
-                  padding: "8px 4px",
-                }}
-              >
-                Row #
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #ddd",
-                  fontSize: "0.75rem",
-                  padding: "8px 4px",
-                }}
-              >
-                Class
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #ddd",
-                  fontSize: "0.75rem",
-                  padding: "8px 4px",
-                }}
-              >
-                Chapter Name
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #ddd",
-                  fontSize: "0.75rem",
-                  padding: "8px 4px",
-                }}
-              >
-                Section
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #ddd",
-                  fontSize: "0.75rem",
-                  padding: "8px 4px",
-                }}
-              >
-                Meeting Date
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #ddd",
-                  fontSize: "0.75rem",
-                  padding: "8px 4px",
-                }}
-              >
-                Meeting Time (PST)
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #ddd",
-                  fontSize: "0.75rem",
-                  padding: "8px 4px",
-                }}
-              >
-                Meeting URL
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #ddd",
-                  fontSize: "0.75rem",
-                  padding: "8px 4px",
-                }}
-              >
-                Meeting ID
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #ddd",
-                  fontSize: "0.75rem",
-                  padding: "8px 4px",
-                }}
-              >
-                Admin Login
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #ddd",
-                  fontSize: "0.75rem",
-                  padding: "8px 4px",
-                }}
-              >
-                Include Section
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  padding: "8px 4px",
-                }}
-              >
-                Active
-              </TableCell>
+              <TableCell sx={baseHeaderSx}>Row #</TableCell>
+              <TableCell sx={baseHeaderSx}>Class</TableCell>
+              <TableCell sx={baseHeaderSx}>Chapter Name</TableCell>
+              <TableCell sx={baseHeaderSx}>Section</TableCell>
+              <TableCell sx={baseHeaderSx}>Meeting Date</TableCell>
+              <TableCell sx={baseHeaderSx}>Meeting Time (PST)</TableCell>
+              <TableCell sx={{ ...baseHeaderSx, ...urlColumnSx }}>Meeting URL</TableCell>
+              <TableCell sx={baseHeaderSx}>Meeting ID</TableCell>
+              <TableCell sx={baseHeaderSx}>Admin Login</TableCell>
+              <TableCell sx={baseHeaderSx}>Include Section</TableCell>
+              <TableCell sx={{ ...baseHeaderSx, borderRight: "none" }}>Active</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -175,7 +102,7 @@ const MeetingList = ({ meetings, onEdit, canEdit }) => {
                 <TableCell
                   colSpan={canEdit ? 12 : 11}
                   align="center"
-                  sx={{ fontSize: "0.75rem", padding: "16px" }}
+                  sx={{ fontSize: "0.75rem", fontWeight: 400, padding: cellPadding, py: 3 }}
                 >
                   No meeting schedules found
                 </TableCell>
@@ -210,10 +137,9 @@ const MeetingList = ({ meetings, onEdit, canEdit }) => {
                     {canEdit && (
                       <TableCell
                         sx={{
-                          borderRight: "1px solid #ddd",
-                          fontSize: "0.5rem",
-                          padding: "4px",
+                          ...baseCellSx,
                           textAlign: "center",
+                          verticalAlign: "middle",
                         }}
                       >
                         <IconButton
@@ -221,122 +147,30 @@ const MeetingList = ({ meetings, onEdit, canEdit }) => {
                           color="primary"
                           onClick={() => onEdit(rowId)}
                           title="Edit Meeting"
+                          sx={{ padding: "2px" }}
                         >
-                          <EditIcon fontSize="small" />
+                          <EditIcon sx={{ fontSize: "1rem" }} />
                         </IconButton>
                       </TableCell>
                     )}
+                    <TableCell sx={baseCellSx}>{rowId}</TableCell>
+                    <TableCell sx={baseCellSx}>{className}</TableCell>
+                    <TableCell sx={baseCellSx}>{chapterName}</TableCell>
+                    <TableCell sx={baseCellSx}>{section}</TableCell>
+                    <TableCell sx={baseCellSx}>{formatMeetingDate(meetingDate)}</TableCell>
+                    <TableCell sx={baseCellSx}>{formatMeetingTime(meetingTime)}</TableCell>
                     <TableCell
                       sx={{
-                        borderRight: "1px solid #ddd",
-                        fontSize: "0.5rem",
-                        padding: "4px 8px",
+                        ...baseCellSx,
+                        ...urlColumnSx,
                       }}
                     >
-                      {rowId}
+                      {meetingURL || ""}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #ddd",
-                        fontSize: "0.5rem",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      {className}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #ddd",
-                        fontSize: "0.5rem",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      {chapterName}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #ddd",
-                        fontSize: "0.5rem",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      {section}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #ddd",
-                        fontSize: "0.5rem",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      {formatMeetingDate(meetingDate)}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #ddd",
-                        fontSize: "0.5rem",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      {formatMeetingTime(meetingTime)}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #ddd",
-                        fontSize: "0.5rem",
-                        padding: "4px 8px",
-                        maxWidth: "150px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {meetingURL && (
-                        <a
-                          href={meetingURL}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: "#1976d2" }}
-                        >
-                          {meetingURL}
-                        </a>
-                      )}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #ddd",
-                        fontSize: "0.5rem",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      {meetingID}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #ddd",
-                        fontSize: "0.5rem",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      {adminLogin}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #ddd",
-                        fontSize: "0.5rem",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      {formatBoolean(includeSection)}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: "0.5rem",
-                        padding: "4px 8px",
-                      }}
-                    >
-                      {formatBoolean(active)}
-                    </TableCell>
+                    <TableCell sx={baseCellSx}>{meetingID}</TableCell>
+                    <TableCell sx={baseCellSx}>{adminLogin}</TableCell>
+                    <TableCell sx={baseCellSx}>{formatBoolean(includeSection)}</TableCell>
+                    <TableCell sx={{ ...baseCellSx, borderRight: "none" }}>{formatBoolean(active)}</TableCell>
                   </TableRow>
                 );
               })

@@ -24,7 +24,7 @@ const StyledFooter = styled(Box)(({ theme }) => ({
   color: "#eee",
   position: "relative",
   background: "linear-gradient(135deg, #102d47 0%, #1e3c72 100%)",
-  paddingTop: "120px",
+  paddingTop: "0px",
   zIndex: 1,
   [theme.breakpoints.down("md")]: {
     paddingTop: "80px",
@@ -197,9 +197,8 @@ const Footer = () => {
 
   return (
     <>
-   
-      <StyledFooter 
-        component="footer" 
+      <StyledFooter
+        component="footer"
         id="sc-footer"
         sx={(theme) => ({
           paddingTop: isHomePage ? "120px" : "40px",
@@ -211,7 +210,7 @@ const Footer = () => {
           },
         })}
       >
-      {isHomePage && <Newsletter />}
+        {isHomePage && <Newsletter />}
         <Container
           maxWidth={false}
           disableGutters

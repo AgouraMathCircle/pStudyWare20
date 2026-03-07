@@ -12,7 +12,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TableSortLabel,
   Paper,
   Select,
   MenuItem,
@@ -185,12 +184,14 @@ const StudentList = ({
     { id: "eventLocation", label: "Location", sortable: true, width: 120 },
   ];
 
+  const cellPadding = "0 8px";
+
   return (
     <Box>
       {/* Header */}
       <Box
         sx={{
-          mb: 2,
+          mb: 1,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -236,7 +237,6 @@ const StudentList = ({
           backgroundColor: "#4caf50",
           p: 0.5,
           borderRadius: 1,
-          mb: 1.5,
           display: "flex",
           alignItems: "center",
           gap: 1,
@@ -341,8 +341,9 @@ const StudentList = ({
             color: "#4caf50",
             fontSize: "0.75rem",
             textTransform: "none",
-            px: 1.5,
-            py: 0.25,
+            minHeight: 32,
+            py: 0,
+            px: 1,
             "&:hover": { backgroundColor: "#f5f5f5" },
           }}
         >
@@ -351,126 +352,133 @@ const StudentList = ({
       </Box>
 
       {/* Table */}
-      <TableContainer component={Paper} sx={{ mb: 2, width: "100%" }}>
-        <Table sx={{ width: "100%", tableLayout: "fixed" }}>
+      <TableContainer component={Paper} sx={{ width: "100%" }}>
+        <Table
+          sx={{
+            width: "100%",
+            tableLayout: "fixed",
+            "& .MuiTableCell-root": { paddingTop: 0, paddingBottom: 0 },
+          }}
+          size="small"
+        >
           <TableHead>
             <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "8%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Actions
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "8%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Student #
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "12%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Student Name
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "10%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Class
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "6%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Grade
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "12%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 School
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "10%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Parent
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "10%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Contact #
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "12%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Email
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   borderRight: "1px solid #4caf50",
                   width: "8%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Session
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 400,
                   width: "8%",
                   fontSize: "0.75rem",
-                  padding: "3px 5px",
+                  padding: cellPadding,
                 }}
               >
                 Location
@@ -489,7 +497,7 @@ const StudentList = ({
                       borderRight: "1px solid #4caf50",
                       width: "8%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                     }}
                   >
                     <Tooltip title="Edit Student">
@@ -508,7 +516,7 @@ const StudentList = ({
                       borderRight: "1px solid #4caf50",
                       width: "8%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                     }}
                   >
                     {student.studentID || "-"}
@@ -518,7 +526,7 @@ const StudentList = ({
                       borderRight: "1px solid #4caf50",
                       width: "12%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                     }}
                   >
                     {student.studentName || "-"}
@@ -528,7 +536,7 @@ const StudentList = ({
                       borderRight: "1px solid #4caf50",
                       width: "10%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                     }}
                   >
                     {student.class || "-"}
@@ -538,7 +546,7 @@ const StudentList = ({
                       borderRight: "1px solid #4caf50",
                       width: "6%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                     }}
                   >
                     {student.grade || "-"}
@@ -548,7 +556,7 @@ const StudentList = ({
                       borderRight: "1px solid #4caf50",
                       width: "12%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                     }}
                   >
                     {student.school || "-"}
@@ -558,7 +566,7 @@ const StudentList = ({
                       borderRight: "1px solid #4caf50",
                       width: "10%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                     }}
                   >
                     {student.parentName || "-"}
@@ -568,7 +576,7 @@ const StudentList = ({
                       borderRight: "1px solid #4caf50",
                       width: "10%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                     }}
                   >
                     {student.phoneNumber || "-"}
@@ -578,7 +586,7 @@ const StudentList = ({
                       borderRight: "1px solid #4caf50",
                       width: "12%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                       maxWidth: 200,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -594,7 +602,7 @@ const StudentList = ({
                       borderRight: "1px solid #4caf50",
                       width: "8%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                     }}
                   >
                     {student.eventSession || "-"}
@@ -603,7 +611,7 @@ const StudentList = ({
                     sx={{
                       width: "8%",
                       fontSize: "0.75rem",
-                      padding: "3px 5px",
+                      padding: cellPadding,
                     }}
                   >
                     {student.eventLocation || "-"}
@@ -615,7 +623,7 @@ const StudentList = ({
                 <TableCell
                   colSpan={11}
                   align="center"
-                  sx={{ fontSize: "0.75rem", padding: "3px 5px", py: 3 }}
+                  sx={{ fontSize: "0.75rem", padding: cellPadding, py: 3 }}
                 >
                   <Typography
                     variant="body2"
@@ -764,8 +772,9 @@ const StudentList = ({
               backgroundColor: "white",
               color: "#4caf50",
               fontSize: "0.75rem",
-              px: 1,
-              py: 0.25,
+              minHeight: 32,
+              py: 0,
+              px: 0.75,
               "&:hover": { backgroundColor: "#f5f5f5" },
             }}
           >

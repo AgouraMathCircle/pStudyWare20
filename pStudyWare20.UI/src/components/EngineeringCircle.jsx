@@ -458,40 +458,41 @@ const EngineeringCircle = () => {
           >
             {/* Left image */}
             <Grid
-              item
-              xs={6}
-              md={6}
-              sx={{
-                display: "flex",
-                justifyContent: { xs: "flex-start", md: "center" },
-                flexShrink: 0,
-                minWidth: { xs: "300px", md: "auto" },
-              }}
-            >
-              <Box
-                sx={{
-                  width: "100%",
-                  maxWidth: 520,
-                  boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                  borderRadius: 0,
-                  overflow: "hidden",
-                  background: "#fff",
-                }}
-              >
-                <Box
-                  component="img"
-                  src={agouraDataScienceImg}
-                  alt="Data Science Course"
-                  sx={{
-                    width: "100%",
-                    height: "auto",
-                    objectFit: "cover",
-                    maxHeight: { xs: 280, md: 500 },
-                    display: "block",
-                  }}
-                />
-              </Box>
-            </Grid>
+  item
+  xs={12}          // 👈 was 6 → now full width on mobile
+  md={7}           // 👈 was 6 → now bigger on desktop
+  sx={{
+    display: "flex",
+    justifyContent: { xs: "flex-start", md: "center" },
+    flexShrink: 0,
+    minWidth: { xs: "300px", md: "auto" },
+  }}
+>
+  <Box
+    sx={{
+      width: "100%",
+      maxWidth: 720,     // 👈 was 520 → now bigger
+      boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+      borderRadius: 0,
+      overflow: "hidden",
+      background: "#fff",
+    }}
+  >
+    <Box
+      component="img"
+      src={agouraDataScienceImg}
+      alt="Data Science Course"
+      sx={{
+        width: "100%",
+        height: "auto",
+        objectFit: "cover",
+        maxHeight: { xs: 360, md: 620 },   // 👈 Increased height
+        display: "block",
+      }}
+    />
+  </Box>
+</Grid>
+
 
             {/* Right content */}
             <Grid
@@ -520,15 +521,24 @@ const EngineeringCircle = () => {
 
                 <Box sx={{ textAlign: { xs: "center", md: "left" } }}>
                   <Typography
-                    variant="body2"
-                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
-                  >
-                    <strong>CURRICULUM URL:</strong>{" "}
-                    <span style={{ color: "#00b800", cursor: "pointer" }}>
-                      INTRODUCTION TO DATA SCIENCE
-                    </span>{" "}
-                    - Download 📄
-                  </Typography>
+  variant="body2"
+  sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
+>
+  <strong>CURRICULUM URL:</strong>{" "}
+  <span style={{ color: "#00b800" }}>
+    INTRODUCTION TO DATA SCIENCE
+  </span>{" "}
+  -{" "}
+  <a
+    href="/Documents/AEC_DataScience_Curriculum.pdf"
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{ color: "#00b800", fontWeight: 600 }}
+  >
+    Download 📄
+  </a>
+</Typography>
+
 
                   <Typography
                     variant="body2"
@@ -659,16 +669,25 @@ const EngineeringCircle = () => {
                 </Typography>
 
                 <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
-                  >
-                    <strong>CURRICULUM URL :</strong>{" "}
-                    <span style={{ color: "#00b800", cursor: "pointer" }}>
-                      INTRODUCTION TO AI
-                    </span>{" "}
-                    - <strong>Download</strong>
-                  </Typography>
+                <Typography
+  variant="body2"
+  sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
+>
+  <strong>CURRICULUM URL :</strong>{" "}
+  <span style={{ color: "#00b800" }}>
+    INTRODUCTION TO AI
+  </span>{" "}
+  -{" "}
+  <a
+    href="/Documents/AEC_AI_Curriculum.pdf"
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{ color: "#00b800", fontWeight: 700, textDecoration: "none" }}
+  >
+    Download 📄
+  </a>
+</Typography>
+
 
                   <Typography
                     variant="body2"
@@ -743,28 +762,35 @@ const EngineeringCircle = () => {
 
             {/* Right: Agoura AI image */}
             <Grid
-              item
-              xs={12}
-              md={5}
-              sx={{ display: "flex", justifyContent: "flex-end" }}
-            >
-              <Box sx={{ width: "100%", maxWidth: 520, ml: { md: 12, xs: 0 } }}>
-                <Box
-                  component="img"
-                  src={agouraAiImg}
-                  alt="Agoura AI"
-                  sx={{
-                    width: "100%",
-                    height: "auto",
-                    maxHeight: { xs: 280, md: 500 },
-                    objectFit: "cover",
-                    display: "block",
-                    borderRadius: 2,
-                    boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                  }}
-                />
-              </Box>
-            </Grid>
+  item
+  xs={12}
+  md={7}   
+  sx={{ display: "flex", justifyContent: "flex-end" }}
+>
+  <Box
+    sx={{
+      width: "100%",
+      maxWidth: 720,        
+      ml: { md: 6, xs: 0 }, 
+    }}
+  >
+    <Box
+      component="img"
+      src={agouraAiImg}
+      alt="Agoura AI"
+      sx={{
+        width: "100%",
+        height: "auto",
+        maxHeight: { xs: 360, md: 650 },
+        objectFit: "cover",
+        display: "block",
+        borderRadius: 2,
+        boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+      }}
+    />
+  </Box>
+</Grid>
+
           </Grid>
         </Container>
       </Box>
@@ -793,41 +819,42 @@ const EngineeringCircle = () => {
             }}
           >
             {/* Left image */}
-            <Grid
-              item
-              xs={6}
-              md={6}
-              sx={{
-                display: "flex",
-                justifyContent: { xs: "flex-start", md: "center" },
-                flexShrink: 0,
-                minWidth: { xs: "300px", md: "auto" },
-              }}
-            >
-              <Box
-                sx={{
-                  width: "100%",
-                  maxWidth: 520,
-                  boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                  borderRadius: 0,
-                  overflow: "hidden",
-                  background: "#fff",
-                }}
-              >
-                <Box
-                  component="img"
-                  src={mobileAppDevImg}
-                  alt="Mobile App Development Course"
-                  sx={{
-                    width: "100%",
-                    height: "auto",
-                    objectFit: "cover",
-                    maxHeight: { xs: 280, md: 500 },
-                    display: "block",
-                  }}
-                />
-              </Box>
-            </Grid>
+           <Grid
+  item
+  xs={12}     
+  md={7}       
+  sx={{
+    display: "flex",
+    justifyContent: { xs: "flex-start", md: "center" },
+    flexShrink: 0,
+    minWidth: { xs: "300px", md: "auto" },
+  }}
+>
+  <Box
+    sx={{
+      width: "100%",
+      maxWidth: 720,  
+      boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+      borderRadius: 0,
+      overflow: "hidden",
+      background: "#fff",
+    }}
+  >
+    <Box
+      component="img"
+      src={mobileAppDevImg}
+      alt="Mobile App Development Course"
+      sx={{
+        width: "100%",
+        height: "auto",
+        objectFit: "cover",
+        maxHeight: { xs: 360, md: 650 },   
+        display: "block",
+      }}
+    />
+  </Box>
+</Grid>
+
 
             {/* Right content */}
             <Grid
@@ -855,16 +882,25 @@ const EngineeringCircle = () => {
                 </Typography>
 
                 <Box sx={{ textAlign: { xs: "center", md: "left" } }}>
-                  <Typography
-                    variant="body2"
-                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
-                  >
-                    <strong>CURRICULUM URL:</strong>{" "}
-                    <span style={{ color: "#00b800", cursor: "pointer" }}>
-                      INTRODUCTION TO MOBILE APP DEVELOPMENT
-                    </span>{" "}
-                    - Download 📄
-                  </Typography>
+                 <Typography
+  variant="body2"
+  sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
+>
+  <strong>CURRICULUM URL:</strong>{" "}
+  <span style={{ color: "#00b800" }}>
+    INTRODUCTION TO MOBILE APP DEVELOPMENT
+  </span>{" "}
+  -{" "}
+  <a
+    href="/Documents/Mobile_App_Development_Course_Outline.pdf"
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{ color: "#00b800", fontWeight: 600, textDecoration: "none" }}
+  >
+    Download 📄
+  </a>
+</Typography>
+
 
                   <Typography
                     variant="body2"

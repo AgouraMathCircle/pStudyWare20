@@ -4,7 +4,7 @@ import "../styles/Overview.css";
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
 import speechImg from "../assets/images/about/Speech.jpg";
 import eg1Img from "../assets/images/about/EG_1.jpg";
-
+import NewsletterSection from "../components/NewsletterSection";
 const Overview = () => {
   return (
     <div className="overview-page">
@@ -120,7 +120,9 @@ const Overview = () => {
           </div>
         </div>
       </div>
-    </div>
+      <NewsletterSection />
+            </div>
+    
   );
 };
 

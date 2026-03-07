@@ -14,10 +14,12 @@ namespace pStudyWare20.API.Controllers
     public class SpecialEventsRegistrationController : ControllerBase
     {
         private readonly ISpecialEventsRegistrationService _specialEventsRegistrationService;
+        private readonly ILogger<SpecialEventsRegistrationController> _logger;
 
-        public SpecialEventsRegistrationController(ISpecialEventsRegistrationService specialEventsRegistrationService)
+        public SpecialEventsRegistrationController(ISpecialEventsRegistrationService specialEventsRegistrationService, ILogger<SpecialEventsRegistrationController> logger)
         {
             _specialEventsRegistrationService = specialEventsRegistrationService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -46,6 +48,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetSpecialEventsRegistrationList error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while getting special events registration list", error = ex.Message });
             }
         }
@@ -71,6 +74,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "DeleteSpecialEventsRegistration error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while deleting special events registration", error = ex.Message });
             }
         }
@@ -108,6 +112,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "ExportSpecialEventsRegistrationToExcel error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while exporting special events registration to Excel", error = ex.Message });
             }
         }
@@ -133,6 +138,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "HandleSpecialEventsRegistrationAction error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while handling special events registration action", error = ex.Message });
             }
         }
@@ -165,6 +171,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetDashboardData error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while getting special events registration dashboard data", error = ex.Message });
             }
         }
@@ -193,6 +200,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "CheckSpecialEventsRegistrationPrivileges error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while checking special events registration privileges", error = ex.Message });
             }
         }
@@ -224,6 +232,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "GetAllSpecialEventsRegistrations error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while getting all special events registrations", error = ex.Message });
             }
         }
@@ -249,6 +258,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "DeleteSpecialEventsRegistration by id error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while deleting special events registration", error = ex.Message });
             }
         }

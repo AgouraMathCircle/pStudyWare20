@@ -121,7 +121,6 @@ namespace pStudyWare20.Services.Implementations
                 var dashboardData = await _adminRepository.GetDashboardMessageAsync(request.Mode, request.Username);
 
                 var studentCounts = new Dictionary<string, int>();
-                var waitingListCounts = new Dictionary<string, int>();
 
                 if (dashboardData is DataSet dataSet && dataSet.Tables.Count > 0 && dataSet.Tables[0].Rows.Count > 0)
                 {
@@ -154,30 +153,6 @@ namespace pStudyWare20.Services.Implementations
                         studentCounts["instudentCntAT"] = GetIntValue(table.Rows[5], "StudentITotal");
                         studentCounts["instudentCntDS"] = GetIntValue(table.Rows[6], "StudentITotal");
                         studentCounts["instudentCntST"] = GetIntValue(table.Rows[13], "StudentITotal");
-
-                        // OnSite Waiting List Counts (matching frontend keys)
-                        waitingListCounts["owaitingListCntAI"] = GetIntValue(table.Rows[4], "WaitingOTotal");
-                        waitingListCounts["owaitingListCntAT"] = GetIntValue(table.Rows[5], "WaitingOTotal");
-                        waitingListCounts["owaitingListCntJA"] = GetIntValue(table.Rows[7], "WaitingOTotal");
-                        waitingListCounts["owaitingListCntJB"] = GetIntValue(table.Rows[8], "WaitingOTotal");
-                        waitingListCounts["owaitingListCntJI"] = GetIntValue(table.Rows[9], "WaitingOTotal");
-                        waitingListCounts["owaitingListCntSA"] = GetIntValue(table.Rows[10], "WaitingOTotal");
-                        waitingListCounts["owaitingListCntSB"] = GetIntValue(table.Rows[11], "WaitingOTotal");
-                        waitingListCounts["owaitingListCntSI"] = GetIntValue(table.Rows[12], "WaitingOTotal");
-                        waitingListCounts["owaitingListCntST"] = GetIntValue(table.Rows[13], "WaitingOTotal");
-                        waitingListCounts["owaitingListCntDS"] = GetIntValue(table.Rows[6], "WaitingOTotal");
-
-                        // Online Waiting List Counts (matching frontend keys)
-                        waitingListCounts["iwaitingListCntAI"] = GetIntValue(table.Rows[4], "WaitingITotal");
-                        waitingListCounts["iwaitingListCntAC"] = GetIntValue(table.Rows[5], "WaitingITotal"); // Note: AC instead of AT
-                        waitingListCounts["iwaitingListCntJA"] = GetIntValue(table.Rows[7], "WaitingITotal");
-                        waitingListCounts["iwaitingListCntJB"] = GetIntValue(table.Rows[8], "WaitingITotal");
-                        waitingListCounts["iwaitingListCntJI"] = GetIntValue(table.Rows[9], "WaitingITotal");
-                        waitingListCounts["iwaitingListCntSA"] = GetIntValue(table.Rows[10], "WaitingITotal");
-                        waitingListCounts["iwaitingListCntSB"] = GetIntValue(table.Rows[11], "WaitingITotal");
-                        waitingListCounts["iwaitingListCntSI"] = GetIntValue(table.Rows[12], "WaitingITotal");
-                        waitingListCounts["iwaitingListCntST"] = GetIntValue(table.Rows[13], "WaitingITotal");
-                        waitingListCounts["iwaitingListCntDS"] = GetIntValue(table.Rows[6], "WaitingITotal");
                     }
                 }
 
@@ -185,8 +160,7 @@ namespace pStudyWare20.Services.Implementations
                 {
                     IsSuccess = true,
                     Message = "",
-                    StudentCounts = studentCounts,
-                    WaitingListCounts = waitingListCounts
+                    StudentCounts = studentCounts
                 };
             }
             catch (Exception ex)

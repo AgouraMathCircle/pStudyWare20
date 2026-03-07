@@ -21,32 +21,104 @@ namespace pStudyWare20.Repository.Implementations
             _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new ArgumentNullException(nameof(configuration));
         }
 
+        private static string ResolveColumnName(DataTable table, string preferredName)
+        {
+            if (table?.Columns == null) return null;
+            foreach (DataColumn col in table.Columns)
+            {
+                if (string.Equals(col.ColumnName, preferredName, StringComparison.OrdinalIgnoreCase))
+                    return col.ColumnName;
+            }
+            return null;
+        }
+
+        private static string GetString(DataRow row, string columnName)
+        {
+            var actual = ResolveColumnName(row?.Table, columnName);
+            if (actual == null) return "";
+            var val = row[actual];
+            return val == null || val == DBNull.Value ? "" : val.ToString() ?? "";
+        }
+
+        private static int GetInt(DataRow row, string columnName)
+        {
+            var actual = ResolveColumnName(row?.Table, columnName);
+            if (actual == null) return 0;
+            var val = row[actual];
+            if (val == null || val == DBNull.Value) return 0;
+            return int.TryParse(val.ToString(), out var n) ? n : 0;
+        }
+
+        private static DateTime GetDateTime(DataRow row, string columnName)
+        {
+            var actual = ResolveColumnName(row?.Table, columnName);
+            if (actual == null) return default;
+            var val = row[actual];
+            if (val == null || val == DBNull.Value) return default;
+            return DateTime.TryParse(val.ToString(), out var d) ? d : default;
+        }
+
         /// <summary>
         /// Get student waiting list
         /// </summary>
         public async Task<StudentWaitingListResponse> GetStudentWaitingListAsync(GetStudentWaitingListRequest request)
         {
+            if (request == null)
+            {
+                return new StudentWaitingListResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "Request is required.",
+                    StudentWaitingList = new List<StudentWaitingList>()
+                };
+            }
             try
             {
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spGetStudentWaitingList", connection)
+                using var command = new SqlCommand("AMC_spSelectStudentWaitingList", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
 
+                command.Parameters.Add(new SqlParameter("@WaitingForOnSite", request.WaitingForOnSite ?? "N"));
                 command.Parameters.Add(new SqlParameter("@Username", request.Username ?? ""));
 
                 var dataTable = new DataTable();
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
+                var list = new List<StudentWaitingList>();
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    list.Add(new StudentWaitingList
+                    {
+                        StudentID = GetInt(row, "StudentID"),
+                        StudentName = GetString(row, "StudentName"),
+                        EventLocation = GetString(row, "EventLocation"),
+                        Class = GetString(row, "Class"),
+                        Grade = GetString(row, "Grade"),
+                        School = GetString(row, "School"),
+                        ParentName = GetString(row, "ParentName"),
+                        PhoneNumber = GetString(row, "PhoneNumber"),
+                        EmailAddress = GetString(row, "EmailAddress"),
+                        EventSession = GetString(row, "EventSession"),
+                        RegisteredDate = GetDateTime(row, "RegisteredDate"),
+                        Password = GetString(row, "Password"),
+                        City = GetString(row, "City"),
+                        State = GetString(row, "State"),
+                        Country = GetString(row, "Country"),
+                        ApplicationStatus = GetString(row, "ApplicationStatus"),
+                        StudentClassInfo = GetString(row, "StudentClassInfo"),
+                    });
+                }
+
                 return new StudentWaitingListResponse
                 {
                     IsSuccess = true,
                     ErrorMessage = "",
-                    StudentWaitingList = new List<StudentWaitingList>() // Convert DataTable to List<StudentWaitingList>
+                    StudentWaitingList = list
                 };
             }
             catch (Exception ex)
@@ -113,12 +185,12 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spDeleteStudent", connection)
+                using var command = new SqlCommand("AMC_spDeleteRegisterednfo", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
 
-                command.Parameters.Add(new SqlParameter("@StudentId", request.StudentId ?? ""));
+                command.Parameters.Add(new SqlParameter("@StudentID", request.StudentId ?? ""));
 
                 var result = await command.ExecuteNonQueryAsync();
 
