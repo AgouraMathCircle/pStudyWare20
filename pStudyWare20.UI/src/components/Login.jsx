@@ -604,7 +604,7 @@ const Login = () => {
         </Container>
 
         {/* Animated Arrows */}
-        {/* <div className="animated-arrow-1 animated-arrow left-right-new">
+        {/*<div className="animated-arrow-1 animated-arrow left-right-new">
           <img src={arrow1} alt="" />
         </div>
         <div className="animated-arrow-2 animated-arrow up-down-new">
@@ -615,7 +615,7 @@ const Login = () => {
         </div>
         <div className="animated-arrow-4 animated-arrow left-right-new">
           <img src={arrow3} alt="" />
-        </div> */}
+        </div>*/}
       </div>
       {/* Login Section End */}
     </div>
