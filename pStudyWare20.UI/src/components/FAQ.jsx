@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
 import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
   Typography,
-  Box,
   Container,
   Grid,
 } from "@mui/material";
@@ -13,9 +11,6 @@ import { ExpandMore } from "@mui/icons-material";
 import "../styles/FAQ.css";
 // Import images from src/assets
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
-import arrow1Img from "../assets/images/arrow-1.png";
-import arrow2Img from "../assets/images/arrow-2.png";
-import arrow3Img from "../assets/images/arrow-3.png";
 
 const FAQ = () => {
   const [expanded, setExpanded] = useState(null);
@@ -32,7 +27,7 @@ const FAQ = () => {
   // answer: string - The FAQ answer
   // videoLink: string (optional) - URL to a related video or resource, if available
   // videoTitle: string (optional) - Title for the video link, if not provided defaults to "Watch Video"
-  
+
   const faqData = [
     {
       question: "How to register a student?",
@@ -128,9 +123,11 @@ const FAQ = () => {
     {
       question: "How can I volunteer?",
       answer:
-        "We welcome parents and high school students to volunteer. It takes a village to run a free program like this without compromising the high standards of the organization. We encourage students to complete Senior Advance class before signing up as a volunteer. Register using the following link: Volunteer Registration. Student volunteers - If you have already signed up for a learning program and have a student account, use a different email id while signing up as a volunteer. Parents volunteers - If you already have an account for kid(s), use a different id to sign up for the volunteer registration.",
+        "We welcome parents and high school students to volunteer. It takes a village to run a free program like this without compromising the high standards of the organization. We encourage students to complete Senior Advance class before signing up as a volunteer. Register using the following link: ",
       videoLink: "/volunteerregistration",
-      videoTitle: "Register as Volunteer",
+      videoTitle: "Volunteer Registration.",
+      answerContinuation:
+        " Student volunteers - If you have already signed up for a learning program and have a student account, use a different email id while signing up as a volunteer. Parents volunteers - If you already have an account for kid(s), use a different id to sign up for the volunteer registration.",
     },
     {
       question: "How to get extra help for the kid?",
@@ -288,11 +285,11 @@ const FAQ = () => {
                             href={faq.videoLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                          >
-                            {" "}
+                          >                         
                             {faq.videoTitle ? faq.videoTitle : " Watch Video"}
                           </a>
                         )}
+                        {faq.answerContinuation ? faq.answerContinuation : ""}
                       </Typography>
                     </AccordionDetails>
                   </Accordion>

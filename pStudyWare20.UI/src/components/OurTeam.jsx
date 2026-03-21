@@ -3,7 +3,7 @@ import { Box, Typography, Container, Grid, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
-import TwitterIcon from "@mui/icons-material/Twitter";
+import XIcon from "@mui/icons-material/X";
 import GoogleIcon from "@mui/icons-material/Google";
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
 import personIcon from "../assets/images/team/person-icon.png";
@@ -162,7 +162,7 @@ const OurTeam = () => {
                       <GoogleIcon />
                     </Box>
                     <Box className="social-icon">
-                      <TwitterIcon />
+                      <XIcon />
                     </Box>
                     <Box className="social-icon">
                       <LinkedInIcon />
@@ -223,7 +223,7 @@ const OurTeam = () => {
                       <GoogleIcon />
                     </Box>
                     <Box className="social-icon">
-                      <TwitterIcon />
+                      <XIcon />
                     </Box>
                     <Box className="social-icon">
                       <LinkedInIcon />

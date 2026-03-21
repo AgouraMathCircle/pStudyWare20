@@ -431,7 +431,7 @@ const DownloadSection = () => {
               onClick={() =>
                 window.open(
                   "https://apps.apple.com/us/app/agoura-math-circle/id1438597363",
-                  "_blank"
+                  "_blank",
                 )
               }
             >
@@ -454,10 +454,10 @@ const DownloadSection = () => {
                   backgroundColor: "#4c8c2b",
                 },
               }}
-               onClick={() =>
+              onClick={() =>
                 window.open(
                   "https://play.google.com/store/apps/details?id=io.cordova.myapp26c528.",
-                  "_blank"
+                  "_blank",
                 )
               }
             >
@@ -482,31 +482,30 @@ const DownloadSection = () => {
           >
             Subscribe Youtube for More Course Videos
           </Typography>
-<Button
-  component="a"
-  href="https://www.youtube.com/@AgouraMathCircle"
-  target="_blank"
-  rel="noopener noreferrer"
-  variant="contained"
-  sx={{
-    backgroundColor: "#58a82d",
-    color: "white",
-    px: 5,
-    py: 1.2,
-    borderRadius: "5px",
-    fontWeight: 600,
-    textTransform: "none",
-    transform: isVisible ? "translateY(0)" : "translateY(50px)",
-    opacity: isVisible ? 1 : 0,
-    transition: "all 0.8s ease-out 0.4s",
-    "&:hover": {
-      backgroundColor: "#4c8c2b",
-    },
-  }}
->
-  Subscribe Our Channel →
-</Button>
-          
+          <Button
+            component="a"
+            href="https://www.youtube.com/@AgouraMathCircle"
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="contained"
+            sx={{
+              backgroundColor: "#58a82d",
+              color: "white",
+              px: 5,
+              py: 1.2,
+              borderRadius: "5px",
+              fontWeight: 600,
+              textTransform: "none",
+              transform: isVisible ? "translateY(0)" : "translateY(50px)",
+              opacity: isVisible ? 1 : 0,
+              transition: "all 0.8s ease-out 0.4s",
+              "&:hover": {
+                backgroundColor: "#4c8c2b",
+              },
+            }}
+          >
+            Subscribe Our Channel →
+          </Button>
         </Grid>
       </Grid>
     </Box>
@@ -546,7 +545,7 @@ const MathCircle = () => {
       {
         threshold: 0.3,
         rootMargin: "0px 0px -100px 0px",
-      }
+      },
     );
 
     if (buttonsRef.current) {
@@ -567,7 +566,7 @@ const MathCircle = () => {
         const [entry] = entries;
         console.log(
           "Register button observer triggered:",
-          entry.isIntersecting
+          entry.isIntersecting,
         );
         if (entry.isIntersecting) {
           setRegisterButtonVisible(true);
@@ -577,7 +576,7 @@ const MathCircle = () => {
       {
         threshold: 0.3,
         rootMargin: "0px 0px -100px 0px",
-      }
+      },
     );
 
     if (registerButtonRef.current) {
@@ -619,7 +618,7 @@ const MathCircle = () => {
           }
         });
       },
-      { threshold: 0.5 }
+      { threshold: 0.5 },
     );
 
     if (counterRef.current) {

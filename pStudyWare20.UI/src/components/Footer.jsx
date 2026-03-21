@@ -2,7 +2,7 @@ import React from "react";
 import { useLocation } from "react-router-dom";
 import {
   Facebook,
-  Twitter,
+  X,
   YouTube,
   LinkedIn,
   Instagram,
@@ -344,11 +344,11 @@ const Footer = () => {
                     </li>
                     <li>
                       <Link
-                        href="https://twitter.com/Agouramathcirle"
+                        href="https://x.com/agouramath/"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <Twitter />
+                        <X />
                       </Link>
                     </li>
                     <li>

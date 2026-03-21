@@ -12,7 +12,7 @@ import {
 import "../styles/Topbar.css";
 import {
   Facebook as FacebookIcon,
-  Twitter as TwitterIcon,
+  X as XIcon,
   YouTube as YouTubeIcon,
   LinkedIn as LinkedInIcon,
   Instagram as InstagramIcon,
@@ -132,9 +132,9 @@ const Topbar = () => {
       label: "Facebook",
     },
     {
-      icon: <TwitterIcon />,
-      href: "https://twitter.com/Agouramathcirle",
-      label: "Twitter",
+      icon: <XIcon />,
+      href: "https://x.com/agouramath/",
+      label: "X",
     },
     {
       icon: <YouTubeIcon />,
@@ -317,7 +317,11 @@ const Topbar = () => {
                 "&:hover": { color: "#ccc" },
                 order: { xs: 1, sm: 1, md: 2 },
                 flexGrow: { xs: 1, sm: 0 },
-                justifyContent: { xs: "flex-start", sm: "center", md: "flex-start" },
+                justifyContent: {
+                  xs: "flex-start",
+                  sm: "center",
+                  md: "flex-start",
+                },
               }}
               onClick={user ? handleLogout : () => navigate("/login")}
             >
@@ -354,7 +358,11 @@ const Topbar = () => {
                 "&:hover": { color: "#ccc" },
                 order: { xs: 2, sm: 2, md: 3 },
                 flexGrow: { xs: 1, sm: 0 },
-                justifyContent: { xs: "flex-start", sm: "center", md: "flex-start" },
+                justifyContent: {
+                  xs: "flex-start",
+                  sm: "center",
+                  md: "flex-start",
+                },
               }}
               onClick={() => navigate("/donate")}
             >

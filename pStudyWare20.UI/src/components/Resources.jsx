@@ -34,6 +34,11 @@ import referenceImage from "../assets/images/more-pics/60961218_818756365160501_
 import arrow1Img from "../assets/images/arrow-1.png";
 import arrow2Img from "../assets/images/arrow-2.png";
 import arrow3Img from "../assets/images/arrow-3.png";
+// import collegeBragSheet from "../assets/files/CollegeApplication_BragSheet_Template.docx?url";
+// import collegeApplicationTracker from "../assets/files/CollegeApplication_Tracker_Template.xlsx?url";
+// const medPathwayOverview = "https://agouramathcircle.org/documents/Medical_Pathway_Overview.pdf";
+// const BSMD_BAMD = "https://agouramathcircle.org/documents/BSMD_BAMD.pdf";
+// const BSDO_BADO = "https://agouramathcircle.org/documents/BSDO_%20BADO.pdf";
 
 const Resources = () => {
   return (
@@ -139,7 +144,7 @@ const Resources = () => {
                 <ListItem>
                   <ListItemIcon>
                     <ArrowIcon />
-                      </ListItemIcon>
+                        </ListItemIcon>
                   <ListItemText>
                     <Link
                       component={RouterLink}

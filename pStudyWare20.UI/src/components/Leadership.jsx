@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Typography, Button, Container, Grid } from "@mui/material";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
-import TwitterIcon from "@mui/icons-material/Twitter";
+import XIcon from "@mui/icons-material/X";
 import GoogleIcon from "@mui/icons-material/Google";
 import { useNavigate } from "react-router-dom";
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
@@ -70,7 +70,11 @@ const Leadership = () => {
           <Typography
             variant="h1"
             className="page-title"
-            sx={{ fontSize: { xs: "2.2rem", md: "3.5rem" }, fontWeight: 700, mb: 2 }}
+            sx={{
+              fontSize: { xs: "2.2rem", md: "3.5rem" },
+              fontWeight: 700,
+              mb: 2,
+            }}
           >
             Leadership
           </Typography>
@@ -103,19 +107,24 @@ const Leadership = () => {
             </Box>
             <Box component="li" sx={{ display: "inline-block" }}>
               <Typography component="span" sx={{ color: "white" }}>
-                {" "} About Us &gt; {" "}
+                {" "}
+                About Us &gt;{" "}
               </Typography>
             </Box>
             <Box component="li" sx={{ display: "inline-block" }}>
               <Typography component="span" sx={{ color: "white" }}>
-                {" "} Leadership {" "}
+                {" "}
+                Leadership{" "}
               </Typography>
             </Box>
           </Box>
         </Box>
       </Box>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 6 }, px: { xs: 2, md: 4 } }}>
+      <Container
+        maxWidth="lg"
+        sx={{ py: { xs: 3, md: 6 }, px: { xs: 2, md: 4 } }}
+      >
         <Typography
           variant="h2"
           sx={{
@@ -129,8 +138,13 @@ const Leadership = () => {
           AMC Board Members
         </Typography>
 
-        <Grid container spacing={2} justifyContent="flex-start" alignItems="stretch">
-          {[ 
+        <Grid
+          container
+          spacing={2}
+          justifyContent="flex-start"
+          alignItems="stretch"
+        >
+          {[
             { img: pranavImg, name: "PRANAV KALYAN", role: "Director" },
             { img: sriyaImg, name: "SRIYA KALYAN", role: "Director" },
             { img: bharatImg, name: "DR. BHARAT PATEL", role: "Director" },
@@ -154,7 +168,7 @@ const Leadership = () => {
                       <GoogleIcon />
                     </Box>
                     <Box className="social-icon">
-                      <TwitterIcon />
+                      <XIcon />
                     </Box>
                     <Box className="social-icon">
                       <LinkedInIcon />
@@ -173,12 +187,12 @@ const Leadership = () => {
             </Grid>
           ))}
         </Grid>
-
       </Container>
 
-      
-
-      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 }, px: { xs: 2, md: 4 } }}>
+      <Container
+        maxWidth="lg"
+        sx={{ py: { xs: 3, md: 5 }, px: { xs: 2, md: 4 } }}
+      >
         <Typography
           variant="h2"
           sx={{
@@ -192,12 +206,21 @@ const Leadership = () => {
           AMC Advisory Board Members
         </Typography>
 
-        <Grid container spacing={2} justifyContent="flex-start" alignItems="stretch">
+        <Grid
+          container
+          spacing={2}
+          justifyContent="flex-start"
+          alignItems="stretch"
+        >
           {[
             { img: minitaImg, name: "MINITA CLARK", role: "ECRCHS" },
             { img: dianaImg, name: "DIANA NGUYEN", role: "Moorpark" },
             { img: josephImg, name: "JOSEPH KEAYS", role: "Agoura High" },
-            { img: chitraImg, name: "CHITRA JAYARAMAN", role: "Bank Of America" },
+            {
+              img: chitraImg,
+              name: "CHITRA JAYARAMAN",
+              role: "Bank Of America",
+            },
             { img: karthikImg, name: "KARTHIK REDDY", role: "Key Software" },
             { img: deniseImg, name: "DENISE RATIU", role: "Hale Charter" },
           ].map((m) => (
@@ -213,7 +236,7 @@ const Leadership = () => {
                       <GoogleIcon />
                     </Box>
                     <Box className="social-icon">
-                      <TwitterIcon />
+                      <X />
                     </Box>
                     <Box className="social-icon">
                       <LinkedInIcon />
@@ -234,7 +257,10 @@ const Leadership = () => {
         </Grid>
       </Container>
 
-       <Container maxWidth="lg" sx={{ py: { xs: 3, md: 6 }, px: { xs: 2, md: 4 } }}>
+      <Container
+        maxWidth="lg"
+        sx={{ py: { xs: 3, md: 6 }, px: { xs: 2, md: 4 } }}
+      >
         <Typography
           variant="h2"
           sx={{
@@ -248,21 +274,62 @@ const Leadership = () => {
           AMC Executive Team
         </Typography>
 
-        <Grid container spacing={2} justifyContent="flex-start" alignItems="stretch">
+        <Grid
+          container
+          spacing={2}
+          justifyContent="flex-start"
+          alignItems="stretch"
+        >
           {[
-            { img: kalyanaImg, name: "KALYANA KUMAR M", role: "Chief Operations Officer" },
+            {
+              img: kalyanaImg,
+              name: "KALYANA KUMAR M",
+              role: "Chief Operations Officer",
+            },
             { img: pawanImg, name: "PAWAN DUBEY", role: "EVP, Math Circle" },
-            { img: prabhaharanImg, name: "PRABHAHARAN R", role: "EVP, Online Math Circle" },
-            { img: srinivasuImg, name: "SRINIVASU B", role: "EVP, Online Math Circle" },
-            { img: gopiImg, name: "GOPINATH SRINIVASAN", role: "EVP, Engineering Circle" },
-            { img: ashokRajendranImg, name: "ASHOK RAJENDRAN", role: "EVP, Document Management" },
-            { img: swapnaImg, name: "SWAPNA MADHAN", role: "EVP, Satellite Program" },
+            {
+              img: prabhaharanImg,
+              name: "PRABHAHARAN R",
+              role: "EVP, Online Math Circle",
+            },
+            {
+              img: srinivasuImg,
+              name: "SRINIVASU B",
+              role: "EVP, Online Math Circle",
+            },
+            {
+              img: gopiImg,
+              name: "GOPINATH SRINIVASAN",
+              role: "EVP, Engineering Circle",
+            },
+            {
+              img: ashokRajendranImg,
+              name: "ASHOK RAJENDRAN",
+              role: "EVP, Document Management",
+            },
+            {
+              img: swapnaImg,
+              name: "SWAPNA MADHAN",
+              role: "EVP, Satellite Program",
+            },
             { img: venodhaImg, name: "VENODHA S", role: "EVP, Social Media" },
-            { img: anandImg, name: "ANAND VINAYAGAM", role: "EVP, Standardized Test Prep" },
+            {
+              img: anandImg,
+              name: "ANAND VINAYAGAM",
+              role: "EVP, Standardized Test Prep",
+            },
             { img: lisaImg, name: "LISA GUO", role: "EVP, Triangular Talks" },
-            { img: harshadhaImg, name: "HARSHADHA MADIRAJU", role: "EVP, Information Technology" },
+            {
+              img: harshadhaImg,
+              name: "HARSHADHA MADIRAJU",
+              role: "EVP, Information Technology",
+            },
             { img: ashokImg, name: "ASHOK RAJADURAI", role: "EVP, Finance" },
-            { img: visaImg, name: "VISALAKSHI KASI", role: "EVP, Competitive Math & Admin" },
+            {
+              img: visaImg,
+              name: "VISALAKSHI KASI",
+              role: "EVP, Competitive Math & Admin",
+            },
           ].map((m) => (
             <Grid key={m.name} item xs={12} sm={3} md={3}>
               <Box className="leader-card">
@@ -276,7 +343,7 @@ const Leadership = () => {
                       <GoogleIcon />
                     </Box>
                     <Box className="social-icon">
-                      <TwitterIcon />
+                      <X />
                     </Box>
                     <Box className="social-icon">
                       <LinkedInIcon />
@@ -295,10 +362,11 @@ const Leadership = () => {
             </Grid>
           ))}
         </Grid>
-
-    
       </Container>
-      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 6 }, px: { xs: 2, md: 4 } }}>
+      <Container
+        maxWidth="lg"
+        sx={{ py: { xs: 3, md: 6 }, px: { xs: 2, md: 4 } }}
+      >
         <Typography
           variant="h2"
           sx={{
@@ -312,14 +380,39 @@ const Leadership = () => {
           AMC Student Board
         </Typography>
 
-        <Grid container spacing={2} justifyContent="flex-start" alignItems="stretch">
+        <Grid
+          container
+          spacing={2}
+          justifyContent="flex-start"
+          alignItems="stretch"
+        >
           {[
-            { img: vaibhavImg, name: "VAIBHAV GARG", role: "Senior Vice President" },
-            { img: austinLawImg, name: "AUSTIN LAW", role: "Senior Vice President" },
-            { img: joshnaImg, name: "JOSHNA JUDE", role: "Senior Vice President" },
-            { img: charlieImg, name: "CHARLIE NICKS", role: "Senior Vice President" },
+            {
+              img: vaibhavImg,
+              name: "VAIBHAV GARG",
+              role: "Senior Vice President",
+            },
+            {
+              img: austinLawImg,
+              name: "AUSTIN LAW",
+              role: "Senior Vice President",
+            },
+            {
+              img: joshnaImg,
+              name: "JOSHNA JUDE",
+              role: "Senior Vice President",
+            },
+            {
+              img: charlieImg,
+              name: "CHARLIE NICKS",
+              role: "Senior Vice President",
+            },
             { img: mugilImg, name: "MUGIL", role: "Senior Vice President" },
-            { img: monishkaImg, name: "MONISHKA TANWANI", role: "Senior Vice President" },
+            {
+              img: monishkaImg,
+              name: "MONISHKA TANWANI",
+              role: "Senior Vice President",
+            },
           ].map((m) => (
             <Grid key={m.name} item xs={12} sm={3} md={3}>
               <Box className="leader-card">
@@ -333,7 +426,7 @@ const Leadership = () => {
                       <GoogleIcon />
                     </Box>
                     <Box className="social-icon">
-                      <TwitterIcon />
+                      <X />
                     </Box>
                     <Box className="social-icon">
                       <LinkedInIcon />
@@ -353,8 +446,6 @@ const Leadership = () => {
           ))}
         </Grid>
       </Container>
-
-
     </Box>
   );
 };
