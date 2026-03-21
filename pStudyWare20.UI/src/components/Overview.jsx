@@ -109,7 +109,7 @@ const Overview = () => {
                 Satellite program collaborating with non profit organizations
                 worldwide to impart and promote the problem solving skills..
               </div>
-              <div className="des-sec about-cont" style={{ fontSize: "17px" }}>
+             <div className="des-sec about-cont" style={{ fontSize: "17px", paddingBottom: "5%" }}>
                 In summary, the Agoura Math Circle, founded on the principles of
                 education, empowerment, and community service, strives to equip
                 students with the essential skills and confidence needed for

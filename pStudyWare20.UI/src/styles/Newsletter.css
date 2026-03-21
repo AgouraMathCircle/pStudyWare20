@@ -1,24 +1,18 @@
 /* Newsletter Component Styles - Matching Achievements.aspx Design */
 
 .footer-newsletter.subscribe-bg-image {
-  padding: 50px 50px 60px;
+  padding: 60px 60px 50px;
   border-bottom: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   position: relative;
-  top: -180px;
+  top: -150px;
   z-index: 2;
 }
 
-.footer-newsletter .title.white-color {
-  font-size: 39px;
-  line-height: 1;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 0;
-}
-
-.footer-newsletter .title.white-color.mb-0 {
-  margin-bottom: 0;
+.footer-newsletter .MuiGrid-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .footer-newsletter .des {
@@ -31,7 +25,6 @@
 .footer-newsletter .newsletter-form {
   max-width: 650px;
   width: 100%;
-  margin: 0;
   position: relative;
   display: flex;
 }
@@ -49,7 +42,7 @@
 .footer-newsletter .newsletter-form input {
   padding: 10px 150px 10px 20px;
   width: 100%;
-  min-width: 400px;
+  min-width: 500px;
   color: #102d47;
   background: #fff;
   border-radius: 5px;
@@ -107,8 +100,7 @@
   .footer-newsletter.subscribe-bg-image {
     padding-left: 30px;
     padding-right: 30px;
-    top: -80px;
-    margin-bottom: -30px;
+    top: -50px;
   }
 
   .footer-newsletter .title.white-color {
@@ -124,7 +116,7 @@
     margin: 20px auto 0;
     max-width: 100%;
   }
-  
+
   .footer-newsletter .newsletter-form input {
     min-width: 300px;
   }
@@ -167,5 +159,11 @@
     border-radius: 5px;
     width: 100%;
     justify-content: center;
+  }
+
+  @media (max-width: 600px) {
+    .footer-newsletter.subscribe-bg-image {
+      top: -30px;
+    }
   }
 }

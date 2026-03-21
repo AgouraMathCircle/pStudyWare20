@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Container, Typography, Grid } from "@mui/material";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
-import TwitterIcon from "@mui/icons-material/Twitter";
+import XIcon from "@mui/icons-material/X";
 import GoogleIcon from "@mui/icons-material/Google";
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
 import "../styles/Alumini.css";
@@ -66,7 +66,11 @@ const Alumini = () => {
           <Typography
             variant="h1"
             className="page-title"
-            sx={{ fontSize: { xs: "2.2rem", md: "3.0rem" }, fontWeight: 700, mb: 2 }}
+            sx={{
+              fontSize: { xs: "2.2rem", md: "3.0rem" },
+              fontWeight: 700,
+              mb: 2,
+            }}
           >
             AMC Alumni
           </Typography>
@@ -80,11 +84,19 @@ const Alumini = () => {
         </Box>
       </Box>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 6 }, px: { xs: 2, md: 4 } }}>
+      <Container
+        maxWidth="lg"
+        sx={{ py: { xs: 3, md: 6 }, px: { xs: 2, md: 4 } }}
+      >
         <Typography variant="h4" align="center" sx={{ fontWeight: 700, mb: 3 }}>
           AMC Alumni
         </Typography>
-        <Grid container spacing={2} justifyContent="center" alignItems="stretch">
+        <Grid
+          container
+          spacing={2}
+          justifyContent="center"
+          alignItems="stretch"
+        >
           {[
             { img: maylianImg, name: "MAYLIAN WU", college: "USC" },
             { img: vaibhavImg, name: "VAIBHAV GARG", college: "" },
@@ -96,7 +108,11 @@ const Alumini = () => {
             { img: benjaminImg, name: "BENJAMIN CHUNG", college: "" },
             { img: shriyaImg, name: "SHRIYA RAJESH", college: "USC" },
             { img: divyaImg, name: "DIVYA", college: "" },
-            { img: siddhiImg, name: "SIDDHI PORAIYAN", college: "NC-Chapel Hill" },
+            {
+              img: siddhiImg,
+              name: "SIDDHI PORAIYAN",
+              college: "NC-Chapel Hill",
+            },
             { img: nithinImg, name: "NITHIN RAJESH", college: "" },
             { img: angelaImg, name: "ANGELA YANG", college: "Harvard" },
             { img: shruthiImg, name: "SHRUTHI", college: "UCLA" },
@@ -107,7 +123,11 @@ const Alumini = () => {
             { img: aidenImg, name: "AIDEN DEPRANO", college: "UC Berkeley" },
             { img: michaelImg, name: "MICHAEL", college: "UC Berkeley" },
             { img: ishImg, name: "ISH DUBEY", college: "" },
-            { img: pavetraImg, name: "PAVETRASRI SAKTHIVEL NIRMALA", college: "" },
+            {
+              img: pavetraImg,
+              name: "PAVETRASRI SAKTHIVEL NIRMALA",
+              college: "",
+            },
             { img: shreyamBhImg, name: "SHREYAM BHATTACHARYA", college: "" },
             { img: kavyaImg, name: "KAVYA SREERAJ", college: "" },
             { img: pradyumnaImg, name: "PRADYUMNA DENDULURI", college: "" },
@@ -132,7 +152,7 @@ const Alumini = () => {
                       <GoogleIcon />
                     </Box>
                     <Box className="social-icon">
-                      <TwitterIcon />
+                      <XIcon />
                     </Box>
                     <Box className="social-icon">
                       <LinkedInIcon />
