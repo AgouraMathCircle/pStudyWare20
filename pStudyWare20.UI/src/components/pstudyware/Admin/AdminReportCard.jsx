@@ -27,8 +27,7 @@ import {
   FormControlLabel,
   IconButton,
   Tooltip,
-  TablePagination,
-  InputAdornment,
+  Grid,
 } from "@mui/material";
 import {
   Refresh as RefreshIcon,
@@ -38,7 +37,10 @@ import {
   Delete as DeleteIcon,
   Email as EmailIcon,
   Visibility as ViewReportIcon,
-  Search as SearchIcon,
+  FirstPage as FirstPageIcon,
+  KeyboardArrowLeft as PrevPageIcon,
+  KeyboardArrowRight as NextPageIcon,
+  LastPage as LastPageIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
@@ -55,6 +57,7 @@ const EXAM_TYPES = [
 const AdminReportCard = () => {
   const { user } = useAuth();
   const username = user?.email || user?.username || "";
+  const pageSize = 10;
   const [list, setList] = useState([]);
   const [summaryData, setSummaryData] = useState([]);
   const [showSummary, setShowSummary] = useState(false);
@@ -86,9 +89,11 @@ const AdminReportCard = () => {
     severity: "info",
   });
   const [canEdit, setCanEdit] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchBy, setSearchBy] = useState("ALL");
+  const [searchCriteria, setSearchCriteria] = useState("contains");
+  const [searchText, setSearchText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [goToPageInput, setGoToPageInput] = useState("1");
 
   const cellPadding = "0 8px";
   const cellHeaderSx = {
@@ -162,6 +167,11 @@ const AdminReportCard = () => {
       loadDashboardData();
     } else setLoading(false);
   }, [username]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  }, [showSummary]);
 
   const handleViewReport = async () => {
     setSubmitting(true);
@@ -325,216 +335,379 @@ const AdminReportCard = () => {
     comments: r.comments ?? r.Comments,
   });
 
+  const matchField = (fieldValue, search, criteria) => {
+    const fv = String(fieldValue ?? "").toLowerCase();
+    const s = search.trim().toLowerCase();
+    if (criteria === "equals") return fv === s;
+    if (criteria === "starts_with") return fv.startsWith(s);
+    return fv.includes(s);
+  };
+
   const filteredList = useMemo(() => {
-    if (!searchTerm.trim()) return list;
-    const search = searchTerm.toLowerCase();
+    if (!searchText.trim()) return list;
+    const search = searchText.trim();
+    if (searchBy === "ALL") {
+      return list.filter((r) => {
+        const o = row(r);
+        return (
+          matchField(o.studentName, search, searchCriteria) ||
+          matchField(o.studentID, search, searchCriteria) ||
+          matchField(o.group, search, searchCriteria) ||
+          matchField(o.examType, search, searchCriteria) ||
+          matchField(o.comments, search, searchCriteria) ||
+          matchField(o.grade, search, searchCriteria) ||
+          matchField(o.semester, search, searchCriteria)
+        );
+      });
+    }
     return list.filter((r) => {
       const o = row(r);
-      return (
-        (o.studentName || "").toLowerCase().includes(search) ||
-        (o.studentID || "").toString().toLowerCase().includes(search) ||
-        (o.group || "").toLowerCase().includes(search) ||
-        (o.examType || "").toLowerCase().includes(search) ||
-        (o.comments || "").toLowerCase().includes(search)
-      );
+      let fieldValue = "";
+      switch (searchBy) {
+        case "STUDENT_ID":
+          fieldValue = o.studentID ?? "";
+          break;
+        case "STUDENT_NAME":
+          fieldValue = o.studentName ?? "";
+          break;
+        case "CLASS":
+          fieldValue = o.group ?? "";
+          break;
+        case "GRADE":
+          fieldValue = o.grade ?? "";
+          break;
+        case "SESSION":
+          fieldValue = o.semester ?? "";
+          break;
+        case "EXAM_TYPE":
+          fieldValue = o.examType ?? "";
+          break;
+        case "COMMENTS":
+          fieldValue = o.comments ?? "";
+          break;
+        default:
+          return true;
+      }
+      return matchField(fieldValue, search, searchCriteria);
     });
-  }, [list, searchTerm]);
+  }, [list, searchText, searchBy, searchCriteria]);
 
   const filteredSummary = useMemo(() => {
-    if (!searchTerm.trim()) return summaryData;
-    const search = searchTerm.toLowerCase();
+    if (!searchText.trim()) return summaryData;
+    const search = searchText.trim();
+    if (searchBy === "ALL") {
+      return summaryData.filter((r) => {
+        const sn = r.studentName ?? r.StudentName ?? "";
+        const sid = r.studentID ?? r.StudentID ?? "";
+        const gr = r.group ?? r.Group ?? "";
+        return (
+          matchField(sn, search, searchCriteria) ||
+          matchField(sid, search, searchCriteria) ||
+          matchField(gr, search, searchCriteria)
+        );
+      });
+    }
     return summaryData.filter((r) => {
-      const sn = (r.studentName ?? r.StudentName ?? "").toLowerCase();
-      const sid = (r.studentID ?? r.StudentID ?? "").toString().toLowerCase();
-      const gr = (r.group ?? r.Group ?? "").toLowerCase();
-      return sn.includes(search) || sid.includes(search) || gr.includes(search);
+      let fieldValue = "";
+      switch (searchBy) {
+        case "STUDENT_ID":
+          fieldValue = r.studentID ?? r.StudentID ?? "";
+          break;
+        case "STUDENT_NAME":
+          fieldValue = r.studentName ?? r.StudentName ?? "";
+          break;
+        case "CLASS":
+          fieldValue = r.group ?? r.Group ?? "";
+          break;
+        default:
+          fieldValue = "";
+      }
+      return matchField(fieldValue, search, searchCriteria);
     });
-  }, [summaryData, searchTerm]);
+  }, [summaryData, searchText, searchBy, searchCriteria]);
+
+  const filteredRows = showSummary ? filteredSummary : filteredList;
+  const totalRecords = filteredRows.length;
+  const totalPages = Math.ceil(totalRecords / pageSize);
 
   const paginatedList = useMemo(() => {
-    const start = page * rowsPerPage;
-    return filteredList.slice(start, start + rowsPerPage);
-  }, [filteredList, page, rowsPerPage]);
+    const start = (currentPage - 1) * pageSize;
+    return filteredList.slice(start, start + pageSize);
+  }, [filteredList, currentPage]);
 
   const paginatedSummary = useMemo(() => {
-    const start = page * rowsPerPage;
-    return filteredSummary.slice(start, start + rowsPerPage);
-  }, [filteredSummary, page, rowsPerPage]);
+    const start = (currentPage - 1) * pageSize;
+    return filteredSummary.slice(start, start + pageSize);
+  }, [filteredSummary, currentPage]);
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+  const handleSearch = () => {
+    setCurrentPage(1);
+    setGoToPageInput("1");
   };
 
-  const handleChangePage = (_event, newPage) => {
-    setPage(newPage);
+  const handlePageChange = (page) => {
+    const total = Math.ceil(totalRecords / pageSize);
+    if (total === 0) return;
+    if (page >= 1 && page <= total) {
+      setCurrentPage(page);
+      setGoToPageInput(String(page));
+    }
   };
+
+  const handleGoToPage = () => {
+    const page = parseInt(goToPageInput, 10);
+    const total = Math.ceil(totalRecords / pageSize);
+    if (total === 0) return;
+    if (!Number.isNaN(page) && page >= 1 && page <= total) {
+      setCurrentPage(page);
+    } else {
+      setGoToPageInput(String(currentPage));
+    }
+  };
+
+  const displayTotalPages = Math.max(1, totalPages);
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <AdminHeader />
-      <Container maxWidth="xl" sx={{ py: 2 }}>
-        <Box>
-          {/* Header Section - same as DocumentList */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 2,
-              backgroundColor: "#4caf50",
-              padding: "12px 16px",
-              borderRadius: "4px 4px 0 0",
-            }}
-          >
+      <AdminHeader user={user} />
+      <Box sx={{ height: "60px" }} />
+      <Container maxWidth="xl" sx={{ mb: 4 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
             <Box>
-              <Typography
-                variant="h6"
-                sx={{ fontWeight: 600, color: "white", fontSize: "1rem" }}
-              >
-                Report Card
-              </Typography>
-              <Typography variant="caption" sx={{ color: "white", fontSize: "0.75rem" }}>
-                View and manage student scores. Use filters below to view summary report or export to Excel.
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
-              <Tooltip title="Refresh list">
-                <IconButton onClick={loadList} disabled={loading} sx={{ color: "white" }}>
-                  <RefreshIcon />
-                </IconButton>
-              </Tooltip>
-              {canEdit && (
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={() => setAddDialogOpen(true)}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 500,
-                    px: 3,
-                    backgroundColor: "white",
-                    color: "#4caf50",
-                    "&:hover": { backgroundColor: "#f5f5f5" },
-                  }}
-                >
-                  Add Score
-                </Button>
-              )}
-              <Button
-                variant="contained"
-                startIcon={<DownloadIcon />}
-                onClick={handleExportExcel}
+              <Box
                 sx={{
-                  textTransform: "none",
-                  fontWeight: 500,
-                  px: 3,
-                  backgroundColor: "white",
-                  color: "#4caf50",
-                  "&:hover": { backgroundColor: "#f5f5f5" },
+                  mb: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 2,
                 }}
               >
-                Export to Excel
-              </Button>
-              {showSummary && (
-                <Button
-                  variant="contained"
-                  startIcon={<EmailIcon />}
-                  onClick={handleSendEmail}
-                  disabled={submitting}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 500,
-                    px: 3,
-                    backgroundColor: "white",
-                    color: "#4caf50",
-                    "&:hover": { backgroundColor: "#f5f5f5" },
-                  }}
-                >
-                  Send Email
-                </Button>
-              )}
-            </Box>
-          </Box>
+                <Box>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ fontWeight: 600, color: "#1976d2", fontSize: "1rem" }}
+                  >
+                    Report Card
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    View and manage student scores. Use filters to view summary or export to Excel.
+                  </Typography>
+                </Box>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    startIcon={<RefreshIcon />}
+                    onClick={loadList}
+                    disabled={loading}
+                    sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                  >
+                    Refresh
+                  </Button>
+                  {canEdit && (
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={() => setAddDialogOpen(true)}
+                      sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                    >
+                      Add Score
+                    </Button>
+                  )}
+                  <Button
+                    variant="contained"
+                    color="success"
+                    size="small"
+                    startIcon={<DownloadIcon />}
+                    onClick={handleExportExcel}
+                    sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                  >
+                    Export to Excel
+                  </Button>
+                  {showSummary && (
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="small"
+                      startIcon={<EmailIcon />}
+                      onClick={handleSendEmail}
+                      disabled={submitting}
+                      sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                    >
+                      Send Email
+                    </Button>
+                  )}
+                </Box>
+              </Box>
 
-          {/* Filters row */}
-          <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center" }}>
-              <FormControl size="small" sx={{ minWidth: 160 }}>
-                <InputLabel>Report Date</InputLabel>
-                <Select
-                  value={selectedReportDate}
-                  label="Report Date"
-                  onChange={(e) => setSelectedReportDate(e.target.value)}
-                >
-                  <MenuItem value="">All</MenuItem>
-                  {reportDates.map((d, i) => (
-                    <MenuItem key={i} value={typeof d === "object" ? d.value ?? d.text ?? d.Value ?? d.Text : d}>
-                      {typeof d === "object" ? d.text ?? d.Value ?? d.Text ?? d.value : d}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl size="small" sx={{ minWidth: 160 }}>
-                <InputLabel>Class</InputLabel>
-                <Select
-                  value={selectedClass}
-                  label="Class"
-                  onChange={(e) => setSelectedClass(e.target.value)}
-                >
-                  <MenuItem value="">All</MenuItem>
-                  {classList.map((c, i) => (
-                    <MenuItem key={i} value={typeof c === "object" ? c.value ?? c.text ?? c.Value ?? c.Text : c}>
-                      {typeof c === "object" ? c.text ?? c.Value ?? c.Text ?? c.value : c}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControlLabel
-                control={<Checkbox checked={semesterReport} onChange={(e) => setSemesterReport(e.target.checked)} />}
-                label="Semester"
-              />
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<ViewReportIcon />}
-                onClick={handleViewReport}
-                disabled={submitting}
+              <Box
+                sx={{
+                  mb: 1,
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 2,
+                  alignItems: "center",
+                }}
               >
-                View Score Card Summary Report
-              </Button>
-              {showSummary && (
-                <Button variant="outlined" size="small" onClick={() => setShowSummary(false)}>
-                  Back to Score Card List
+                <FormControl size="small" sx={{ minWidth: 160 }}>
+                  <InputLabel>Report Date</InputLabel>
+                  <Select
+                    value={selectedReportDate}
+                    label="Report Date"
+                    onChange={(e) => setSelectedReportDate(e.target.value)}
+                  >
+                    <MenuItem value="">All</MenuItem>
+                    {reportDates.map((d, i) => (
+                      <MenuItem key={i} value={typeof d === "object" ? d.value ?? d.text ?? d.Value ?? d.Text : d}>
+                        {typeof d === "object" ? d.text ?? d.Value ?? d.Text ?? d.value : d}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ minWidth: 160 }}>
+                  <InputLabel>Class</InputLabel>
+                  <Select
+                    value={selectedClass}
+                    label="Class"
+                    onChange={(e) => setSelectedClass(e.target.value)}
+                  >
+                    <MenuItem value="">All</MenuItem>
+                    {classList.map((c, i) => (
+                      <MenuItem key={i} value={typeof c === "object" ? c.value ?? c.text ?? c.Value ?? c.Text : c}>
+                        {typeof c === "object" ? c.text ?? c.Value ?? c.Text ?? c.value : c}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControlLabel
+                  control={<Checkbox checked={semesterReport} onChange={(e) => setSemesterReport(e.target.checked)} />}
+                  label="Semester"
+                />
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<ViewReportIcon />}
+                  onClick={handleViewReport}
+                  disabled={submitting}
+                  sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                >
+                  View Score Card Summary Report
                 </Button>
-              )}
-            </Box>
-          </Paper>
+                {showSummary && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => setShowSummary(false)}
+                    sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                  >
+                    Back to Score Card List
+                  </Button>
+                )}
+              </Box>
 
-          {/* Search Section - same as DocumentList */}
-          <Box sx={{ mb: 2 }}>
-            <TextField
-              fullWidth
-              placeholder="Search by student name, student #, class, exam type, or comments..."
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-              size="small"
-            />
-          </Box>
+              {loading ? (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                  <CircularProgress />
+                </Box>
+              ) : (
+                <>
+                  <Box
+                    sx={{
+                      backgroundColor: "#4caf50",
+                      p: 0.5,
+                      borderRadius: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <Typography sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}>
+                        Search By:
+                      </Typography>
+                      <Select
+                        value={searchBy}
+                        onChange={(e) => setSearchBy(e.target.value)}
+                        size="small"
+                        sx={{
+                          color: "white",
+                          fontSize: "0.75rem",
+                          minWidth: 120,
+                          "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+                          "& .MuiSelect-icon": { color: "white" },
+                        }}
+                      >
+                        <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>-ALL-</MenuItem>
+                        <MenuItem value="STUDENT_ID" sx={{ fontSize: "0.75rem" }}>Student #</MenuItem>
+                        <MenuItem value="STUDENT_NAME" sx={{ fontSize: "0.75rem" }}>Student Name</MenuItem>
+                        <MenuItem value="CLASS" sx={{ fontSize: "0.75rem" }}>Class</MenuItem>
+                        <MenuItem value="GRADE" sx={{ fontSize: "0.75rem" }}>Grade</MenuItem>
+                        <MenuItem value="SESSION" sx={{ fontSize: "0.75rem" }}>Session</MenuItem>
+                        <MenuItem value="EXAM_TYPE" sx={{ fontSize: "0.75rem" }}>Exam Type</MenuItem>
+                        <MenuItem value="COMMENTS" sx={{ fontSize: "0.75rem" }}>Comments</MenuItem>
+                      </Select>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <Typography sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}>
+                        Criteria:
+                      </Typography>
+                      <Select
+                        value={searchCriteria}
+                        onChange={(e) => setSearchCriteria(e.target.value)}
+                        size="small"
+                        sx={{
+                          color: "white",
+                          fontSize: "0.75rem",
+                          minWidth: 100,
+                          "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+                          "& .MuiSelect-icon": { color: "white" },
+                        }}
+                      >
+                        <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>Contains</MenuItem>
+                        <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>Equals</MenuItem>
+                        <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>Starts With</MenuItem>
+                      </Select>
+                    </Box>
+                    <TextField
+                      size="small"
+                      placeholder="Search Text"
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      sx={{
+                        minWidth: 150,
+                        "& .MuiOutlinedInput-root": {
+                          backgroundColor: "white",
+                          fontSize: "0.75rem",
+                        },
+                      }}
+                    />
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={handleSearch}
+                      sx={{
+                        backgroundColor: "white",
+                        color: "#4caf50",
+                        fontSize: "0.75rem",
+                        textTransform: "none",
+                        minHeight: 32,
+                        py: 0,
+                        px: 1,
+                        "&:hover": { backgroundColor: "#f5f5f5" },
+                      }}
+                    >
+                      Find
+                    </Button>
+                  </Box>
 
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : showSummary ? (
-          <>
+        {showSummary ? (
           <TableContainer component={Paper} sx={{ width: "100%" }}>
             <Table
               sx={{
@@ -565,7 +738,7 @@ const AdminReportCard = () => {
                   <TableRow>
                     <TableCell colSpan={12} align="center" sx={{ fontSize: "0.75rem", padding: cellPadding, py: 3 }}>
                       <Typography variant="body2" color="textSecondary" sx={{ fontSize: "0.75rem" }}>
-                        {searchTerm ? "No summary data matching your search." : "No summary data."}
+                        {searchText ? "No summary data matching your search." : "No summary data."}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -577,7 +750,7 @@ const AdminReportCard = () => {
                         "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" },
                       }}
                     >
-                      <TableCell sx={cellBodySx}>{page * rowsPerPage + idx + 1}</TableCell>
+                      <TableCell sx={cellBodySx}>{(currentPage - 1) * pageSize + idx + 1}</TableCell>
                       <TableCell sx={cellBodySx}>{r.studentID ?? r.StudentID ?? ""}</TableCell>
                       <TableCell sx={cellBodySx}>{r.studentName ?? r.StudentName ?? ""}</TableCell>
                       <TableCell sx={cellBodySx}>{r.group ?? r.Group ?? ""}</TableCell>
@@ -597,25 +770,7 @@ const AdminReportCard = () => {
               </TableBody>
             </Table>
           </TableContainer>
-          <TablePagination
-            component="div"
-            count={filteredSummary.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[5, 10, 25, 50, 100]}
-            sx={{ borderTop: "1px solid #e0e0e0" }}
-          />
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between" }}>
-            <Typography variant="body2" color="textSecondary">
-              Total: {filteredSummary.length}
-              {searchTerm && ` (filtered from ${summaryData.length})`}
-            </Typography>
-          </Box>
-          </>
         ) : (
-          <>
           <TableContainer component={Paper} sx={{ width: "100%" }}>
             <Table
               sx={{
@@ -649,7 +804,7 @@ const AdminReportCard = () => {
                   <TableRow>
                     <TableCell colSpan={15} align="center" sx={{ fontSize: "0.75rem", padding: cellPadding, py: 3 }}>
                       <Typography variant="body2" color="textSecondary" sx={{ fontSize: "0.75rem" }}>
-                        {searchTerm ? "No report cards matching your search." : "No report cards found."}
+                        {searchText ? "No report cards matching your search." : "No report cards found."}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -688,7 +843,7 @@ const AdminReportCard = () => {
                             </IconButton>
                           </Tooltip>
                         </TableCell>
-                        <TableCell sx={cellBodySx}>{page * rowsPerPage + idx + 1}</TableCell>
+                        <TableCell sx={cellBodySx}>{(currentPage - 1) * pageSize + idx + 1}</TableCell>
                         <TableCell sx={cellBodySx}>{o.studentID}</TableCell>
                         <TableCell sx={cellBodySx}>{o.studentName}</TableCell>
                         <TableCell sx={cellBodySx}>{o.group}</TableCell>
@@ -710,25 +865,134 @@ const AdminReportCard = () => {
               </TableBody>
             </Table>
           </TableContainer>
-          <TablePagination
-            component="div"
-            count={filteredList.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[5, 10, 25, 50, 100]}
-            sx={{ borderTop: "1px solid #e0e0e0" }}
-          />
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between" }}>
-            <Typography variant="body2" color="textSecondary">
-              Total: {filteredList.length}
-              {searchTerm && ` (filtered from ${list.length})`}
-            </Typography>
-          </Box>
-          </>
         )}
-        </Box>
+
+                  <Box
+                    sx={{
+                      backgroundColor: "#4caf50",
+                      p: 0.5,
+                      borderRadius: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
+                      gap: 1,
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+                      <IconButton
+                        size="small"
+                        sx={{ color: "white", padding: "2px" }}
+                        onClick={() => handlePageChange(1)}
+                        disabled={currentPage === 1 || totalPages === 0}
+                      >
+                        <FirstPageIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        sx={{ color: "white", padding: "2px" }}
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1 || totalPages === 0}
+                      >
+                        <PrevPageIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        sx={{ color: "white", padding: "2px" }}
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                      >
+                        <NextPageIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        sx={{ color: "white", padding: "2px" }}
+                        onClick={() => handlePageChange(totalPages)}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                      >
+                        <LastPageIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+                      <Typography sx={{ color: "white", fontSize: "0.75rem" }}>GoTo</Typography>
+                      <Select
+                        size="small"
+                        value={totalPages > 0 ? currentPage : ""}
+                        onChange={(e) => handlePageChange(Number(e.target.value))}
+                        disabled={totalPages === 0}
+                        sx={{
+                          color: "white",
+                          minWidth: 50,
+                          fontSize: "0.75rem",
+                          "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+                          "& .MuiSelect-icon": { color: "white" },
+                        }}
+                      >
+                        {totalPages > 0 ? (
+                          Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                            <MenuItem key={p} value={p} sx={{ fontSize: "0.75rem" }}>
+                              {p}
+                            </MenuItem>
+                          ))
+                        ) : (
+                          <MenuItem value="" sx={{ fontSize: "0.75rem" }}>-</MenuItem>
+                        )}
+                      </Select>
+                    </Box>
+                    <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                      Page(s): {totalPages === 0 ? 0 : currentPage} of {displayTotalPages}
+                    </Typography>
+                    <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                      Record(s):{" "}
+                      {totalRecords > 0
+                        ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, totalRecords)}`
+                        : "0"}{" "}
+                      of {totalRecords}
+                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+                      <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                        Go to Page Number:
+                      </Typography>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={goToPageInput}
+                        onChange={(e) => setGoToPageInput(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter") handleGoToPage();
+                        }}
+                        sx={{
+                          width: 50,
+                          "& .MuiOutlinedInput-root": {
+                            backgroundColor: "white",
+                            fontSize: "0.75rem",
+                          },
+                        }}
+                        inputProps={{ min: 1, max: totalPages || 1 }}
+                      />
+                      <Button
+                        size="small"
+                        variant="contained"
+                        onClick={handleGoToPage}
+                        sx={{
+                          backgroundColor: "white",
+                          color: "#4caf50",
+                          fontSize: "0.75rem",
+                          minHeight: 32,
+                          py: 0,
+                          px: 0.75,
+                          "&:hover": { backgroundColor: "#f5f5f5" },
+                        }}
+                      >
+                        Go
+                      </Button>
+                    </Box>
+                  </Box>
+                </>
+              )}
+            </Box>
+          </Grid>
+        </Grid>
       </Container>
 
       {/* Edit dialog */}

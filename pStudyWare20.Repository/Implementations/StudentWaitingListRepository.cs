@@ -147,21 +147,27 @@ namespace pStudyWare20.Repository.Implementations
                     CommandType = CommandType.StoredProcedure
                 };
 
+                // Legacy StudentWaitingList.aspx.cs — AMC_spUpdateStudentWaitingListStatus: six parameters only (no @ApplicationStatus).
                 command.Parameters.Add(new SqlParameter("@StudentID", request.StudentID ?? ""));
                 command.Parameters.Add(new SqlParameter("@Class", request.Class ?? ""));
                 command.Parameters.Add(new SqlParameter("@Section", request.Section ?? ""));
                 command.Parameters.Add(new SqlParameter("@ChapterID", request.ChapterID ?? ""));
                 command.Parameters.Add(new SqlParameter("@Location", request.Location ?? ""));
                 command.Parameters.Add(new SqlParameter("@Session", request.Session ?? ""));
-                command.Parameters.Add(new SqlParameter("@ApplicationStatus", request.ApplicationStatus ?? ""));
 
-                var result = await command.ExecuteNonQueryAsync();
+                // Legacy StudentWaitingList.aspx.cs uses SqlDataAdapter.Fill, not ExecuteNonQuery.
+                // Many SPs return 0 / -1 from ExecuteNonQuery (NOCOUNT, result sets), which incorrectly failed the API.
+                using (var adapter = new SqlDataAdapter(command))
+                {
+                    var ds = new DataSet();
+                    adapter.Fill(ds);
+                }
 
                 return new OperationResponse
                 {
-                    IsSuccess = result > 0,
-                    ErrorMessage = result > 0 ? "" : "No records updated",
-                    Message = result > 0 ? "Status updated successfully" : "No records updated"
+                    IsSuccess = true,
+                    ErrorMessage = "",
+                    Message = "You have registered the student successfully"
                 };
             }
             catch (Exception ex)
@@ -192,13 +198,17 @@ namespace pStudyWare20.Repository.Implementations
 
                 command.Parameters.Add(new SqlParameter("@StudentID", request.StudentId ?? ""));
 
-                var result = await command.ExecuteNonQueryAsync();
+                using (var adapter = new SqlDataAdapter(command))
+                {
+                    var ds = new DataSet();
+                    adapter.Fill(ds);
+                }
 
                 return new OperationResponse
                 {
-                    IsSuccess = result > 0,
-                    ErrorMessage = result > 0 ? "" : "No records deleted",
-                    Message = result > 0 ? "Student deleted successfully" : "No records deleted"
+                    IsSuccess = true,
+                    ErrorMessage = "",
+                    Message = "You have deleted the student successfully"
                 };
             }
             catch (Exception ex)
@@ -213,7 +223,7 @@ namespace pStudyWare20.Repository.Implementations
         }
 
         /// <summary>
-        /// Get chapter location
+        /// Get chapter locations (legacy StudentWaitingList uses Utils.BindChapterLocation → AMC_spSelectChapter).
         /// </summary>
         public async Task<ChapterLocationResponse> GetChapterLocationAsync(GetChapterLocationRequest request)
         {
@@ -222,22 +232,31 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spGetChapterLocation", connection)
+                using var command = new SqlCommand("AMC_spSelectChapter", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
-
-                command.Parameters.Add(new SqlParameter("@Mode", request.Mode ?? "N"));
 
                 var dataTable = new DataTable();
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
+                var chapterLocations = new List<ChapterLocation>();
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    chapterLocations.Add(new ChapterLocation
+                    {
+                        ChapterID = dataTable.Columns.Contains("ChapterID") ? row["ChapterID"]?.ToString() ?? "" : "",
+                        ChapterName = dataTable.Columns.Contains("ChapterName") ? row["ChapterName"]?.ToString() ?? "" : "",
+                        Location = dataTable.Columns.Contains("Location") ? row["Location"]?.ToString() ?? "" : ""
+                    });
+                }
+
                 return new ChapterLocationResponse
                 {
                     IsSuccess = true,
                     ErrorMessage = "",
-                    ChapterLocations = new List<ChapterLocation>() // Convert DataTable to List<ChapterLocation>
+                    ChapterLocations = chapterLocations
                 };
             }
             catch (Exception ex)

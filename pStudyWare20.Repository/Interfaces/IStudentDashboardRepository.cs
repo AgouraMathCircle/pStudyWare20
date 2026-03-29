@@ -65,5 +65,9 @@ namespace pStudyWare20.Repository.Interfaces
         /// <returns>DataSet containing eligibility information</returns>
         Task<DataSet> CheckRegistrationEligibilityAsync(string username);
 
+        /// <summary>
+        /// Updates student profile (AMC_spUpdateStudentProfile).
+        /// </summary>
+        Task UpdateStudentProfileAsync(UpdateStudentProfileRequest request);
     }
 }

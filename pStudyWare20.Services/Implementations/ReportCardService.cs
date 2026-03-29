@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
+using System.Collections.Generic;
 using System.Data;
 using System.Text;
 
@@ -35,7 +36,7 @@ namespace pStudyWare20.Services.Implementations
                 return new ReportCardListResponse
                 {
                     IsSuccess = true,
-                    ReportCardList = reportCardList
+                    ReportCardList = ConvertToJsonSafeObject(reportCardList)
                 };
             }
             catch (Exception ex)
@@ -116,6 +117,52 @@ namespace pStudyWare20.Services.Implementations
                 }
             }
             return "";
+        }
+
+        /// <summary>
+        /// System.Text.Json cannot serialize DataTable (columns expose System.Type). Convert to row dictionaries with camelCase keys.
+        /// </summary>
+        private static object ConvertToJsonSafeObject(object? value)
+        {
+            if (value == null)
+                return new List<Dictionary<string, object?>>();
+
+            if (value is DataTable dt)
+                return ConvertDataTableToRowList(dt);
+
+            if (value is DataSet ds && ds.Tables.Count > 0)
+                return ConvertDataTableToRowList(ds.Tables[0]);
+
+            return value;
+        }
+
+        private static List<Dictionary<string, object?>> ConvertDataTableToRowList(DataTable? table)
+        {
+            var list = new List<Dictionary<string, object?>>();
+            if (table == null || table.Rows.Count == 0)
+                return list;
+
+            foreach (DataRow row in table.Rows)
+            {
+                var dict = new Dictionary<string, object?>();
+                foreach (DataColumn col in table.Columns)
+                {
+                    var key = ToCamelCaseColumnName(col.ColumnName);
+                    dict[key] = row[col] == DBNull.Value ? null : row[col];
+                }
+                list.Add(dict);
+            }
+
+            return list;
+        }
+
+        private static string ToCamelCaseColumnName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return name;
+            if (name.Length == 1)
+                return name.ToLowerInvariant();
+            return char.ToLowerInvariant(name[0]) + name.Substring(1);
         }
 
         /// <summary>
@@ -214,7 +261,7 @@ namespace pStudyWare20.Services.Implementations
                 return new ViewReportResponse
                 {
                     IsSuccess = true,
-                    ReportData = reportData
+                    ReportData = ConvertToJsonSafeObject(reportData)
                 };
             }
             catch (Exception ex)
@@ -384,11 +431,11 @@ namespace pStudyWare20.Services.Implementations
                 return new ReportCardDashboardResponse
                 {
                     IsSuccess = true,
-                    ReportCardList = await reportCardListTask,
-                    StudentList = await studentListTask,
-                    ClassList = await classListTask,
-                    ReportDateList = await reportDateListTask,
-                    ExamDateList = await examDateListTask
+                    ReportCardList = ConvertToJsonSafeObject(await reportCardListTask),
+                    StudentList = ConvertToJsonSafeObject(await studentListTask),
+                    ClassList = ConvertToJsonSafeObject(await classListTask),
+                    ReportDateList = ConvertToJsonSafeObject(await reportDateListTask),
+                    ExamDateList = ConvertToJsonSafeObject(await examDateListTask)
                 };
             }
             catch (Exception ex)

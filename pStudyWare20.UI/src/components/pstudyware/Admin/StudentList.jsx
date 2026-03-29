@@ -82,7 +82,7 @@ const StudentList = ({
   // Handle edit student
   const handleEditStudent = (studentId) => {
     // Navigate to update profile page
-    window.location.href = `/pStudyWare/UpdateProfile.aspx?StudentID=${studentId}`;
+    window.location.href = `/UpdateProfile?StudentID=${studentId}`;
   };
 
   // Filter and sort students

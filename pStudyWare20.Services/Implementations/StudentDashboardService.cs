@@ -390,7 +390,27 @@ namespace pStudyWare20.Services.Implementations
             }
         }
 
-
+        /// <inheritdoc />
+        public async Task<UpdateStudentProfileResponse> UpdateStudentProfileAsync(UpdateStudentProfileRequest request)
+        {
+            try
+            {
+                await _repository.UpdateStudentProfileAsync(request);
+                return new UpdateStudentProfileResponse
+                {
+                    IsSuccess = true,
+                    Message = "You have updated your profile successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new UpdateStudentProfileResponse
+                {
+                    IsSuccess = false,
+                    Message = $"Error updating profile: {ex.Message}"
+                };
+            }
+        }
 
         ///// <summary>
         ///// Gets complete dashboard data for student

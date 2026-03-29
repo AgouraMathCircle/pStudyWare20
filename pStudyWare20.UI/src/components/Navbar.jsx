@@ -155,6 +155,11 @@ const Navbar = () => {
       icon: <DashboardIcon fontSize="small" />,
     },
     {
+      label: "Update Profile",
+      href: "/UpdateProfile",
+      icon: <PersonIcon fontSize="small" />,
+    },
+    {
       label: "Class Material",
       href: "/pstudyware/student/class-material",
       icon: <SchoolIcon fontSize="small" />,
@@ -206,15 +211,10 @@ const Navbar = () => {
     },
 
     {
-      label: "Students",
-      href: "/pstudyware/admin/students",
+      label: "Student List",
+      href: "/pstudyware/admin/registeredstudentlist",
       icon: <PeopleIcon fontSize="small" />,
     },
-    // {
-    //   label: "Volunteers",
-    //   href: "/pstudyware/admin/volunteers",
-    //   icon: <VolunteerActivismIcon fontSize="small" />,
-    // },
     {
       label: "Class Material",
       href: "/pstudyware/admin/class-material",

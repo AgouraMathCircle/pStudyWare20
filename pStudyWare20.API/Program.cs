@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -13,15 +12,6 @@ using System.Text;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Forwarded headers (required when behind GoDaddy/IIS reverse proxy)
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
-    options.KnownNetworks.Clear();
-    options.KnownProxies.Clear();
-});
-
 // Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -236,25 +226,12 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Forwarded headers must run first (required when behind GoDaddy/IIS proxy)
-app.UseForwardedHeaders();
-
-// Path base when API is hosted under a subpath (e.g. https://dev1.agourmathcircle.org/api)
-var pathBase = builder.Configuration["PathBase"]?.Trim().TrimEnd('/') ?? "";
-if (!string.IsNullOrEmpty(pathBase) && !pathBase.StartsWith("/"))
-    pathBase = "/" + pathBase;
-if (!string.IsNullOrEmpty(pathBase))
-    app.UsePathBase(pathBase);
-
 // Configure the HTTP request pipeline.
 // Enable Swagger in all environments for easier testing
-var swaggerJsonUrl = string.IsNullOrEmpty(pathBase)
-    ? "/swagger/v1/swagger.json"
-    : $"{pathBase}/swagger/v1/swagger.json";
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint(swaggerJsonUrl, "pStudyWare20 API v1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "pStudyWare20 API v1");
     c.RoutePrefix = "swagger";
     c.DocumentTitle = "pStudyWare20 API Documentation";
     c.DefaultModelsExpandDepth(2);

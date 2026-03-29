@@ -100,7 +100,7 @@ const StudentProfile = ({ username, chapterId }) => {
 
   const handleEditProfile = (studentId) => {
     // Navigate to UpdateProfile page with studentId
-    navigate(`/student/updateprofile/${studentId}`);
+    navigate(`/UpdateProfile/${studentId}`);
   };
 
   // Handle page change
