@@ -5,7 +5,10 @@ class StudentService {
   async registerStudent(studentData) {
     try {
       console.log("Submitting student registration:", studentData);
-      const response = await api.post("/StudentRegistration", studentData);
+      // Longer timeout: registration runs DB + emails and often exceeds default 10s
+      const response = await api.post("/StudentRegistration", studentData, {
+        timeout: 120000,
+      });
       console.log("Student registration response:", response.data);
       return response.data;
     } catch (error) {
@@ -455,6 +458,10 @@ class StudentService {
             data.message || `Server error (${status}). Please try again.`,
           );
       }
+    } else if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      return new Error(
+        "The request took too long (server may be busy). Please wait a moment and try again, or check your connection.",
+      );
     } else if (error.request) {
       // Network error
       console.error("Network Error:", error.request);

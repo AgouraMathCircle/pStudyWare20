@@ -81,6 +81,18 @@ const studentDashboardService = {
   },
 
   /**
+   * Updates student profile (UpdateProfile.aspx — AMC_spUpdateStudentProfile).
+   * @param {object} body - UpdateStudentProfileRequest (camelCase)
+   */
+  updateStudentProfile: async (body) => {
+    const response = await api.post(
+      `${STUDENT_DASHBOARD_API_BASE_URL}/UpdateStudentProfile`,
+      body
+    );
+    return response.data;
+  },
+
+  /**
    * Gets student report card/grades
    * @param {string} username - Student username
    * @returns {Promise<object>} Report card data

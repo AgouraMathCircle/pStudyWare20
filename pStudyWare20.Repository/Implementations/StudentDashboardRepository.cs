@@ -155,5 +155,31 @@ namespace pStudyWare20.Repository.Implementations
             adapter.Fill(dataTable);
             return dataTable;
         }
+
+        /// <inheritdoc />
+        public async Task UpdateStudentProfileAsync(UpdateStudentProfileRequest request)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand("AMC_spUpdateStudentProfile", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            command.Parameters.AddWithValue("@StudentID", request.StudentID);
+            command.Parameters.AddWithValue("@StudentFName", request.StudentFName ?? "");
+            command.Parameters.AddWithValue("@StudentLName", request.StudentLName ?? "");
+            command.Parameters.AddWithValue("@StudentEmail", request.StudentEmail ?? "");
+            command.Parameters.AddWithValue("@School", request.School ?? "");
+            command.Parameters.AddWithValue("@Grade", request.Grade ?? "");
+            command.Parameters.AddWithValue("@City", request.City ?? "");
+            command.Parameters.AddWithValue("@State", request.State ?? "");
+            command.Parameters.AddWithValue("@Country", request.Country ?? "");
+            command.Parameters.AddWithValue("@PhoneNumber", request.PhoneNumber ?? "");
+            command.Parameters.AddWithValue("@Class", request.Class ?? "");
+            command.Parameters.AddWithValue("@MemberType", request.MemberType ?? "");
+
+            await connection.OpenAsync();
+            await command.ExecuteNonQueryAsync();
+        }
     }
 }

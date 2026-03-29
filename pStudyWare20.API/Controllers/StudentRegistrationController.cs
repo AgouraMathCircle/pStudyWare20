@@ -46,11 +46,11 @@ namespace pStudyWare20.API.Controllers
                 // rblUserName.SelectedValue == "S" → UserName = txtstEmail.Text
                 if (string.IsNullOrEmpty(studentDetails.UserName))
                 {
-                    if (studentDetails.UserNameType == "P")
+                    if (studentDetails.UserName == "P")
                     {
                         studentDetails.UserName = studentDetails.ParentEmail;
                     }
-                    else if (studentDetails.UserNameType == "S")
+                    else if (studentDetails.UserName == "S")
                     {
                         studentDetails.UserName = studentDetails.StudentEmail;
                     }

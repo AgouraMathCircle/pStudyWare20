@@ -102,7 +102,6 @@ namespace pStudyWare20.Shared
         public string Class { get; set; } = string.Empty;
 
         [Display(Name = "Section")]
-        [Required(ErrorMessage = "Section is required")]
         public string Section { get; set; } = string.Empty;
 
         [Display(Name = "Chapter ID")]

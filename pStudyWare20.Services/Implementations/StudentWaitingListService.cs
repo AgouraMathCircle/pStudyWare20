@@ -53,13 +53,20 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                var response = await _repository.UpdateStudentWaitingListStatusAsync(request);
+                OperationResponse response;
+                if (string.Equals(request.ApplicationStatus, "A", StringComparison.OrdinalIgnoreCase))
+                {
+                    UpdateClassSectionDefault(request);
+                    response = await _repository.UpdateStudentWaitingListStatusAsync(request);
+                }
+                else
+                    response = await _repository.DeleteStudentAsync(new DeleteStudentRequest
+                    {
+                        StudentId = request.StudentID ?? ""
+                    });
 
                 if (response.IsSuccess)
-                {
-                    // Send email notifications
                     await SendEmailNotificationsAsync(request);
-                }
 
                 return response;
             }
@@ -155,6 +162,20 @@ namespace pStudyWare20.Services.Implementations
                     ErrorMessage = ex.Message
                 };
             }
+        }
+
+        /// <summary>
+        /// Matches StudentWaitingList.aspx.cs UpdateClass(): section A if SI/SA or ChapterID != "1", else B.
+        /// Applied when the client omits section (or whitespace) so Action=E-style flows still match legacy.
+        /// </summary>
+        private static void UpdateClassSectionDefault(UpdateStudentWaitingListStatusRequest request)
+        {
+            if (!string.IsNullOrWhiteSpace(request.Section))
+                return;
+
+            var cls = (request.Class ?? "").Trim();
+            var ch = (request.ChapterID ?? "").Trim();
+            request.Section = cls == "SI" || cls == "SA" || ch != "1" ? "A" : "B";
         }
 
         /// <summary>

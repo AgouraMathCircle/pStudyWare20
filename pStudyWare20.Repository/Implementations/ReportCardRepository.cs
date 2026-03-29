@@ -22,7 +22,7 @@ namespace pStudyWare20.Repository.Implementations
                 }
 
                 /// <summary>
-                /// Get report card list (uses AMC_spGetReportCardList; if missing in DB, try AMC_spReportCard with @Username)
+                /// Get report card list — matches ReportCard.aspx.cs BindGridView(): AMC_spReportCard with @Username only.
                 /// </summary>
                 public async Task<object> GetReportCardListAsync(string username)
                 {
@@ -33,7 +33,7 @@ namespace pStudyWare20.Repository.Implementations
                                 using var connection = new SqlConnection(_connectionString);
                                 await connection.OpenAsync();
 
-                                using var command = new SqlCommand("AMC_spGetReportCardList", connection)
+                                using var command = new SqlCommand("AMC_spReportCard", connection)
                                 {
                                         CommandType = CommandType.StoredProcedure
                                 };

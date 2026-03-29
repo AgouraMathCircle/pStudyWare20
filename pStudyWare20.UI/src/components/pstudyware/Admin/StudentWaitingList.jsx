@@ -84,6 +84,22 @@ function parseStudentClassInfo(str) {
   };
 }
 
+/** Legacy UpdateClass + drLocation: O/I from parsed value or EventLocation display text. */
+function waitingListLocationCode(parsedLocation, eventLocation) {
+  const p = (parsedLocation || "").trim().toUpperCase();
+  if (p === "I" || p === "O") return p;
+  const s = (eventLocation || "").toString().toLowerCase();
+  if (s.includes("internet") || s === "i" || s === "online") return "I";
+  return "O";
+}
+
+/** Legacy StudentWaitingList.aspx.cs UpdateClass() section default. */
+function waitingListDefaultSection(classCode, chapterID) {
+  const cls = (classCode || "").trim();
+  const ch = String(chapterID ?? "").trim();
+  return cls === "SI" || cls === "SA" || ch !== "1" ? "A" : "B";
+}
+
 const StudentWaitingList = () => {
   const { user, isAuthenticated } = useAuth();
   const [list, setList] = useState([]);
@@ -311,6 +327,8 @@ const StudentWaitingList = () => {
   const handleEdit = (row) => {
     setSelectedRow(row);
     const parsed = parseStudentClassInfo(row.studentClassInfo);
+    const classCode = (parsed.class || row.class || "").trim();
+    const chapterID = (parsed.chapterID || "").trim();
     setForm({
       firstName:
         parsed.firstName || (row.studentName || "").split(" ")[0] || "",
@@ -318,11 +336,11 @@ const StudentWaitingList = () => {
         parsed.lastName ||
         (row.studentName || "").split(" ").slice(1).join(" ") ||
         "",
-      chapterID: parsed.chapterID || "",
-      location: parsed.location || row.eventLocation === "Internet" ? "I" : "O",
+      chapterID,
+      location: waitingListLocationCode(parsed.location, row.eventLocation),
       session: parsed.session || row.eventSession || "F2024",
-      class: parsed.class || row.class || "",
-      section: "A",
+      class: classCode,
+      section: waitingListDefaultSection(classCode, chapterID),
       applicationStatus: row.applicationStatus === "Declined" ? "D" : "A",
       reason: "",
     });

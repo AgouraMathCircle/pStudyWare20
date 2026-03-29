@@ -35,7 +35,7 @@ namespace pStudyWare20.Services.Implementations
                 return new RegisteredStudentListResponse
                 {
                     IsSuccess = true,
-                    StudentList = studentList
+                    StudentList = studentList is DataTable dt ? ConvertDataTableToRowList(dt) : studentList
                 };
             }
             catch (Exception ex)
@@ -177,7 +177,7 @@ namespace pStudyWare20.Services.Implementations
                 return new ChapterLocationResponse
                 {
                     IsSuccess = true,
-                    ChapterLocations = (List<ChapterLocation>)chapterLocations
+                    ChapterLocations = MapDataTableToChapterLocations(chapterLocations as DataTable)
                 };
             }
             catch (Exception ex)
@@ -241,11 +241,14 @@ namespace pStudyWare20.Services.Implementations
 
                 await Task.WhenAll(studentListTask, chapterLocationsTask);
 
+                var studentTable = await studentListTask as DataTable;
+                var chapterTable = await chapterLocationsTask as DataTable;
+
                 return new RegisteredStudentListDashboardResponse
                 {
                     IsSuccess = true,
-                    StudentList = await studentListTask,
-                    ChapterLocations = await chapterLocationsTask
+                    StudentList = studentTable != null ? ConvertDataTableToRowList(studentTable) : new List<Dictionary<string, object?>>(),
+                    ChapterLocations = MapDataTableToChapterLocations(chapterTable)
                 };
             }
             catch (Exception ex)
@@ -337,6 +340,60 @@ namespace pStudyWare20.Services.Implementations
             }
 
             return Encoding.UTF8.GetBytes(sb.ToString());
+        }
+
+        /// <summary>
+        /// Serializes AMC_spSelectStudentList (and similar) results for JSON — System.Text.Json does not serialize DataTable usefully.
+        /// </summary>
+        private static List<Dictionary<string, object?>> ConvertDataTableToRowList(DataTable? table)
+        {
+            var list = new List<Dictionary<string, object?>>();
+            if (table == null || table.Rows.Count == 0)
+                return list;
+
+            foreach (DataRow row in table.Rows)
+            {
+                var dict = new Dictionary<string, object?>();
+                foreach (DataColumn col in table.Columns)
+                {
+                    var key = ToCamelCaseColumnName(col.ColumnName);
+                    dict[key] = row[col] == DBNull.Value ? null : row[col];
+                }
+                list.Add(dict);
+            }
+
+            return list;
+        }
+
+        private static string ToCamelCaseColumnName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return name;
+            if (name.Length == 1)
+                return name.ToLowerInvariant();
+            return char.ToLowerInvariant(name[0]) + name.Substring(1);
+        }
+
+        /// <summary>
+        /// Maps AMC_spSelectChapter result to ChapterLocation (same shape as legacy BindChapterLocation).
+        /// </summary>
+        private static List<ChapterLocation> MapDataTableToChapterLocations(DataTable? table)
+        {
+            var chapterLocations = new List<ChapterLocation>();
+            if (table == null || table.Rows.Count == 0)
+                return chapterLocations;
+
+            foreach (DataRow row in table.Rows)
+            {
+                chapterLocations.Add(new ChapterLocation
+                {
+                    ChapterID = row.Table.Columns.Contains("ChapterID") ? row["ChapterID"]?.ToString() ?? "" : "",
+                    ChapterName = row.Table.Columns.Contains("ChapterName") ? row["ChapterName"]?.ToString() ?? "" : "",
+                    Location = row.Table.Columns.Contains("Location") ? row["Location"]?.ToString() ?? "" : ""
+                });
+            }
+
+            return chapterLocations;
         }
     }
 }

@@ -139,6 +139,40 @@ namespace pStudyWare20.Shared
     }
 
     /// <summary>
+    /// Update student profile (UpdateProfile.aspx.cs — AMC_spUpdateStudentProfile).
+    /// </summary>
+    public class UpdateStudentProfileRequest
+    {
+        [Required]
+        public int StudentID { get; set; }
+
+        public string StudentFName { get; set; } = string.Empty;
+        public string StudentLName { get; set; } = string.Empty;
+        public string StudentEmail { get; set; } = string.Empty;
+        public string School { get; set; } = string.Empty;
+        public string Grade { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        public string State { get; set; } = string.Empty;
+        public string Country { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        /// <summary>Legacy passes empty string.</summary>
+        public string Class { get; set; } = string.Empty;
+
+        /// <summary>Member type (e.g. S). Optional if API fills from JWT.</summary>
+        public string? MemberType { get; set; }
+    }
+
+    /// <summary>
+    /// Response for update student profile
+    /// </summary>
+    public class UpdateStudentProfileResponse
+    {
+        public bool IsSuccess { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+
+    /// <summary>
     /// Request to get report card
     /// </summary>
     public class GetReportCardRequest

@@ -1,5 +1,11 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useParams,
+} from "react-router-dom";
 import { AuthProvider } from "./src/contexts/AuthContext";
 import AppLayout from "./src/components/AppLayout";
 import Home from "./src/components/Home";
@@ -41,12 +47,11 @@ import ProtectedRoute from "./src/components/ProtectedRoute";
 import RoleProtectedRoute from "./src/components/RoleProtectedRoute";
 import StudentDashboard from "./src/components/pstudyware/Student/StudentDashboard";
 import ClassMaterial from "./src/components/pstudyware/Student/ClassMaterial";
-import UpdateProfile from "./src/components/pstudyware/Student/UpdateProfile";
+import UpdateProfile from "./src/components/pstudyware/Common/UpdateProfile";
 import StudentDocuments from "./src/components/pstudyware/Student/StudentDocuments";
 import OnlineExam from "./src/components/pstudyware/Student/OnlineExam";
 import ReportCard from "./src/components/pstudyware/Student/ReportCard";
 import AdminDashboard from "./src/components/pstudyware/Admin/AdminDashboard";
-import AdminStudents from "./src/components/pstudyware/Admin/AdminStudents";
 import AdminInstructors from "./src/components/pstudyware/Admin/AdminInstructors";
 import AdminVolunteers from "./src/components/pstudyware/Admin/AdminVolunteers";
 import AdminReports from "./src/components/pstudyware/Admin/AdminReports";
@@ -73,6 +78,16 @@ import {
   MeetingDetails,
   UpdatePassword,
 } from "./src/components/pstudyware/Common";
+
+function UpdateProfileRedirect() {
+  const { studentId } = useParams();
+  return <Navigate to={`/UpdateProfile/${studentId}`} replace />;
+}
+
+// function PstudywareUpdateProfileRedirect() {
+//   const { studentId } = useParams();
+//   return <Navigate to={`/UpdateProfile/${studentId}`} replace />;
+// }
 
 const AppRoutes = () => {
   return (
@@ -287,13 +302,53 @@ const AppRoutes = () => {
               }
             />
             <Route
+              path="/UpdateProfile"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={[
+                    "Student",
+                    "Admin",
+                    "SystemAdmin",
+                    "Instructor",
+                  ]}
+                  allowedMemberTypes={["S", "A", "I"]}
+                >
+                  <UpdateProfile />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/UpdateProfile/:studentId"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={[
+                    "Student",
+                    "Admin",
+                    "SystemAdmin",
+                    "Instructor",
+                  ]}
+                  allowedMemberTypes={["S", "A", "I"]}
+                >
+                  <UpdateProfile />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/student/update-profile"
+              element={<Navigate to="/UpdateProfile" replace />}
+            />
+            {/* <Route
+              path="/pstudyware/student/update-profile/:studentId"
+              element={<PstudywareUpdateProfileRedirect />}
+            /> */}
+            <Route
               path="/student/updateprofile/:studentId"
               element={
                 <RoleProtectedRoute
                   allowedRoles={["Student"]}
                   allowedMemberTypes={["S"]}
                 >
-                  <UpdateProfile />
+                  <UpdateProfileRedirect />
                 </RoleProtectedRoute>
               }
             />
@@ -333,7 +388,7 @@ const AppRoutes = () => {
               }
             />
             <Route
-              path="/pstudyware/admin/students"
+              path="/pstudyware/admin/registeredstudentlist"
               element={
                 <RoleProtectedRoute
                   allowedRoles={["Admin", "SystemAdmin"]}
@@ -341,6 +396,15 @@ const AppRoutes = () => {
                 >
                   <RegisteredStudentList />
                 </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/students"
+              element={
+                <Navigate
+                  to="/pstudyware/admin/registeredstudentlist"
+                  replace
+                />
               }
             />
             <Route
@@ -520,15 +584,19 @@ const AppRoutes = () => {
               }
             />
             <Route
-              path="/admin/students"
+              path="/admin/registeredstudentlist"
               element={
                 <RoleProtectedRoute
                   allowedRoles={["Admin", "SystemAdmin"]}
                   allowedMemberTypes={["A"]}
                 >
-                  <AdminStudents />
+                  <RegisteredStudentList />
                 </RoleProtectedRoute>
               }
+            />
+            <Route
+              path="/admin/students"
+              element={<Navigate to="/admin/registeredstudentlist" replace />}
             />
             <Route
               path="/admin/instructors"

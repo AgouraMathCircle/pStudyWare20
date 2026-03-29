@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
+using System.Security.Claims;
 
 namespace pStudyWare20.API.Controllers
 {
@@ -177,6 +178,23 @@ namespace pStudyWare20.API.Controllers
                 return BadRequest(new CheckRegistrationEligibilityResponse { IsSuccess = false, Message = "Username is required" });
 
             var response = await _studentDashboardService.CheckRegistrationEligibilityAsync(request);
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Updates student profile (UpdateProfile.aspx.cs — AMC_spUpdateStudentProfile).
+        /// </summary>
+        [HttpPost("UpdateStudentProfile")]
+        [Authorize]
+        public async Task<ActionResult<UpdateStudentProfileResponse>> UpdateStudentProfile([FromBody] UpdateStudentProfileRequest request)
+        {
+            if (request == null || request.StudentID <= 0)
+                return BadRequest(new UpdateStudentProfileResponse { IsSuccess = false, Message = "Valid Student ID is required" });
+
+            if (string.IsNullOrWhiteSpace(request.MemberType))
+                request.MemberType = User.FindFirst("MemberType")?.Value ?? User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+
+            var response = await _studentDashboardService.UpdateStudentProfileAsync(request);
             return Ok(response);
         }
     }

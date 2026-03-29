@@ -69,5 +69,10 @@ namespace pStudyWare20.Services.Interfaces
         /// <param name="request">Request containing username</param>
         /// <returns>Registration eligibility response</returns>
         Task<CheckRegistrationEligibilityResponse> CheckRegistrationEligibilityAsync(CheckRegistrationEligibilityRequest request);
+
+        /// <summary>
+        /// Updates student profile (UpdateProfile.aspx — AMC_spUpdateStudentProfile).
+        /// </summary>
+        Task<UpdateStudentProfileResponse> UpdateStudentProfileAsync(UpdateStudentProfileRequest request);
     }
 }
