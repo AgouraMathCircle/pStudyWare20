@@ -21,6 +21,7 @@ namespace pStudyWare20.Services.Implementations
             try
             {
                 string adminEmail = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
+                string amcRegistrationemail = _configuration.GetSection("AppSettings")["AMCRegistrationEmailID"] ?? "test.admin@agouramathcircle.org";
 
                 // Email to Admin (matches old file logic)
                 string adminSubject = "Agoura Math Circle : New Volunteer request from: " + volunteerDetail.FirstName + " " + volunteerDetail.LastName + ".";
@@ -33,12 +34,12 @@ namespace pStudyWare20.Services.Implementations
                                 + " Interested For : " + volunteerDetail.InterestedFor + "<br/>"
                                 + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-               var adminEmailResult = SendEmail(adminEmail, volunteerDetail.Email, adminSubject, adminBody);
+                var adminEmailResult = SendEmail(amcRegistrationemail, volunteerDetail.Email, adminSubject, adminBody);
                 if (!adminEmailResult == true)
-                { 
+                {
                     return adminEmailResult.ToString();
                 }
-                
+
                 // Email to Volunteer (matches old file logic)
                 string volunteerSubject = "Agoura Math Circle : New Volunteer Request confirmation for " + volunteerDetail.FirstName + " " + volunteerDetail.LastName + ".";
                 string volunteerBody = volunteerDetail.FirstName + " " + volunteerDetail.LastName + ",<Br>"
@@ -64,12 +65,13 @@ namespace pStudyWare20.Services.Implementations
         public string SendEmailtoAdminForStudentRegistration(RegistrationStudentModel studentDetail)
         {
             try
-            {
-                // Use RegistrationEmailGroup from config (matches InformMe() logic in .aspx.cs line 149)
-                string adminEmail = _configuration.GetSection("AppSettings")["RegistrationEmailGroup"]
-                    ?? _configuration.GetSection("AppSettings")["AdminEmailID"]
-                    ?? "info@agouramathcircle.net";
+            {  
+                string amcRegistrationemail = _configuration.GetSection("AppSettings")["AMCRegistrationEmailID"] ?? "info@agouramathcircle.net";
+
                 string emailBCC = "";
+
+                string emailSendTo = amcRegistrationemail; 
+                string emailFrom = studentDetail.ParentEmail; // matches .aspx.cs line 200: EmailFrom = ConfigurationManager.AppSettings["Email"]            
 
                 // Email to Admin (matches InformMe() logic in .aspx.cs lines 142-148)
                 string adminSubject = "Agoura Math Circle : New Registration request from: " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + ".";
@@ -83,21 +85,17 @@ namespace pStudyWare20.Services.Implementations
                 // Special handling for LocationId == 3 (BCC to support.ic@agouramathcircle.org)
                 if (studentDetail.LocationId.ToString() == "3")
                 {
-                    emailBCC = "support.ic@agouramathcircle.org";
-                    string adminEmailResult = SendEmailGroupAsync(adminEmail, studentDetail.ParentEmail, adminSubject, adminBody, emailBCC).Result;
-                    if (adminEmailResult.Contains("Error"))
-                    {
-                        return adminEmailResult;
-                    }
-                }
-                else
-                {
-                    // SendEmail(EmailSendTo, EmailFrom, Emailsubject, RegistrationInfo) - matches .aspx.cs line 152
-                    SendEmail(adminEmail, studentDetail.ParentEmail, adminSubject, adminBody);
+                    //emailBCC = "support.ic@agouramathcircle.org";
+                    //string adminEmailResult = SendEmailGroupAsync(amcRegistrationemail, studentDetail.ParentEmail, adminSubject, adminBody, emailBCC).Result;
                     //if (adminEmailResult.Contains("Error"))
                     //{
                     //    return adminEmailResult;
                     //}
+                }
+                else
+                {
+                    // SendEmail(EmailSendTo, EmailFrom, Emailsubject, RegistrationInfo) - matches .aspx.cs line 152
+                    SendEmail(emailSendTo, emailFrom, adminSubject, adminBody);                   
                 }
 
                 return "Admin email sent successfully";
@@ -112,13 +110,11 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                // Use Email from config (matches InformParent() logic in .aspx.cs line 200)
-                string adminEmail = _configuration.GetSection("AppSettings")["Email"]
-                    ?? _configuration.GetSection("AppSettings")["AdminEmailID"]
-                    ?? "info@agouramathcircle.net";
+                string amcRegistrationemail = _configuration.GetSection("AppSettings")["AMCRegistrationEmailID"] ?? "info@agouramathcircle.net";
+                
 
                 string emailSendTo = studentDetail.ParentEmail; // matches .aspx.cs line 199: EmailSendTo = txtParentEmail.Text
-                string emailFrom = adminEmail; // matches .aspx.cs line 200: EmailFrom = ConfigurationManager.AppSettings["Email"]
+                string emailFrom = amcRegistrationemail; // matches .aspx.cs line 200: EmailFrom = ConfigurationManager.AppSettings["Email"]
                 string emailSubject;
                 string registrationInfo;
 
