@@ -44,7 +44,7 @@ namespace pStudyWare20.API.Controllers
                 // Step 3: Determine UserName based on UserNameType (matches .aspx.cs lines 41-46)
                 // rblUserName.SelectedValue == "P" → UserName = txtParentEmail.Text
                 // rblUserName.SelectedValue == "S" → UserName = txtstEmail.Text
-                if (string.IsNullOrEmpty(studentDetails.UserName))
+                if (!string.IsNullOrEmpty(studentDetails.UserName))
                 {
                     if (studentDetails.UserName == "P")
                     {
