@@ -23,6 +23,8 @@ namespace pStudyWare20.Services.Implementations
                 string adminEmail = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
                 string amcRegistrationemail = _configuration.GetSection("AppSettings")["AMCRegistrationEmailID"] ?? "test.admin@agouramathcircle.org";
 
+                string emailFrom = adminEmail; 
+                string emailSendTo = amcRegistrationemail;
                 // Email to Admin (matches old file logic)
                 string adminSubject = "Agoura Math Circle : New Volunteer request from: " + volunteerDetail.FirstName + " " + volunteerDetail.LastName + ".";
                 string adminBody = "Just Recieved New Volunteer request from " + volunteerDetail.FirstName + " " + volunteerDetail.LastName + "<br/>"
@@ -34,11 +36,29 @@ namespace pStudyWare20.Services.Implementations
                                 + " Interested For : " + volunteerDetail.InterestedFor + "<br/>"
                                 + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                var adminEmailResult = SendEmail(amcRegistrationemail, volunteerDetail.Email, adminSubject, adminBody);
+                var adminEmailResult = SendEmail(amcRegistrationemail, adminEmail, adminSubject, adminBody);
                 if (!adminEmailResult == true)
                 {
                     return adminEmailResult.ToString();
                 }
+                
+                return "Emails sent successfully";
+            }
+            catch (Exception ex)
+            {
+                return $"Error sending emails: {ex.Message}";
+            }
+        }
+
+        public string SendEmailtoUserForVolunteerRegistration(RegistrationVolunteerModel volunteerDetail)
+        {
+            try
+            {
+                string adminEmail = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
+
+                string emailFrom = adminEmail;
+                string emailSendTo = volunteerDetail.Email;
+
 
                 // Email to Volunteer (matches old file logic)
                 string volunteerSubject = "Agoura Math Circle : New Volunteer Request confirmation for " + volunteerDetail.FirstName + " " + volunteerDetail.LastName + ".";
@@ -65,14 +85,15 @@ namespace pStudyWare20.Services.Implementations
         public string SendEmailtoAdminForStudentRegistration(RegistrationStudentModel studentDetail)
         {
             try
-            {  
-                string amcRegistrationemail = _configuration.GetSection("AppSettings")["AMCRegistrationEmailID"] ?? "info@agouramathcircle.net";
+            {
+                string amcRegistrationemail = _configuration.GetSection("AppSettings")["AMCRegistrationEmailID"] ?? "registration@agouramathcircle.org"; 
+                string adminEmail = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
+
 
                 string emailBCC = "";
 
-                string emailSendTo = amcRegistrationemail; 
-                string emailFrom = studentDetail.ParentEmail; // matches .aspx.cs line 200: EmailFrom = ConfigurationManager.AppSettings["Email"]            
-
+                string emailFrom = adminEmail;
+                string emailSendTo = amcRegistrationemail;
                 // Email to Admin (matches InformMe() logic in .aspx.cs lines 142-148)
                 string adminSubject = "Agoura Math Circle : New Registration request from: " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + ".";
                 string adminBody = "Just Recieved New Registration request from " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + "<br/>"
@@ -110,11 +131,10 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                string amcRegistrationemail = _configuration.GetSection("AppSettings")["AMCRegistrationEmailID"] ?? "info@agouramathcircle.net";
-                
+                string adminEmail = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
 
-                string emailSendTo = studentDetail.ParentEmail; // matches .aspx.cs line 199: EmailSendTo = txtParentEmail.Text
-                string emailFrom = amcRegistrationemail; // matches .aspx.cs line 200: EmailFrom = ConfigurationManager.AppSettings["Email"]
+                string emailFrom = adminEmail;
+                string emailSendTo = studentDetail.ParentEmail;
                 string emailSubject;
                 string registrationInfo;
 
@@ -132,7 +152,6 @@ namespace pStudyWare20.Services.Implementations
                 }
                 else
                 {
-                    // Matches InformParent() logic in .aspx.cs lines 189-196
                     emailSubject = "Agoura Math Circle : New Registration confirmation for " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + ".";
                     registrationInfo = "Thank you very much for registering in Agoura Math Circle. We have recieved your application for " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + ".<br/>"
                                     + " Session: " + (string.IsNullOrEmpty(studentDetail.SessionName) ? studentDetail.SessionId : studentDetail.SessionName) + "<br/>"
@@ -147,7 +166,7 @@ namespace pStudyWare20.Services.Implementations
                 // Matches InformParent() logic in .aspx.cs line 201: if (rblUserName.SelectedIndex == 0)
                 // SelectedIndex == 0 means first option selected, which is "P" (Parent)
                 string emailResult;
-                if (studentDetail.UserNameType == "P" || studentDetail.UserName == studentDetail.ParentEmail)
+                if (studentDetail.UserName == studentDetail.ParentEmail)
                 {
                     // Username is parent email (UserNameType="P" or rblUserName.SelectedIndex==0) - use SendEmail (matches .aspx.cs line 203)
                     SendEmail(emailSendTo, emailFrom, emailSubject, registrationInfo);

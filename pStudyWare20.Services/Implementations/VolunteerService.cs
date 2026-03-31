@@ -32,7 +32,9 @@ namespace pStudyWare20.Services.Implementations
                 {
                     // Send email notification to admin
                     _emailUtility.SendEmailtoAdminForVolunteerRegistration(volunteerDetails);
-                    
+                    // Send email notification to user
+                    _emailUtility.SendEmailtoUserForVolunteerRegistration(volunteerDetails);
+
                     responseDetails.isSuccess = true;
                     responseDetails.ErrorMessage = "";
                     responseDetails.Message = "Registered";
