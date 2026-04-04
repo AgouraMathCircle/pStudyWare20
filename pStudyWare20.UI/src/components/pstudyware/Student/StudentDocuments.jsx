@@ -40,11 +40,14 @@ import {
   KeyboardArrowRight as NextPageIcon,
   LastPage as LastPageIcon,
 } from "@mui/icons-material";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
 import StudentHeader from "./StudentHeader";
 
 const StudentDocuments = () => {
+  const location = useLocation();
+  const hideRoleHeader = location.pathname.includes("/pstudyware/instructor/");
   const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState([]);
@@ -479,9 +482,8 @@ const StudentDocuments = () => {
 
   return (
     <Box className="student-dashboard">
-      <StudentHeader user={user} />
-      {/* Spacer to account for fixed StudentHeader */}
-      <Box sx={{ height: "80px" }} />
+      {!hideRoleHeader && <StudentHeader user={user} />}
+      {!hideRoleHeader && <Box sx={{ height: "80px" }} aria-hidden />}
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

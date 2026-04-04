@@ -76,6 +76,8 @@ const AppLayout = ({ children }) => {
   const isDashboardRoute = () => {
     return (
       location.pathname.startsWith("/pstudyware/student/") ||
+      location.pathname.startsWith("/pstudyware/instructor/") ||
+      location.pathname.startsWith("/pstudyware/volunteer/") ||
       location.pathname.startsWith("/admin/") ||
       location.pathname.startsWith("/instructor/") ||
       location.pathname.startsWith("/volunteer/") ||

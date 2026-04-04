@@ -92,13 +92,13 @@ const Login = () => {
             navigate("/pstudyware/admin/dashboard", { replace: true });
             break;
           case "Instructor":
-            navigate("/instructor/dashboard", { replace: true });
+            navigate("/pstudyware/instructor/dashboard", { replace: true });
             break;
           case "Student":
             navigate("/pstudyware/student/dashboard", { replace: true });
             break;
           case "Volunteer":
-            navigate("/volunteer/dashboard", { replace: true });
+            navigate("/pstudyware/volunteer/dashboard", { replace: true });
             break;
           default:
             navigate("/dashboard", { replace: true });

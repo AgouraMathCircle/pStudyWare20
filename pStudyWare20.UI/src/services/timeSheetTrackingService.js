@@ -35,6 +35,17 @@ const timeSheetTrackingService = {
     const response = await api.get(`${BASE}/CheckTimeSheetTrackingPrivileges`);
     return response.data;
   },
+  /** Load one entry for edit (volunteer self-service). */
+  getTimeSheetForEdit: async (logId, username) => {
+    const response = await api.get(`${BASE}/GetTimeSheetTrackingForEdit/${logId}`, {
+      params: username ? { username } : undefined,
+    });
+    return response.data;
+  },
+  deleteTimeSheetTrackingById: async (logId) => {
+    const response = await api.delete(`${BASE}/DeleteTimeSheetTracking/${logId}`);
+    return response.data;
+  },
 };
 
 export default timeSheetTrackingService;

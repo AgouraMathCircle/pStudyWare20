@@ -8,6 +8,7 @@ import {
   CircularProgress,
   Grid,
 } from "@mui/material";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
 import adminDashboardService from "../../../services/adminDashboardService";
@@ -16,6 +17,8 @@ import AdminDocumentList from "./AdminDocumentList";
 import DocumentUploadForm from "./DocumentUploadForm";
 
 const Documents = () => {
+  const location = useLocation();
+  const hideRoleHeader = location.pathname.includes("/pstudyware/instructor/");
   const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -291,9 +294,10 @@ const Documents = () => {
 
   return (
     <Box>
-      <AdminHeader user={user} />
-      {/* Spacer to account for fixed AdminHeader */}
-      <Box sx={{ height: "72px" }} />
+      {!hideRoleHeader && <AdminHeader user={user} />}
+      {!hideRoleHeader && (
+        <Box sx={{ height: "72px" }} aria-hidden />
+      )}
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12}>

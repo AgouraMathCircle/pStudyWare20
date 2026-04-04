@@ -71,6 +71,15 @@ import PostMessage from "./src/components/pstudyware/Admin/PostMessage";
 import UploadAnswerKey from "./src/components/pstudyware/Admin/UploadAnswerKey";
 import UpdateLookupSemester from "./src/components/pstudyware/Admin/UpdateLookupSemester";
 import AdminReportCard from "./src/components/pstudyware/Admin/AdminReportCard";
+import {
+  InstructorShell,
+  InstructorDashboard,
+} from "./src/components/pstudyware/instructor";
+import {
+  VolunteerShell,
+  VolunteerDashboard,
+  VolunteerTimeSheet,
+} from "./src/components/pstudyware/Volunteer";
 import SentEmail from "./src/components/pstudyware/Common/SentEmail";
 import {
   DocumentsRepository,
@@ -722,13 +731,67 @@ const AppRoutes = () => {
 
             {/* Instructor Routes */}
             <Route
+              path="/pstudyware/instructor/dashboard"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Instructor"]}
+                  allowedMemberTypes={["I"]}
+                >
+                  <InstructorShell>
+                    <InstructorDashboard />
+                  </InstructorShell>
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/instructor/class-material"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Instructor"]}
+                  allowedMemberTypes={["I"]}
+                >
+                  <InstructorShell>
+                    <Documents />
+                  </InstructorShell>
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/instructor/student-documents"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Instructor"]}
+                  allowedMemberTypes={["I"]}
+                >
+                  <InstructorShell>
+                    <StudentDocuments />
+                  </InstructorShell>
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/instructor/report-card"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Instructor"]}
+                  allowedMemberTypes={["I"]}
+                >
+                  <InstructorShell>
+                    <AdminReportCard />
+                  </InstructorShell>
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
               path="/pstudyware/instructor/message-center"
               element={
                 <RoleProtectedRoute
                   allowedRoles={["Instructor"]}
                   allowedMemberTypes={["I"]}
                 >
-                  <EmailManager />
+                  <InstructorShell>
+                    <EmailManager />
+                  </InstructorShell>
                 </RoleProtectedRoute>
               }
             />
@@ -739,12 +802,40 @@ const AppRoutes = () => {
                   allowedRoles={["Instructor"]}
                   allowedMemberTypes={["I"]}
                 >
-                  <UpdatePassword />
+                  <InstructorShell>
+                    <UpdatePassword />
+                  </InstructorShell>
                 </RoleProtectedRoute>
               }
             />
 
             {/* Volunteer Routes */}
+            <Route
+              path="/pstudyware/volunteer/dashboard"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Volunteer"]}
+                  allowedMemberTypes={["V"]}
+                >
+                  <VolunteerShell>
+                    <VolunteerDashboard />
+                  </VolunteerShell>
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/volunteer/time-sheet"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Volunteer"]}
+                  allowedMemberTypes={["V"]}
+                >
+                  <VolunteerShell>
+                    <VolunteerTimeSheet />
+                  </VolunteerShell>
+                </RoleProtectedRoute>
+              }
+            />
             <Route
               path="/pstudyware/volunteer/message-center"
               element={
@@ -752,7 +843,9 @@ const AppRoutes = () => {
                   allowedRoles={["Volunteer"]}
                   allowedMemberTypes={["V"]}
                 >
-                  <EmailManager />
+                  <VolunteerShell>
+                    <EmailManager />
+                  </VolunteerShell>
                 </RoleProtectedRoute>
               }
             />
@@ -763,7 +856,9 @@ const AppRoutes = () => {
                   allowedRoles={["Volunteer"]}
                   allowedMemberTypes={["V"]}
                 >
-                  <UpdatePassword />
+                  <VolunteerShell>
+                    <UpdatePassword />
+                  </VolunteerShell>
                 </RoleProtectedRoute>
               }
             />

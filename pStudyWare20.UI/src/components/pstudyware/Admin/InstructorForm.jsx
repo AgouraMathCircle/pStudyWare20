@@ -81,17 +81,27 @@ const InstructorForm = ({
   // Initialize form data when instructor prop changes
   useEffect(() => {
     if (instructor && isEdit) {
+      const chapterIDRaw = instructor.chapterID ?? instructor.ChapterID ?? "";
+      const classRaw = instructor.class ?? instructor.Class ?? "JB";
+      const sectionRaw = instructor.section ?? instructor.Section ?? "A";
+      const typeRaw =
+        instructor.instructorType ?? instructor.InstructorType ?? "P";
+      const statusRaw =
+        instructor.memberStatus ?? instructor.MemberStatus ?? "1";
+
       setFormData({
-        instructorID: instructor.instructorID || 0,
-        firstName: instructor.firstName || "",
-        lastName: instructor.lastName || "",
-        emailID: instructor.emailID || "",
-        contactPhone: instructor.contactPhone || "",
-        chapterID: instructor.chapterID || "",
-        class: instructor.class || "JB",
-        section: instructor.section || "A",
-        instructorType: instructor.instructorType || "P",
-        memberStatus: instructor.memberStatus || "1",
+        instructorID: instructor.instructorID ?? instructor.InstructorID ?? 0,
+        firstName: instructor.firstName ?? instructor.FirstName ?? "",
+        lastName: instructor.lastName ?? instructor.LastName ?? "",
+        emailID: instructor.emailID ?? instructor.EmailID ?? "",
+        contactPhone:
+          instructor.contactPhone ?? instructor.ContactPhone ?? "",
+        // Force string IDs so <Select> matches MenuItem values.
+        chapterID: chapterIDRaw !== "" ? String(chapterIDRaw) : "",
+        class: classRaw || "JB",
+        section: sectionRaw || "A",
+        instructorType: typeRaw || "P",
+        memberStatus: statusRaw !== "" ? String(statusRaw) : "1",
       });
     } else {
       // Reset form for new instructor
@@ -101,7 +111,8 @@ const InstructorForm = ({
         lastName: "",
         emailID: "",
         contactPhone: "",
-        chapterID: chapters && chapters.length > 0 ? chapters[0].value : "",
+        chapterID:
+          chapters && chapters.length > 0 ? String(chapters[0].value) : "",
         class: "JB",
         section: "A",
         instructorType: "P",
@@ -185,7 +196,7 @@ const InstructorForm = ({
       handleClose();
     } catch (error) {
       setSubmitError(
-        error.message || "An error occurred while saving the instructor"
+        error.message || "An error occurred while saving the instructor",
       );
     }
   };
@@ -209,6 +220,233 @@ const InstructorForm = ({
     onClose();
   };
 
+  if (!open) return null;
+
+  const formFields = (
+    <Box sx={{ mt: 2 }}>
+      {submitError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {submitError}
+        </Alert>
+      )}
+
+      <Grid container spacing={2}>
+        {/* First Name */}
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="First Name"
+            name="firstName"
+            value={formData.firstName}
+            onChange={handleChange}
+            error={!!errors.firstName}
+            helperText={errors.firstName}
+            required
+            size="small"
+          />
+        </Grid>
+
+        {/* Last Name */}
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Last Name"
+            name="lastName"
+            value={formData.lastName}
+            onChange={handleChange}
+            error={!!errors.lastName}
+            helperText={errors.lastName}
+            required
+            size="small"
+          />
+        </Grid>
+
+        {/* Email */}
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Email ID"
+            name="emailID"
+            type="email"
+            value={formData.emailID}
+            onChange={handleChange}
+            error={!!errors.emailID}
+            helperText={errors.emailID}
+            required
+            size="small"
+          />
+        </Grid>
+
+        {/* Contact Phone */}
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Contact Phone"
+            name="contactPhone"
+            value={formData.contactPhone}
+            onChange={handleChange}
+            error={!!errors.contactPhone}
+            helperText={errors.contactPhone}
+            required
+            size="small"
+          />
+        </Grid>
+
+        {/* Chapter */}
+        <Grid item xs={12} sm={6}>
+          <FormControl
+            fullWidth
+            error={!!errors.chapterID}
+            required
+            size="small"
+          >
+            <InputLabel>Chapter</InputLabel>
+            <Select
+              name="chapterID"
+              value={formData.chapterID}
+              onChange={handleChange}
+              label="Chapter"
+            >
+              {chapters && chapters.length > 0 ? (
+                chapters.map((chapter) => (
+                  <MenuItem
+                    key={String(chapter.value)}
+                    value={String(chapter.value)}
+                  >
+                    {chapter.label}
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem value="">No chapters available</MenuItem>
+              )}
+            </Select>
+            {errors.chapterID && (
+              <Typography variant="caption" color="error">
+                {errors.chapterID}
+              </Typography>
+            )}
+          </FormControl>
+        </Grid>
+
+        {/* Instructor Type */}
+        <Grid item xs={12} sm={6}>
+          <FormControl
+            fullWidth
+            error={!!errors.instructorType}
+            required
+            size="small"
+          >
+            <InputLabel>Type</InputLabel>
+            <Select
+              name="instructorType"
+              value={formData.instructorType}
+              onChange={handleChange}
+              label="Type"
+            >
+              {typeOptions.map((type) => (
+                <MenuItem key={type.value} value={type.value}>
+                  {type.label}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.instructorType && (
+              <Typography variant="caption" color="error">
+                {errors.instructorType}
+              </Typography>
+            )}
+          </FormControl>
+        </Grid>
+
+        {/* Class */}
+        <Grid item xs={12} sm={6}>
+          <FormControl
+            fullWidth
+            error={!!errors.class}
+            required
+            size="small"
+          >
+            <InputLabel>Class</InputLabel>
+            <Select
+              name="class"
+              value={formData.class}
+              onChange={handleChange}
+              label="Class"
+            >
+              {classOptions.map((classOption) => (
+                <MenuItem key={classOption.value} value={classOption.value}>
+                  {classOption.label}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.class && (
+              <Typography variant="caption" color="error">
+                {errors.class}
+              </Typography>
+            )}
+          </FormControl>
+        </Grid>
+
+        {/* Section */}
+        <Grid item xs={12} sm={6}>
+          <FormControl
+            fullWidth
+            error={!!errors.section}
+            required
+            size="small"
+          >
+            <InputLabel>Section</InputLabel>
+            <Select
+              name="section"
+              value={formData.section}
+              onChange={handleChange}
+              label="Section"
+            >
+              {sectionOptions.map((section) => (
+                <MenuItem key={section.value} value={section.value}>
+                  {section.label}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.section && (
+              <Typography variant="caption" color="error">
+                {errors.section}
+              </Typography>
+            )}
+          </FormControl>
+        </Grid>
+
+        {/* Status */}
+        <Grid item xs={12} sm={6}>
+          <FormControl
+            fullWidth
+            error={!!errors.memberStatus}
+            required
+            size="small"
+          >
+            <InputLabel>Status</InputLabel>
+            <Select
+              name="memberStatus"
+              value={formData.memberStatus}
+              onChange={handleChange}
+              label="Status"
+            >
+              {statusOptions.map((status) => (
+                <MenuItem key={status.value} value={status.value}>
+                  {status.label}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.memberStatus && (
+              <Typography variant="caption" color="error">
+                {errors.memberStatus}
+              </Typography>
+            )}
+          </FormControl>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle>
@@ -216,227 +454,7 @@ const InstructorForm = ({
           {isEdit ? "Update Instructor" : "Add Instructor"}
         </Typography>
       </DialogTitle>
-      <DialogContent>
-        <Box sx={{ mt: 2 }}>
-          {submitError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {submitError}
-            </Alert>
-          )}
-
-          <Grid container spacing={2}>
-            {/* First Name */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="First Name"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                error={!!errors.firstName}
-                helperText={errors.firstName}
-                required
-                size="small"
-              />
-            </Grid>
-
-            {/* Last Name */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Last Name"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                error={!!errors.lastName}
-                helperText={errors.lastName}
-                required
-                size="small"
-              />
-            </Grid>
-
-            {/* Email */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Email ID"
-                name="emailID"
-                type="email"
-                value={formData.emailID}
-                onChange={handleChange}
-                error={!!errors.emailID}
-                helperText={errors.emailID}
-                required
-                size="small"
-              />
-            </Grid>
-
-            {/* Contact Phone */}
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Contact Phone"
-                name="contactPhone"
-                value={formData.contactPhone}
-                onChange={handleChange}
-                error={!!errors.contactPhone}
-                helperText={errors.contactPhone}
-                required
-                size="small"
-              />
-            </Grid>
-
-            {/* Chapter */}
-            <Grid item xs={12} sm={6}>
-              <FormControl
-                fullWidth
-                error={!!errors.chapterID}
-                required
-                size="small"
-              >
-                <InputLabel>Chapter</InputLabel>
-                <Select
-                  name="chapterID"
-                  value={formData.chapterID}
-                  onChange={handleChange}
-                  label="Chapter"
-                >
-                  {chapters && chapters.length > 0 ? (
-                    chapters.map((chapter) => (
-                      <MenuItem key={chapter.value} value={chapter.value}>
-                        {chapter.label}
-                      </MenuItem>
-                    ))
-                  ) : (
-                    <MenuItem value="">No chapters available</MenuItem>
-                  )}
-                </Select>
-                {errors.chapterID && (
-                  <Typography variant="caption" color="error">
-                    {errors.chapterID}
-                  </Typography>
-                )}
-              </FormControl>
-            </Grid>
-
-            {/* Instructor Type */}
-            <Grid item xs={12} sm={6}>
-              <FormControl
-                fullWidth
-                error={!!errors.instructorType}
-                required
-                size="small"
-              >
-                <InputLabel>Type</InputLabel>
-                <Select
-                  name="instructorType"
-                  value={formData.instructorType}
-                  onChange={handleChange}
-                  label="Type"
-                >
-                  {typeOptions.map((type) => (
-                    <MenuItem key={type.value} value={type.value}>
-                      {type.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.instructorType && (
-                  <Typography variant="caption" color="error">
-                    {errors.instructorType}
-                  </Typography>
-                )}
-              </FormControl>
-            </Grid>
-
-            {/* Class */}
-            <Grid item xs={12} sm={6}>
-              <FormControl
-                fullWidth
-                error={!!errors.class}
-                required
-                size="small"
-              >
-                <InputLabel>Class</InputLabel>
-                <Select
-                  name="class"
-                  value={formData.class}
-                  onChange={handleChange}
-                  label="Class"
-                >
-                  {classOptions.map((classOption) => (
-                    <MenuItem key={classOption.value} value={classOption.value}>
-                      {classOption.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.class && (
-                  <Typography variant="caption" color="error">
-                    {errors.class}
-                  </Typography>
-                )}
-              </FormControl>
-            </Grid>
-
-            {/* Section */}
-            <Grid item xs={12} sm={6}>
-              <FormControl
-                fullWidth
-                error={!!errors.section}
-                required
-                size="small"
-              >
-                <InputLabel>Section</InputLabel>
-                <Select
-                  name="section"
-                  value={formData.section}
-                  onChange={handleChange}
-                  label="Section"
-                >
-                  {sectionOptions.map((section) => (
-                    <MenuItem key={section.value} value={section.value}>
-                      {section.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.section && (
-                  <Typography variant="caption" color="error">
-                    {errors.section}
-                  </Typography>
-                )}
-              </FormControl>
-            </Grid>
-
-            {/* Status */}
-            <Grid item xs={12} sm={6}>
-              <FormControl
-                fullWidth
-                error={!!errors.memberStatus}
-                required
-                size="small"
-              >
-                <InputLabel>Status</InputLabel>
-                <Select
-                  name="memberStatus"
-                  value={formData.memberStatus}
-                  onChange={handleChange}
-                  label="Status"
-                >
-                  {statusOptions.map((status) => (
-                    <MenuItem key={status.value} value={status.value}>
-                      {status.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.memberStatus && (
-                  <Typography variant="caption" color="error">
-                    {errors.memberStatus}
-                  </Typography>
-                )}
-              </FormControl>
-            </Grid>
-          </Grid>
-        </Box>
-      </DialogContent>
+      <DialogContent>{formFields}</DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={handleClose} color="inherit">
           Cancel
@@ -450,4 +468,3 @@ const InstructorForm = ({
 };
 
 export default InstructorForm;
-

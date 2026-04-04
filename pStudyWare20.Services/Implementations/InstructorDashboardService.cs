@@ -1,6 +1,7 @@
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
+using System.Data;
 
 namespace pStudyWare20.Services.Implementations
 {
@@ -24,11 +25,12 @@ namespace pStudyWare20.Services.Implementations
             try
             {
                 var studentList = await _instructorDashboardRepository.GetStudentListForInstructorAsync(request.Username);
-                
+                var rows = NormalizeStudentList(studentList);
+
                 return new InstructorStudentListResponse
                 {
                     IsSuccess = true,
-                    StudentList = studentList
+                    StudentList = rows
                 };
             }
             catch (Exception ex)
@@ -50,14 +52,15 @@ namespace pStudyWare20.Services.Implementations
             {
                 // Get student list for the instructor
                 var studentList = await _instructorDashboardRepository.GetStudentListForInstructorAsync(request.Username);
-                
+                var rows = NormalizeStudentList(studentList);
+
                 return new InstructorDashboardDataResponse
                 {
                     IsSuccess = true,
-                    StudentList = studentList,
+                    StudentList = rows,
                     DashboardData = new
                     {
-                        StudentCount = GetStudentCount(studentList),
+                        StudentCount = rows.Count,
                         LastUpdated = DateTime.UtcNow,
                         InstructorUsername = request.Username
                     }
@@ -74,22 +77,31 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
-        /// Helper method to get student count from student list data
+        /// Convert <see cref="DataTable"/> from AMC_spSelectStudentList to JSON-friendly row dictionaries.
         /// </summary>
-        private int GetStudentCount(object studentList)
+        private static List<Dictionary<string, object?>> NormalizeStudentList(object studentList)
         {
-            try
+            if (studentList is DataTable dt)
+                return DataTableToRows(dt);
+            if (studentList is List<Dictionary<string, object?>> already)
+                return already;
+            return new List<Dictionary<string, object?>>();
+        }
+
+        private static List<Dictionary<string, object?>> DataTableToRows(DataTable dt)
+        {
+            var list = new List<Dictionary<string, object?>>(dt.Rows.Count);
+            foreach (DataRow row in dt.Rows)
             {
-                if (studentList is System.Data.DataTable dataTable)
+                var dict = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+                foreach (DataColumn col in dt.Columns)
                 {
-                    return dataTable.Rows.Count;
+                    var val = row[col];
+                    dict[col.ColumnName] = val == DBNull.Value ? null : val;
                 }
-                return 0;
+                list.Add(dict);
             }
-            catch
-            {
-                return 0;
-            }
+            return list;
         }
     }
 }

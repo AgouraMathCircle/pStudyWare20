@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -17,6 +18,7 @@ import authService from "../../../services/authService";
 import StudentHeader from "../Student/StudentHeader";
 
 const UpdatePassword = () => {
+  const location = useLocation();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -134,13 +136,17 @@ const UpdatePassword = () => {
 
   const isStudent =
     user?.role === "Student" || user?.memberType?.toUpperCase() === "S";
+  const isDashboardShell =
+    location.pathname.startsWith("/pstudyware/instructor/") ||
+    location.pathname.startsWith("/pstudyware/volunteer/");
 
   return (
     <Box>
-      {isStudent && <StudentHeader user={user} />}
-      {/* Spacer to account for fixed StudentHeader */}
-      {isStudent && <Box sx={{ height: "40px" }} />}
-      <Container maxWidth="md" sx={{ py: 4 }}>
+      {isStudent && !isDashboardShell && <StudentHeader user={user} />}
+      {isStudent && !isDashboardShell && (
+        <Box sx={{ height: "40px" }} aria-hidden />
+      )}
+      <Container maxWidth="md" sx={{ py: isDashboardShell ? 1 : 4 }}>
         {/* Success Message */}
         {success && (
           <Alert severity="success" sx={{ mb: 3 }}>

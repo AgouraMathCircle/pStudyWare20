@@ -284,7 +284,7 @@ const InstructorManagement = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: "35px" }} />
+      <Box sx={{ height: "60px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12}>
@@ -304,7 +304,6 @@ const InstructorManagement = () => {
         </Grid>
       </Container>
 
-      {/* Instructor Form Dialog */}
       <InstructorForm
         open={formOpen}
         onClose={() => setFormOpen(false)}

@@ -42,6 +42,7 @@ import {
   KeyboardArrowRight as NextPageIcon,
   LastPage as LastPageIcon,
 } from "@mui/icons-material";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
 import reportCardService from "../../../services/reportCardService";
@@ -55,6 +56,8 @@ const EXAM_TYPES = [
 ];
 
 const AdminReportCard = () => {
+  const location = useLocation();
+  const hideRoleHeader = location.pathname.includes("/pstudyware/instructor/");
   const { user } = useAuth();
   const username = user?.email || user?.username || "";
   const pageSize = 10;
@@ -469,8 +472,8 @@ const AdminReportCard = () => {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <AdminHeader user={user} />
-      <Box sx={{ height: "60px" }} />
+      {!hideRoleHeader && <AdminHeader user={user} />}
+      {!hideRoleHeader && <Box sx={{ height: "60px" }} aria-hidden />}
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12}>

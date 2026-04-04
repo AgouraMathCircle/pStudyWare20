@@ -253,12 +253,27 @@ const Navbar = () => {
     },
   ];
 
-  // Instructor menu items for authenticated instructors
+  // Instructor menu — aligned with pStudyware_Menu.ascx (divInstructor)
   const instructorMenuItems = [
     {
       label: "Dashboard",
       href: "/pstudyware/instructor/dashboard",
       icon: <DashboardIcon fontSize="small" />,
+    },
+    {
+      label: "Class Material",
+      href: "/pstudyware/instructor/class-material",
+      icon: <AssignmentIcon fontSize="small" />,
+    },
+    {
+      label: "Student Documents",
+      href: "/pstudyware/instructor/student-documents",
+      icon: <UploadIcon fontSize="small" />,
+    },
+    {
+      label: "Student Report Card",
+      href: "/pstudyware/instructor/report-card",
+      icon: <AssessmentIcon fontSize="small" />,
     },
     {
       label: "Message Center",
@@ -284,6 +299,11 @@ const Navbar = () => {
       label: "Dashboard",
       href: "/pstudyware/volunteer/dashboard",
       icon: <DashboardIcon fontSize="small" />,
+    },
+    {
+      label: "Log hours",
+      href: "/pstudyware/volunteer/time-sheet",
+      icon: <AssignmentIcon fontSize="small" />,
     },
     {
       label: "Message Center",

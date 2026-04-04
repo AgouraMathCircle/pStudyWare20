@@ -408,19 +408,25 @@ const EmailManager = () => {
 
   const isStudent =
     user?.role === "Student" || user?.memberType?.toUpperCase() === "S";
-  
-  // Check if we're on the student message center route
-  const isStudentMessageCenter = location.pathname === "/pstudyware/student/message-center";
-  
-  // Show StudentHeader if user is a student OR if accessing student message center route
-  const shouldShowStudentHeader = isStudent || isStudentMessageCenter;
+
+  const isStudentMessageCenter =
+    location.pathname === "/pstudyware/student/message-center";
+  const isRoleDashboardShell =
+    location.pathname.startsWith("/pstudyware/instructor/") ||
+    location.pathname.startsWith("/pstudyware/volunteer/");
+
+  const shouldShowStudentHeader =
+    (isStudent || isStudentMessageCenter) && !isRoleDashboardShell;
+
+  const containerTopMargin =
+    shouldShowStudentHeader || isRoleDashboardShell ? 0 : 4;
 
   return (
     <Box>
       {shouldShowStudentHeader && <StudentHeader user={user} />}
       {/* Spacer to account for fixed StudentHeader */}
       {shouldShowStudentHeader && <Box sx={{ height: "40px" }} />}
-      <Container maxWidth="xl" sx={{ mt: shouldShowStudentHeader ? 0 : 4, mb: 4 }}>
+      <Container maxWidth="xl" sx={{ mt: containerTopMargin, mb: 4 }}>
         <Paper elevation={3} sx={{ p: 3 }}>
           {/* Header */}
           <Box

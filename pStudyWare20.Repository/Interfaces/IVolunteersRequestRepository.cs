@@ -7,6 +7,5 @@ namespace pStudyWare20.Repository.Interfaces
         Task<GetVolunteersRequestResponse> GetVolunteersRequestAsync(GetVolunteersRequestRequest request);
         Task<OperationResponse> UpdateVolunteerStatusAsync(UpdateVolunteerStatusRequest request);
         Task<OperationResponse> DeleteVolunteerRequestAsync(DeleteVolunteerRequestRequest request);
-        Task<ExportExcelResponse> ExportToExcelAsync(ExportExcelRequest request);
     }
 }
