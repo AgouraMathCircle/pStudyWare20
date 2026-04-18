@@ -169,8 +169,10 @@ const Topbar = () => {
       user.role === "Admin" ||
       user.role === "SystemAdmin" ||
       user.memberType?.toUpperCase() === "A";
+    const isInstructor =
+      user.role === "Instructor" || user.memberType?.toUpperCase() === "I";
 
-    if (isStudent || isAdmin) {
+    if (isStudent || isAdmin || isInstructor) {
       return null;
     }
   }

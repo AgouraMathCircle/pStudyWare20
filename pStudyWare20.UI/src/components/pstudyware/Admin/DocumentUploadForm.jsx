@@ -20,6 +20,7 @@ import {
   CloudUpload as UploadIcon,
   Close as CloseIcon,
 } from "@mui/icons-material";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
 
 const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
   const [formData, setFormData] = useState({
@@ -173,7 +174,9 @@ const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ backgroundColor: "#1976d2", color: "white" }}>
+      <DialogTitle
+        sx={{ backgroundColor: APPLICATION_ADMIN_TITLE_COLOR, color: "white" }}
+      >
         <Box
           sx={{
             display: "flex",

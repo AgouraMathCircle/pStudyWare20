@@ -8,9 +8,7 @@
 /* Breadcrumbs Section */
 .sc-breadcrumbs {
   position: relative;
-  padding: 100px 0 80px;
-  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
-    var(--page-header-bg, url("/assets/images/about/page-header.jpg"));
+  padding: 50px 0 40px;
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -218,7 +216,7 @@
 
 @media (max-width: 600px) {
   .sc-breadcrumbs {
-    padding: 60px 0 40px;
+    padding: 30px 0 20px;
   }
 
   .page-title {

@@ -7,12 +7,26 @@ import {
   Typography,
   CircularProgress,
   Grid,
+  Card,
+  CardContent,
 } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
 import instructorService from "../../../services/instructorService";
 import AdminHeader from "./AdminHeader";
 import InstructorList from "./InstructorList";
 import InstructorForm from "./InstructorForm";
+import {
+  PORTAL_CARD_BOX_SHADOW,
+  portalCardAntiLiftSx,
+} from "../../../styles/applicationSurfaces";
+
+const instructorManagementPageSx = {
+  flex: 1,
+  minHeight: 0,
+  width: "100%",
+  display: "flex",
+  flexDirection: "column",
+};
 
 const InstructorManagement = () => {
   const { user, isAuthenticated } = useAuth();
@@ -247,11 +261,11 @@ const InstructorManagement = () => {
     return (
       <Box
         sx={{
+          ...instructorManagementPageSx,
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          height: "400px",
           gap: 2,
         }}
       >
@@ -268,10 +282,10 @@ const InstructorManagement = () => {
     return (
       <Box
         sx={{
+          ...instructorManagementPageSx,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          height: "400px",
         }}
       >
         <Alert severity="error">
@@ -282,29 +296,38 @@ const InstructorManagement = () => {
   }
 
   return (
-    <Box>
+    <Box sx={instructorManagementPageSx}>
       <AdminHeader user={user} />
-      <Box sx={{ height: "35px" }} />
+      <Box sx={{ height: "48px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Box>
-              <InstructorList
-                instructors={instructors}
-                onExportToExcel={handleExportToExcel}
-                canExportData={adminPrivileges.canExportData}
-                onRefresh={handleRefresh}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onAdd={handleAdd}
-                canAddInstructor={adminPrivileges.canAddInstructor}
-              />
-            </Box>
+            <Card
+              sx={{
+                backgroundColor: "white",
+                borderRadius: 2,
+                boxShadow: PORTAL_CARD_BOX_SHADOW,
+                overflow: "hidden",
+                ...portalCardAntiLiftSx,
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <InstructorList
+                  instructors={instructors}
+                  onExportToExcel={handleExportToExcel}
+                  canExportData={adminPrivileges.canExportData}
+                  onRefresh={handleRefresh}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onAdd={handleAdd}
+                  canAddInstructor={adminPrivileges.canAddInstructor}
+                />
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Container>
 
-      {/* Instructor Form Dialog */}
       <InstructorForm
         open={formOpen}
         onClose={() => setFormOpen(false)}

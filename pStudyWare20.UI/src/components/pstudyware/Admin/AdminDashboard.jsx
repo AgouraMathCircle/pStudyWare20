@@ -8,10 +8,16 @@ import {
   Snackbar,
   Typography,
   CircularProgress,
+  Card,
+  CardContent,
 } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
 import adminDashboardService from "../../../services/adminDashboardService";
 import AdminHeader from "./AdminHeader";
+import {
+  PORTAL_CARD_BOX_SHADOW,
+  portalCardAntiLiftSx,
+} from "../../../styles/applicationSurfaces";
 import EnrolledStudents from "./EnrolledStudents";
 import ToDoList from "./ToDoList";
 import SystemSupport from "./SystemSupport";
@@ -278,67 +284,79 @@ const AdminDashboard = () => {
     );
   }
 
+  const panelCardSx = {
+    backgroundColor: "white",
+    borderRadius: 2,
+    boxShadow: PORTAL_CARD_BOX_SHADOW,
+    overflow: "hidden",
+    ...portalCardAntiLiftSx,
+  };
+
   return (
     <Box className="admin-dashboard">
       <AdminHeader user={user} />
-      {/* Spacer to account for fixed AdminHeader */}
-      <Box sx={{ height: "35px" }} />
+      <Box sx={{ height: "48px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
-        <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
-          {/* Top Row: To-Do List, Enrolled Students, System Support */}
-          <Box
-            sx={{
-              flex: 1,
-              minWidth: {
-                xs: "100%",
-                sm: "calc(50% - 8px)",
-                md: "calc(25% - 12px)",
-              },
-            }}
-          >
-            <ToDoList
-              trackingSummary={userTrackingSummary}
-              onPublishDocument={handlePublishDocument}
-              canPublishDocuments={adminPrivileges.canPublishDocuments}
-            />
-          </Box>
-
-          <Box
-            sx={{
-              flex: 1,
-              minWidth: {
-                xs: "100%",
-                sm: "calc(50% - 8px)",
-                md: "calc(25% - 12px)",
-              },
-            }}
-          >
-            <EnrolledStudents studentCounts={studentCounts} />
-          </Box>
-
-          <Box
-            sx={{
-              flex: 1,
-              minWidth: {
-                xs: "100%",
-                sm: "calc(50% - 8px)",
-                md: "calc(25% - 12px)",
-              },
-            }}
-          >
-            <SystemSupport />
-          </Box>
-        </Box>
-
-        <Grid container spacing={2}>
-          {/* Student List Section */}
+        <Grid container spacing={3}>
           <Grid item xs={12}>
-            <StudentList
-              students={studentList}
-              onExportToExcel={handleExportToExcel}
-              canExportData={adminPrivileges.canExportData}
-              onRefresh={handleRefresh}
-            />
+            <Card sx={panelCardSx}>
+              <CardContent sx={{ p: 3 }}>
+                <Grid
+                  container
+                  spacing={2}
+                  sx={{ alignItems: "stretch" }}
+                >
+                  <Grid
+                    item
+                    xs={12}
+                    md={4}
+                    sx={{ display: "flex", flexDirection: "column" }}
+                  >
+                    <Box sx={{ flex: 1, width: "100%", minWidth: 0 }}>
+                      <ToDoList
+                        trackingSummary={userTrackingSummary}
+                        onPublishDocument={handlePublishDocument}
+                        canPublishDocuments={
+                          adminPrivileges.canPublishDocuments
+                        }
+                      />
+                    </Box>
+                  </Grid>
+                  <Grid
+                    item
+                    xs={12}
+                    md={4}
+                    sx={{ display: "flex", flexDirection: "column" }}
+                  >
+                    <Box sx={{ flex: 1, width: "100%", minWidth: 0 }}>
+                      <EnrolledStudents studentCounts={studentCounts} />
+                    </Box>
+                  </Grid>
+                  <Grid
+                    item
+                    xs={12}
+                    md={4}
+                    sx={{ display: "flex", flexDirection: "column" }}
+                  >
+                    <Box sx={{ flex: 1, width: "100%", minWidth: 0 }}>
+                      <SystemSupport />
+                    </Box>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12}>
+            <Card sx={panelCardSx}>
+              <CardContent sx={{ p: 3 }}>
+                <StudentList
+                  students={studentList}
+                  onExportToExcel={handleExportToExcel}
+                  canExportData={adminPrivileges.canExportData}
+                  onRefresh={handleRefresh}
+                />
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Container>

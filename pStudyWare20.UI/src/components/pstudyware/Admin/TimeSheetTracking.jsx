@@ -19,6 +19,7 @@ import { Refresh as RefreshIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
 import timeSheetTrackingService from "../../../services/timeSheetTrackingService";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
 
 const TimeSheetTracking = () => {
   const { user } = useAuth();
@@ -79,7 +80,10 @@ const TimeSheetTracking = () => {
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <AdminHeader />
       <Container maxWidth="xl" sx={{ py: 2 }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>
+        <Typography
+          variant="h5"
+          sx={{ mb: 2, color: APPLICATION_ADMIN_TITLE_COLOR }}
+        >
           Time Sheet Tracking
         </Typography>
         <Box sx={{ display: "flex", gap: 1, mb: 2 }}>

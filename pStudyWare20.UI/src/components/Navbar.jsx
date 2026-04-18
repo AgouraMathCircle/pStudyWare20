@@ -77,6 +77,7 @@ const Navbar = () => {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState({});
+  const [suppressDesktopHover, setSuppressDesktopHover] = useState(false);
 
   // Logo image - updated path to use src/assets/images/
   const logoUrl = logoImg; // Updated path
@@ -205,8 +206,8 @@ const Navbar = () => {
       icon: <AdminIcon fontSize="small" />,
     },
     {
-      label: "Instructors",
-      href: "/pstudyware/admin/instructors",
+      label: "Instructor",
+      href: "/pstudyware/admin/instructor",
       icon: <SchoolIcon fontSize="small" />,
     },
 
@@ -253,12 +254,27 @@ const Navbar = () => {
     },
   ];
 
-  // Instructor menu items for authenticated instructors
+  // Instructor menu — aligned with pStudyware_Menu.ascx (divInstructor)
   const instructorMenuItems = [
     {
       label: "Dashboard",
       href: "/pstudyware/instructor/dashboard",
       icon: <DashboardIcon fontSize="small" />,
+    },
+    {
+      label: "Class Material",
+      href: "/pstudyware/instructor/class-material",
+      icon: <AssignmentIcon fontSize="small" />,
+    },
+    {
+      label: "Student Documents",
+      href: "/pstudyware/instructor/student-documents",
+      icon: <UploadIcon fontSize="small" />,
+    },
+    {
+      label: "Student Report Card",
+      href: "/pstudyware/instructor/report-card",
+      icon: <AssessmentIcon fontSize="small" />,
     },
     {
       label: "Message Center",
@@ -284,6 +300,11 @@ const Navbar = () => {
       label: "Dashboard",
       href: "/pstudyware/volunteer/dashboard",
       icon: <DashboardIcon fontSize="small" />,
+    },
+    {
+      label: "Log hours",
+      href: "/pstudyware/volunteer/time-sheet",
+      icon: <AssignmentIcon fontSize="small" />,
     },
     {
       label: "Message Center",
@@ -342,6 +363,11 @@ const Navbar = () => {
     setMobileOpen(!mobileOpen);
   };
 
+  const closeMobileMenu = () => {
+    setMobileOpen(false);
+    setExpandedMenus({});
+  };
+
   const handleMenuExpand = (label) => {
     setExpandedMenus((prev) => ({
       ...prev,
@@ -354,7 +380,7 @@ const Navbar = () => {
   const handleLogout = () => {
     logout();
     navigate("/");
-    setMobileOpen(false);
+    closeMobileMenu();
   };
 
   const handleNavigation = (href, external = false, action = null) => {
@@ -362,9 +388,21 @@ const Navbar = () => {
       handleLogout();
       return;
     }
+    // Force-close desktop hover dropdown right after click.
+    setSuppressDesktopHover(true);
+    closeMobileMenu();
     navigateTo(href, external);
-    setMobileOpen(false);
   };
+
+  useEffect(() => {
+    closeMobileMenu();
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!suppressDesktopHover) return;
+    const timer = window.setTimeout(() => setSuppressDesktopHover(false), 250);
+    return () => window.clearTimeout(timer);
+  }, [suppressDesktopHover]);
 
   const isActiveRoute = (href) => {
     if (href === "/") {
@@ -484,6 +522,11 @@ const Navbar = () => {
           "&:hover .submenu": {
             display: "block",
           },
+          ...(suppressDesktopHover && {
+            "&:hover .submenu": {
+              display: "none",
+            },
+          }),
         }}
       >
         <Button
@@ -712,7 +755,7 @@ const Navbar = () => {
         variant="temporary"
         anchor="right"
         open={mobileOpen}
-        onClose={handleDrawerToggle}
+        onClose={closeMobileMenu}
         ModalProps={{
           keepMounted: true, // Better open performance on mobile.
         }}

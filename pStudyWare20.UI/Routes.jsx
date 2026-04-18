@@ -71,6 +71,15 @@ import PostMessage from "./src/components/pstudyware/Admin/PostMessage";
 import UploadAnswerKey from "./src/components/pstudyware/Admin/UploadAnswerKey";
 import UpdateLookupSemester from "./src/components/pstudyware/Admin/UpdateLookupSemester";
 import AdminReportCard from "./src/components/pstudyware/Admin/AdminReportCard";
+import {
+  InstructorShell,
+  InstructorDashboard,
+} from "./src/components/pstudyware/Instructor";
+import {
+  VolunteerShell,
+  VolunteerDashboard,
+  VolunteerTimeSheet,
+} from "./src/components/pstudyware/Volunteer";
 import SentEmail from "./src/components/pstudyware/Common/SentEmail";
 import {
   DocumentsRepository,
@@ -377,7 +386,7 @@ const AppRoutes = () => {
               }
             />
             <Route
-              path="/pstudyware/admin/instructors"
+              path="/pstudyware/admin/instructor"
               element={
                 <RoleProtectedRoute
                   allowedRoles={["Admin", "SystemAdmin"]}
@@ -385,6 +394,12 @@ const AppRoutes = () => {
                 >
                   <InstructorManagement />
                 </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/instructors"
+              element={
+                <Navigate to="/pstudyware/admin/instructor" replace />
               }
             />
             <Route
@@ -599,7 +614,7 @@ const AppRoutes = () => {
               element={<Navigate to="/admin/registeredstudentlist" replace />}
             />
             <Route
-              path="/admin/instructors"
+              path="/admin/instructor"
               element={
                 <RoleProtectedRoute
                   allowedRoles={["Admin", "SystemAdmin"]}
@@ -608,6 +623,10 @@ const AppRoutes = () => {
                   <AdminInstructors />
                 </RoleProtectedRoute>
               }
+            />
+            <Route
+              path="/admin/instructors"
+              element={<Navigate to="/admin/instructor" replace />}
             />
             <Route
               path="/admin/volunteers"
@@ -704,7 +723,7 @@ const AppRoutes = () => {
                   allowedRoles={["Admin", "SystemAdmin"]}
                   allowedMemberTypes={["A"]}
                 >
-                  <UpdatePassword />
+                  <AdminChangePassword />
                 </RoleProtectedRoute>
               }
             />
@@ -719,32 +738,77 @@ const AppRoutes = () => {
                 </RoleProtectedRoute>
               }
             />
+            <Route
+              path="/pstudyware/admin/student-docs"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <StudentDocuments />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/student-docs"
+              element={
+                <Navigate to="/pstudyware/admin/student-docs" replace />
+              }
+            />
 
-            {/* Instructor Routes */}
+            {/* Instructor routes — one layout so InstructorHeader appears on every page */}
             <Route
-              path="/pstudyware/instructor/message-center"
+              path="/pstudyware/instructor"
               element={
                 <RoleProtectedRoute
                   allowedRoles={["Instructor"]}
                   allowedMemberTypes={["I"]}
                 >
-                  <EmailManager />
+                  <InstructorShell />
                 </RoleProtectedRoute>
               }
-            />
-            <Route
-              path="/pstudyware/instructor/update-password"
-              element={
-                <RoleProtectedRoute
-                  allowedRoles={["Instructor"]}
-                  allowedMemberTypes={["I"]}
-                >
-                  <UpdatePassword />
-                </RoleProtectedRoute>
-              }
-            />
+            >
+              <Route
+                index
+                element={
+                  <Navigate to="/pstudyware/instructor/dashboard" replace />
+                }
+              />
+              <Route path="dashboard" element={<InstructorDashboard />} />
+              <Route path="class-material" element={<Documents />} />
+              <Route path="student-documents" element={<StudentDocuments />} />
+              <Route path="report-card" element={<AdminReportCard />} />
+              <Route path="message-center" element={<EmailManager />} />
+              <Route path="update-password" element={<UpdatePassword />} />
+            </Route>
 
             {/* Volunteer Routes */}
+            <Route
+              path="/pstudyware/volunteer/dashboard"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Volunteer"]}
+                  allowedMemberTypes={["V"]}
+                >
+                  <VolunteerShell>
+                    <VolunteerDashboard />
+                  </VolunteerShell>
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/volunteer/time-sheet"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Volunteer"]}
+                  allowedMemberTypes={["V"]}
+                >
+                  <VolunteerShell>
+                    <VolunteerTimeSheet />
+                  </VolunteerShell>
+                </RoleProtectedRoute>
+              }
+            />
             <Route
               path="/pstudyware/volunteer/message-center"
               element={
@@ -752,7 +816,9 @@ const AppRoutes = () => {
                   allowedRoles={["Volunteer"]}
                   allowedMemberTypes={["V"]}
                 >
-                  <EmailManager />
+                  <VolunteerShell>
+                    <EmailManager />
+                  </VolunteerShell>
                 </RoleProtectedRoute>
               }
             />
@@ -763,7 +829,9 @@ const AppRoutes = () => {
                   allowedRoles={["Volunteer"]}
                   allowedMemberTypes={["V"]}
                 >
-                  <UpdatePassword />
+                  <VolunteerShell>
+                    <UpdatePassword />
+                  </VolunteerShell>
                 </RoleProtectedRoute>
               }
             />

@@ -1,8 +1,12 @@
 import React from "react";
-import { Container, Box, Card, CardContent, Typography } from "@mui/material";
-import { Lock as LockIcon } from "@mui/icons-material";
+import { Box, Container, Card, CardContent } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
+import UpdatePassword from "../Common/UpdatePassword";
+import {
+  PORTAL_CARD_BOX_SHADOW,
+  portalCardAntiLiftSx,
+} from "../../../styles/applicationSurfaces";
 
 const AdminChangePassword = () => {
   const { user } = useAuth();
@@ -10,35 +14,19 @@ const AdminChangePassword = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: "72px" }} />
+      <Box sx={{ height: "48px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
-        <Card elevation={3}>
-          <CardContent sx={{ textAlign: "center", py: 8 }}>
-            <LockIcon sx={{ fontSize: 80, color: "primary.main", mb: 2 }} />
-            <Typography variant="h4" gutterBottom>
-              Password
-            </Typography>
-            <Typography variant="body1" color="textSecondary">
-              This page is under development. It will include password
-              management features such as:
-            </Typography>
-            <Box sx={{ mt: 3, textAlign: "left", maxWidth: 600, mx: "auto" }}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                • Change current password
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                • Password strength validation
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                • Password history tracking
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                • Security question management
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                • Two-factor authentication setup
-              </Typography>
-            </Box>
+        <Card
+          sx={{
+            backgroundColor: "white",
+            borderRadius: 2,
+            boxShadow: PORTAL_CARD_BOX_SHADOW,
+            overflow: "hidden",
+            ...portalCardAntiLiftSx,
+          }}
+        >
+          <CardContent sx={{ p: 3 }}>
+            <UpdatePassword />
           </CardContent>
         </Card>
       </Container>

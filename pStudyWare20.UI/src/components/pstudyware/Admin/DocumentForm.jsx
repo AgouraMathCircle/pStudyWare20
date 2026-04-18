@@ -17,6 +17,7 @@ import {
   Grid,
   Chip,
 } from "@mui/material";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
 import {
   CloudUpload as UploadIcon,
   Close as CloseIcon,
@@ -239,7 +240,7 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
     >
       <DialogTitle
         sx={{
-          backgroundColor: "primary.main",
+          backgroundColor: APPLICATION_ADMIN_TITLE_COLOR,
           color: "white",
           fontWeight: 600,
         }}
@@ -287,7 +288,7 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
             <Box
               sx={{
                 border: "2px dashed",
-                borderColor: errors.file ? "error.main" : "primary.main",
+                borderColor: errors.file ? "error.main" : APPLICATION_ADMIN_TITLE_COLOR,
                 borderRadius: 2,
                 p: 2,
                 textAlign: "center",

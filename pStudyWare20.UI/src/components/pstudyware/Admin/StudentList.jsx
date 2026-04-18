@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import {
   Typography,
   Button,
   TextField,
   Box,
-  IconButton,
   Tooltip,
   Table,
   TableBody,
@@ -15,6 +15,7 @@ import {
   Paper,
   Select,
   MenuItem,
+  IconButton,
 } from "@mui/material";
 import {
   Download as DownloadIcon,
@@ -25,6 +26,7 @@ import {
   KeyboardArrowRight as NextPageIcon,
   LastPage as LastPageIcon,
 } from "@mui/icons-material";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
 
 const StudentList = ({
   students,
@@ -40,12 +42,11 @@ const StudentList = ({
   const [order, setOrder] = useState("asc");
   const [goToPageInput, setGoToPageInput] = useState("1");
 
-  const pageSize = 10;
+  const pageSize = 25;
 
-  // Handle page change
   const handlePageChange = (page) => {
     const totalPages = Math.ceil(
-      (filteredAndSortedStudents?.length || 0) / pageSize
+      (filteredAndSortedStudents?.length || 0) / pageSize,
     );
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -53,11 +54,10 @@ const StudentList = ({
     }
   };
 
-  // Handle go to specific page
   const handleGoToPage = () => {
-    const page = parseInt(goToPageInput);
+    const page = parseInt(goToPageInput, 10);
     const totalPages = Math.ceil(
-      (filteredAndSortedStudents?.length || 0) / pageSize
+      (filteredAndSortedStudents?.length || 0) / pageSize,
     );
     if (!isNaN(page) && page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -66,35 +66,18 @@ const StudentList = ({
     }
   };
 
-  // Handle search
   const handleSearch = () => {
     setCurrentPage(1);
     setGoToPageInput("1");
   };
 
-  // Handle sort
-  const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
-  };
-
-  // Handle edit student
-  const handleEditStudent = (studentId) => {
-    // Navigate to update profile page
-    window.location.href = `/UpdateProfile?StudentID=${studentId}`;
-  };
-
-  // Filter and sort students
   const filteredAndSortedStudents = useMemo(() => {
     if (!students || students.length === 0) return [];
 
-    // Filter
     let filtered = students;
     if (searchBy !== "ALL" && searchText.trim()) {
       filtered = students.filter((student) => {
         let fieldValue = "";
-
         switch (searchBy) {
           case "STUDENT_ID":
             fieldValue = student.studentID?.toString() || "";
@@ -113,6 +96,18 @@ const StudentList = ({
             break;
           case "PARENT":
             fieldValue = student.parentName || "";
+            break;
+          case "PHONE":
+            fieldValue = student.phoneNumber || "";
+            break;
+          case "EMAIL":
+            fieldValue = student.emailAddress || "";
+            break;
+          case "SESSION":
+            fieldValue = student.eventSession || "";
+            break;
+          case "LOCATION":
+            fieldValue = student.eventLocation || "";
             break;
           default:
             return true;
@@ -134,61 +129,39 @@ const StudentList = ({
       });
     }
 
-    // Sort
     const sorted = [...filtered].sort((a, b) => {
       let aValue = a[orderBy];
       let bValue = b[orderBy];
-
-      // Handle null/undefined values
       if (aValue == null) aValue = "";
       if (bValue == null) bValue = "";
-
-      // Convert to string for comparison
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return order === "asc" ? aValue - bValue : bValue - aValue;
+      }
       aValue = aValue.toString().toLowerCase();
       bValue = bValue.toString().toLowerCase();
-
       if (order === "asc") {
         return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
     });
 
     return sorted;
   }, [students, searchBy, searchCriteria, searchText, orderBy, order]);
 
-  // Get paginated students
   const paginatedStudents = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    const end = start + pageSize;
-    return filteredAndSortedStudents.slice(start, end);
+    return filteredAndSortedStudents.slice(start, start + pageSize);
   }, [filteredAndSortedStudents, currentPage, pageSize]);
 
   const totalPages = Math.ceil(
-    (filteredAndSortedStudents?.length || 0) / pageSize
+    (filteredAndSortedStudents?.length || 0) / pageSize,
   );
   const totalRecords = filteredAndSortedStudents?.length || 0;
-
-  // Define table columns
-  const columns = [
-    { id: "actions", label: "", sortable: false, width: 60 },
-    { id: "studentID", label: "Student #", sortable: true, width: 100 },
-    { id: "studentName", label: "Student Name", sortable: true, width: 180 },
-    { id: "class", label: "Class", sortable: true, width: 150 },
-    { id: "grade", label: "Grade", sortable: true, width: 80 },
-    { id: "school", label: "School", sortable: true, width: 150 },
-    { id: "parentName", label: "Parent", sortable: true, width: 150 },
-    { id: "phoneNumber", label: "Contact #", sortable: true, width: 130 },
-    { id: "emailAddress", label: "Email", sortable: true, width: 200 },
-    { id: "eventSession", label: "Session", sortable: true, width: 120 },
-    { id: "eventLocation", label: "Location", sortable: true, width: 120 },
-  ];
 
   const cellPadding = "0 8px";
 
   return (
     <Box>
-      {/* Header */}
       <Box
         sx={{
           mb: 1,
@@ -201,7 +174,7 @@ const StudentList = ({
       >
         <Typography
           variant="subtitle1"
-          sx={{ fontWeight: 600, color: "#1976d2", fontSize: "1rem" }}
+          sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: "1rem" }}
         >
           Current Session Student List
         </Typography>
@@ -231,7 +204,6 @@ const StudentList = ({
         </Box>
       </Box>
 
-      {/* Search Bar */}
       <Box
         sx={{
           backgroundColor: "#4caf50",
@@ -281,6 +253,18 @@ const StudentList = ({
             </MenuItem>
             <MenuItem value="PARENT" sx={{ fontSize: "0.75rem" }}>
               Parent
+            </MenuItem>
+            <MenuItem value="PHONE" sx={{ fontSize: "0.75rem" }}>
+              Phone
+            </MenuItem>
+            <MenuItem value="EMAIL" sx={{ fontSize: "0.75rem" }}>
+              Email
+            </MenuItem>
+            <MenuItem value="SESSION" sx={{ fontSize: "0.75rem" }}>
+              Session
+            </MenuItem>
+            <MenuItem value="LOCATION" sx={{ fontSize: "0.75rem" }}>
+              Location
             </MenuItem>
           </Select>
         </Box>
@@ -351,7 +335,6 @@ const StudentList = ({
         </Button>
       </Box>
 
-      {/* Table */}
       <TableContainer component={Paper} sx={{ width: "100%" }}>
         <Table
           sx={{
@@ -367,18 +350,18 @@ const StudentList = ({
                 sx={{
                   fontWeight: 400,
                   borderRight: "1px solid #4caf50",
-                  width: "8%",
+                  width: "5%",
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
               >
-                Actions
+                Edit
               </TableCell>
               <TableCell
                 sx={{
                   fontWeight: 400,
                   borderRight: "1px solid #4caf50",
-                  width: "8%",
+                  width: "6%",
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
@@ -400,7 +383,7 @@ const StudentList = ({
                 sx={{
                   fontWeight: 400,
                   borderRight: "1px solid #4caf50",
-                  width: "10%",
+                  width: "8%",
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
@@ -422,7 +405,7 @@ const StudentList = ({
                 sx={{
                   fontWeight: 400,
                   borderRight: "1px solid #4caf50",
-                  width: "12%",
+                  width: "11%",
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
@@ -433,34 +416,12 @@ const StudentList = ({
                 sx={{
                   fontWeight: 400,
                   borderRight: "1px solid #4caf50",
-                  width: "10%",
+                  width: "11%",
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
               >
                 Parent
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "10%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
-                Contact #
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "12%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
-                Email
               </TableCell>
               <TableCell
                 sx={{
@@ -476,6 +437,7 @@ const StudentList = ({
               <TableCell
                 sx={{
                   fontWeight: 400,
+                  borderRight: "1px solid #4caf50",
                   width: "8%",
                   fontSize: "0.75rem",
                   padding: cellPadding,
@@ -483,141 +445,176 @@ const StudentList = ({
               >
                 Location
               </TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: 400,
+                  borderRight: "1px solid #4caf50",
+                  width: "9%",
+                  fontSize: "0.75rem",
+                  padding: cellPadding,
+                }}
+              >
+                Contact #
+              </TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: 400,
+                  width: "16%",
+                  fontSize: "0.75rem",
+                  padding: cellPadding,
+                }}
+              >
+                Email
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {paginatedStudents.length > 0 ? (
-              paginatedStudents.map((student, index) => (
-                <TableRow
-                  key={student.studentID || index}
-                  sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}
-                >
-                  <TableCell
+              paginatedStudents.map((student, index) => {
+                const sid = student.studentID;
+                return (
+                  <TableRow
+                    key={sid ?? `row-${index}`}
                     sx={{
-                      borderRight: "1px solid #4caf50",
-                      width: "8%",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
+                      "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" },
                     }}
                   >
-                    <Tooltip title="Edit Student">
-                      <IconButton
-                        size="small"
-                        color="primary"
-                        onClick={() => handleEditStudent(student.studentID)}
-                        sx={{ fontSize: "0.75rem" }}
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      width: "8%",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                    }}
-                  >
-                    {student.studentID || "-"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      width: "12%",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                    }}
-                  >
-                    {student.studentName || "-"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      width: "10%",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                    }}
-                  >
-                    {student.class || "-"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      width: "6%",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                    }}
-                  >
-                    {student.grade || "-"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      width: "12%",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                    }}
-                  >
-                    {student.school || "-"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      width: "10%",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                    }}
-                  >
-                    {student.parentName || "-"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      width: "10%",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                    }}
-                  >
-                    {student.phoneNumber || "-"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      width: "12%",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                      maxWidth: 200,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <Tooltip title={student.emailAddress || "-"}>
-                      <span>{student.emailAddress || "-"}</span>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      width: "8%",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                    }}
-                  >
-                    {student.eventSession || "-"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      width: "8%",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                    }}
-                  >
-                    {student.eventLocation || "-"}
-                  </TableCell>
-                </TableRow>
-              ))
+                    <TableCell
+                      sx={{
+                        borderRight: "1px solid #4caf50",
+                        fontSize: "0.75rem",
+                        padding: cellPadding,
+                        verticalAlign: "middle",
+                      }}
+                    >
+                      {sid ? (
+                        <Tooltip title="Update profile">
+                          <IconButton
+                            component={RouterLink}
+                            to={`/UpdateProfile/${sid}`}
+                            size="small"
+                            color="primary"
+                            sx={{ padding: "2px" }}
+                          >
+                            <EditIcon sx={{ fontSize: "1rem" }} />
+                          </IconButton>
+                        </Tooltip>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderRight: "1px solid #4caf50",
+                        fontSize: "0.75rem",
+                        padding: cellPadding,
+                      }}
+                    >
+                      {sid ?? "—"}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderRight: "1px solid #4caf50",
+                        fontSize: "0.75rem",
+                        padding: cellPadding,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <Tooltip title={student.studentName ?? "—"}>
+                        <span>{student.studentName || "—"}</span>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderRight: "1px solid #4caf50",
+                        fontSize: "0.75rem",
+                        padding: cellPadding,
+                      }}
+                    >
+                      {student.class || "—"}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderRight: "1px solid #4caf50",
+                        fontSize: "0.75rem",
+                        padding: cellPadding,
+                      }}
+                    >
+                      {student.grade || "—"}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderRight: "1px solid #4caf50",
+                        fontSize: "0.75rem",
+                        padding: cellPadding,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <Tooltip title={student.school ?? "—"}>
+                        <span>{student.school || "—"}</span>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderRight: "1px solid #4caf50",
+                        fontSize: "0.75rem",
+                        padding: cellPadding,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <Tooltip title={student.parentName ?? "—"}>
+                        <span>{student.parentName || "—"}</span>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderRight: "1px solid #4caf50",
+                        fontSize: "0.75rem",
+                        padding: cellPadding,
+                      }}
+                    >
+                      {student.eventSession || "—"}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderRight: "1px solid #4caf50",
+                        fontSize: "0.75rem",
+                        padding: cellPadding,
+                      }}
+                    >
+                      {student.eventLocation || "—"}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        borderRight: "1px solid #4caf50",
+                        fontSize: "0.75rem",
+                        padding: cellPadding,
+                      }}
+                    >
+                      {student.phoneNumber || "—"}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontSize: "0.75rem",
+                        padding: cellPadding,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <Tooltip title={student.emailAddress ?? ""}>
+                        <span>{student.emailAddress || "—"}</span>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell
@@ -641,7 +638,6 @@ const StudentList = ({
         </Table>
       </TableContainer>
 
-      {/* Pagination Bar */}
       <Box
         sx={{
           backgroundColor: "#4caf50",
@@ -675,7 +671,7 @@ const StudentList = ({
             size="small"
             sx={{ color: "white", padding: "2px" }}
             onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
+            disabled={currentPage === totalPages || totalPages === 0}
           >
             <NextPageIcon fontSize="small" />
           </IconButton>
@@ -683,7 +679,7 @@ const StudentList = ({
             size="small"
             sx={{ color: "white", padding: "2px" }}
             onClick={() => handlePageChange(totalPages)}
-            disabled={currentPage === totalPages}
+            disabled={currentPage === totalPages || totalPages === 0}
           >
             <LastPageIcon fontSize="small" />
           </IconButton>
@@ -696,7 +692,7 @@ const StudentList = ({
           <Select
             size="small"
             value={totalPages > 0 ? currentPage : ""}
-            onChange={(e) => handlePageChange(e.target.value)}
+            onChange={(e) => handlePageChange(Number(e.target.value))}
             disabled={totalPages === 0}
             sx={{
               color: "white",
@@ -708,15 +704,11 @@ const StudentList = ({
           >
             {totalPages > 0 ? (
               Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <MenuItem
-                    key={page}
-                    value={page}
-                    sx={{ fontSize: "0.75rem" }}
-                  >
-                    {page}
+                (p) => (
+                  <MenuItem key={p} value={p} sx={{ fontSize: "0.75rem" }}>
+                    {p}
                   </MenuItem>
-                )
+                ),
               )
             ) : (
               <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
@@ -727,7 +719,7 @@ const StudentList = ({
         </Box>
 
         <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-          Page(s): {currentPage} of {totalPages}
+          Page(s): {totalPages > 0 ? currentPage : 0} of {totalPages}
         </Typography>
 
         <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
@@ -735,7 +727,7 @@ const StudentList = ({
           {totalRecords > 0
             ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
                 currentPage * pageSize,
-                totalRecords
+                totalRecords,
               )}`
             : "0"}{" "}
           of {totalRecords}
@@ -751,9 +743,7 @@ const StudentList = ({
             value={goToPageInput}
             onChange={(e) => setGoToPageInput(e.target.value)}
             onKeyPress={(e) => {
-              if (e.key === "Enter") {
-                handleGoToPage();
-              }
+              if (e.key === "Enter") handleGoToPage();
             }}
             sx={{
               width: 50,
@@ -762,7 +752,7 @@ const StudentList = ({
                 fontSize: "0.75rem",
               },
             }}
-            inputProps={{ min: 1, max: totalPages }}
+            inputProps={{ min: 1, max: totalPages || 1 }}
           />
           <Button
             size="small"

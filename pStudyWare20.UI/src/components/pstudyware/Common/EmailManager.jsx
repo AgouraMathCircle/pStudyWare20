@@ -42,6 +42,11 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import emailManagerService from "../../../services/emailManagerService";
 import StudentHeader from "../Student/StudentHeader";
+import AdminHeader from "../Admin/AdminHeader";
+import {
+  portalPaperAntiLiftSx,
+  APPLICATION_ADMIN_TITLE_COLOR,
+} from "../../../styles/applicationSurfaces";
 
 const EmailManager = () => {
   const navigate = useNavigate();
@@ -408,31 +413,57 @@ const EmailManager = () => {
 
   const isStudent =
     user?.role === "Student" || user?.memberType?.toUpperCase() === "S";
-  
-  // Check if we're on the student message center route
-  const isStudentMessageCenter = location.pathname === "/pstudyware/student/message-center";
-  
-  // Show StudentHeader if user is a student OR if accessing student message center route
-  const shouldShowStudentHeader = isStudent || isStudentMessageCenter;
+
+  const isStudentMessageCenter =
+    location.pathname === "/pstudyware/student/message-center";
+  const isRoleDashboardShell =
+    location.pathname.startsWith("/pstudyware/instructor/") ||
+    location.pathname.startsWith("/pstudyware/volunteer/");
+
+  const shouldShowStudentHeader =
+    (isStudent || isStudentMessageCenter) && !isRoleDashboardShell;
+
+  const isAdminMessageCenter =
+    user?.memberType?.toUpperCase() === "A" &&
+    (location.pathname === "/pstudyware/admin/message-center" ||
+      location.pathname === "/admin/message-center");
+
+  const containerTopMargin =
+    shouldShowStudentHeader ||
+    isRoleDashboardShell ||
+    isAdminMessageCenter
+      ? 0
+      : 4;
 
   return (
     <Box>
+      {isAdminMessageCenter && <AdminHeader user={user} />}
+      {isAdminMessageCenter && <Box sx={{ height: "48px" }} aria-hidden />}
       {shouldShowStudentHeader && <StudentHeader user={user} />}
       {/* Spacer to account for fixed StudentHeader */}
-      {shouldShowStudentHeader && <Box sx={{ height: "40px" }} />}
-      <Container maxWidth="xl" sx={{ mt: shouldShowStudentHeader ? 0 : 4, mb: 4 }}>
-        <Paper elevation={3} sx={{ p: 3 }}>
+      {shouldShowStudentHeader && <Box sx={{ height: "48px" }} />}
+      <Container maxWidth="xl" sx={{ mt: containerTopMargin, mb: 4 }}>
+        <Paper
+          elevation={3}
+          sx={{ p: 3, ...portalPaperAntiLiftSx }}
+        >
           {/* Header */}
           <Box
             display="flex"
             justifyContent="space-between"
             alignItems="center"
-            mb={3}
+            mb={1}
           >
             <Typography
               variant="subtitle1"
               component="h1"
-              sx={{ fontSize: "1rem", fontWeight: 600 }}
+              sx={{
+                fontSize: "1rem",
+                fontWeight: 600,
+                ...(isAdminMessageCenter
+                  ? { color: APPLICATION_ADMIN_TITLE_COLOR }
+                  : {}),
+              }}
             >
               <EmailIcon sx={{ mr: 1, verticalAlign: "middle" }} />
               Message Center - New Messages
@@ -910,6 +941,7 @@ const EmailManager = () => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
+                ...portalPaperAntiLiftSx,
               }}
             >
               <Typography

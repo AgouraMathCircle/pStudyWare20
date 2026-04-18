@@ -1,5 +1,7 @@
 import api from "./api";
 
+const inFlightRequests = new Map();
+
 /**
  * Document Service
  * Handles all document-related API calls
@@ -11,21 +13,40 @@ const documentService = {
    * @returns {Promise<Object>} Documents list response
    */
   getDocumentsList: async (username) => {
+    const normalizedUsername = (username || "").trim();
+    const requestKey = `GetDocumentsList:${normalizedUsername}`;
+
+    if (inFlightRequests.has(requestKey)) {
+      return inFlightRequests.get(requestKey);
+    }
+
+    const requestPromise = (async () => {
+      try {
+        // Use capitalized Username as expected by backend DTO
+        const response = await api.post(
+          "/Document/GetDocumentsList",
+          {
+            Username: normalizedUsername,
+          },
+          {
+            timeout: 60000, // Give DB-bound document lookup enough time
+          }
+        );
+        return response.data;
+      } catch (error) {
+        console.error("Error fetching documents list:", error);
+        throw error;
+      } finally {
+        inFlightRequests.delete(requestKey);
+      }
+    })();
+
+    inFlightRequests.set(requestKey, requestPromise);
+
     try {
-      // Use capitalized Username as expected by backend DTO
-      const response = await api.post(
-        "/Document/GetDocumentsList",
-        {
-          Username: username,
-        },
-        {
-          timeout: 30000, // 30 seconds for document operations
-        }
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching documents list:", error);
-      throw error;
+      return await requestPromise;
+    } finally {
+      // Cleanup is handled in requestPromise.finally. Kept to make flow explicit.
     }
   },
 

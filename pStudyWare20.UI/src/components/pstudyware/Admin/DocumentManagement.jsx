@@ -313,7 +313,7 @@ const DocumentManagement = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: "72px" }} />
+      <Box sx={{ height: "48px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

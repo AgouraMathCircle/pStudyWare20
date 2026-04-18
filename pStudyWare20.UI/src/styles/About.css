@@ -7,24 +7,23 @@
 
 /* Breadcrumbs Section */
 .sc-breadcrumbs {
-  position: relative;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  padding: 80px 0 40px;
+  position: inherit;
+  padding: 40px 0 20px;
   overflow: hidden;
 }
 
 .breadcrumbs-overlay {
-  position: relative;
+  position: inherit;
 }
 
 .breadcrumbs-overlay::before {
   content: "";
-  position: absolute;
+  position: inherit;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(30, 60, 114, 0.8);
+  background: transparent;
   z-index: 1;
 }
 
@@ -592,7 +591,7 @@
 
 @media (max-width: 767px) {
   .sc-breadcrumbs {
-    padding: 60px 0 30px;
+    padding: 30px 0 15px;
   }
 
   .page-title {
@@ -653,7 +652,7 @@
   }
 
   .sc-breadcrumbs {
-    padding: 50px 0 25px;
+    padding: 25px 0 12px;
   }
 
   .counter-title {
@@ -720,7 +719,6 @@
 /* Print Styles */
 @media print {
   .sc-breadcrumbs {
-    background: #1e3c72 !important;
     color: #ffffff !important;
   }
 

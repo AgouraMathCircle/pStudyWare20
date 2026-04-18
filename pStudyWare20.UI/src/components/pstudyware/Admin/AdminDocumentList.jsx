@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -9,12 +9,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TableSortLabel,
   Paper,
   IconButton,
   Tooltip,
   Chip,
   TextField,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import {
   Visibility as ViewIcon,
@@ -24,7 +25,12 @@ import {
   VideoLibrary as VideoIcon,
   Refresh as RefreshIcon,
   Add as AddIcon,
+  FirstPage as FirstPageIcon,
+  KeyboardArrowLeft as PrevPageIcon,
+  KeyboardArrowRight as NextPageIcon,
+  LastPage as LastPageIcon,
 } from "@mui/icons-material";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
 
 const AdminDocumentList = ({
   documents,
@@ -41,39 +47,106 @@ const AdminDocumentList = ({
 }) => {
   // Ensure we always have an array to prevent "filter is not a function" etc.
   const safeDocuments = Array.isArray(documents) ? documents : [];
-  const [orderBy, setOrderBy] = useState("uploadedDate");
-  const [order, setOrder] = useState("desc");
+  const [orderBy] = useState("uploadedDate");
+  const [order] = useState("desc");
+  const [searchBy, setSearchBy] = useState("ALL");
+  const [searchCriteria, setSearchCriteria] = useState("contains");
   const [searchText, setSearchText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [goToPageInput, setGoToPageInput] = useState("1");
+  const pageSize = 10;
 
-  // Handle sort
-  const handleSort = (property) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
+  const matchesCriteria = (value, search, criteria) => {
+    const v = String(value ?? "").toLowerCase();
+    const s = search.toLowerCase();
+    if (criteria === "equals") return v === s;
+    if (criteria === "starts_with") return v.startsWith(s);
+    return v.includes(s);
   };
 
-  // Filter documents based on search
-  const filteredDocuments = safeDocuments.filter((doc) => {
-    if (!searchText) return true;
-    const search = searchText.toLowerCase();
-    return (
-      doc.topics?.toLowerCase().includes(search) ||
-      doc.docName?.toLowerCase().includes(search) ||
-      doc.description?.toLowerCase().includes(search) ||
-      doc.class?.toLowerCase().includes(search) ||
-      doc.session?.toLowerCase().includes(search)
-    );
-  });
+  const filteredDocuments = useMemo(() => {
+    if (!searchText.trim()) return safeDocuments;
+    const search = searchText.trim();
+    return safeDocuments.filter((doc) => {
+      if (searchBy === "ALL") {
+        return (
+          matchesCriteria(doc.topics, search, searchCriteria) ||
+          matchesCriteria(doc.docName, search, searchCriteria) ||
+          matchesCriteria(doc.description, search, searchCriteria) ||
+          matchesCriteria(doc.class, search, searchCriteria) ||
+          matchesCriteria(doc.session, search, searchCriteria) ||
+          matchesCriteria(doc.docID, search, searchCriteria)
+        );
+      }
+
+      let fieldValue = "";
+      switch (searchBy) {
+        case "DOC_ID":
+          fieldValue = doc.docID;
+          break;
+        case "CLASS":
+          fieldValue = doc.class;
+          break;
+        case "TOPICS":
+          fieldValue = doc.topics;
+          break;
+        case "DESCRIPTION":
+          fieldValue = doc.description;
+          break;
+        case "DOC_NAME":
+          fieldValue = doc.docName;
+          break;
+        case "SESSION":
+          fieldValue = doc.session;
+          break;
+        default:
+          fieldValue = "";
+      }
+      return matchesCriteria(fieldValue, search, searchCriteria);
+    });
+  }, [safeDocuments, searchText, searchBy, searchCriteria]);
 
   // Sort documents
-  const sortedDocuments = [...filteredDocuments].sort((a, b) => {
-    const aValue = a[orderBy];
-    const bValue = b[orderBy];
+  const sortedDocuments = useMemo(
+    () =>
+      [...filteredDocuments].sort((a, b) => {
+        const aValue = a[orderBy];
+        const bValue = b[orderBy];
+        if (aValue < bValue) return order === "asc" ? -1 : 1;
+        if (aValue > bValue) return order === "asc" ? 1 : -1;
+        return 0;
+      }),
+    [filteredDocuments, orderBy, order],
+  );
 
-    if (aValue < bValue) return order === "asc" ? -1 : 1;
-    if (aValue > bValue) return order === "asc" ? 1 : -1;
-    return 0;
-  });
+  const totalRecords = sortedDocuments.length;
+  const totalPages = Math.ceil(totalRecords / pageSize);
+
+  const paginatedDocuments = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return sortedDocuments.slice(start, start + pageSize);
+  }, [sortedDocuments, currentPage]);
+
+  const handleSearch = () => {
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      setGoToPageInput(String(page));
+    }
+  };
+
+  const handleGoToPage = () => {
+    const page = parseInt(goToPageInput, 10);
+    if (!Number.isNaN(page) && page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    } else {
+      setGoToPageInput(currentPage.toString());
+    }
+  };
 
   // Handle delete with confirmation
   const handleDeleteClick = (doc) => {
@@ -136,7 +209,7 @@ const AdminDocumentList = ({
         <Box>
           <Typography
             variant="h6"
-            sx={{ fontWeight: 600, color: "#4caf50", fontSize: "1rem" }}
+            sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: "1rem" }}
           >
             Class Material List
           </Typography>
@@ -177,7 +250,7 @@ const AdminDocumentList = ({
         </Box>
       </Box>
 
-      {/* Search Bar - green (same as Document List) */}
+      {/* Search Bar */}
       <Box
         sx={{
           backgroundColor: "#4caf50",
@@ -189,14 +262,83 @@ const AdminDocumentList = ({
           flexWrap: "wrap",
         }}
       >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <Typography
+            sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
+          >
+            Search By:
+          </Typography>
+          <Select
+            size="small"
+            value={searchBy}
+            onChange={(e) => setSearchBy(e.target.value)}
+            sx={{
+              color: "white",
+              minWidth: 100,
+              fontSize: "0.75rem",
+              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+              "& .MuiSelect-icon": { color: "white" },
+            }}
+          >
+            <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
+              -ALL-
+            </MenuItem>
+            <MenuItem value="DOC_ID" sx={{ fontSize: "0.75rem" }}>
+              Doc #
+            </MenuItem>
+            <MenuItem value="CLASS" sx={{ fontSize: "0.75rem" }}>
+              Class
+            </MenuItem>
+            <MenuItem value="TOPICS" sx={{ fontSize: "0.75rem" }}>
+              Topics
+            </MenuItem>
+            <MenuItem value="DESCRIPTION" sx={{ fontSize: "0.75rem" }}>
+              Description
+            </MenuItem>
+            <MenuItem value="DOC_NAME" sx={{ fontSize: "0.75rem" }}>
+              Document Name
+            </MenuItem>
+            <MenuItem value="SESSION" sx={{ fontSize: "0.75rem" }}>
+              Session
+            </MenuItem>
+          </Select>
+        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <Typography
+            sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
+          >
+            Criteria:
+          </Typography>
+          <Select
+            size="small"
+            value={searchCriteria}
+            onChange={(e) => setSearchCriteria(e.target.value)}
+            sx={{
+              color: "white",
+              minWidth: 110,
+              fontSize: "0.75rem",
+              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+              "& .MuiSelect-icon": { color: "white" },
+            }}
+          >
+            <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
+              Contains
+            </MenuItem>
+            <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
+              Equals
+            </MenuItem>
+            <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>
+              Starts With
+            </MenuItem>
+          </Select>
+        </Box>
         <TextField
           size="small"
-          placeholder="Search by topics, name, description, class, session..."
+          placeholder="Search Text"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), null)}
           sx={{
-            minWidth: 220,
+            minWidth: 180,
             "& .MuiOutlinedInput-root": {
               backgroundColor: "white",
               fontSize: "0.75rem",
@@ -206,6 +348,7 @@ const AdminDocumentList = ({
         <Button
           variant="contained"
           size="small"
+          onClick={handleSearch}
           sx={{
             backgroundColor: "white",
             color: "#4caf50",
@@ -221,7 +364,7 @@ const AdminDocumentList = ({
         </Button>
       </Box>
 
-      {/* Table - same layout as Document List */}
+      {/* Table */}
       <TableContainer component={Paper} sx={{ width: "100%" }}>
         <Table
           sx={{
@@ -275,14 +418,7 @@ const AdminDocumentList = ({
                   padding: cellPadding,
                 }}
               >
-                <TableSortLabel
-                  active={orderBy === "docID"}
-                  direction={orderBy === "docID" ? order : "asc"}
-                  onClick={() => handleSort("docID")}
-                  sx={{ fontSize: "0.75rem" }}
-                >
-                  Doc #
-                </TableSortLabel>
+                Doc #
               </TableCell>
               <TableCell
                 sx={{
@@ -293,14 +429,7 @@ const AdminDocumentList = ({
                   padding: cellPadding,
                 }}
               >
-                <TableSortLabel
-                  active={orderBy === "class"}
-                  direction={orderBy === "class" ? order : "asc"}
-                  onClick={() => handleSort("class")}
-                  sx={{ fontSize: "0.75rem" }}
-                >
-                  Class
-                </TableSortLabel>
+                Class
               </TableCell>
               <TableCell
                 sx={{
@@ -311,14 +440,7 @@ const AdminDocumentList = ({
                   padding: cellPadding,
                 }}
               >
-                <TableSortLabel
-                  active={orderBy === "topics"}
-                  direction={orderBy === "topics" ? order : "asc"}
-                  onClick={() => handleSort("topics")}
-                  sx={{ fontSize: "0.75rem" }}
-                >
-                  Topics
-                </TableSortLabel>
+                Topics
               </TableCell>
               <TableCell
                 sx={{
@@ -329,14 +451,7 @@ const AdminDocumentList = ({
                   padding: cellPadding,
                 }}
               >
-                <TableSortLabel
-                  active={orderBy === "description"}
-                  direction={orderBy === "description" ? order : "asc"}
-                  onClick={() => handleSort("description")}
-                  sx={{ fontSize: "0.75rem" }}
-                >
-                  Description
-                </TableSortLabel>
+                Description
               </TableCell>
               <TableCell
                 sx={{
@@ -358,14 +473,7 @@ const AdminDocumentList = ({
                   padding: cellPadding,
                 }}
               >
-                <TableSortLabel
-                  active={orderBy === "session"}
-                  direction={orderBy === "session" ? order : "asc"}
-                  onClick={() => handleSort("session")}
-                  sx={{ fontSize: "0.75rem" }}
-                >
-                  Session
-                </TableSortLabel>
+                Session
               </TableCell>
               <TableCell
                 sx={{
@@ -376,14 +484,7 @@ const AdminDocumentList = ({
                   padding: cellPadding,
                 }}
               >
-                <TableSortLabel
-                  active={orderBy === "uploadedDate"}
-                  direction={orderBy === "uploadedDate" ? order : "asc"}
-                  onClick={() => handleSort("uploadedDate")}
-                  sx={{ fontSize: "0.75rem" }}
-                >
-                  Posted Date
-                </TableSortLabel>
+                Posted Date
               </TableCell>
               <TableCell
                 sx={{
@@ -398,8 +499,8 @@ const AdminDocumentList = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {sortedDocuments.length > 0 ? (
-              sortedDocuments.map((doc, index) => {
+            {paginatedDocuments.length > 0 ? (
+              paginatedDocuments.map((doc, index) => {
                 const isPublished = doc.publish?.toUpperCase() === "Y";
                 return (
                   <TableRow
@@ -632,7 +733,7 @@ const AdminDocumentList = ({
         </Table>
       </TableContainer>
 
-      {/* Footer - green bar (same as Document List) */}
+      {/* Pagination Bar */}
       <Box
         sx={{
           backgroundColor: "#4caf50",
@@ -645,14 +746,121 @@ const AdminDocumentList = ({
           gap: 1,
         }}
       >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+          <IconButton
+            size="small"
+            sx={{ color: "white", padding: "2px" }}
+            onClick={() => handlePageChange(1)}
+            disabled={currentPage === 1 || totalPages === 0}
+          >
+            <FirstPageIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            sx={{ color: "white", padding: "2px" }}
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1 || totalPages === 0}
+          >
+            <PrevPageIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            sx={{ color: "white", padding: "2px" }}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages || totalPages === 0}
+          >
+            <NextPageIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            sx={{ color: "white", padding: "2px" }}
+            onClick={() => handlePageChange(totalPages)}
+            disabled={currentPage === totalPages || totalPages === 0}
+          >
+            <LastPageIcon fontSize="small" />
+          </IconButton>
+        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+          <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+            GoTo
+          </Typography>
+          <Select
+            size="small"
+            value={totalPages > 0 ? currentPage : ""}
+            onChange={(e) => handlePageChange(Number(e.target.value))}
+            disabled={totalPages === 0}
+            sx={{
+              color: "white",
+              minWidth: 50,
+              fontSize: "0.75rem",
+              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+              "& .MuiSelect-icon": { color: "white" },
+            }}
+          >
+            {totalPages > 0 ? (
+              Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <MenuItem key={p} value={p} sx={{ fontSize: "0.75rem" }}>
+                  {p}
+                </MenuItem>
+              ))
+            ) : (
+              <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
+                -
+              </MenuItem>
+            )}
+          </Select>
+        </Box>
         <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-          Total: {sortedDocuments.length}
-          {searchText ? ` (filtered from ${safeDocuments.length})` : ""} |
-          Published:{" "}
-          {safeDocuments.filter((d) => d.publish?.toUpperCase() === "Y").length}{" "}
-          | Unpublished:{" "}
-          {safeDocuments.filter((d) => d.publish?.toUpperCase() !== "Y").length}
+          Page(s): {totalPages === 0 ? 0 : currentPage} of {Math.max(totalPages, 1)}
         </Typography>
+        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+          Record(s):{" "}
+          {totalRecords > 0
+            ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
+                currentPage * pageSize,
+                totalRecords,
+              )}`
+            : "0"}{" "}
+          of {totalRecords}
+        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+          <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+            Go to Page Number:
+          </Typography>
+          <TextField
+            size="small"
+            type="number"
+            value={goToPageInput}
+            onChange={(e) => setGoToPageInput(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === "Enter") handleGoToPage();
+            }}
+            sx={{
+              width: 50,
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: "white",
+                fontSize: "0.75rem",
+              },
+            }}
+            inputProps={{ min: 1, max: Math.max(totalPages, 1) }}
+          />
+          <Button
+            size="small"
+            variant="contained"
+            onClick={handleGoToPage}
+            sx={{
+              backgroundColor: "white",
+              color: "#4caf50",
+              fontSize: "0.75rem",
+              minHeight: 32,
+              py: 0,
+              px: 0.75,
+              "&:hover": { backgroundColor: "#f5f5f5" },
+            }}
+          >
+            Go
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

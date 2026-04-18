@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { Box } from "@mui/material";
+import {
+  applicationMainSx,
+  authenticatedPortalShellSx,
+} from "../styles/applicationSurfaces";
+import portalBackgroundImg from "../assets/images/bg.jpg";
 import Topbar from "./Topbar";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -72,20 +78,11 @@ const AppLayout = ({ children }) => {
     };
   }, []);
 
-  // Check if current route is a dashboard route
-  const isDashboardRoute = () => {
-    return (
-      location.pathname.startsWith("/pstudyware/student/") ||
-      location.pathname.startsWith("/admin/") ||
-      location.pathname.startsWith("/instructor/") ||
-      location.pathname.startsWith("/volunteer/") ||
-      location.pathname === "/dashboard"
-    );
-  };
+  const showAuthenticatedPortalChrome = isAuthenticated;
 
-  // Check if current route is login page
-  const isLoginPage = () => {
-    return location.pathname === "/login";
+  const authenticatedPortalSx = {
+    ...authenticatedPortalShellSx,
+    backgroundImage: `url(${portalBackgroundImg})`,
   };
 
   // Render appropriate navigation based on authentication and route
@@ -102,9 +99,15 @@ const AppLayout = ({ children }) => {
   return (
     <div className="App">
       {renderNavigation()}
-      <main>{children}</main>
-      {/* Only show footer on public pages */}
-      {!isAuthenticated || !isDashboardRoute() ? <Footer /> : null}
+      <Box component="main" sx={applicationMainSx}>
+        {showAuthenticatedPortalChrome ? (
+          <Box sx={authenticatedPortalSx}>{children}</Box>
+        ) : (
+          children
+        )}
+      </Box>
+      {/* Marketing footer only for visitors; hide for any logged-in session */}
+      {!isAuthenticated ? <Footer /> : null}
       {/* Scroll to top button - show on all pages */}
       <ScrollToTop />
     </div>

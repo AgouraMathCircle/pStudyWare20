@@ -13,6 +13,7 @@ import {
   Box,
 } from "@mui/material";
 import { School as SchoolIcon } from "@mui/icons-material";
+import { adminPortalCardHeaderStripSx } from "../../../styles/applicationSurfaces";
 
 const EnrolledStudents = ({ studentCounts }) => {
   // Define the groups to display
@@ -89,20 +90,13 @@ const EnrolledStudents = ({ studentCounts }) => {
   return (
     <Card elevation={3} sx={{ height: "100%" }}>
       <CardHeader
-        avatar={<SchoolIcon color="primary" />}
+        avatar={<SchoolIcon />}
         title={
           <Typography variant="subtitle1" component="div" sx={{ fontSize: '1rem' }}>
             Enrolled Students
           </Typography>
         }
-        sx={{
-          backgroundColor: (theme) => theme.palette.primary.light,
-          color: (theme) => theme.palette.primary.contrastText,
-          padding: "3px 5px",
-          "& .MuiCardHeader-avatar": {
-            color: (theme) => theme.palette.primary.contrastText,
-          },
-        }}
+        sx={adminPortalCardHeaderStripSx}
       />
       <CardContent sx={{ p: 2 }}>
         <TableContainer>

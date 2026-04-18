@@ -32,6 +32,10 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import studentDashboardService from "../../../services/studentDashboardService";
+import {
+  PORTAL_CARD_BOX_SHADOW,
+  portalCardAntiLiftSx,
+} from "../../../styles/applicationSurfaces";
 
 const ReportCard = ({ username: propUsername }) => {
   // Get user from auth context
@@ -714,7 +718,17 @@ const ReportCard = ({ username: propUsername }) => {
   if (isStandalonePage) {
     return (
       <Container maxWidth="xl" sx={{ pt: 12, pb: 4 }}>
-        {content}
+        <Card
+          sx={{
+            backgroundColor: "white",
+            borderRadius: 2,
+            boxShadow: PORTAL_CARD_BOX_SHADOW,
+            overflow: "hidden",
+            ...portalCardAntiLiftSx,
+          }}
+        >
+          <CardContent sx={{ p: 3 }}>{content}</CardContent>
+        </Card>
       </Container>
     );
   }

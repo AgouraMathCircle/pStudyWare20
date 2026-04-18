@@ -353,7 +353,7 @@ const StudentDashboard = () => {
     <Box className="student-dashboard">
       <StudentHeader user={user} />
       {/* Spacer to account for fixed StudentHeader */}
-      <Box sx={{ height: "40px" }} />
+      <Box sx={{ height: "48px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           {/* Dashboard Messages (data from single parent fetch to avoid duplicate API call) */}

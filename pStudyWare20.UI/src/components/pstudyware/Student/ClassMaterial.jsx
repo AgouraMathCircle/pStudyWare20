@@ -14,6 +14,10 @@ import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
 import StudentDocumentList from "./StudentDocumentList";
 import StudentHeader from "./StudentHeader";
+import {
+  PORTAL_CARD_BOX_SHADOW,
+  portalCardAntiLiftSx,
+} from "../../../styles/applicationSurfaces";
 
 const ClassMaterial = () => {
   const { user, isAuthenticated } = useAuth();
@@ -185,7 +189,7 @@ const ClassMaterial = () => {
     <Box className="student-dashboard">
       <StudentHeader user={user} />
       {/* Spacer to account for fixed StudentHeader */}
-      <Box sx={{ height: "40px" }} />
+      <Box sx={{ height: "48px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
@@ -193,8 +197,9 @@ const ClassMaterial = () => {
               sx={{
                 backgroundColor: "white",
                 borderRadius: 2,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                boxShadow: PORTAL_CARD_BOX_SHADOW,
                 overflow: "hidden",
+                ...portalCardAntiLiftSx,
               }}
             >
               <CardContent sx={{ p: 0 }}>

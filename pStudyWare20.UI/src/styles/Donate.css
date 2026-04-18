@@ -15,8 +15,7 @@
 /* Breadcrumbs Styles */
 .sc-breadcrumbs {
   position: relative;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  padding: 80px 0 40px;
+  padding: 40px 0 20px;
   overflow: hidden;
   margin-top: 0;
 }
@@ -32,7 +31,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(30, 60, 114, 0.8);
+  background: transparent;
   z-index: 1;
 }
 
@@ -98,7 +97,7 @@
 /* Responsive breadcrumbs */
 @media (max-width: 768px) {
   .sc-breadcrumbs {
-    padding: 60px 0 30px;
+    padding: 30px 0 15px;
   }
 
   .page-title {
@@ -108,7 +107,7 @@
 
 @media (max-width: 600px) {
   .sc-breadcrumbs {
-    padding: 40px 0 20px;
+    padding: 20px 0 10px;
   }
 
   .page-title {

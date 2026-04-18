@@ -44,7 +44,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(28, 61, 90, 0.65);
+  background: transparent;
   z-index: 2;
 }
 

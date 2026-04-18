@@ -131,7 +131,10 @@ const adminDashboardService = {
   checkAdminPrivileges: async () => {
     try {
       const response = await api.get(
-        `${ADMIN_DASHBOARD_API_BASE_URL}/CheckAdminPrivileges`
+        `${ADMIN_DASHBOARD_API_BASE_URL}/CheckAdminPrivileges`,
+        {
+          timeout: 30000, // align with admin data operations
+        }
       );
       return response.data;
     } catch (error) {

@@ -210,7 +210,7 @@ const FAQ = () => {
       {/* About Section Start */}
       <div
         id="sc-about faq"
-        className="sc-about pt-80 pb-70 md-pt-40 position-relative arrow-animation-1"
+        className="sc-about pb-70 position-relative arrow-animation-1"
       >
         <div className="faq-title text-center">
           <h2 className="title">AMC FAQ</h2>

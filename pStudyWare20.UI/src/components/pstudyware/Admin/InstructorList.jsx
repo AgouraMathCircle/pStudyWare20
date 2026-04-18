@@ -32,6 +32,7 @@ import {
   LastPage as LastPageIcon,
   Add as AddIcon,
 } from "@mui/icons-material";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
 
 const InstructorList = ({
   instructors,
@@ -53,7 +54,7 @@ const InstructorList = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
 
-  const pageSize = 10;
+  const pageSize = 25;
 
   // Handle page change
   const handlePageChange = (page) => {
@@ -259,7 +260,7 @@ const InstructorList = ({
       >
         <Typography
           variant="subtitle1"
-          sx={{ fontWeight: 600, color: "#1976d2", fontSize: "1rem" }}
+          sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: "1rem" }}
         >
           Instructor List
         </Typography>
@@ -793,7 +794,7 @@ const InstructorList = ({
             size="small"
             sx={{ color: "white", padding: "2px" }}
             onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
+            disabled={currentPage === totalPages || totalPages === 0}
           >
             <NextPageIcon fontSize="small" />
           </IconButton>
@@ -801,7 +802,7 @@ const InstructorList = ({
             size="small"
             sx={{ color: "white", padding: "2px" }}
             onClick={() => handlePageChange(totalPages)}
-            disabled={currentPage === totalPages}
+            disabled={currentPage === totalPages || totalPages === 0}
           >
             <LastPageIcon fontSize="small" />
           </IconButton>
@@ -845,7 +846,7 @@ const InstructorList = ({
         </Box>
 
         <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-          Page(s): {currentPage} of {totalPages}
+          Page(s): {totalPages > 0 ? currentPage : 0} of {totalPages}
         </Typography>
 
         <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
@@ -880,7 +881,7 @@ const InstructorList = ({
                 fontSize: "0.75rem",
               },
             }}
-            inputProps={{ min: 1, max: totalPages }}
+            inputProps={{ min: 1, max: totalPages || 1 }}
           />
           <Button
             size="small"

@@ -15,6 +15,7 @@ import {
   Support as SupportIcon,
   ChevronRight as ChevronRightIcon,
 } from "@mui/icons-material";
+import { adminPortalCardHeaderStripSx } from "../../../styles/applicationSurfaces";
 
 const SystemSupport = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const SystemSupport = () => {
   // Define system support links
   const supportLinks = [
     {
-      label: "Waiting List",
+      label: "Student Waiting List",
       href: "/pstudyware/admin/Studentwaiting-list",
       isReact: true,
     },
@@ -84,20 +85,17 @@ const SystemSupport = () => {
   return (
     <Card elevation={3} sx={{ height: "100%" }}>
       <CardHeader
-        avatar={<SupportIcon color="secondary" />}
+        avatar={<SupportIcon />}
         title={
-          <Typography variant="subtitle1" component="div" sx={{ fontSize: '1rem' }}>
+          <Typography
+            variant="subtitle1"
+            component="div"
+            sx={{ fontSize: "1rem" }}
+          >
             System Support
           </Typography>
         }
-        sx={{
-          backgroundColor: (theme) => theme.palette.secondary.light,
-          color: (theme) => theme.palette.secondary.contrastText,
-          padding: "3px 5px",
-          "& .MuiCardHeader-avatar": {
-            color: (theme) => theme.palette.secondary.contrastText,
-          },
-        }}
+        sx={adminPortalCardHeaderStripSx}
       />
       <CardContent sx={{ p: 0, maxHeight: 500, overflowY: "auto" }}>
         <List dense disablePadding sx={{ py: 0 }}>
