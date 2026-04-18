@@ -309,47 +309,24 @@ namespace pStudyWare20.Repository.Implementations
             }
         }
 
-        /// <summary>
-        /// Export to excel
-        /// </summary>
-        public async Task<ExportExcelResponse> ExportToExcelAsync(ExportExcelRequest request)
+        /// <inheritdoc />
+        public async Task<DataTable> GetStudentWaitingListExportTableAsync(string username)
         {
-            try
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            using var command = new SqlCommand("AMC_spExportToExcel", connection)
             {
-                using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
+                CommandType = CommandType.StoredProcedure
+            };
 
-                using var command = new SqlCommand("AMC_spExportToExcel", connection)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            command.Parameters.Add(new SqlParameter("@Username", username ?? ""));
 
-                command.Parameters.Add(new SqlParameter("@Username", request.Username ?? ""));
+            var dataTable = new DataTable();
+            using var adapter = new SqlDataAdapter(command);
+            adapter.Fill(dataTable);
 
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
-
-                return new ExportExcelResponse
-                {
-                    IsSuccess = true,
-                    FileName = "StudentWaitingList.xlsx",
-                    FileContent = Array.Empty<byte>(),
-                    ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    ErrorMessage = ""
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ExportExcelResponse
-                {
-                    IsSuccess = false,
-                    FileName = "",
-                    FileContent = Array.Empty<byte>(),
-                    ContentType = "",
-                    ErrorMessage = $"Error exporting to excel: {ex.Message}"
-                };
-            }
+            return dataTable;
         }
     }
 }

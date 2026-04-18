@@ -298,7 +298,7 @@ namespace pStudyWare20.Services.Implementations
                     var entry = new TimeSheetTrackingEntry
                     {
                         LogID = logIdVal != null && logIdVal != DBNull.Value ? Convert.ToInt32(logIdVal) : 0,
-                        Username = GetValue(row, table, "Username", "UserName")?.ToString() ?? "",
+                        Username = GetValue(row, table, "Username", "UserName", "Name")?.ToString() ?? "",
                         TaskName = GetValue(row, table, "TaskName")?.ToString() ?? "",
                         VolunteerDate = dateVal != null && dateVal != DBNull.Value ? Convert.ToDateTime(dateVal) : default,
                         StartHour = GetValue(row, table, "StartHour")?.ToString() ?? "",

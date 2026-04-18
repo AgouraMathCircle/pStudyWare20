@@ -3,23 +3,23 @@ using System.ComponentModel.DataAnnotations;
 namespace pStudyWare20.Entity
 {
     /// <summary>
-    /// Request model for updating user password
+    /// Request to change password for the currently authenticated user (identity from JWT).
+    /// Matches legacy flow: verify current password via <c>pWebMemberFrm</c> GetPassword, then <c>AMC_spPasswordUpdate</c> with account username.
     /// </summary>
     public class UpdatePasswordRequest
     {
         /// <summary>
-        /// Username (email) of the user whose password needs to be updated
+        /// Existing password (plain text, same as legacy Web API / database).
         /// </summary>
-        [Required(ErrorMessage = "Username is required")]
-        [EmailAddress(ErrorMessage = "Invalid email address")]
-        public string Username { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Current password is required")]
+        [StringLength(50, ErrorMessage = "Current password cannot exceed 50 characters")]
+        public string CurrentPassword { get; set; } = string.Empty;
 
         /// <summary>
-        /// New password for the user
+        /// New password for the user.
         /// </summary>
         [Required(ErrorMessage = "Password is required")]
-        [StringLength(10, MinimumLength = 6, ErrorMessage = "Password must be between 6 and 10 characters")]
+        [StringLength(16, MinimumLength = 10, ErrorMessage = "New password must be between 10 and 16 characters")]
         public string Password { get; set; } = string.Empty;
     }
 }
-

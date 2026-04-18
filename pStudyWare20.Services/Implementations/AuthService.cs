@@ -178,34 +178,61 @@ namespace pStudyWare20.Services.Implementations
             }
         }
 
-        public async Task<UpdatePasswordResponse> UpdatePasswordAsync(UpdatePasswordRequest request)
+        public async Task<UpdatePasswordResponse> UpdatePasswordAsync(string authenticatedUserEmail, UpdatePasswordRequest request)
         {
             try
             {
-                // Update password using stored procedure AMC_spPasswordUpdate
-                var updateResult = await _memberRepository.UpdatePasswordAsync(request.Username, request.Password);
+                if (string.IsNullOrWhiteSpace(authenticatedUserEmail))
+                {
+                    return new UpdatePasswordResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Unable to identify the signed-in user."
+                    };
+                }
+
+                var member = await _memberRepository.GetUserPasswordByEmailAsync(authenticatedUserEmail.Trim());
+                if (member == null)
+                {
+                    return new UpdatePasswordResponse
+                    {
+                        IsSuccess = false,
+                        Message = "We could not verify your account. Please sign in again or contact support."
+                    };
+                }
+
+                if (!string.Equals(member.Password, request.CurrentPassword?.Trim() ?? string.Empty, StringComparison.Ordinal))
+                {
+                    return new UpdatePasswordResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Current password is not correct."
+                    };
+                }
+
+                var newPassword = request.Password.Trim();
+                var updateResult = await _memberRepository.UpdatePasswordAsync(member.UserName, newPassword);
 
                 if (!updateResult)
                 {
                     return new UpdatePasswordResponse
                     {
                         IsSuccess = false,
-                        Message = "Failed to update password. User not found.",
-                        Username = request.Username
+                        Message = "Your password could not be updated. Please try again.",
+                        Username = member.UserName
                     };
                 }
 
-                // Send password changed notification email
-                var emailResult = _emailUtility.SendPasswordChangedEmail(request.Username, request.Password);
+                var notifyEmail = string.IsNullOrWhiteSpace(member.EmailID) ? authenticatedUserEmail.Trim() : member.EmailID.Trim();
+                var emailResult = _emailUtility.SendPasswordChangedEmail(notifyEmail, newPassword);
 
                 if (emailResult.Contains("Error"))
                 {
-                    // Password was updated but email failed - still return success
                     return new UpdatePasswordResponse
                     {
                         IsSuccess = true,
                         Message = "You have changed your password successfully, but the email notification failed to send.",
-                        Username = request.Username
+                        Username = member.UserName
                     };
                 }
 
@@ -213,7 +240,7 @@ namespace pStudyWare20.Services.Implementations
                 {
                     IsSuccess = true,
                     Message = "You have changed your password successfully",
-                    Username = request.Username
+                    Username = member.UserName
                 };
             }
             catch (Exception ex)
@@ -221,8 +248,7 @@ namespace pStudyWare20.Services.Implementations
                 return new UpdatePasswordResponse
                 {
                     IsSuccess = false,
-                    Message = $"An error occurred while updating password: {ex.Message}",
-                    Username = request.Username
+                    Message = $"An error occurred while updating password: {ex.Message}"
                 };
             }
         }

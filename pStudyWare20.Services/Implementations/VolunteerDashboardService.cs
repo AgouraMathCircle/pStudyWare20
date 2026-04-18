@@ -188,36 +188,75 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
+        /// Resolve column name case-insensitively; try preferred then alternates (legacy SPs vary).
+        /// </summary>
+        private static string? ResolveColumnName(DataTable table, string preferred, params string[] alternates)
+        {
+            if (table?.Columns == null)
+                return null;
+            foreach (var name in new[] { preferred }.Concat(alternates ?? Array.Empty<string>()))
+            {
+                foreach (DataColumn col in table.Columns)
+                {
+                    if (string.Equals(col.ColumnName, name, StringComparison.OrdinalIgnoreCase))
+                        return col.ColumnName;
+                }
+            }
+            return null;
+        }
+
+        private static object GetCell(DataRow row, DataTable table, string preferred, params string[] alternates)
+        {
+            var col = ResolveColumnName(table, preferred, alternates);
+            if (col == null)
+                return DBNull.Value;
+            var val = row[col];
+            return val ?? DBNull.Value;
+        }
+
+        /// <summary>
         /// Convert DataTable to VolunteerTimeTrackingEntry list
         /// </summary>
         private List<VolunteerTimeTrackingEntry> ConvertDataTableToVolunteerTimeTrackingEntries(DataTable dataTable)
         {
             var entries = new List<VolunteerTimeTrackingEntry>();
 
-            if (dataTable != null && dataTable.Rows.Count > 0)
+            if (dataTable == null || dataTable.Rows == null || dataTable.Rows.Count == 0)
+                return entries;
+
+            var table = dataTable;
+            foreach (DataRow row in dataTable.Rows)
             {
-                foreach (DataRow row in dataTable.Rows)
+                try
                 {
+                    var logIdVal = GetCell(row, table, "mLogID", "LogID", "LogId");
+                    var dateVal = GetCell(row, table, "DateVolunteer", "VolunteerDate");
+                    var createdVal = GetCell(row, table, "CreatedDate");
+                    var modifiedVal = GetCell(row, table, "ModifiedDate");
+
                     var entry = new VolunteerTimeTrackingEntry
                     {
-                        LogID = Convert.ToInt32(row["mLogID"]),
-                        Username = row["Username"]?.ToString() ?? "",
-                        TaskName = row["TaskName"]?.ToString() ?? "",
-                        VolunteerDate = Convert.ToDateTime(row["DateVolunteer"]),
-                        StartHour = row["StartHour"]?.ToString() ?? "",
-                        StartMin = row["StartMin"]?.ToString() ?? "",
-                        StartType = row["StartType"]?.ToString() ?? "",
-                        EndHour = row["EndHour"]?.ToString() ?? "",
-                        EndMin = row["EndMin"]?.ToString() ?? "",
-                        EndType = row["EndType"]?.ToString() ?? "",
-                        TaskDescription = row["TaskDescription"]?.ToString() ?? "",
-                        CreatedDate = row["CreatedDate"] != DBNull.Value ? Convert.ToDateTime(row["CreatedDate"]) : null,
-                        ModifiedDate = row["ModifiedDate"] != DBNull.Value ? Convert.ToDateTime(row["ModifiedDate"]) : null
+                        LogID = logIdVal != null && logIdVal != DBNull.Value ? Convert.ToInt32(logIdVal) : 0,
+                        Username = GetCell(row, table, "Username", "UserName", "Name")?.ToString() ?? "",
+                        TaskName = GetCell(row, table, "TaskName")?.ToString() ?? "",
+                        VolunteerDate = dateVal != null && dateVal != DBNull.Value ? Convert.ToDateTime(dateVal) : default,
+                        StartHour = GetCell(row, table, "StartHour")?.ToString() ?? "",
+                        StartMin = GetCell(row, table, "StartMin")?.ToString() ?? "",
+                        StartType = GetCell(row, table, "StartType")?.ToString() ?? "",
+                        EndHour = GetCell(row, table, "EndHour")?.ToString() ?? "",
+                        EndMin = GetCell(row, table, "EndMin")?.ToString() ?? "",
+                        EndType = GetCell(row, table, "EndType")?.ToString() ?? "",
+                        TaskDescription = GetCell(row, table, "TaskDescription")?.ToString() ?? "",
+                        CreatedDate = createdVal != null && createdVal != DBNull.Value ? Convert.ToDateTime(createdVal) : null,
+                        ModifiedDate = modifiedVal != null && modifiedVal != DBNull.Value ? Convert.ToDateTime(modifiedVal) : null
                     };
 
-                    // Calculate total hours for this entry
                     entry.TotalHours = CalculateEntryHours(entry);
                     entries.Add(entry);
+                }
+                catch
+                {
+                    // Skip malformed row
                 }
             }
 

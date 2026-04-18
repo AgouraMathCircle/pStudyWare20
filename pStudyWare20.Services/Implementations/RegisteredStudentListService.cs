@@ -3,7 +3,6 @@ using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
 using System.Data;
-using System.Text;
 
 namespace pStudyWare20.Services.Implementations
 {
@@ -201,14 +200,12 @@ namespace pStudyWare20.Services.Implementations
 
                 if (studentList is DataTable dataTable && dataTable.Rows.Count > 0)
                 {
-                    var excelContent = ConvertDataTableToExcel(dataTable);
-
                     return new ExportStudentListExcelResponse
                     {
                         IsSuccess = true,
-                        FileName = "StudentList.xls",
-                        FileContent = excelContent,
-                        ContentType = "application/octet-stream"
+                        FileName = "StudentList.xlsx",
+                        FileContent = DataTableExcelExporter.ToXlsxBytes(dataTable, "StudentList"),
+                        ContentType = DataTableExcelExporter.XlsxContentType
                     };
                 }
 
@@ -309,37 +306,6 @@ namespace pStudyWare20.Services.Implementations
                     ErrorMessage = ex.Message
                 };
             }
-        }
-
-        /// <summary>
-        /// Convert DataTable to Excel format (simplified version)
-        /// </summary>
-        private byte[] ConvertDataTableToExcel(DataTable dataTable)
-        {
-            var sb = new StringBuilder();
-
-            // Add headers
-            for (int i = 0; i < dataTable.Columns.Count; i++)
-            {
-                sb.Append(dataTable.Columns[i].ColumnName);
-                if (i < dataTable.Columns.Count - 1)
-                    sb.Append("\t");
-            }
-            sb.AppendLine();
-
-            // Add data rows
-            foreach (DataRow row in dataTable.Rows)
-            {
-                for (int i = 0; i < dataTable.Columns.Count; i++)
-                {
-                    sb.Append(row[i].ToString());
-                    if (i < dataTable.Columns.Count - 1)
-                        sb.Append("\t");
-                }
-                sb.AppendLine();
-            }
-
-            return Encoding.UTF8.GetBytes(sb.ToString());
         }
 
         /// <summary>

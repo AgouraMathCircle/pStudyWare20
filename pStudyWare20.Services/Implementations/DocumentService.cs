@@ -20,15 +20,14 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
-        /// Get class materials (matches legacy controller exactly)
+        /// Get class materials (legacy student flow; SP AMC_spGetClassMaterials).
         /// </summary>
-        public ResponseDetails GetClassMaterials(UserName userName)
+        public async Task<ResponseDetails> GetClassMaterialsAsync(UserName userName)
         {
-            ResponseDetails responseDetails = new ResponseDetails();
+            var responseDetails = new ResponseDetails();
             try
             {
-                var result = _documentRepository.GetClassMaterialsAsync(userName).Result;
-
+                var result = await _documentRepository.GetClassMaterialsAsync(userName).ConfigureAwait(false);
                 responseDetails.isSuccess = true;
                 responseDetails.ErrorMessage = "";
                 responseDetails.Message = result;
@@ -44,15 +43,14 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
-        /// Publish document (matches legacy controller exactly)
+        /// Publish document (legacy Documents.aspx Publish(); SP AMC_spPublishDocuments).
         /// </summary>
-        public ResponseDetails PublishDocument(PublishDocument publishDocument)
+        public async Task<ResponseDetails> PublishDocumentAsync(PublishDocument publishDocument)
         {
-            ResponseDetails responseDetails = new ResponseDetails();
+            var responseDetails = new ResponseDetails();
             try
             {
-                var result = _documentRepository.PublishDocumentAsync(publishDocument).Result;
-
+                var result = await _documentRepository.PublishDocumentAsync(publishDocument).ConfigureAwait(false);
                 responseDetails.isSuccess = true;
                 responseDetails.ErrorMessage = "";
                 responseDetails.Message = result;

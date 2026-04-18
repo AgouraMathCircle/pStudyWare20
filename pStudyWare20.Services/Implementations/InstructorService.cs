@@ -153,14 +153,11 @@ namespace pStudyWare20.Services.Implementations
 
                 if (dataTable != null && dataTable.Rows.Count > 0)
                 {
-                    // Convert DataTable to Excel format (simplified version)
-                    var excelContent = ConvertDataTableToExcel(dataTable);
-
                     response.IsSuccess = true;
                     response.ErrorMessage = "";
-                    response.FileContent = excelContent;
-                    response.FileName = "InstructorList.xls";
-                    response.ContentType = "application/octet-stream";
+                    response.FileContent = DataTableExcelExporter.ToXlsxBytes(dataTable, "InstructorList");
+                    response.FileName = "InstructorList.xlsx";
+                    response.ContentType = DataTableExcelExporter.XlsxContentType;
                 }
                 else
                 {
@@ -175,41 +172,6 @@ namespace pStudyWare20.Services.Implementations
             }
 
             return response;
-        }
-
-        /// <summary>
-        /// Convert DataTable to Excel format (simplified implementation)
-        /// </summary>
-        private byte[] ConvertDataTableToExcel(System.Data.DataTable dataTable)
-        {
-            var sb = new System.Text.StringBuilder();
-
-            // Add HTML table structure for Excel compatibility
-            sb.AppendLine("<html><head><meta charset='utf-8'></head><body>");
-            sb.AppendLine("<table border='1'>");
-
-            // Add headers
-            sb.AppendLine("<tr>");
-            foreach (System.Data.DataColumn column in dataTable.Columns)
-            {
-                sb.AppendLine($"<th>{column.ColumnName}</th>");
-            }
-            sb.AppendLine("</tr>");
-
-            // Add data rows
-            foreach (System.Data.DataRow row in dataTable.Rows)
-            {
-                sb.AppendLine("<tr>");
-                foreach (var item in row.ItemArray)
-                {
-                    sb.AppendLine($"<td>{item}</td>");
-                }
-                sb.AppendLine("</tr>");
-            }
-
-            sb.AppendLine("</table></body></html>");
-
-            return System.Text.Encoding.UTF8.GetBytes(sb.ToString());
         }
 
         /// <summary>

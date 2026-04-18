@@ -1,6 +1,7 @@
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
+using System.Data;
 
 namespace pStudyWare20.Services.Implementations
 {
@@ -152,7 +153,24 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                return await _repository.ExportToExcelAsync(request);
+                DataTable dataTable = await _repository.GetStudentWaitingListExportTableAsync(request.Username ?? "");
+                if (dataTable.Rows.Count == 0)
+                {
+                    return new ExportExcelResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "No data available for export"
+                    };
+                }
+
+                return new ExportExcelResponse
+                {
+                    IsSuccess = true,
+                    FileName = "StudentWaitingList.xlsx",
+                    FileContent = DataTableExcelExporter.ToXlsxBytes(dataTable, "StudentWaitingList"),
+                    ContentType = DataTableExcelExporter.XlsxContentType,
+                    ErrorMessage = ""
+                };
             }
             catch (Exception ex)
             {

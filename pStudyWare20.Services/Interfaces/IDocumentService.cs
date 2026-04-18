@@ -8,18 +8,18 @@ namespace pStudyWare20.Services.Interfaces
     public interface IDocumentService
     {
         /// <summary>
-        /// Get class materials
+        /// Get class materials (legacy: student class material list; SP AMC_spGetClassMaterials).
         /// </summary>
         /// <param name="userName">Username request</param>
         /// <returns>Class materials result</returns>
-        ResponseDetails GetClassMaterials(UserName userName);
+        Task<ResponseDetails> GetClassMaterialsAsync(UserName userName);
 
         /// <summary>
-        /// Publish document
+        /// Publish document (legacy Documents.aspx Action=P; SP AMC_spPublishDocuments).
         /// </summary>
         /// <param name="publishDocument">Document publish request</param>
         /// <returns>Publish result</returns>
-        ResponseDetails PublishDocument(PublishDocument publishDocument);
+        Task<ResponseDetails> PublishDocumentAsync(PublishDocument publishDocument);
 
         /// <summary>
         /// Get documents repository list

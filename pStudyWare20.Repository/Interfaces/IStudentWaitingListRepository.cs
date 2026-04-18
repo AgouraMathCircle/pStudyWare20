@@ -1,3 +1,4 @@
+using System.Data;
 using pStudyWare20.Shared;
 
 namespace pStudyWare20.Repository.Interfaces
@@ -43,10 +44,8 @@ namespace pStudyWare20.Repository.Interfaces
         Task<PasswordResponse> GetPasswordAsync(GetPasswordRequest request);
 
         /// <summary>
-        /// Export to excel
+        /// Raw grid from AMC_spExportToExcel for building a real .xlsx in the service layer.
         /// </summary>
-        /// <param name="request">ExportExcelRequest</param>
-        /// <returns>Task&lt;ExportExcelResponse&gt;</returns>
-        Task<ExportExcelResponse> ExportToExcelAsync(ExportExcelRequest request);
+        Task<DataTable> GetStudentWaitingListExportTableAsync(string username);
     }
 }

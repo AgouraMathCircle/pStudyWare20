@@ -60,7 +60,7 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spGetTimesheetList", connection)
+                using var command = new SqlCommand("AMC_spSelectTimeTracking", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };

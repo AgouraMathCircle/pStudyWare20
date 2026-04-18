@@ -50,6 +50,7 @@ namespace pStudyWare20.Shared
     public class DocumentRepositoryListRequest
     {
         [Display(Name = "Username")]
+        [Required(ErrorMessage = "Username is required")]
         public string Username { get; set; } = string.Empty;
     }
 
