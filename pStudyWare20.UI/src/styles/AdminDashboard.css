@@ -2,8 +2,8 @@
 
 .admin-dashboard {
   min-height: 100vh;
-  background-color: #f5f5f5;
-  padding-top: 20px;
+  background-color: transparent;
+  padding-top: 0;
 }
 
 .admin-dashboard .MuiCard-root {

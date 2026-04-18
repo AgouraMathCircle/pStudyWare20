@@ -148,7 +148,7 @@ The Admin Dashboard provides administrators with a comprehensive view of:
 **Features:**
 
 - Links to various admin pages:
-  - Waiting List
+  - Student Waiting List
   - Volunteers Request
   - Time Sheet
   - Special Events Registration List
@@ -160,11 +160,8 @@ The Admin Dashboard provides administrators with a comprehensive view of:
 - Clean list layout with navigation icons
 
 ### 6. StudentList.jsx ⭐ (MASTER REFERENCE)
-
 **Displays current session student list with advanced features**
-
 **⚠️ This component is the MASTER REFERENCE for table styling. All new tables must match this styling.**
-
 **Props:**
 
 - `students` (array): Array of student objects
@@ -679,22 +676,18 @@ The components use Material-UI (MUI) for base styling with custom overrides for:
 **Original Features → New Implementation:**
 
 1. **To Do List Section** → `ToDoList.jsx`
-
    - Publish documents button → API call to PublishDocument endpoint
    - User tracking summary grid → React table with formatted data
 
 2. **Enrolled Students Section** → `EnrolledStudents.jsx`
-
    - ASP.NET labels → React state and props
    - Static table → Dynamic Material-UI table
 
 3. **Waiting List Section** → `WaitingList.jsx`
-
    - ASP.NET labels → React state and props
    - Static table → Dynamic Material-UI table
 
 4. **System Support Section** → `SystemSupport.jsx`
-
    - Static links → Material-UI list with navigation
 
 5. **Student List Grid** → `StudentList.jsx`

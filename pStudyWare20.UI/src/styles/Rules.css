@@ -8,8 +8,7 @@
 /* Breadcrumbs Section */
 .sc-breadcrumbs {
   position: relative;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  padding: 80px 0 40px;
+  padding: 40px 0 20px;
   overflow: hidden;
 }
 
@@ -24,7 +23,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(30, 60, 114, 0.8);
+  background: transparent;
   z-index: 1;
 }
 
@@ -324,7 +323,7 @@
   }
   
   .sc-breadcrumbs {
-    padding: 50px 0 25px;
+    padding: 25px 0 12px;
   }
 }
 

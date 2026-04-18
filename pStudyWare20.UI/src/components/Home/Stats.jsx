@@ -322,15 +322,15 @@ const Stats = () => {
               gap: "10px",
             }}
           >
-            {/* First Row - 2 Cards */}
+            {/* All cards */}
             <Box
               sx={{
-                display: "flex",
-                flexDirection: "row",
-                gap: "20px",
+                display: "grid",
+                gridTemplateColumns: {xs:"1fr", sm:"1fr 1fr"},
+                gap: "20px"
               }}
             >
-              {statsData.slice(0, 2).map((stat, index) => (
+              {statsData.map((stat, index) => (
                 <Card
                   key={index}
                   sx={{
@@ -415,97 +415,6 @@ const Stats = () => {
               ))}
             </Box>
 
-            {/* Second Row - 2 Cards */}
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                gap: "20px",
-              }}
-            >
-              {statsData.slice(2, 4).map((stat, index) => (
-                <Card
-                  key={index + 2}
-                  sx={{
-                    backgroundColor: "#fff",
-                    borderRadius: "12px",
-                    boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-                    padding: "20px",
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: "15px",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      transform: "translateY(-5px)",
-                      boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-                    },
-                  }}
-                >
-                  {/* Icon Circle */}
-                  <Box
-                    sx={{
-                      width: "60px",
-                      height: "60px",
-                      borderRadius: "50%",
-                      backgroundColor: stat.color,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {React.cloneElement(stat.icon, {
-                      sx: {
-                        color: stat.iconColor,
-                        fontSize: 28,
-                      },
-                    })}
-                  </Box>
-
-                  {/* Text Content */}
-                  <Box
-                    sx={{
-                      flex: 1,
-                      textAlign: "left",
-                      display: "flex",
-                      flexDirection: "column",
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontSize: "1.5rem",
-                        fontWeight: 800,
-                        color: "#333",
-                        lineHeight: 1,
-                        marginBottom: "8px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
-                    >
-                      <span>
-                        <Counter end={stat.number} duration={2000} />
-                        {stat.number === 1000 && "+"}
-                      </span>
-                      <span>{stat.label}</span>
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: "17px",
-                        color: "rgb(80, 80, 80)",
-                        fontFamily: "'Nunito', sans-serif",
-                        fontWeight: 500,
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {stat.description}
-                    </Typography>
-                  </Box>
-                </Card>
-              ))}
-            </Box>
           </Box>
         </Box>
       </Container>

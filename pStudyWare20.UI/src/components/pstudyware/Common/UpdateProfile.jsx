@@ -208,7 +208,7 @@ const UpdateProfile = () => {
   return (
     <Box>
       <StudentHeader user={user} />
-      <Box sx={{ height: "40px" }} />
+      <Box sx={{ height: "48px" }} />
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
           <PersonIcon sx={{ fontSize: 28, color: "#1976d2" }} />

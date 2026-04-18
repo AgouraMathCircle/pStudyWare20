@@ -99,15 +99,29 @@ class AuthService {
     }
   }
 
-  // Update password
-  async updatePassword(username, password) {
+  // Update password (authenticated user; account resolved from JWT on the server)
+  async updatePassword(currentPassword, password) {
     try {
       const response = await api.post("/auth/update-password", {
-        username,
+        currentPassword,
         password,
       });
       return response.data;
     } catch (error) {
+      const status = error.response?.status;
+      const data = error.response?.data;
+      if (status === 400 && data) {
+        const msg =
+          data.message ||
+          data.Message ||
+          (Array.isArray(data.errors) ? data.errors.join(" ") : null);
+        if (data.isSuccess === false || data.IsSuccess === false || msg) {
+          return {
+            isSuccess: false,
+            message: msg || "Failed to update password. Please try again.",
+          };
+        }
+      }
       throw this.handleError(error);
     }
   }
@@ -131,8 +145,9 @@ class AuthService {
     // Check token expiration
     const expired = this.isTokenExpired();
     if (expired) {
-      console.log("isAuthenticated: Token expired, logging out");
-      this.logout();
+      console.log("isAuthenticated: Token expired, clearing auth data");
+      localStorage.removeItem(config.auth.tokenKey);
+      localStorage.removeItem(config.auth.userDataKey);
       return false;
     }
 

@@ -1,6 +1,16 @@
 import axios from "axios";
 import config from "../utils/config";
 
+const isPublicAuthEndpoint = (url = "") => {
+  const normalized = (url || "").toLowerCase();
+  return (
+    normalized.includes("/auth/login") ||
+    normalized.includes("/auth/forgot-password") ||
+    normalized.includes("/auth/reset-password") ||
+    normalized.includes("/auth/refresh-token")
+  );
+};
+
 // Create axios instance with base configuration
 const api = axios.create({
   baseURL: config.api.url,
@@ -25,10 +35,13 @@ api.interceptors.request.use(
             const currentTime = new Date().getTime();
 
             if (currentTime >= expiryTime) {
-              // Token expired - clear storage and redirect
+              // Token expired - clear storage.
               localStorage.removeItem(config.auth.tokenKey);
               localStorage.removeItem(config.auth.userDataKey);
-              window.location.href = "/login";
+              // Avoid hard page refresh for public auth endpoints like /auth/login.
+              if (!isPublicAuthEndpoint(requestConfig.url)) {
+                window.location.assign("/login");
+              }
               return Promise.reject(new Error("Token expired"));
             }
           }
@@ -52,10 +65,12 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      // Unauthorized - clear token and redirect to login
+      // Unauthorized - clear token, but do not hard-refresh for login/forgot/reset requests.
       localStorage.removeItem(config.auth.tokenKey);
       localStorage.removeItem(config.auth.userDataKey);
-      window.location.href = "/login";
+      if (!isPublicAuthEndpoint(error.config?.url)) {
+        window.location.assign("/login");
+      }
     }
     return Promise.reject(error);
   }

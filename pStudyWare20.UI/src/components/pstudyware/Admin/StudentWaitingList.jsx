@@ -38,6 +38,7 @@ import {
   LastPage as LastPageIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
 import AdminHeader from "./AdminHeader";
 import studentWaitingListService from "../../../services/studentWaitingListService";
 
@@ -189,7 +190,7 @@ const StudentWaitingList = () => {
         err?.response?.data?.errorMessage ??
         err?.response?.data?.title ??
         err?.message ??
-        "Error loading waiting list.";
+        "Error loading Student waiting list.";
       setSnackbar({
         open: true,
         message: msg,
@@ -508,7 +509,7 @@ const StudentWaitingList = () => {
               >
                 <Typography
                   variant="subtitle1"
-                  sx={{ fontWeight: 600, color: "#1976d2", fontSize: "1rem" }}
+                  sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: "1rem" }}
                 >
                   Student Waiting List
                 </Typography>

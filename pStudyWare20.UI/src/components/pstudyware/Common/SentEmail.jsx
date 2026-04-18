@@ -322,7 +322,7 @@ const SentEmail = () => {
     <Box>
       {isStudent && <StudentHeader user={user} />}
       {/* Spacer to account for fixed StudentHeader */}
-      {isStudent && <Box sx={{ height: "40px" }} />}
+      {isStudent && <Box sx={{ height: "48px" }} />}
       <Container maxWidth="xl" sx={{ mt: isStudent ? 0 : 4, mb: 4 }}>
         <Paper elevation={3} sx={{ p: 3 }}>
           {/* Header */}

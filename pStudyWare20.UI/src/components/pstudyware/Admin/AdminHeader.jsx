@@ -10,6 +10,7 @@ import {
   AdminPanelSettings as AdminIcon,
   CalendarToday as CalendarIcon,
 } from "@mui/icons-material";
+import { applicationRoleHeaderBarSx } from "../../../styles/applicationSurfaces";
 
 const AdminHeader = ({ user }) => {
   const theme = useTheme();
@@ -18,8 +19,7 @@ const AdminHeader = ({ user }) => {
   return (
     <Box
       sx={{
-        backgroundColor: "#ffffff",
-        borderBottom: "2px solid #e9ecef",
+        ...applicationRoleHeaderBarSx,
         pt: 2,
         pb: 0.5,
         position: "fixed",
@@ -27,8 +27,6 @@ const AdminHeader = ({ user }) => {
         left: 0,
         right: 0,
         zIndex: 1000,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-        backdropFilter: "blur(8px)",
         width: "100%",
       }}
     >

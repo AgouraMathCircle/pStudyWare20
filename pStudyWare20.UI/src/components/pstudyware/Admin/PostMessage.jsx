@@ -26,11 +26,18 @@ import {
   IconButton,
   Tooltip,
   Grid,
+  Card,
+  CardContent,
 } from "@mui/material";
 import { Refresh as RefreshIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Save as SaveIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
 import postMessageService from "../../../services/postMessageService";
+import {
+  PORTAL_CARD_BOX_SHADOW,
+  portalCardAntiLiftSx,
+  APPLICATION_ADMIN_TITLE_COLOR,
+} from "../../../styles/applicationSurfaces";
 
 // Normalize API response to array of items (handles PostMessageListResponse or legacy shapes)
 function normalizeAlertList(res) {
@@ -208,14 +215,24 @@ const PostMessage = () => {
   const cellPadding = "0 8px";
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <Box sx={{ minHeight: "100vh" }}>
       <AdminHeader />
+      <Box sx={{ height: "48px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12}>
+            <Card
+              sx={{
+                backgroundColor: "white",
+                borderRadius: 2,
+                boxShadow: PORTAL_CARD_BOX_SHADOW,
+                overflow: "hidden",
+                ...portalCardAntiLiftSx,
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
             <Box>
               {/* Header: title + buttons */}
-              <Box sx={{ height: "25px" }} />
               <Box
                 sx={{
                   mb: 1,
@@ -228,7 +245,7 @@ const PostMessage = () => {
               >
                 <Typography
                   variant="h6"
-                  sx={{ fontWeight: 600, color: "#4caf50", fontSize: "1rem" }}
+                  sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: "1rem" }}
                 >
                   Post Message List
                 </Typography>
@@ -471,6 +488,8 @@ const PostMessage = () => {
                 </>
               )}
             </Box>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Container>

@@ -160,14 +160,14 @@ namespace pStudyWare20.API.Controllers
         /// <summary>
         /// Helper method to get student count from response data
         /// </summary>
-        private int GetStudentCountFromResponse(object studentList)
+        private static int GetStudentCountFromResponse(object studentList)
         {
             try
             {
                 if (studentList is System.Data.DataTable dataTable)
-                {
                     return dataTable.Rows.Count;
-                }
+                if (studentList is System.Collections.ICollection coll)
+                    return coll.Count;
                 return 0;
             }
             catch

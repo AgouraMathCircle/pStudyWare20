@@ -1,320 +1,428 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
+using System.Net.Mime;
 
 namespace pStudyWare20.API.Controllers
 {
+    /// <summary>
+    /// REST API for class materials and document repository operations.
+    /// Legacy reference: <c>pStudayWare/Documents.aspx.cs</c> (grid, upload, publish, delete).
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [EnableCors("AllowReactApp")]
+    [Produces(MediaTypeNames.Application.Json)]
     public class DocumentController : ControllerBase
     {
         private readonly IDocumentService _documentService;
+        private readonly ILogger<DocumentController> _logger;
 
-        public DocumentController(IDocumentService documentService)
+        public DocumentController(IDocumentService documentService, ILogger<DocumentController> logger)
         {
             _documentService = documentService;
+            _logger = logger;
         }
 
         /// <summary>
-        /// Get class materials (matches legacy controller exactly)
+        /// Student / class-material list (not the admin Documents grid).
+        /// Legacy: separate class materials flow; repository uses <c>AMC_spGetClassMaterials</c>.
         /// </summary>
-        /// <param name="userName">Username request</param>
-        /// <returns>Class materials result</returns>
-        [HttpPost]
-        [Route("GetClassMaterials")]
-        public object GetClassMaterials([FromBody] UserName userName)
+        [HttpPost("GetClassMaterials")]
+        [ProducesResponseType(typeof(ResponseDetails), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ResponseDetails>> GetClassMaterials(
+            [FromBody] UserName userName,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = _documentService.GetClassMaterials(userName);
-                return response;
+                var response = await _documentService.GetClassMaterialsAsync(userName).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while getting class materials", error = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Publish document (matches legacy controller exactly)
-        /// </summary>
-        /// <param name="publishDocument">Document publish request</param>
-        /// <returns>Publish result</returns>
-        [HttpPost]
-        [Route("PublishDocument")]
-        public object PublishDocument([FromBody] PublishDocument publishDocument)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = _documentService.PublishDocument(publishDocument);
-                return response;
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while publishing document", error = ex.Message });
+                _logger.LogError(ex, "GetClassMaterials failed for user.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while getting class materials.", ex));
             }
         }
 
         /// <summary>
-        /// Get documents repository list
+        /// Publish a document (set published flag in DB).
+        /// Legacy: <c>Documents.aspx.cs</c> <c>Publish()</c> → <c>AMC_spPublishDocuments</c> with <c>@DocID</c>.
         /// </summary>
-        /// <param name="request">Document repository list request</param>
-        /// <returns>Document list result</returns>
-        [HttpPost]
-        [Route("GetDocumentsList")]
-        public async Task<object> GetDocumentsList([FromBody] DocumentRepositoryListRequest request)
+        [HttpPost("PublishDocument")]
+        [ProducesResponseType(typeof(ResponseDetails), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ResponseDetails>> PublishDocument(
+            [FromBody] PublishDocument publishDocument,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = await _documentService.GetDocumentsRepositoryListAsync(request);
-                return response;
+                var response = await _documentService.PublishDocumentAsync(publishDocument).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while getting documents list", error = ex.Message });
+                _logger.LogError(ex, "PublishDocument failed for DocID {DocId}.", publishDocument.docID);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while publishing the document.", ex));
             }
         }
 
         /// <summary>
-        /// Get documents repository (using AMC_spDocumentsRepository stored procedure)
+        /// Admin / instructor class material grid (all documents for user).
+        /// Legacy: <c>Documents.aspx.cs</c> <c>BindGridView()</c> → <c>AMC_spDocuments</c> with <c>@Username</c> (session username).
         /// </summary>
-        /// <param name="request">Document repository list request</param>
-        /// <returns>Document repository list result</returns>
-        [HttpPost]
-        [Route("GetDocumentsRepository")]
-        public async Task<object> GetDocumentsRepository([FromBody] DocumentRepositoryListRequest request)
+        [HttpPost("GetDocumentsList")]
+        [ProducesResponseType(typeof(DocumentRepositoryListResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<DocumentRepositoryListResponse>> GetDocumentsList(
+            [FromBody] DocumentRepositoryListRequest request,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+            if (string.IsNullOrWhiteSpace(request.Username))
+            {
+                return BadRequest(new { message = "Username is required." });
+            }
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = await _documentService.GetDocumentsRepositoryAsync(request);
-                return response;
+                var response = await _documentService.GetDocumentsRepositoryListAsync(request).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while getting documents repository", error = ex.Message });
+                _logger.LogError(ex, "GetDocumentsList failed.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while getting the documents list.", ex));
             }
         }
 
         /// <summary>
-        /// Upload document
+        /// Documents repository browse (broader repository SP).
+        /// Legacy: <c>DocumentsRepository.aspx</c> pattern; <c>AMC_spDocumentsRepository</c> with <c>@Username</c>.
         /// </summary>
-        /// <param name="request">Document upload request</param>
-        /// <returns>Upload result</returns>
-        [HttpPost]
-        [Route("UploadDocument")]
-        public async Task<object> UploadDocument([FromBody] DocumentUploadRequest request)
+        [HttpPost("GetDocumentsRepository")]
+        [ProducesResponseType(typeof(DocumentRepositoryListResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<DocumentRepositoryListResponse>> GetDocumentsRepository(
+            [FromBody] DocumentRepositoryListRequest request,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+            if (string.IsNullOrWhiteSpace(request.Username))
+            {
+                return BadRequest(new { message = "Username is required." });
+            }
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = await _documentService.UploadDocumentAsync(request);
-                return response;
+                var response = await _documentService.GetDocumentsRepositoryAsync(request).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while uploading document", error = ex.Message });
+                _logger.LogError(ex, "GetDocumentsRepository failed.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while getting the documents repository.", ex));
             }
         }
 
         /// <summary>
-        /// Delete document
+        /// Upload class material metadata + file.
+        /// Legacy: <c>Documents.aspx.cs</c> <c>btnSubmit_Click1</c> → <c>AMC_spAddDocument</c>
+        /// (<c>@mTopics</c>, <c>@mVideoURL</c>, <c>@mDocName</c>, <c>@mDescription</c>, <c>@mClass</c>, <c>@mSession</c>, <c>@mPublish</c>).
         /// </summary>
-        /// <param name="request">Document delete request</param>
-        /// <returns>Delete result</returns>
-        [HttpPost]
-        [Route("DeleteDocument")]
-        public async Task<object> DeleteDocument([FromBody] DocumentDeleteRequest request)
+        [HttpPost("UploadDocument")]
+        [ProducesResponseType(typeof(DocumentUploadResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<DocumentUploadResponse>> UploadDocument(
+            [FromBody] DocumentUploadRequest request,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = await _documentService.DeleteDocumentAsync(request);
-                return response;
+                var response = await _documentService.UploadDocumentAsync(request).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while deleting document", error = ex.Message });
+                _logger.LogError(ex, "UploadDocument failed.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while uploading the document.", ex));
             }
         }
 
         /// <summary>
-        /// Get student documents
+        /// Delete class material file + DB row (class-material type).
+        /// Legacy: <c>Documents.aspx.cs</c> <c>DeleteFile()</c> → delete file under <c>~/pStudyWare/Documents/</c>,
+        /// then <c>AMC_spDeleteDocuments</c> with <c>@Type</c> = <c>C</c>, <c>@DocID</c>.
         /// </summary>
-        /// <param name="request">Get student documents request</param>
-        /// <returns>Student documents list</returns>
-        [HttpPost]
-        [Route("GetStudentDocuments")]
-        public async Task<object> GetStudentDocuments([FromBody] GetStudentDocumentsRequest request)
+        [HttpPost("DeleteDocument")]
+        [ProducesResponseType(typeof(DocumentDeleteResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<DocumentDeleteResponse>> DeleteDocument(
+            [FromBody] DocumentDeleteRequest request,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = await _documentService.GetStudentDocumentsAsync(request);
-                return response;
+                var response = await _documentService.DeleteDocumentAsync(request).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while getting student documents", error = ex.Message });
+                _logger.LogError(ex, "DeleteDocument failed for DocID {DocId}.", request.DocID);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while deleting the document.", ex));
             }
         }
 
         /// <summary>
-        /// Add student document
+        /// Student-uploaded documents list.
         /// </summary>
-        /// <param name="request">Upload document request</param>
-        /// <returns>Upload result</returns>
-        [HttpPost]
-        [Route("AddStudentDocument")]
-        public async Task<object> AddStudentDocument([FromBody] UploadDocumentRequest request)
+        [HttpPost("GetStudentDocuments")]
+        [ProducesResponseType(typeof(StudentDocumentsListResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<StudentDocumentsListResponse>> GetStudentDocuments(
+            [FromBody] GetStudentDocumentsRequest request,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = await _documentService.AddStudentDocumentAsync(request);
-                return response;
+                var response = await _documentService.GetStudentDocumentsAsync(request).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while adding student document", error = ex.Message });
+                _logger.LogError(ex, "GetStudentDocuments failed.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while getting student documents.", ex));
             }
         }
 
         /// <summary>
-        /// Delete student document
+        /// Add student document (file + metadata).
         /// </summary>
-        /// <param name="request">Delete document request</param>
-        /// <returns>Delete result</returns>
-        [HttpPost]
-        [Route("DeleteStudentDocument")]
-        public async Task<object> DeleteStudentDocument([FromBody] DeleteDocumentRequest request)
+        [HttpPost("AddStudentDocument")]
+        [ProducesResponseType(typeof(DocumentOperationResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<DocumentOperationResponse>> AddStudentDocument(
+            [FromBody] UploadDocumentRequest request,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = await _documentService.DeleteStudentDocumentAsync(request);
-                return response;
+                var response = await _documentService.AddStudentDocumentAsync(request).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while deleting student document", error = ex.Message });
+                _logger.LogError(ex, "AddStudentDocument failed.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while adding the student document.", ex));
             }
         }
 
         /// <summary>
-        /// Get current session
+        /// Delete student document.
         /// </summary>
-        /// <param name="request">Get current session request</param>
-        /// <returns>Current session list</returns>
-        [HttpPost]
-        [Route("GetCurrentSession")]
-        public async Task<object> GetCurrentSession([FromBody] GetCurrentSessionRequest request)
+        [HttpPost("DeleteStudentDocument")]
+        [ProducesResponseType(typeof(DocumentOperationResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<DocumentOperationResponse>> DeleteStudentDocument(
+            [FromBody] DeleteDocumentRequest request,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = await _documentService.GetCurrentSessionAsync(request);
-                return response;
+                var response = await _documentService.DeleteStudentDocumentAsync(request).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while getting current session", error = ex.Message });
+                _logger.LogError(ex, "DeleteStudentDocument failed.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while deleting the student document.", ex));
             }
         }
 
         /// <summary>
-        /// Get schedule lookup
+        /// Current session lookup.
         /// </summary>
-        /// <param name="request">Get schedule lookup request</param>
-        /// <returns>Schedule lookup list</returns>
-        [HttpPost]
-        [Route("GetScheduleLookup")]
-        public async Task<object> GetScheduleLookup([FromBody] GetScheduleLookupRequest request)
+        [HttpPost("GetCurrentSession")]
+        [ProducesResponseType(typeof(ScheduleLookupResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ScheduleLookupResponse>> GetCurrentSession(
+            [FromBody] GetCurrentSessionRequest request,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = await _documentService.GetScheduleLookupAsync(request);
-                return response;
+                var response = await _documentService.GetCurrentSessionAsync(request).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while getting schedule lookup", error = ex.Message });
+                _logger.LogError(ex, "GetCurrentSession failed.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while getting the current session.", ex));
             }
         }
 
         /// <summary>
-        /// Update message center
+        /// Schedule / session dropdown lookup.
         /// </summary>
-        /// <param name="request">Update message center request</param>
-        /// <returns>Update result</returns>
-        [HttpPost]
-        [Route("UpdateMessageCenter")]
-        public async Task<object> UpdateMessageCenter([FromBody] UpdateMessageCenterRequest request)
+        [HttpPost("GetScheduleLookup")]
+        [ProducesResponseType(typeof(ScheduleLookupResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ScheduleLookupResponse>> GetScheduleLookup(
+            [FromBody] GetScheduleLookupRequest request,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
-                }
-
-                var response = await _documentService.UpdateMessageCenterAsync(request);
-                return response;
+                var response = await _documentService.GetScheduleLookupAsync(request).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while updating message center", error = ex.Message });
+                _logger.LogError(ex, "GetScheduleLookup failed.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while getting schedule lookup.", ex));
             }
         }
+
+        /// <summary>
+        /// Message center / email tracking update.
+        /// </summary>
+        [HttpPost("UpdateMessageCenter")]
+        [ProducesResponseType(typeof(MessageCenterOperationResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<MessageCenterOperationResponse>> UpdateMessageCenter(
+            [FromBody] UpdateMessageCenterRequest request,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+
+            try
+            {
+                var response = await _documentService.UpdateMessageCenterAsync(request).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UpdateMessageCenter failed.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while updating the message center.", ex));
+            }
+        }
+
+        private ActionResult BadRequestValidation()
+        {
+            return BadRequest(new
+            {
+                message = "Invalid request data",
+                errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)),
+            });
+        }
+
+        private static object ErrorBody(string message, Exception ex) =>
+            new { message, error = ex.Message };
     }
 }

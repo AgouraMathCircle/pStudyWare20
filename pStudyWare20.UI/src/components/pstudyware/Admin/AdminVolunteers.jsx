@@ -3,6 +3,7 @@ import { Container, Box, Card, CardContent, Typography } from "@mui/material";
 import { VolunteerActivism as VolunteerIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
 
 const AdminVolunteers = () => {
   const { user } = useAuth();
@@ -10,14 +11,18 @@ const AdminVolunteers = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: "72px" }} />
+      <Box sx={{ height: "48px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Card elevation={3}>
           <CardContent sx={{ textAlign: "center", py: 8 }}>
             <VolunteerIcon
-              sx={{ fontSize: 80, color: "primary.main", mb: 2 }}
+              sx={{ fontSize: 80, color: APPLICATION_ADMIN_TITLE_COLOR, mb: 2 }}
             />
-            <Typography variant="h4" gutterBottom>
+            <Typography
+              variant="h4"
+              gutterBottom
+              sx={{ color: APPLICATION_ADMIN_TITLE_COLOR }}
+            >
               Volunteers Management
             </Typography>
             <Typography variant="body1" color="textSecondary">

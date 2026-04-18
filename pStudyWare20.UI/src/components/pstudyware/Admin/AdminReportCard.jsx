@@ -28,6 +28,8 @@ import {
   IconButton,
   Tooltip,
   Grid,
+  Card,
+  CardContent,
 } from "@mui/material";
 import {
   Refresh as RefreshIcon,
@@ -42,9 +44,15 @@ import {
   KeyboardArrowRight as NextPageIcon,
   LastPage as LastPageIcon,
 } from "@mui/icons-material";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
 import reportCardService from "../../../services/reportCardService";
+import {
+  PORTAL_CARD_BOX_SHADOW,
+  portalCardAntiLiftSx,
+  APPLICATION_ADMIN_TITLE_COLOR,
+} from "../../../styles/applicationSurfaces";
 
 const EXAM_TYPES = [
   "Quiz",
@@ -55,9 +63,11 @@ const EXAM_TYPES = [
 ];
 
 const AdminReportCard = () => {
+  const location = useLocation();
+  const hideRoleHeader = location.pathname.includes("/pstudyware/instructor/");
   const { user } = useAuth();
   const username = user?.email || user?.username || "";
-  const pageSize = 10;
+  const pageSize = 25;
   const [list, setList] = useState([]);
   const [summaryData, setSummaryData] = useState([]);
   const [showSummary, setShowSummary] = useState(false);
@@ -90,7 +100,7 @@ const AdminReportCard = () => {
   });
   const [canEdit, setCanEdit] = useState(true);
   const [searchBy, setSearchBy] = useState("ALL");
-  const [searchCriteria, setSearchCriteria] = useState("contains");
+  const [searchCriteria, setSearchCriteria] = useState("");
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
@@ -465,15 +475,23 @@ const AdminReportCard = () => {
     }
   };
 
-  const displayTotalPages = Math.max(1, totalPages);
-
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <AdminHeader user={user} />
-      <Box sx={{ height: "60px" }} />
+    <Box sx={{ minHeight: "100vh" }}>
+      {!hideRoleHeader && <AdminHeader user={user} />}
+      {!hideRoleHeader && <Box sx={{ height: "48px" }} aria-hidden />}
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12}>
+            <Card
+              sx={{
+                backgroundColor: "white",
+                borderRadius: 2,
+                boxShadow: PORTAL_CARD_BOX_SHADOW,
+                overflow: "hidden",
+                ...portalCardAntiLiftSx,
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
             <Box>
               <Box
                 sx={{
@@ -485,17 +503,12 @@ const AdminReportCard = () => {
                   gap: 2,
                 }}
               >
-                <Box>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ fontWeight: 600, color: "#1976d2", fontSize: "1rem" }}
-                  >
-                    Report Card
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" display="block">
-                    View and manage student scores. Use filters to view summary or export to Excel.
-                  </Typography>
-                </Box>
+                <Typography
+                  variant="subtitle1"
+                  sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: "1rem" }}
+                >
+                  Report Card
+                </Typography>
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                   <Button
                     variant="outlined"
@@ -670,8 +683,9 @@ const AdminReportCard = () => {
                           "& .MuiSelect-icon": { color: "white" },
                         }}
                       >
-                        <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>Contains</MenuItem>
+                        <MenuItem value="" sx={{ fontSize: "0.75rem" }}>Select Criteria</MenuItem>
                         <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>Equals</MenuItem>
+                        <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>Contains</MenuItem>
                         <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>Starts With</MenuItem>
                       </Select>
                     </Box>
@@ -940,7 +954,7 @@ const AdminReportCard = () => {
                       </Select>
                     </Box>
                     <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                      Page(s): {totalPages === 0 ? 0 : currentPage} of {displayTotalPages}
+                      Page(s): {totalPages > 0 ? currentPage : 0} of {totalPages}
                     </Typography>
                     <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
                       Record(s):{" "}
@@ -991,6 +1005,8 @@ const AdminReportCard = () => {
                 </>
               )}
             </Box>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Container>

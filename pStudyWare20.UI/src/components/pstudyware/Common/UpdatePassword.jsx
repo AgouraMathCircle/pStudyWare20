@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -15,21 +16,30 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useAuth } from "../../../contexts/AuthContext";
 import authService from "../../../services/authService";
 import StudentHeader from "../Student/StudentHeader";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
+
+const NEW_PASSWORD_MIN_LEN = 10;
+const NEW_PASSWORD_MAX_LEN = 16;
+const CURRENT_PASSWORD_MAX_LEN = 50;
 
 const UpdatePassword = () => {
+  const location = useLocation();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [formData, setFormData] = useState({
+    currentPassword: "",
     password: "",
     confirmPassword: "",
   });
 
   const [validationErrors, setValidationErrors] = useState({
+    currentPassword: "",
     password: "",
     confirmPassword: "",
   });
@@ -55,21 +65,24 @@ const UpdatePassword = () => {
     const errors = {};
     let isValid = true;
 
-    // Password validation
-    if (!formData.password) {
-      errors.password = "Password is required";
-      isValid = false;
-    } else if (formData.password.length > 10) {
-      errors.password = "Password cannot exceed 10 characters";
-      isValid = false;
-    } else if (formData.password.length < 6) {
-      errors.password = "Password must be at least 6 characters";
+    if (!formData.currentPassword) {
+      errors.currentPassword = "Current password is required";
       isValid = false;
     }
 
-    // Confirm password validation
+    if (!formData.password) {
+      errors.password = "New password is required";
+      isValid = false;
+    } else if (formData.password.length < NEW_PASSWORD_MIN_LEN) {
+      errors.password = `New password must be at least ${NEW_PASSWORD_MIN_LEN} characters`;
+      isValid = false;
+    } else if (formData.password.length > NEW_PASSWORD_MAX_LEN) {
+      errors.password = `New password cannot exceed ${NEW_PASSWORD_MAX_LEN} characters`;
+      isValid = false;
+    }
+
     if (!formData.confirmPassword) {
-      errors.confirmPassword = "Confirm Password cannot be empty";
+      errors.confirmPassword = "Confirm password cannot be empty";
       isValid = false;
     } else if (formData.password !== formData.confirmPassword) {
       errors.confirmPassword = "Password must match confirm password";
@@ -94,14 +107,14 @@ const UpdatePassword = () => {
       setSuccess(false);
 
       const response = await authService.updatePassword(
-        user?.email || user?.username,
-        formData.password
+        formData.currentPassword,
+        formData.password,
       );
 
-      if (response.isSuccess) {
+      if (response?.isSuccess || response?.IsSuccess) {
         setSuccess(true);
-        // Clear form
         setFormData({
+          currentPassword: "",
           password: "",
           confirmPassword: "",
         });
@@ -109,7 +122,9 @@ const UpdatePassword = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         setError(
-          response.message || "Failed to update password. Please try again."
+          response?.message ||
+            response?.Message ||
+            "Failed to update password. Please try again.",
         );
       }
     } catch (err) {
@@ -118,6 +133,10 @@ const UpdatePassword = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClickShowCurrentPassword = () => {
+    setShowCurrentPassword(!showCurrentPassword);
   };
 
   const handleClickShowPassword = () => {
@@ -134,13 +153,17 @@ const UpdatePassword = () => {
 
   const isStudent =
     user?.role === "Student" || user?.memberType?.toUpperCase() === "S";
+  const isDashboardShell =
+    location.pathname.startsWith("/pstudyware/instructor/") ||
+    location.pathname.startsWith("/pstudyware/volunteer/");
 
   return (
     <Box>
-      {isStudent && <StudentHeader user={user} />}
-      {/* Spacer to account for fixed StudentHeader */}
-      {isStudent && <Box sx={{ height: "40px" }} />}
-      <Container maxWidth="md" sx={{ py: 4 }}>
+      {isStudent && !isDashboardShell && <StudentHeader user={user} />}
+      {isStudent && !isDashboardShell && (
+        <Box sx={{ height: "48px" }} aria-hidden />
+      )}
+      <Container maxWidth="md" sx={{ py: isDashboardShell ? 1 : 4 }}>
         {/* Success Message */}
         {success && (
           <Alert severity="success" sx={{ mb: 3 }}>
@@ -161,7 +184,9 @@ const UpdatePassword = () => {
             variant="h4"
             sx={{
               fontWeight: 600,
-              color: "#1976d2",
+              color: isAdminPasswordPage
+                ? APPLICATION_ADMIN_TITLE_COLOR
+                : "#1976d2",
               mb: 4,
             }}
           >
@@ -192,12 +217,15 @@ const UpdatePassword = () => {
               >
                 <span style={{ marginRight: "8px" }}>User Name:</span>
                 <span style={{ color: "#666666" }}>
-                  {user?.email || user?.username}
+                  {user?.username ||
+                    user?.Username ||
+                    user?.email ||
+                    user?.Email}
                 </span>
               </Typography>
             </Box>
 
-            {/* Password Field */}
+            {/* Current password */}
             <Box sx={{ mb: 3 }}>
               <Typography
                 variant="body1"
@@ -206,7 +234,66 @@ const UpdatePassword = () => {
                   mb: 1,
                 }}
               >
-                Password:
+                Current Password:
+              </Typography>
+              <TextField
+                fullWidth
+                name="currentPassword"
+                type={showCurrentPassword ? "text" : "password"}
+                value={formData.currentPassword}
+                onChange={handleInputChange}
+                error={!!validationErrors.currentPassword}
+                helperText={validationErrors.currentPassword}
+                required
+                variant="outlined"
+                autoComplete="current-password"
+                inputProps={{ maxLength: CURRENT_PASSWORD_MAX_LEN }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "#E0FFFF",
+                    "& fieldset": {
+                      borderColor: "#B0B0B0",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "#808080",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#808080",
+                    },
+                  },
+                }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle current password visibility"
+                        onClick={handleClickShowCurrentPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                      >
+                        {showCurrentPassword ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
+
+            {/* New password */}
+            <Box sx={{ mb: 3 }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#666666",
+                  mb: 1,
+                }}
+              >
+                New Password ({NEW_PASSWORD_MIN_LEN}–{NEW_PASSWORD_MAX_LEN}{" "}
+                characters):
               </Typography>
               <TextField
                 fullWidth
@@ -218,7 +305,8 @@ const UpdatePassword = () => {
                 helperText={validationErrors.password}
                 required
                 variant="outlined"
-                inputProps={{ maxLength: 10 }}
+                autoComplete="new-password"
+                inputProps={{ maxLength: NEW_PASSWORD_MAX_LEN }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     backgroundColor: "#E0FFFF",
@@ -259,7 +347,7 @@ const UpdatePassword = () => {
                   mb: 1,
                 }}
               >
-                Confirm Password:
+                Confirm New Password:
               </Typography>
               <TextField
                 fullWidth
@@ -271,7 +359,8 @@ const UpdatePassword = () => {
                 helperText={validationErrors.confirmPassword}
                 required
                 variant="outlined"
-                inputProps={{ maxLength: 10 }}
+                autoComplete="new-password"
+                inputProps={{ maxLength: NEW_PASSWORD_MAX_LEN }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     backgroundColor: "#E0FFFF",

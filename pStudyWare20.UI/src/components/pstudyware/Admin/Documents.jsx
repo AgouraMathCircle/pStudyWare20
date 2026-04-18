@@ -7,15 +7,22 @@ import {
   Typography,
   CircularProgress,
   Grid,
+  Card,
+  CardContent,
 } from "@mui/material";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
 import adminDashboardService from "../../../services/adminDashboardService";
 import AdminHeader from "./AdminHeader";
 import AdminDocumentList from "./AdminDocumentList";
 import DocumentUploadForm from "./DocumentUploadForm";
+import InstructorClassMaterialList from "../Instructor/InstructorClassMaterialList";
+import { instructorPageShellSx } from "../Instructor/instructorPortalTableStyles";
 
 const Documents = () => {
+  const location = useLocation();
+  const hideRoleHeader = location.pathname.includes("/pstudyware/instructor/");
   const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -36,6 +43,10 @@ const Documents = () => {
     severity: "info",
   });
 
+  const getDocumentsListWithRetry = async (username) => {
+    return await documentService.getDocumentsList(username);
+  };
+
   // Load document data
   useEffect(() => {
     const loadDocuments = async () => {
@@ -47,41 +58,59 @@ const Documents = () => {
         setLoading(true);
         console.log("Documents: Fetching document data");
 
-        // Check admin privileges
-        const privilegesResponse =
-          await adminDashboardService.checkAdminPrivileges(
-            user.email || user.username,
-          );
-
-        const isAdmin = privilegesResponse?.isAdmin === true;
-        const isSystemAdmin = privilegesResponse?.isSystemAdmin === true;
+        const username = user.email || user.username;
         const isInstructor =
           user.memberType?.toUpperCase() === "I" || user.role === "Instructor";
 
-        setAdminPrivileges({
-          isAdmin,
-          isSystemAdmin,
-          canAddDocument: isSystemAdmin || (isAdmin && user.chapterID === "1"),
-          canDeleteDocument: isAdmin,
-          canPublishDocument: isAdmin || isInstructor,
-        });
+        // Load privileges and documents in parallel; do not fail the page if
+        // privilege check is slow or times out.
+        const [privilegesResult, documentsResult] = await Promise.allSettled([
+          adminDashboardService.checkAdminPrivileges(),
+          getDocumentsListWithRetry(username),
+        ]);
 
-        // Get documents list - show all documents for admin (not just published)
-        const response = await documentService.getDocumentsList(
-          user.email || user.username,
-        );
+        if (privilegesResult.status === "fulfilled") {
+          const privilegesResponse = privilegesResult.value;
+          const isAdmin = privilegesResponse?.isAdmin === true;
+          const isSystemAdmin = privilegesResponse?.isSystemAdmin === true;
 
-        console.log("Documents: Document data response", response);
-
-        if (response.isSuccess) {
-          // Show all documents for admin (both published and unpublished)
-          const docs = response.documents;
-          setDocuments(Array.isArray(docs) ? docs : []);
+          setAdminPrivileges({
+            isAdmin,
+            isSystemAdmin,
+            canAddDocument: isSystemAdmin || (isAdmin && user.chapterID === "1"),
+            canDeleteDocument: isAdmin,
+            canPublishDocument: isAdmin || isInstructor,
+          });
         } else {
-          showMessage(
-            response.errorMessage || "Failed to load documents list",
-            "error",
+          console.warn(
+            "Documents: privilege check failed, using role fallback",
+            privilegesResult.reason,
           );
+          const isAdmin = user.memberType?.toUpperCase() === "A";
+          setAdminPrivileges({
+            isAdmin,
+            isSystemAdmin: false,
+            canAddDocument: false,
+            canDeleteDocument: isAdmin,
+            canPublishDocument: isAdmin || isInstructor,
+          });
+        }
+
+        if (documentsResult.status === "fulfilled") {
+          const response = documentsResult.value;
+          console.log("Documents: Document data response", response);
+
+          if (response.isSuccess) {
+            const docs = response.documents;
+            setDocuments(Array.isArray(docs) ? docs : []);
+          } else {
+            showMessage(
+              response.errorMessage || "Failed to load documents list",
+              "error",
+            );
+          }
+        } else {
+          throw documentsResult.reason;
         }
       } catch (err) {
         console.error("Error fetching document data:", err);
@@ -91,7 +120,7 @@ const Documents = () => {
         // Provide more specific error messages
         if (err.code === "ECONNABORTED") {
           errorMessage =
-            "Request timeout. The server is taking too long to respond. Please try again.";
+            "The server is taking longer than usual. Please try Refresh in a few seconds.";
         } else if (err.response?.status === 500) {
           errorMessage =
             "Server error while loading documents. Please contact support if this persists.";
@@ -224,18 +253,19 @@ const Documents = () => {
     }
   };
 
-  // Handle refresh data
-  const handleRefresh = async () => {
+  // Handle refresh data (quiet: no toast; skipFullPageLoading: list-only refresh — instructor view)
+  const handleRefresh = async (options = {}) => {
+    const { quiet = false, skipFullPageLoading = false } = options;
     try {
-      setLoading(true);
-      const response = await documentService.getDocumentsList(
+      if (!skipFullPageLoading) setLoading(true);
+      const response = await getDocumentsListWithRetry(
         user.email || user.username,
       );
 
       if (response.isSuccess) {
         const docs = response.documents;
         setDocuments(Array.isArray(docs) ? docs : []);
-        showMessage("Documents refreshed!", "success");
+        if (!quiet) showMessage("Documents refreshed!", "success");
       } else {
         showMessage(
           response.errorMessage || "Failed to refresh documents",
@@ -246,7 +276,7 @@ const Documents = () => {
       console.error("Error refreshing documents:", err);
       showMessage("Error refreshing documents.", "error");
     } finally {
-      setLoading(false);
+      if (!skipFullPageLoading) setLoading(false);
     }
   };
 
@@ -290,28 +320,69 @@ const Documents = () => {
   }
 
   return (
-    <Box>
-      <AdminHeader user={user} />
-      {/* Spacer to account for fixed AdminHeader */}
-      <Box sx={{ height: "72px" }} />
-      <Container maxWidth="xl" sx={{ mb: 4 }}>
+    <Box sx={hideRoleHeader ? instructorPageShellSx : undefined}>
+      {!hideRoleHeader && <AdminHeader user={user} />}
+      {!hideRoleHeader && (
+        <Box sx={{ height: "48px" }} aria-hidden />
+      )}
+      <Container
+        maxWidth="xl"
+        sx={
+          hideRoleHeader
+            ? { mb: 4, px: { xs: 1, sm: 2 } }
+            : {
+                mb: 4,
+                px: { xs: 1, sm: 2 },
+                maxWidth: "100% !important",
+              }
+        }
+      >
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Box>
-              <AdminDocumentList
-                documents={documents}
-                onRefresh={handleRefresh}
-                onView={handleView}
-                onDownload={handleDownload}
-                onDelete={handleDelete}
-                onPublish={handlePublish}
-                onOpenVideo={handleOpenVideo}
-                onAdd={handleAdd}
-                canAddDocument={adminPrivileges.canAddDocument}
-                canDeleteDocument={adminPrivileges.canDeleteDocument}
-                canPublishDocument={adminPrivileges.canPublishDocument}
-              />
-            </Box>
+            {hideRoleHeader ? (
+              <Box sx={{ width: "100%", minWidth: 0 }}>
+                <InstructorClassMaterialList
+                  documents={documents}
+                  onRefresh={() =>
+                    handleRefresh({ quiet: true, skipFullPageLoading: true })
+                  }
+                  onView={handleView}
+                  onDownload={handleDownload}
+                  onDelete={handleDelete}
+                  onPublish={handlePublish}
+                  onOpenVideo={handleOpenVideo}
+                  onAdd={handleAdd}
+                  canAddDocument={adminPrivileges.canAddDocument}
+                  canDeleteDocument={adminPrivileges.canDeleteDocument}
+                  canPublishDocument={adminPrivileges.canPublishDocument}
+                />
+              </Box>
+            ) : (
+              <Card
+                sx={{
+                  backgroundColor: "white",
+                  borderRadius: 2,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  overflow: "hidden",
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  <AdminDocumentList
+                    documents={documents}
+                    onRefresh={handleRefresh}
+                    onView={handleView}
+                    onDownload={handleDownload}
+                    onDelete={handleDelete}
+                    onPublish={handlePublish}
+                    onOpenVideo={handleOpenVideo}
+                    onAdd={handleAdd}
+                    canAddDocument={adminPrivileges.canAddDocument}
+                    canDeleteDocument={adminPrivileges.canDeleteDocument}
+                    canPublishDocument={adminPrivileges.canPublishDocument}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </Grid>
         </Grid>
       </Container>

@@ -92,13 +92,13 @@ const Login = () => {
             navigate("/pstudyware/admin/dashboard", { replace: true });
             break;
           case "Instructor":
-            navigate("/instructor/dashboard", { replace: true });
+            navigate("/pstudyware/instructor/dashboard", { replace: true });
             break;
           case "Student":
             navigate("/pstudyware/student/dashboard", { replace: true });
             break;
           case "Volunteer":
-            navigate("/volunteer/dashboard", { replace: true });
+            navigate("/pstudyware/volunteer/dashboard", { replace: true });
             break;
           default:
             navigate("/dashboard", { replace: true });
@@ -146,15 +146,17 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
+  const isValidEmail = (email) =>
+    /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test((email || "").trim());
+
   const validateForm = () => {
     const newErrors = {};
+    const email = (formData.email || "").trim();
 
     // Email validation
-    if (!formData.email) {
+    if (!email) {
       newErrors.email = "Please enter your Email ID.";
-    } else if (
-      !/\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/.test(formData.email)
-    ) {
+    } else if (!isValidEmail(email)) {
       newErrors.email = "Please enter a valid Email ID.";
     }
 
@@ -173,6 +175,7 @@ const Login = () => {
     if (validateForm()) {
       setIsLoading(true);
       setSubmitMessage("");
+      setIsLoginSuccess(false);
 
       try {
         const response = await login(formData.email, formData.password);
@@ -189,6 +192,14 @@ const Login = () => {
         // The redirect will be handled by the useEffect above
         console.log("Login successful:", response);
       } catch (error) {
+        // Reset only the login component state on invalid credentials.
+        setFormData({
+          email: "",
+          password: "",
+        });
+        setErrors({});
+        setShowPassword(false);
+        setIsLoginSuccess(false);
         setSubmitMessage("Invalid email Id or password. Please try again.");
         console.error("Login error:", error);
       } finally {
@@ -200,8 +211,23 @@ const Login = () => {
   };
 
   const handleForgotPassword = async () => {
-    if (!formData.email) {
+    const email = (formData.email || "").trim();
+
+    if (!email) {
+      setErrors((prev) => ({
+        ...prev,
+        email: "Please enter your Email ID.",
+      }));
       setSubmitMessage("Please enter your email address first.");
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setErrors((prev) => ({
+        ...prev,
+        email: "Please enter a valid Email ID.",
+      }));
+      setSubmitMessage("Please enter a valid Email ID.");
       return;
     }
 
@@ -209,7 +235,7 @@ const Login = () => {
     setSubmitMessage("");
 
     try {
-      await authService.forgotPassword(formData.email);
+      await authService.forgotPassword(email);
       setSubmitMessage("Password reset email sent! Please check your inbox.");
     } catch (error) {
       setSubmitMessage(
@@ -303,7 +329,7 @@ const Login = () => {
       {/* Login Section Start */}
       <div
         id="sc-about login"
-        className="sc-about pt-80 pb-70 md-pt-40 position-relative arrow-animation-1"
+        className="sc-about pb-70 position-relative arrow-animation-1"
       >
         <div className="login-title text-center">
           <h2 className="title">LOGIN HERE!</h2>
@@ -406,15 +432,24 @@ const Login = () => {
                       )}
                     </FormControl>
 
-                    {/* Submit Button */}
-                    <Box sx={{ mt: 3, mb: 2 }}>
+                    {/* Action Buttons */}
+                    <Box
+                      sx={{
+                        mt: 3,
+                        mb: 2,
+                        display: "flex",
+                        flexDirection: { xs: "column", sm: "row" },
+                        alignItems: "stretch",
+                        gap: 2,
+                      }}
+                    >
                       <Button
                         type="submit"
-                        fullWidth
                         variant="contained"
-                        size="large"
+                        size="small"
                         disabled={isLoading}
                         sx={{
+                          flex: 1,
                           backgroundColor: "#53b50a",
                           "&:hover": {
                             backgroundColor: "#4a7c59",
@@ -423,24 +458,21 @@ const Login = () => {
                             backgroundColor: "#cccccc",
                             color: "#666666",
                           },
-                          py: 1.5,
-                          fontSize: "1.1rem",
+                          py: 0.8,
+                          fontSize: "0.95rem",
                           fontWeight: 600,
                         }}
                       >
                         {isLoading ? "Logging in..." : "Submit"}
                       </Button>
-                    </Box>
-
-                    {/* Forgot Password Button */}
-                    <Box sx={{ mb: 2 }}>
                       <Button
-                        fullWidth
+                        type="button"
                         variant="outlined"
-                        size="large"
+                        size="small"
                         onClick={handleForgotPassword}
                         disabled={isLoading}
                         sx={{
+                          flex: 1,
                           borderColor: "#53b50a",
                           color: "#53b50a",
                           "&:hover": {
@@ -451,8 +483,8 @@ const Login = () => {
                             borderColor: "#cccccc",
                             color: "#666666",
                           },
-                          py: 1.5,
-                          fontSize: "1rem",
+                          py: 0.8,
+                          fontSize: "0.95rem",
                         }}
                       >
                         {isLoading ? "Sending..." : "Forgot Password"}

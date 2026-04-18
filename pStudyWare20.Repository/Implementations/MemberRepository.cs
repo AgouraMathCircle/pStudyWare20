@@ -5,7 +5,6 @@ using pStudyWare20.Data.Models;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Shared;
 using System.Data;
-using System.Linq.Expressions;
 
 namespace pStudyWare20.Repository.Implementations
 {
@@ -67,6 +66,10 @@ namespace pStudyWare20.Repository.Implementations
         {
             try
             {
+                var normalized = (emailId ?? string.Empty).Trim();
+                if (normalized.Length == 0)
+                    return null;
+
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
@@ -75,31 +78,104 @@ namespace pStudyWare20.Repository.Implementations
                     CommandType = CommandType.StoredProcedure
                 };
 
-                command.Parameters.Add(new SqlParameter("@emailId", emailId));
+                command.Parameters.Add(new SqlParameter("@emailId", normalized));
                 command.Parameters.Add(new SqlParameter("@mode", "GetPassword"));
 
                 using var reader = await command.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
+                if (!await reader.ReadAsync())
+                    return null;
+
+                // GetPassword often returns fewer columns than ValidateUser; avoid GetOrdinal on missing names.
+                var password = GetOptionalString(reader, "Password");
+                if (string.IsNullOrEmpty(password))
+                    return null;
+
+                var userName = GetOptionalString(reader, "Username", "UserName");
+                var email = GetOptionalString(reader, "EmailID", "EmailId");
+                var pMemberId = GetOptionalInt32(reader, "pMemberID", "PMemberID", "MemberID");
+                var firstName = GetOptionalString(reader, "FirstName") ?? string.Empty;
+                var lastName = GetOptionalString(reader, "LastName") ?? string.Empty;
+                var memberType = GetOptionalString(reader, "MemberType") ?? string.Empty;
+                var chapterId = GetOptionalInt32(reader, "ChapterID");
+                var systemAdmin = GetOptionalString(reader, "systemAdmin", "SystemAdmin") ?? "N";
+
+                if (!string.IsNullOrEmpty(userName) && !string.IsNullOrEmpty(email))
                 {
                     return new MemberMaster
                     {
-                        pMemberID = reader.GetInt32("pMemberID"),
-                        UserName = reader.GetString("Username"),
-                        EmailID = reader.GetString("EmailID"),
-                        FirstName = reader.GetString("FirstName"),
-                        LastName = reader.GetString("LastName"),
-                        Password = reader.GetString("Password"),
-                        MemberType = reader.GetString("MemberType"),
-                        ChapterID = reader.GetInt32("ChapterID"),
-                        systemAdmin = reader.GetString("systemAdmin")
+                        pMemberID = pMemberId ?? 0,
+                        UserName = userName,
+                        EmailID = email,
+                        FirstName = firstName,
+                        LastName = lastName,
+                        Password = password,
+                        MemberType = memberType,
+                        ChapterID = chapterId,
+                        systemAdmin = systemAdmin
                     };
                 }
-                return null;
+
+                var fromDb = await _context.MemberMasters.AsNoTracking()
+                    .FirstOrDefaultAsync(m => m.EmailID == normalized || m.UserName == normalized);
+
+                if (fromDb == null)
+                    return null;
+
+                return new MemberMaster
+                {
+                    pMemberID = fromDb.pMemberID,
+                    UserName = fromDb.UserName,
+                    EmailID = fromDb.EmailID,
+                    FirstName = fromDb.FirstName,
+                    LastName = fromDb.LastName,
+                    Password = password,
+                    MemberType = fromDb.MemberType,
+                    ChapterID = fromDb.ChapterID,
+                    systemAdmin = fromDb.systemAdmin
+                };
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error getting user password by email: {ex.Message}", ex);
             }
+        }
+
+        private static string? GetOptionalString(SqlDataReader reader, params string[] names)
+        {
+            for (var i = 0; i < reader.FieldCount; i++)
+            {
+                var col = reader.GetName(i);
+                foreach (var n in names)
+                {
+                    if (string.Equals(col, n, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (reader.IsDBNull(i))
+                            return null;
+                        var val = reader.GetValue(i);
+                        return val as string ?? val.ToString();
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static int? GetOptionalInt32(SqlDataReader reader, params string[] names)
+        {
+            for (var i = 0; i < reader.FieldCount; i++)
+            {
+                var col = reader.GetName(i);
+                foreach (var n in names)
+                {
+                    if (!string.Equals(col, n, StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    if (reader.IsDBNull(i))
+                        return null;
+                    return Convert.ToInt32(reader.GetValue(i), System.Globalization.CultureInfo.InvariantCulture);
+                }
+            }
+
+            return null;
         }
 
         public async Task AddUserTrackingAsync(string userId, string userName, string userType, string ipAddress)
@@ -143,7 +219,8 @@ namespace pStudyWare20.Repository.Implementations
                 command.Parameters.Add(new SqlParameter("@Password", password));
 
                 var rowsAffected = await command.ExecuteNonQueryAsync();
-                return rowsAffected > 0;
+                // Stored procedures often report -1 when SET NOCOUNT ON; 0 means no rows updated.
+                return rowsAffected != 0;
             }
             catch (Exception ex)
             {

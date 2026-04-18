@@ -21,12 +21,12 @@ class UserService {
     }
   }
 
-  // Update password
+  // Update password (delegates to auth API; same contract as authService.updatePassword)
   async updatePassword(currentPassword, newPassword) {
     try {
-      const response = await api.post("/user/update-password", {
+      const response = await api.post("/auth/update-password", {
         currentPassword,
-        newPassword,
+        password: newPassword,
       });
       return response.data;
     } catch (error) {

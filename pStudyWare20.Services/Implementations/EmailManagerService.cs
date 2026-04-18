@@ -4,7 +4,6 @@ using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
 using System.Data;
 using System.IO;
-using System.Text;
 
 namespace pStudyWare20.Services.Implementations
 {
@@ -319,39 +318,12 @@ namespace pStudyWare20.Services.Implementations
                     };
                 }
 
-                // Generate Excel file content (HTML table format for .xls compatibility)
-                var sb = new StringBuilder();
-                sb.AppendLine("<html><body><table border='1'>");
-
-                // Add headers
-                sb.AppendLine("<tr>");
-                foreach (DataColumn column in messagesData.Columns)
-                {
-                    sb.AppendLine($"<th>{column.ColumnName}</th>");
-                }
-                sb.AppendLine("</tr>");
-
-                // Add data rows
-                foreach (DataRow row in messagesData.Rows)
-                {
-                    sb.AppendLine("<tr>");
-                    foreach (var item in row.ItemArray)
-                    {
-                        sb.AppendLine($"<td>{item}</td>");
-                    }
-                    sb.AppendLine("</tr>");
-                }
-
-                sb.AppendLine("</table></body></html>");
-
-                var fileContent = Encoding.UTF8.GetBytes(sb.ToString());
-
                 return new ExportMessagesResponse
                 {
                     IsSuccess = true,
-                    FileName = "MessageCenter.xls",
-                    FileContent = fileContent,
-                    ContentType = "application/vnd.ms-excel"
+                    FileName = "MessageCenter.xlsx",
+                    FileContent = DataTableExcelExporter.ToXlsxBytes(messagesData, "Messages"),
+                    ContentType = DataTableExcelExporter.XlsxContentType
                 };
             }
             catch (Exception ex)

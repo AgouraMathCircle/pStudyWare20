@@ -15,6 +15,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import meetingDetailsService from "../../../services/meetingDetailsService";
 import MeetingList from "./MeetingList";
 import MeetingForm from "./MeetingForm";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
 
 const MeetingDetails = () => {
   const { user } = useAuth();
@@ -232,7 +233,7 @@ const MeetingDetails = () => {
                 variant="subtitle1"
                 sx={{
                   fontWeight: 600,
-                  color: "#1976d2",
+                  color: APPLICATION_ADMIN_TITLE_COLOR,
                   fontSize: "1rem",
                 }}
               >

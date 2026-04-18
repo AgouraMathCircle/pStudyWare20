@@ -42,6 +42,7 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
 import volunteersRequestService from "../../../services/volunteersRequestService";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
 import studentWaitingListService from "../../../services/studentWaitingListService";
 
 const TYPE_OPTIONS = [
@@ -84,7 +85,7 @@ const VolunteersRequest = () => {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chapterLocations, setChapterLocations] = useState([]);
-  const [updateOpen, setUpdateOpen] = useState(false);
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [form, setForm] = useState({
@@ -267,7 +268,24 @@ const VolunteersRequest = () => {
       class: "",
       section: "A",
     });
-    setUpdateOpen(true);
+    setShowUpdateForm(true);
+    setTimeout(() => {
+      const el = document.getElementById("update-volunteer-request-section");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
+  const handleCloseUpdateForm = () => {
+    setShowUpdateForm(false);
+    setSelectedRow(null);
+    setForm({
+      firstName: "",
+      lastName: "",
+      chapterID: "",
+      type: "V",
+      class: "",
+      section: "A",
+    });
   };
 
   const handleDeleteClick = (row) => {
@@ -314,7 +332,7 @@ const VolunteersRequest = () => {
       });
       if (res?.isSuccess) {
         setSnackbar({ open: true, message: res.message || "Volunteer approved successfully.", severity: "success" });
-        setUpdateOpen(false);
+        setShowUpdateForm(false);
         setSelectedRow(null);
         loadList();
       } else {
@@ -386,14 +404,14 @@ const VolunteersRequest = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: "72px" }} />
+      <Box sx={{ height: "48px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <Card>
               <CardContent>
                 <Box sx={{ mb: 2, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "#1976d2", fontSize: "1rem" }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: "1rem" }}>
                     Volunteers Request
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1 }}>
@@ -575,6 +593,195 @@ const VolunteersRequest = () => {
                         <Button size="small" variant="contained" onClick={handleGoToPage} sx={{ backgroundColor: "white", color: "#4caf50", fontSize: "0.75rem", px: 1, py: 0.25, "&:hover": { backgroundColor: "#f5f5f5" } }}>Go</Button>
                       </Box>
                     </Box>
+
+                    {showUpdateForm && selectedRow && (
+                      <Paper
+                        id="update-volunteer-request-section"
+                        elevation={2}
+                        sx={{
+                          p: 2,
+                          pt: 2,
+                          pb: 2,
+                          mt: 2,
+                          backgroundColor: "#4CAF50",
+                          color: "white",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Typography variant="h6" gutterBottom sx={{ color: "white", mb: 1.5 }}>
+                          Update Volunteer Request Status
+                        </Typography>
+
+                        <Box
+                          sx={{
+                            width: "100%",
+                            maxWidth: "900px",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 2,
+                          }}
+                        >
+                          <Grid container spacing={2}>
+                            <Grid item xs={12} sm={6}>
+                              <TextField
+                                fullWidth
+                                label="First Name"
+                                value={form.firstName}
+                                onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
+                                sx={{
+                                  "& .MuiOutlinedInput-root": {
+                                    backgroundColor: "white",
+                                  },
+                                }}
+                              />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <TextField
+                                fullWidth
+                                label="Last Name"
+                                value={form.lastName}
+                                onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
+                                sx={{
+                                  "& .MuiOutlinedInput-root": {
+                                    backgroundColor: "white",
+                                  },
+                                }}
+                              />
+                            </Grid>
+                            <Grid item xs={12}>
+                              <FormControl
+                                fullWidth
+                                sx={{
+                                  "& .MuiOutlinedInput-root": {
+                                    backgroundColor: "white",
+                                  },
+                                }}
+                              >
+                                <InputLabel>Chapter</InputLabel>
+                                <Select
+                                  value={form.chapterID}
+                                  label="Chapter"
+                                  onChange={(e) => setForm((f) => ({ ...f, chapterID: e.target.value }))}
+                                >
+                                  {chapterLocations.map((ch) => {
+                                    const id = ch.chapterID ?? ch.ChapterID ?? "";
+                                    const name = ch.chapterName ?? ch.ChapterName ?? "";
+                                    const loc = ch.location ?? ch.Location ?? "";
+                                    return (
+                                      <MenuItem key={id} value={id}>
+                                        {name} - {loc}
+                                      </MenuItem>
+                                    );
+                                  })}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                            <Grid item xs={12}>
+                              <FormControl
+                                fullWidth
+                                sx={{
+                                  "& .MuiOutlinedInput-root": {
+                                    backgroundColor: "white",
+                                  },
+                                }}
+                              >
+                                <InputLabel>Type</InputLabel>
+                                <Select
+                                  value={form.type}
+                                  label="Type"
+                                  onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+                                >
+                                  {TYPE_OPTIONS.map((opt) => (
+                                    <MenuItem key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <FormControl
+                                fullWidth
+                                sx={{
+                                  "& .MuiOutlinedInput-root": {
+                                    backgroundColor: "white",
+                                  },
+                                }}
+                              >
+                                <InputLabel>Class</InputLabel>
+                                <Select
+                                  value={form.class}
+                                  label="Class"
+                                  onChange={(e) => setForm((f) => ({ ...f, class: e.target.value }))}
+                                >
+                                  {CLASS_OPTIONS.map((opt) => (
+                                    <MenuItem key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <FormControl
+                                fullWidth
+                                sx={{
+                                  "& .MuiOutlinedInput-root": {
+                                    backgroundColor: "white",
+                                  },
+                                }}
+                              >
+                                <InputLabel>Section</InputLabel>
+                                <Select
+                                  value={form.section}
+                                  label="Section"
+                                  onChange={(e) => setForm((f) => ({ ...f, section: e.target.value }))}
+                                >
+                                  <MenuItem value="A">A</MenuItem>
+                                  <MenuItem value="B">B</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                          </Grid>
+
+                          <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 1 }}>
+                            <Button
+                              variant="outlined"
+                              onClick={handleCloseUpdateForm}
+                              disabled={submitting}
+                              sx={{
+                                borderColor: "white",
+                                color: "white",
+                                px: 4,
+                                py: 1,
+                                "&:hover": {
+                                  borderColor: "white",
+                                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                                },
+                              }}
+                            >
+                              Close
+                            </Button>
+                            <Button
+                              variant="contained"
+                              onClick={handleUpdateSubmit}
+                              disabled={submitting}
+                              sx={{
+                                backgroundColor: "#2E7D32",
+                                color: "white",
+                                px: 4,
+                                py: 1,
+                                "&:hover": { backgroundColor: "#1B5E20" },
+                              }}
+                            >
+                              {submitting ? "Submitting…" : "Submit"}
+                            </Button>
+                          </Box>
+                        </Box>
+                      </Paper>
+                    )}
                   </>
                 )}
               </CardContent>
@@ -582,66 +789,6 @@ const VolunteersRequest = () => {
           </Grid>
         </Grid>
       </Container>
-
-      <Dialog open={updateOpen} onClose={() => setUpdateOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Update Volunteer Request Status</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ pt: 1 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField fullWidth label="First Name" value={form.firstName} onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField fullWidth label="Last Name" value={form.lastName} onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))} />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Chapter</InputLabel>
-                <Select value={form.chapterID} label="Chapter" onChange={(e) => setForm((f) => ({ ...f, chapterID: e.target.value }))}>
-                  {chapterLocations.map((ch) => {
-                    const id = ch.chapterID ?? ch.ChapterID ?? "";
-                    const name = ch.chapterName ?? ch.ChapterName ?? "";
-                    const loc = ch.location ?? ch.Location ?? "";
-                    return <MenuItem key={id} value={id}>{name} - {loc}</MenuItem>;
-                  })}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Type</InputLabel>
-                <Select value={form.type} label="Type" onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
-                  {TYPE_OPTIONS.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Class</InputLabel>
-                <Select value={form.class} label="Class" onChange={(e) => setForm((f) => ({ ...f, class: e.target.value }))}>
-                  {CLASS_OPTIONS.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Section</InputLabel>
-                <Select value={form.section} label="Section" onChange={(e) => setForm((f) => ({ ...f, section: e.target.value }))}>
-                  <MenuItem value="A">A</MenuItem>
-                  <MenuItem value="B">B</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setUpdateOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleUpdateSubmit} disabled={submitting}>{submitting ? "Submitting…" : "Submit"}</Button>
-        </DialogActions>
-      </Dialog>
 
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
         <DialogTitle>Delete volunteer request</DialogTitle>

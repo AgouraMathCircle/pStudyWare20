@@ -19,6 +19,7 @@ import { Refresh as RefreshIcon, Download as DownloadIcon } from "@mui/icons-mat
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
 import specialEventsRegistrationService from "../../../services/specialEventsRegistrationService";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
 
 const SpecialEventsRegistration = () => {
   const { user } = useAuth();
@@ -122,7 +123,10 @@ const SpecialEventsRegistration = () => {
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <AdminHeader />
       <Container maxWidth="xl" sx={{ py: 2 }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>
+        <Typography
+          variant="h5"
+          sx={{ mb: 2, color: APPLICATION_ADMIN_TITLE_COLOR }}
+        >
           Special Events Registration List
         </Typography>
         <Box sx={{ display: "flex", gap: 1, mb: 2 }}>

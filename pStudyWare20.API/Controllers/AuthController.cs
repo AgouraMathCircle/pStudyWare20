@@ -118,12 +118,12 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Update Password - Change user password and send notification email
+        /// Update Password - Verifies current password, updates via AMC_spPasswordUpdate for the JWT user, sends notification email.
         /// </summary>
-        /// <param name="request">Update password request with username and new password</param>
+        /// <param name="request">Current and new password (account resolved from the access token email claim).</param>
         /// <returns>Update password response</returns>
         [HttpPost("update-password")]
-        [Authorize] // Require authentication to update password
+        [Authorize]
         public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequest request)
         {
             try
@@ -133,23 +133,20 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                // Verify that the authenticated user is updating their own password
                 var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
-                if (string.IsNullOrEmpty(userEmail) || !userEmail.Equals(request.Username, StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrEmpty(userEmail))
                 {
-                    return Forbid(); // User can only update their own password
+                    return Unauthorized(new { message = "Unable to identify the signed-in user." });
                 }
 
-                var response = await _authService.UpdatePasswordAsync(request);
+                var response = await _authService.UpdatePasswordAsync(userEmail, request);
 
                 if (response.IsSuccess)
                 {
                     return Ok(response);
                 }
-                else
-                {
-                    return BadRequest(response);
-                }
+
+                return BadRequest(response);
             }
             catch (Exception ex)
             {

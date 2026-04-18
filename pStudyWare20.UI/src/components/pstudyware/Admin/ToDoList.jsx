@@ -21,6 +21,7 @@ import {
   Notifications as NotificationsIcon,
   Publish as PublishIcon,
 } from "@mui/icons-material";
+import { adminPortalCardHeaderStripSx } from "../../../styles/applicationSurfaces";
 
 const ToDoList = ({
   trackingSummary,
@@ -57,20 +58,13 @@ const ToDoList = ({
   return (
     <Card elevation={3} sx={{ height: "100%" }}>
       <CardHeader
-        avatar={<NotificationsIcon color="info" />}
+        avatar={<NotificationsIcon />}
         title={
           <Typography variant="subtitle1" component="div" sx={{ fontSize: '1rem' }}>
             To Do List
           </Typography>
         }
-        sx={{
-          backgroundColor: (theme) => theme.palette.info.light,
-          color: (theme) => theme.palette.info.contrastText,
-          padding: "3px 5px",
-          "& .MuiCardHeader-avatar": {
-            color: (theme) => theme.palette.info.contrastText,
-          },
-        }}
+        sx={adminPortalCardHeaderStripSx}
       />
       <CardContent sx={{ p: 2 }}>
         {/* Publish Documents Section */}

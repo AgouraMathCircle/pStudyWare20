@@ -41,6 +41,11 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import registeredStudentListService from "../../../services/registeredStudentListService";
 import AdminHeader from "./AdminHeader";
+import {
+  PORTAL_CARD_BOX_SHADOW,
+  portalCardAntiLiftSx,
+  APPLICATION_ADMIN_TITLE_COLOR,
+} from "../../../styles/applicationSurfaces";
 
 const RegisteredStudentList = () => {
   const { user } = useAuth();
@@ -79,6 +84,7 @@ const RegisteredStudentList = () => {
   });
 
   const pageSize = 25; // Match original page size
+  const cellPadding = "0 8px";
 
   // Class options (from original ASP.NET page)
   const classOptions = [
@@ -424,7 +430,7 @@ const RegisteredStudentList = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: "72px" }} />
+      <Box sx={{ height: "48px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
@@ -432,15 +438,16 @@ const RegisteredStudentList = () => {
               sx={{
                 backgroundColor: "white",
                 borderRadius: 2,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                boxShadow: PORTAL_CARD_BOX_SHADOW,
                 overflow: "hidden",
+                ...portalCardAntiLiftSx,
               }}
             >
               <CardContent sx={{ p: 3 }}>
-                {/* Header */}
+                {/* Header — match InstructorList */}
                 <Box
                   sx={{
-                    mb: 3,
+                    mb: 1,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
@@ -449,8 +456,8 @@ const RegisteredStudentList = () => {
                   }}
                 >
                   <Typography
-                    variant="h5"
-                    sx={{ fontWeight: 600, color: "#1976d2" }}
+                    variant="subtitle1"
+                    sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: "1rem" }}
                   >
                     Student List
                   </Typography>
@@ -463,6 +470,7 @@ const RegisteredStudentList = () => {
                         startIcon={<DownloadIcon />}
                         onClick={handleExportToExcel}
                         disabled={loading}
+                        sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
                       >
                         Export Excel
                       </Button>
@@ -474,6 +482,7 @@ const RegisteredStudentList = () => {
                       startIcon={<RefreshIcon />}
                       onClick={fetchData}
                       disabled={loading}
+                      sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
                     >
                       Refresh
                     </Button>
@@ -500,26 +509,21 @@ const RegisteredStudentList = () => {
                   </Alert>
                 )}
 
-                {/* Search Bar */}
+                {/* Search Bar — match InstructorList */}
                 <Box
                   sx={{
                     backgroundColor: "#4caf50",
-                    p: 1.5,
+                    p: 0.5,
                     borderRadius: 1,
-                    mb: 2,
                     display: "flex",
                     alignItems: "center",
-                    gap: 1.5,
+                    gap: 1,
                     flexWrap: "wrap",
                   }}
                 >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                     <Typography
-                      sx={{
-                        color: "white",
-                        fontSize: "0.875rem",
-                        whiteSpace: "nowrap",
-                      }}
+                      sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
                     >
                       Search By:
                     </Typography>
@@ -529,39 +533,60 @@ const RegisteredStudentList = () => {
                       size="small"
                       sx={{
                         color: "white",
-                        fontSize: "0.875rem",
-                        minWidth: 120,
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "white",
-                        },
+                        fontSize: "0.75rem",
+                        minWidth: 100,
+                        "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
                         "& .MuiSelect-icon": { color: "white" },
-                        backgroundColor: "rgba(255,255,255,0.1)",
                       }}
                     >
-                      <MenuItem value="ALL">-ALL-</MenuItem>
-                      <MenuItem value="STUDENT_ID">Student ID</MenuItem>
-                      <MenuItem value="STUDENT_NAME">Student Name</MenuItem>
-                      <MenuItem value="CHAPTER">Chapter</MenuItem>
-                      <MenuItem value="CLASS">Class</MenuItem>
-                      <MenuItem value="GRADE">Grade</MenuItem>
-                      <MenuItem value="SCHOOL">School</MenuItem>
-                      <MenuItem value="PARENT">Parent</MenuItem>
-                      <MenuItem value="PHONE">Phone</MenuItem>
-                      <MenuItem value="EMAIL">Email</MenuItem>
-                      <MenuItem value="SESSION">Session</MenuItem>
-                      <MenuItem value="LOCATION">Location</MenuItem>
-                      <MenuItem value="STATE">State</MenuItem>
-                      <MenuItem value="CITY">City</MenuItem>
+                      <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
+                        -ALL-
+                      </MenuItem>
+                      <MenuItem value="STUDENT_ID" sx={{ fontSize: "0.75rem" }}>
+                        Student ID
+                      </MenuItem>
+                      <MenuItem value="STUDENT_NAME" sx={{ fontSize: "0.75rem" }}>
+                        Student Name
+                      </MenuItem>
+                      <MenuItem value="CHAPTER" sx={{ fontSize: "0.75rem" }}>
+                        Chapter
+                      </MenuItem>
+                      <MenuItem value="CLASS" sx={{ fontSize: "0.75rem" }}>
+                        Class
+                      </MenuItem>
+                      <MenuItem value="GRADE" sx={{ fontSize: "0.75rem" }}>
+                        Grade
+                      </MenuItem>
+                      <MenuItem value="SCHOOL" sx={{ fontSize: "0.75rem" }}>
+                        School
+                      </MenuItem>
+                      <MenuItem value="PARENT" sx={{ fontSize: "0.75rem" }}>
+                        Parent
+                      </MenuItem>
+                      <MenuItem value="PHONE" sx={{ fontSize: "0.75rem" }}>
+                        Phone
+                      </MenuItem>
+                      <MenuItem value="EMAIL" sx={{ fontSize: "0.75rem" }}>
+                        Email
+                      </MenuItem>
+                      <MenuItem value="SESSION" sx={{ fontSize: "0.75rem" }}>
+                        Session
+                      </MenuItem>
+                      <MenuItem value="LOCATION" sx={{ fontSize: "0.75rem" }}>
+                        Location
+                      </MenuItem>
+                      <MenuItem value="STATE" sx={{ fontSize: "0.75rem" }}>
+                        State
+                      </MenuItem>
+                      <MenuItem value="CITY" sx={{ fontSize: "0.75rem" }}>
+                        City
+                      </MenuItem>
                     </Select>
                   </Box>
 
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                     <Typography
-                      sx={{
-                        color: "white",
-                        fontSize: "0.875rem",
-                        whiteSpace: "nowrap",
-                      }}
+                      sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
                     >
                       Criteria:
                     </Typography>
@@ -571,19 +596,24 @@ const RegisteredStudentList = () => {
                       size="small"
                       sx={{
                         color: "white",
-                        fontSize: "0.875rem",
-                        minWidth: 120,
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "white",
-                        },
+                        fontSize: "0.75rem",
+                        minWidth: 100,
+                        "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
                         "& .MuiSelect-icon": { color: "white" },
-                        backgroundColor: "rgba(255,255,255,0.1)",
                       }}
                     >
-                      <MenuItem value="">Select Criteria</MenuItem>
-                      <MenuItem value="equals">Equals</MenuItem>
-                      <MenuItem value="contains">Contains</MenuItem>
-                      <MenuItem value="starts_with">Starts With</MenuItem>
+                      <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
+                        Select Criteria
+                      </MenuItem>
+                      <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
+                        Equals
+                      </MenuItem>
+                      <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
+                        Contains
+                      </MenuItem>
+                      <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>
+                        Starts With
+                      </MenuItem>
                     </Select>
                   </Box>
 
@@ -593,10 +623,10 @@ const RegisteredStudentList = () => {
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                     sx={{
-                      minWidth: 200,
+                      minWidth: 150,
                       "& .MuiOutlinedInput-root": {
                         backgroundColor: "white",
-                        fontSize: "0.875rem",
+                        fontSize: "0.75rem",
                       },
                     }}
                   />
@@ -608,7 +638,11 @@ const RegisteredStudentList = () => {
                     sx={{
                       backgroundColor: "white",
                       color: "#4caf50",
-                      fontSize: "0.875rem",
+                      fontSize: "0.75rem",
+                      textTransform: "none",
+                      minHeight: 32,
+                      py: 0,
+                      px: 1,
                       "&:hover": { backgroundColor: "#f5f5f5" },
                     }}
                   >
@@ -616,138 +650,191 @@ const RegisteredStudentList = () => {
                   </Button>
                 </Box>
 
-                {/* Table */}
-                <TableContainer component={Paper} sx={{ mb: 2 }}>
-                  <Table sx={{ minWidth: 650 }} size="small">
+                {/* Table — match InstructorList layout */}
+                <TableContainer component={Paper} sx={{ width: "100%" }}>
+                  <Table
+                    sx={{
+                      width: "100%",
+                      tableLayout: "fixed",
+                      "& .MuiTableCell-root": { paddingTop: 0, paddingBottom: 0 },
+                    }}
+                    size="small"
+                  >
                     <TableHead>
                       <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "4%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
-                          Actions
+                          Edit
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "4%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
+                          }}
+                        >
+                          Delete
+                        </TableCell>
+                        <TableCell
+                          sx={{
+                            fontWeight: 400,
+                            borderRight: "1px solid #4caf50",
+                            width: "5%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
                           Student #
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "9%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
                           Student Name
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "7%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
                           Chapter
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "6%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
                           Class
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "4%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
                           Grade
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "9%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
                           School
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "7%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
                           Parent
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "6%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
                           Phone
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "9%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
                           Email
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "5%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
                           Session
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "5%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
                           Location
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "7%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
-                          Registered Date
+                          Reg. Date
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 600,
+                            fontWeight: 400,
                             borderRight: "1px solid #4caf50",
-                            padding: "8px",
+                            width: "5%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
                           }}
                         >
                           State
                         </TableCell>
-                        <TableCell sx={{ fontWeight: 600, padding: "8px" }}>
+                        <TableCell
+                          sx={{
+                            fontWeight: 400,
+                            width: "5%",
+                            fontSize: "0.75rem",
+                            padding: cellPadding,
+                          }}
+                        >
                           City
                         </TableCell>
                       </TableRow>
@@ -757,49 +844,55 @@ const RegisteredStudentList = () => {
                         paginatedStudents.map((student, index) => (
                           <TableRow
                             key={student.studentID || index}
-                            sx={{
-                              "&:nth-of-type(odd)": {
-                                backgroundColor: "#f9f9f9",
-                              },
-                            }}
+                            sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}
                           >
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                                verticalAlign: "middle",
                               }}
                             >
-                              <Box sx={{ display: "flex", gap: 0.5 }}>
-                                {privileges.canUpdateStudents && (
-                                  <Tooltip title="Edit Student">
-                                    <IconButton
-                                      size="small"
-                                      color="primary"
-                                      onClick={() => handleUpdateClass(student)}
-                                    >
-                                      <EditIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                                {privileges.canDeleteStudents && (
-                                  <Tooltip title="Delete Student">
-                                    <IconButton
-                                      size="small"
-                                      color="error"
-                                      onClick={() =>
-                                        handleDeleteStudent(student.studentID)
-                                      }
-                                    >
-                                      <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                              </Box>
+                              {privileges.canUpdateStudents ? (
+                                <Tooltip title="Edit Student">
+                                  <IconButton
+                                    size="small"
+                                    color="primary"
+                                    onClick={() => handleUpdateClass(student)}
+                                    sx={{ padding: "2px" }}
+                                  >
+                                    <EditIcon sx={{ fontSize: "1rem" }} />
+                                  </IconButton>
+                                </Tooltip>
+                              ) : null}
                             </TableCell>
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                                verticalAlign: "middle",
+                              }}
+                            >
+                              {privileges.canDeleteStudents ? (
+                                <Tooltip title="Delete Student">
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={() => handleDeleteStudent(student.studentID)}
+                                    sx={{ padding: "2px" }}
+                                  >
+                                    <DeleteIcon sx={{ fontSize: "1rem" }} />
+                                  </IconButton>
+                                </Tooltip>
+                              ) : null}
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                borderRight: "1px solid #4caf50",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
                               }}
                             >
                               {student.studentID || "-"}
@@ -807,31 +900,50 @@ const RegisteredStudentList = () => {
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
                               }}
                             >
-                              {student.studentName || "-"}
+                              <Tooltip title={student.studentName ?? "-"}>
+                                <span>{student.studentName || "-"}</span>
+                              </Tooltip>
                             </TableCell>
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
                               }}
                             >
-                              {student.chapter || "-"}
+                              <Tooltip title={student.chapter ?? "-"}>
+                                <span>{student.chapter || "-"}</span>
+                              </Tooltip>
                             </TableCell>
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
                               }}
                             >
-                              {student.class || "-"}
+                              <Tooltip title={student.class ?? "-"}>
+                                <span>{student.class || "-"}</span>
+                              </Tooltip>
                             </TableCell>
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
                               }}
                             >
                               {student.grade || "-"}
@@ -839,23 +951,36 @@ const RegisteredStudentList = () => {
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
                               }}
                             >
-                              {student.school || "-"}
+                              <Tooltip title={student.school ?? "-"}>
+                                <span>{student.school || "-"}</span>
+                              </Tooltip>
                             </TableCell>
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
                               }}
                             >
-                              {student.parentName || "-"}
+                              <Tooltip title={student.parentName ?? "-"}>
+                                <span>{student.parentName || "-"}</span>
+                              </Tooltip>
                             </TableCell>
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
                               }}
                             >
                               {student.phoneNumber || "-"}
@@ -863,26 +988,22 @@ const RegisteredStudentList = () => {
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
                               }}
                             >
-                              <Tooltip title={student.emailAddress || "-"}>
-                                <span
-                                  style={{
-                                    maxWidth: "200px",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    display: "block",
-                                  }}
-                                >
-                                  {student.emailAddress || "-"}
-                                </span>
+                              <Tooltip title={student.emailAddress ?? "-"}>
+                                <span>{student.emailAddress || "-"}</span>
                               </Tooltip>
                             </TableCell>
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
                               }}
                             >
                               {student.eventSession || "-"}
@@ -890,40 +1011,64 @@ const RegisteredStudentList = () => {
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
                               }}
                             >
-                              {student.eventLocation || "-"}
+                              <Tooltip title={student.eventLocation ?? "-"}>
+                                <span>{student.eventLocation || "-"}</span>
+                              </Tooltip>
                             </TableCell>
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
                               }}
                             >
                               {student.registeredDate
-                                ? new Date(
-                                    student.registeredDate
-                                  ).toLocaleDateString()
+                                ? new Date(student.registeredDate).toLocaleDateString()
                                 : "-"}
                             </TableCell>
                             <TableCell
                               sx={{
                                 borderRight: "1px solid #4caf50",
-                                padding: "8px",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
                               }}
                             >
                               {student.sState || "-"}
                             </TableCell>
-                            <TableCell sx={{ padding: "8px" }}>
-                              {student.city || "-"}
+                            <TableCell
+                              sx={{
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              <Tooltip title={student.city ?? "-"}>
+                                <span>{student.city || "-"}</span>
+                              </Tooltip>
                             </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={15} align="center" sx={{ py: 3 }}>
-                            <Typography variant="body2" color="textSecondary">
+                          <TableCell
+                            colSpan={16}
+                            align="center"
+                            sx={{ fontSize: "0.75rem", padding: cellPadding, py: 3 }}
+                          >
+                            <Typography
+                              variant="body2"
+                              color="textSecondary"
+                              sx={{ fontSize: "0.75rem" }}
+                            >
                               {searchText
                                 ? "No students found matching your search criteria."
                                 : "No student data available."}
@@ -935,11 +1080,11 @@ const RegisteredStudentList = () => {
                   </Table>
                 </TableContainer>
 
-                {/* Pagination Bar */}
+                {/* Pagination Bar — match InstructorList */}
                 <Box
                   sx={{
                     backgroundColor: "#4caf50",
-                    p: 1,
+                    p: 0.5,
                     borderRadius: 1,
                     display: "flex",
                     alignItems: "center",
@@ -948,86 +1093,89 @@ const RegisteredStudentList = () => {
                     gap: 1,
                   }}
                 >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
                     <IconButton
                       size="small"
-                      sx={{ color: "white" }}
+                      sx={{ color: "white", padding: "2px" }}
                       onClick={() => handlePageChange(1)}
                       disabled={currentPage === 1}
                     >
-                      <FirstPageIcon />
+                      <FirstPageIcon fontSize="small" />
                     </IconButton>
                     <IconButton
                       size="small"
-                      sx={{ color: "white" }}
+                      sx={{ color: "white", padding: "2px" }}
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
                     >
-                      <PrevPageIcon />
+                      <PrevPageIcon fontSize="small" />
                     </IconButton>
                     <IconButton
                       size="small"
-                      sx={{ color: "white" }}
+                      sx={{ color: "white", padding: "2px" }}
                       onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
+                      disabled={currentPage === totalPages || totalPages === 0}
                     >
-                      <NextPageIcon />
+                      <NextPageIcon fontSize="small" />
                     </IconButton>
                     <IconButton
                       size="small"
-                      sx={{ color: "white" }}
+                      sx={{ color: "white", padding: "2px" }}
                       onClick={() => handlePageChange(totalPages)}
-                      disabled={currentPage === totalPages}
+                      disabled={currentPage === totalPages || totalPages === 0}
                     >
-                      <LastPageIcon />
+                      <LastPageIcon fontSize="small" />
                     </IconButton>
                   </Box>
 
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <Typography sx={{ color: "white", fontSize: "0.875rem" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+                    <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
                       GoTo
                     </Typography>
                     <Select
                       size="small"
-                      value={currentPage}
-                      onChange={(e) => handlePageChange(e.target.value)}
+                      value={totalPages > 0 ? currentPage : ""}
+                      onChange={(e) => handlePageChange(Number(e.target.value))}
+                      disabled={totalPages === 0}
                       sx={{
                         color: "white",
-                        minWidth: 60,
-                        fontSize: "0.875rem",
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "white",
-                        },
+                        minWidth: 50,
+                        fontSize: "0.75rem",
+                        "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
                         "& .MuiSelect-icon": { color: "white" },
                       }}
                     >
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                        (page) => (
-                          <MenuItem key={page} value={page}>
+                      {totalPages > 0 ? (
+                        Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <MenuItem key={page} value={page} sx={{ fontSize: "0.75rem" }}>
                             {page}
                           </MenuItem>
-                        )
+                        ))
+                      ) : (
+                        <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
+                          -
+                        </MenuItem>
                       )}
                     </Select>
                   </Box>
 
-                  <Typography sx={{ color: "white", fontSize: "0.875rem" }}>
-                    Page(s): {currentPage} of {totalPages}
+                  <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                    Page(s): {totalPages > 0 ? currentPage : 0} of {totalPages}
                   </Typography>
 
-                  <Typography sx={{ color: "white", fontSize: "0.875rem" }}>
+                  <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
                     Record(s):{" "}
                     {totalRecords > 0
                       ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
                           currentPage * pageSize,
-                          totalRecords
+                          totalRecords,
                         )}`
                       : "0"}{" "}
                     of {totalRecords}
                   </Typography>
 
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <Typography sx={{ color: "white", fontSize: "0.875rem" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+                    <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
                       Go to Page Number:
                     </Typography>
                     <TextField
@@ -1041,13 +1189,13 @@ const RegisteredStudentList = () => {
                         }
                       }}
                       sx={{
-                        width: 60,
+                        width: 50,
                         "& .MuiOutlinedInput-root": {
                           backgroundColor: "white",
-                          fontSize: "0.875rem",
+                          fontSize: "0.75rem",
                         },
                       }}
-                      inputProps={{ min: 1, max: totalPages }}
+                      inputProps={{ min: 1, max: totalPages || 1 }}
                     />
                     <Button
                       size="small"
@@ -1056,7 +1204,10 @@ const RegisteredStudentList = () => {
                       sx={{
                         backgroundColor: "white",
                         color: "#4caf50",
-                        fontSize: "0.875rem",
+                        fontSize: "0.75rem",
+                        minHeight: 32,
+                        py: 0,
+                        px: 0.75,
                         "&:hover": { backgroundColor: "#f5f5f5" },
                       }}
                     >

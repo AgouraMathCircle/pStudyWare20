@@ -4,7 +4,6 @@ using pStudyWare20.Data.Models;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Shared;
 using System.Data;
-using System.Text;
 
 namespace pStudyWare20.Repository.Implementations
 {
@@ -210,53 +209,6 @@ namespace pStudyWare20.Repository.Implementations
                     IsSuccess = false,
                     ErrorMessage = ex.Message,
                     Message = ""
-                };
-            }
-        }
-
-        public async Task<ExportExcelResponse> ExportToExcelAsync(ExportExcelRequest request)
-        {
-            try
-            {
-                var listResponse = await GetVolunteersRequestAsync(new GetVolunteersRequestRequest { Username = request.Username ?? "" });
-                if (!listResponse.IsSuccess || listResponse.VolunteersRequest == null)
-                {
-                    return new ExportExcelResponse
-                    {
-                        IsSuccess = false,
-                        ErrorMessage = listResponse.ErrorMessage ?? "Failed to get data.",
-                        FileContent = Array.Empty<byte>(),
-                        FileName = "",
-                        ContentType = ""
-                    };
-                }
-
-                var sb = new StringBuilder();
-                sb.AppendLine("VolunteerID,VolunteerName,Grade,Location,School,Phone,Email,City,EnrolledSession,Interest,Status,InsertDate,Comments");
-                foreach (var r in listResponse.VolunteersRequest)
-                {
-                    sb.AppendLine($"{r.VolunteerID},\"{r.VolunteerName}\",\"{r.Grade}\",\"{r.Location}\",\"{r.School}\",\"{r.Phone}\",\"{r.Email}\",\"{r.City}\",\"{r.EnrolledSession}\",\"{r.Interest}\",\"{r.Status}\",\"{r.InsertDate:yyyy-MM-dd}\",\"{r.Comments?.Replace("\"", "\"\"")}\"");
-                }
-                var bytes = Encoding.UTF8.GetBytes(sb.ToString());
-
-                return new ExportExcelResponse
-                {
-                    IsSuccess = true,
-                    FileName = "VolunteersRequest.csv",
-                    FileContent = bytes,
-                    ContentType = "text/csv",
-                    ErrorMessage = ""
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ExportExcelResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = ex.Message,
-                    FileContent = Array.Empty<byte>(),
-                    FileName = "",
-                    ContentType = ""
                 };
             }
         }

@@ -16,6 +16,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: #e8f5e9;
 }
 
 .App {
@@ -23,6 +24,12 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: #e8f5e9;
+}
+
+/* Global breadcrumb hero title color (e.g., LOGIN, ABOUT US) */
+.sc-breadcrumbs .page-title {
+  color: #53b50a !important;
 }
 
 /* Container System */
