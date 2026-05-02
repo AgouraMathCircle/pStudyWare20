@@ -42,8 +42,20 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
 import volunteersRequestService from "../../../services/volunteersRequestService";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
+import {
+  APPLICATION_ADMIN_TITLE_COLOR,
+  PORTAL_CARD_BOX_SHADOW,
+  portalCardAntiLiftSx,
+} from "../../../styles/applicationSurfaces";
 import studentWaitingListService from "../../../services/studentWaitingListService";
+
+const volunteersRequestPageSx = {
+  flex: 1,
+  minHeight: 0,
+  width: "100%",
+  display: "flex",
+  flexDirection: "column",
+};
 
 const TYPE_OPTIONS = [
   { value: "P", label: "Primary Instructor" },
@@ -269,10 +281,6 @@ const VolunteersRequest = () => {
       section: "A",
     });
     setShowUpdateForm(true);
-    setTimeout(() => {
-      const el = document.getElementById("update-volunteer-request-section");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 100);
   };
 
   const handleCloseUpdateForm = () => {
@@ -332,8 +340,7 @@ const VolunteersRequest = () => {
       });
       if (res?.isSuccess) {
         setSnackbar({ open: true, message: res.message || "Volunteer approved successfully.", severity: "success" });
-        setShowUpdateForm(false);
-        setSelectedRow(null);
+        handleCloseUpdateForm();
         loadList();
       } else {
         setSnackbar({ open: true, message: res?.errorMessage || "Update failed.", severity: "error" });
@@ -389,29 +396,43 @@ const VolunteersRequest = () => {
     return isNaN(date.getTime()) ? d : date.toLocaleDateString();
   };
 
-  const cellStyle = {
-    borderRight: "1px solid #4caf50",
-    fontSize: "0.75rem",
-    padding: "3px 5px",
-  };
-  const headerStyle = {
-    fontWeight: 600,
-    borderRight: "1px solid #4caf50",
-    fontSize: "0.75rem",
-    padding: "3px 5px",
-  };
+  const cellPadding = "0 8px";
 
   return (
-    <Box>
+    <Box sx={volunteersRequestPageSx}>
       <AdminHeader user={user} />
       <Box sx={{ height: "48px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Box sx={{ mb: 2, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 2 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: "1rem" }}>
+            <Card
+              sx={{
+                backgroundColor: "white",
+                borderRadius: 2,
+                boxShadow: PORTAL_CARD_BOX_SHADOW,
+                overflow: "hidden",
+                ...portalCardAntiLiftSx,
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Box
+                  sx={{
+                    mb: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: 2,
+                  }}
+                >
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      fontWeight: 600,
+                      color: APPLICATION_ADMIN_TITLE_COLOR,
+                      fontSize: "1rem",
+                    }}
+                  >
                     Volunteers Request
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1 }}>
@@ -445,34 +466,99 @@ const VolunteersRequest = () => {
                   </Box>
                 ) : (
                   <>
-                    <Box sx={{ backgroundColor: "#4caf50", p: 0.5, borderRadius: 1, mb: 1.5, display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                        <Typography sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}>Search By:</Typography>
+                    {/* Search Bar */}
+                    <Box
+                      sx={{
+                        backgroundColor: "#4caf50",
+                        p: 0.5,
+                        borderRadius: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                      >
+                        <Typography
+                          sx={{
+                            color: "white",
+                            fontSize: "0.75rem",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          Search By:
+                        </Typography>
                         <Select
                           value={searchBy}
                           onChange={(e) => setSearchBy(e.target.value)}
                           size="small"
-                          sx={{ color: "white", fontSize: "0.75rem", minWidth: 100, "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" }, "& .MuiSelect-icon": { color: "white" } }}
+                          sx={{
+                            color: "white",
+                            fontSize: "0.75rem",
+                            minWidth: 100,
+                            "& .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "white",
+                            },
+                            "& .MuiSelect-icon": { color: "white" },
+                          }}
                         >
-                          <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>-ALL-</MenuItem>
-                          <MenuItem value="VOLUNTEER_ID" sx={{ fontSize: "0.75rem" }}>#</MenuItem>
-                          <MenuItem value="NAME" sx={{ fontSize: "0.75rem" }}>Name</MenuItem>
-                          <MenuItem value="EMAIL" sx={{ fontSize: "0.75rem" }}>Email</MenuItem>
-                          <MenuItem value="STATUS" sx={{ fontSize: "0.75rem" }}>Status</MenuItem>
-                          <MenuItem value="SCHOOL" sx={{ fontSize: "0.75rem" }}>School</MenuItem>
+                          <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
+                            -ALL-
+                          </MenuItem>
+                          <MenuItem value="VOLUNTEER_ID" sx={{ fontSize: "0.75rem" }}>
+                            #
+                          </MenuItem>
+                          <MenuItem value="NAME" sx={{ fontSize: "0.75rem" }}>
+                            Name
+                          </MenuItem>
+                          <MenuItem value="EMAIL" sx={{ fontSize: "0.75rem" }}>
+                            Email
+                          </MenuItem>
+                          <MenuItem value="STATUS" sx={{ fontSize: "0.75rem" }}>
+                            Status
+                          </MenuItem>
+                          <MenuItem value="SCHOOL" sx={{ fontSize: "0.75rem" }}>
+                            School
+                          </MenuItem>
                         </Select>
                       </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                        <Typography sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}>Criteria:</Typography>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                      >
+                        <Typography
+                          sx={{
+                            color: "white",
+                            fontSize: "0.75rem",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          Criteria:
+                        </Typography>
                         <Select
                           value={searchCriteria}
                           onChange={(e) => setSearchCriteria(e.target.value)}
                           size="small"
-                          sx={{ color: "white", fontSize: "0.75rem", minWidth: 100, "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" }, "& .MuiSelect-icon": { color: "white" } }}
+                          sx={{
+                            color: "white",
+                            fontSize: "0.75rem",
+                            minWidth: 100,
+                            "& .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "white",
+                            },
+                            "& .MuiSelect-icon": { color: "white" },
+                          }}
                         >
-                          <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>Contains</MenuItem>
-                          <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>Equals</MenuItem>
-                          <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>Starts With</MenuItem>
+                          <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
+                            Contains
+                          </MenuItem>
+                          <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
+                            Equals
+                          </MenuItem>
+                          <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>
+                            Starts With
+                          </MenuItem>
                         </Select>
                       </Box>
                       <TextField
@@ -480,72 +566,410 @@ const VolunteersRequest = () => {
                         placeholder="Search Text"
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
-                        sx={{ minWidth: 150, "& .MuiOutlinedInput-root": { backgroundColor: "white", fontSize: "0.75rem" } }}
+                        sx={{
+                          minWidth: 150,
+                          "& .MuiOutlinedInput-root": {
+                            backgroundColor: "white",
+                            fontSize: "0.75rem",
+                          },
+                        }}
                       />
                       <Button
                         variant="contained"
                         size="small"
                         onClick={handleSearch}
-                        sx={{ backgroundColor: "white", color: "#4caf50", fontSize: "0.75rem", textTransform: "none", px: 1.5, py: 0.25, "&:hover": { backgroundColor: "#f5f5f5" } }}
+                        sx={{
+                          backgroundColor: "white",
+                          color: "#4caf50",
+                          fontSize: "0.75rem",
+                          textTransform: "none",
+                          minHeight: 32,
+                          py: 0,
+                          px: 1,
+                          "&:hover": { backgroundColor: "#f5f5f5" },
+                        }}
                       >
                         Find
                       </Button>
                     </Box>
 
-                    <TableContainer component={Paper} sx={{ mb: 2, width: "100%" }}>
-                      <Table sx={{ width: "100%", tableLayout: "fixed" }}>
+                    {/* Table */}
+                    <TableContainer component={Paper} sx={{ width: "100%" }}>
+                      <Table
+                        sx={{
+                          width: "100%",
+                          tableLayout: "fixed",
+                          "& .MuiTableCell-root": {
+                            paddingTop: 0,
+                            paddingBottom: 0,
+                          },
+                        }}
+                        size="small"
+                      >
                         <TableHead>
                           <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
-                            <TableCell sx={{ ...headerStyle, width: "6%" }}>Actions</TableCell>
-                            <TableCell sx={{ ...headerStyle, width: "5%" }}>#</TableCell>
-                            <TableCell sx={{ ...headerStyle, width: "10%" }}>Volunteer Name</TableCell>
-                            <TableCell sx={{ ...headerStyle, width: "5%" }}>Grade</TableCell>
-                            <TableCell sx={{ ...headerStyle, width: "8%" }}>Location</TableCell>
-                            <TableCell sx={{ ...headerStyle, width: "8%" }}>School</TableCell>
-                            <TableCell sx={{ ...headerStyle, width: "7%" }}>Phone</TableCell>
-                            <TableCell sx={{ ...headerStyle, width: "10%" }}>Email</TableCell>
-                            <TableCell sx={{ ...headerStyle, width: "6%" }}>City</TableCell>
-                            <TableCell sx={{ ...headerStyle, width: "8%" }}>Enrolled For</TableCell>
-                            <TableCell sx={{ ...headerStyle, width: "8%" }}>Interested For</TableCell>
-                            <TableCell sx={{ ...headerStyle, width: "6%" }}>Status</TableCell>
-                            <TableCell sx={{ ...headerStyle, width: "7%" }}>Requested Date</TableCell>
-                            <TableCell sx={{ fontSize: "0.75rem", padding: "3px 5px", fontWeight: 600 }}>Comments</TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                borderRight: "1px solid #4caf50",
+                                width: "8%",
+                                minWidth: 88,
+                                whiteSpace: "nowrap",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              Actions
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                borderRight: "1px solid #4caf50",
+                                width: "5%",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              #
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                borderRight: "1px solid #4caf50",
+                                width: "10%",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              Volunteer Name
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                borderRight: "1px solid #4caf50",
+                                width: "5%",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              Grade
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                borderRight: "1px solid #4caf50",
+                                width: "8%",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              Location
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                borderRight: "1px solid #4caf50",
+                                width: "8%",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              School
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                borderRight: "1px solid #4caf50",
+                                width: "7%",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              Phone
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                borderRight: "1px solid #4caf50",
+                                width: "10%",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              Email
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                borderRight: "1px solid #4caf50",
+                                width: "6%",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              City
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                borderRight: "1px solid #4caf50",
+                                width: "8%",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              Enrolled For
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                borderRight: "1px solid #4caf50",
+                                width: "8%",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              Interested For
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                borderRight: "1px solid #4caf50",
+                                width: "6%",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              Status
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                borderRight: "1px solid #4caf50",
+                                width: "7%",
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              Requested Date
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                fontWeight: 400,
+                                fontSize: "0.75rem",
+                                padding: cellPadding,
+                              }}
+                            >
+                              Comments
+                            </TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {paginatedList.length > 0 ? (
                             paginatedList.map((row) => (
-                              <TableRow key={row.volunteerID} sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}>
-                                <TableCell sx={cellStyle}>
-                                  <Tooltip title="Update Status">
-                                    <IconButton size="small" onClick={() => handleEdit(row)}><EditIcon fontSize="small" /></IconButton>
-                                  </Tooltip>
-                                  <Tooltip title="Delete">
-                                    <IconButton size="small" color="error" onClick={() => handleDeleteClick(row)}><DeleteIcon fontSize="small" /></IconButton>
+                              <TableRow key={row.volunteerID}>
+                                <TableCell
+                                  sx={{
+                                    borderRight: "1px solid #4caf50",
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                    whiteSpace: "nowrap",
+                                    verticalAlign: "middle",
+                                  }}
+                                >
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      flexDirection: "row",
+                                      alignItems: "center",
+                                      flexWrap: "nowrap",
+                                      gap: 0,
+                                    }}
+                                  >
+                                    <Tooltip title="Update Status">
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => handleEdit(row)}
+                                        sx={{ padding: "2px" }}
+                                      >
+                                        <EditIcon sx={{ fontSize: "1rem" }} />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Delete">
+                                      <IconButton
+                                        size="small"
+                                        color="error"
+                                        onClick={() => handleDeleteClick(row)}
+                                        sx={{ padding: "2px" }}
+                                      >
+                                        <DeleteIcon sx={{ fontSize: "1rem" }} />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Box>
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    borderRight: "1px solid #4caf50",
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                  }}
+                                >
+                                  {row.volunteerID ?? "-"}
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    borderRight: "1px solid #4caf50",
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  <Tooltip title={row.volunteerName ?? "-"}>
+                                    <span>{row.volunteerName ?? "-"}</span>
                                   </Tooltip>
                                 </TableCell>
-                                <TableCell sx={cellStyle}>{row.volunteerID ?? "-"}</TableCell>
-                                <TableCell sx={cellStyle}>{row.volunteerName ?? "-"}</TableCell>
-                                <TableCell sx={cellStyle}>{row.grade ?? "-"}</TableCell>
-                                <TableCell sx={cellStyle}>{row.location ?? "-"}</TableCell>
-                                <TableCell sx={cellStyle}>{row.school ?? "-"}</TableCell>
-                                <TableCell sx={cellStyle}>{row.phone ?? "-"}</TableCell>
-                                <TableCell sx={{ ...cellStyle, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                  <Tooltip title={row.email || "-"}><span>{row.email ?? "-"}</span></Tooltip>
+                                <TableCell
+                                  sx={{
+                                    borderRight: "1px solid #4caf50",
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                  }}
+                                >
+                                  {row.grade ?? "-"}
                                 </TableCell>
-                                <TableCell sx={cellStyle}>{row.city ?? "-"}</TableCell>
-                                <TableCell sx={cellStyle}>{row.enrolledSession ?? "-"}</TableCell>
-                                <TableCell sx={cellStyle}>{row.interest ?? "-"}</TableCell>
-                                <TableCell sx={cellStyle}>{row.status ?? "-"}</TableCell>
-                                <TableCell sx={cellStyle}>{formatDate(row.insertDate) || "-"}</TableCell>
-                                <TableCell sx={{ fontSize: "0.75rem", padding: "3px 5px" }}>{row.comments ?? "-"}</TableCell>
+                                <TableCell
+                                  sx={{
+                                    borderRight: "1px solid #4caf50",
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  <Tooltip title={row.location ?? "-"}>
+                                    <span>{row.location ?? "-"}</span>
+                                  </Tooltip>
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    borderRight: "1px solid #4caf50",
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                  }}
+                                >
+                                  {row.school ?? "-"}
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    borderRight: "1px solid #4caf50",
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                  }}
+                                >
+                                  {row.phone ?? "-"}
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    borderRight: "1px solid #4caf50",
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                    maxWidth: 120,
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  <Tooltip title={row.email || "-"}>
+                                    <span>{row.email ?? "-"}</span>
+                                  </Tooltip>
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    borderRight: "1px solid #4caf50",
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                  }}
+                                >
+                                  {row.city ?? "-"}
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    borderRight: "1px solid #4caf50",
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  <Tooltip title={row.enrolledSession ?? "-"}>
+                                    <span>{row.enrolledSession ?? "-"}</span>
+                                  </Tooltip>
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    borderRight: "1px solid #4caf50",
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  <Tooltip title={row.interest ?? "-"}>
+                                    <span>{row.interest ?? "-"}</span>
+                                  </Tooltip>
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    borderRight: "1px solid #4caf50",
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                  }}
+                                >
+                                  {row.status ?? "-"}
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    borderRight: "1px solid #4caf50",
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                  }}
+                                >
+                                  {formatDate(row.insertDate) || "-"}
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    fontSize: "0.75rem",
+                                    padding: cellPadding,
+                                  }}
+                                >
+                                  {row.comments ?? "-"}
+                                </TableCell>
                               </TableRow>
                             ))
                           ) : (
                             <TableRow>
-                              <TableCell colSpan={14} align="center" sx={{ fontSize: "0.75rem", padding: "3px 5px", py: 3 }}>
-                                <Typography variant="body2" color="textSecondary" sx={{ fontSize: "0.75rem" }}>
-                                  {searchText ? "No records found matching your search." : "No records found."}
+                              <TableCell
+                                colSpan={14}
+                                align="center"
+                                sx={{
+                                  fontSize: "0.75rem",
+                                  padding: cellPadding,
+                                  py: 3,
+                                }}
+                              >
+                                <Typography
+                                  variant="body2"
+                                  color="textSecondary"
+                                  sx={{ fontSize: "0.75rem" }}
+                                >
+                                  {searchText
+                                    ? "No records found matching your search."
+                                    : "No records found."}
                                 </Typography>
                               </TableCell>
                             </TableRow>
@@ -554,234 +978,149 @@ const VolunteersRequest = () => {
                       </Table>
                     </TableContainer>
 
-                    <Box sx={{ backgroundColor: "#4caf50", p: 0.5, borderRadius: 1, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-                        <IconButton size="small" sx={{ color: "white", padding: "2px" }} onClick={() => handlePageChange(1)} disabled={currentPage === 1}><FirstPageIcon fontSize="small" /></IconButton>
-                        <IconButton size="small" sx={{ color: "white", padding: "2px" }} onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}><PrevPageIcon fontSize="small" /></IconButton>
-                        <IconButton size="small" sx={{ color: "white", padding: "2px" }} onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}><NextPageIcon fontSize="small" /></IconButton>
-                        <IconButton size="small" sx={{ color: "white", padding: "2px" }} onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages}><LastPageIcon fontSize="small" /></IconButton>
+                    {/* Pagination Bar */}
+                    <Box
+                      sx={{
+                        backgroundColor: "#4caf50",
+                        p: 0.5,
+                        borderRadius: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 1,
+                      }}
+                    >
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.25 }}
+                      >
+                        <IconButton
+                          size="small"
+                          sx={{ color: "white", padding: "2px" }}
+                          onClick={() => handlePageChange(1)}
+                          disabled={currentPage === 1}
+                        >
+                          <FirstPageIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          sx={{ color: "white", padding: "2px" }}
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                        >
+                          <PrevPageIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          sx={{ color: "white", padding: "2px" }}
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                        >
+                          <NextPageIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          sx={{ color: "white", padding: "2px" }}
+                          onClick={() => handlePageChange(totalPages)}
+                          disabled={currentPage === totalPages}
+                        >
+                          <LastPageIcon fontSize="small" />
+                        </IconButton>
                       </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-                        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>GoTo</Typography>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.25 }}
+                      >
+                        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                          GoTo
+                        </Typography>
                         <Select
                           size="small"
                           value={totalPages > 0 ? currentPage : ""}
-                          onChange={(e) => handlePageChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            handlePageChange(Number(e.target.value))
+                          }
                           disabled={totalPages === 0}
-                          sx={{ color: "white", minWidth: 50, fontSize: "0.75rem", "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" }, "& .MuiSelect-icon": { color: "white" } }}
+                          sx={{
+                            color: "white",
+                            minWidth: 50,
+                            fontSize: "0.75rem",
+                            "& .MuiOutlinedInput-notchedOutline": {
+                              borderColor: "white",
+                            },
+                            "& .MuiSelect-icon": { color: "white" },
+                          }}
                         >
-                          {totalPages > 0 ? Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                            <MenuItem key={page} value={page} sx={{ fontSize: "0.75rem" }}>{page}</MenuItem>
-                          )) : <MenuItem value="" sx={{ fontSize: "0.75rem" }}>-</MenuItem>}
+                          {totalPages > 0 ? (
+                            Array.from(
+                              { length: totalPages },
+                              (_, i) => i + 1,
+                            ).map((page) => (
+                              <MenuItem
+                                key={page}
+                                value={page}
+                                sx={{ fontSize: "0.75rem" }}
+                              >
+                                {page}
+                              </MenuItem>
+                            ))
+                          ) : (
+                            <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
+                              -
+                            </MenuItem>
+                          )}
                         </Select>
                       </Box>
-                      <Typography sx={{ color: "white", fontSize: "0.75rem" }}>Page(s): {currentPage} of {totalPages}</Typography>
                       <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                        Record(s): {totalRecords > 0 ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, totalRecords)}` : "0"} of {totalRecords}
+                        Page(s): {currentPage} of {totalPages}
                       </Typography>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-                        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>Go to Page Number:</Typography>
+                      <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                        Record(s):{" "}
+                        {totalRecords > 0
+                          ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, totalRecords)}`
+                          : "0"}{" "}
+                        of {totalRecords}
+                      </Typography>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.25 }}
+                      >
+                        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                          Go to Page Number:
+                        </Typography>
                         <TextField
                           size="small"
                           type="number"
                           value={goToPageInput}
                           onChange={(e) => setGoToPageInput(e.target.value)}
-                          onKeyPress={(e) => { if (e.key === "Enter") handleGoToPage(); }}
-                          sx={{ width: 50, "& .MuiOutlinedInput-root": { backgroundColor: "white", fontSize: "0.75rem" } }}
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") handleGoToPage();
+                          }}
+                          sx={{
+                            width: 50,
+                            "& .MuiOutlinedInput-root": {
+                              backgroundColor: "white",
+                              fontSize: "0.75rem",
+                            },
+                          }}
                           inputProps={{ min: 1, max: totalPages }}
                         />
-                        <Button size="small" variant="contained" onClick={handleGoToPage} sx={{ backgroundColor: "white", color: "#4caf50", fontSize: "0.75rem", px: 1, py: 0.25, "&:hover": { backgroundColor: "#f5f5f5" } }}>Go</Button>
-                      </Box>
-                    </Box>
-
-                    {showUpdateForm && selectedRow && (
-                      <Paper
-                        id="update-volunteer-request-section"
-                        elevation={2}
-                        sx={{
-                          p: 2,
-                          pt: 2,
-                          pb: 2,
-                          mt: 2,
-                          backgroundColor: "#4CAF50",
-                          color: "white",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Typography variant="h6" gutterBottom sx={{ color: "white", mb: 1.5 }}>
-                          Update Volunteer Request Status
-                        </Typography>
-
-                        <Box
+                        <Button
+                          size="small"
+                          variant="contained"
+                          onClick={handleGoToPage}
                           sx={{
-                            width: "100%",
-                            maxWidth: "900px",
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 2,
+                            backgroundColor: "white",
+                            color: "#4caf50",
+                            fontSize: "0.75rem",
+                            minHeight: 32,
+                            py: 0,
+                            px: 0.75,
+                            "&:hover": { backgroundColor: "#f5f5f5" },
                           }}
                         >
-                          <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6}>
-                              <TextField
-                                fullWidth
-                                label="First Name"
-                                value={form.firstName}
-                                onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
-                                sx={{
-                                  "& .MuiOutlinedInput-root": {
-                                    backgroundColor: "white",
-                                  },
-                                }}
-                              />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                              <TextField
-                                fullWidth
-                                label="Last Name"
-                                value={form.lastName}
-                                onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
-                                sx={{
-                                  "& .MuiOutlinedInput-root": {
-                                    backgroundColor: "white",
-                                  },
-                                }}
-                              />
-                            </Grid>
-                            <Grid item xs={12}>
-                              <FormControl
-                                fullWidth
-                                sx={{
-                                  "& .MuiOutlinedInput-root": {
-                                    backgroundColor: "white",
-                                  },
-                                }}
-                              >
-                                <InputLabel>Chapter</InputLabel>
-                                <Select
-                                  value={form.chapterID}
-                                  label="Chapter"
-                                  onChange={(e) => setForm((f) => ({ ...f, chapterID: e.target.value }))}
-                                >
-                                  {chapterLocations.map((ch) => {
-                                    const id = ch.chapterID ?? ch.ChapterID ?? "";
-                                    const name = ch.chapterName ?? ch.ChapterName ?? "";
-                                    const loc = ch.location ?? ch.Location ?? "";
-                                    return (
-                                      <MenuItem key={id} value={id}>
-                                        {name} - {loc}
-                                      </MenuItem>
-                                    );
-                                  })}
-                                </Select>
-                              </FormControl>
-                            </Grid>
-                            <Grid item xs={12}>
-                              <FormControl
-                                fullWidth
-                                sx={{
-                                  "& .MuiOutlinedInput-root": {
-                                    backgroundColor: "white",
-                                  },
-                                }}
-                              >
-                                <InputLabel>Type</InputLabel>
-                                <Select
-                                  value={form.type}
-                                  label="Type"
-                                  onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
-                                >
-                                  {TYPE_OPTIONS.map((opt) => (
-                                    <MenuItem key={opt.value} value={opt.value}>
-                                      {opt.label}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                              <FormControl
-                                fullWidth
-                                sx={{
-                                  "& .MuiOutlinedInput-root": {
-                                    backgroundColor: "white",
-                                  },
-                                }}
-                              >
-                                <InputLabel>Class</InputLabel>
-                                <Select
-                                  value={form.class}
-                                  label="Class"
-                                  onChange={(e) => setForm((f) => ({ ...f, class: e.target.value }))}
-                                >
-                                  {CLASS_OPTIONS.map((opt) => (
-                                    <MenuItem key={opt.value} value={opt.value}>
-                                      {opt.label}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                              <FormControl
-                                fullWidth
-                                sx={{
-                                  "& .MuiOutlinedInput-root": {
-                                    backgroundColor: "white",
-                                  },
-                                }}
-                              >
-                                <InputLabel>Section</InputLabel>
-                                <Select
-                                  value={form.section}
-                                  label="Section"
-                                  onChange={(e) => setForm((f) => ({ ...f, section: e.target.value }))}
-                                >
-                                  <MenuItem value="A">A</MenuItem>
-                                  <MenuItem value="B">B</MenuItem>
-                                </Select>
-                              </FormControl>
-                            </Grid>
-                          </Grid>
-
-                          <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 1 }}>
-                            <Button
-                              variant="outlined"
-                              onClick={handleCloseUpdateForm}
-                              disabled={submitting}
-                              sx={{
-                                borderColor: "white",
-                                color: "white",
-                                px: 4,
-                                py: 1,
-                                "&:hover": {
-                                  borderColor: "white",
-                                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                                },
-                              }}
-                            >
-                              Close
-                            </Button>
-                            <Button
-                              variant="contained"
-                              onClick={handleUpdateSubmit}
-                              disabled={submitting}
-                              sx={{
-                                backgroundColor: "#2E7D32",
-                                color: "white",
-                                px: 4,
-                                py: 1,
-                                "&:hover": { backgroundColor: "#1B5E20" },
-                              }}
-                            >
-                              {submitting ? "Submitting…" : "Submit"}
-                            </Button>
-                          </Box>
-                        </Box>
-                      </Paper>
-                    )}
+                          Go
+                        </Button>
+                      </Box>
+                    </Box>
                   </>
                 )}
               </CardContent>
@@ -789,6 +1128,208 @@ const VolunteersRequest = () => {
           </Grid>
         </Grid>
       </Container>
+
+      <Dialog
+        open={showUpdateForm && !!selectedRow}
+        onClose={handleCloseUpdateForm}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: "#4CAF50",
+            color: "white",
+            borderRadius: 2,
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            color: "white",
+            fontWeight: 600,
+            fontSize: "1rem",
+            pb: 1,
+          }}
+        >
+          Update Volunteer Request Status
+        </DialogTitle>
+        <DialogContent sx={{ pt: 0 }}>
+          <Grid container spacing={2} sx={{ pt: 1 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="First Name"
+                value={form.firstName}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, firstName: e.target.value }))
+                }
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "white",
+                  },
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Last Name"
+                value={form.lastName}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, lastName: e.target.value }))
+                }
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "white",
+                  },
+                }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl
+                fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "white",
+                  },
+                }}
+              >
+                <InputLabel>Chapter</InputLabel>
+                <Select
+                  value={form.chapterID}
+                  label="Chapter"
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, chapterID: e.target.value }))
+                  }
+                >
+                  {chapterLocations.map((ch) => {
+                    const id = ch.chapterID ?? ch.ChapterID ?? "";
+                    const name = ch.chapterName ?? ch.ChapterName ?? "";
+                    const loc = ch.location ?? ch.Location ?? "";
+                    return (
+                      <MenuItem key={id} value={id}>
+                        {name} - {loc}
+                      </MenuItem>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl
+                fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "white",
+                  },
+                }}
+              >
+                <InputLabel>Type</InputLabel>
+                <Select
+                  value={form.type}
+                  label="Type"
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, type: e.target.value }))
+                  }
+                >
+                  {TYPE_OPTIONS.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl
+                fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "white",
+                  },
+                }}
+              >
+                <InputLabel>Class</InputLabel>
+                <Select
+                  value={form.class}
+                  label="Class"
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, class: e.target.value }))
+                  }
+                >
+                  {CLASS_OPTIONS.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl
+                fullWidth
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "white",
+                  },
+                }}
+              >
+                <InputLabel>Section</InputLabel>
+                <Select
+                  value={form.section}
+                  label="Section"
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, section: e.target.value }))
+                  }
+                >
+                  <MenuItem value="A">A</MenuItem>
+                  <MenuItem value="B">B</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions
+          sx={{
+            px: 3,
+            pb: 2,
+            pt: 0,
+            justifyContent: "center",
+            gap: 2,
+          }}
+        >
+          <Button
+            variant="outlined"
+            onClick={handleCloseUpdateForm}
+            disabled={submitting}
+            sx={{
+              borderColor: "white",
+              color: "white",
+              px: 4,
+              py: 1,
+              "&:hover": {
+                borderColor: "white",
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
+              },
+            }}
+          >
+            Close
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleUpdateSubmit}
+            disabled={submitting}
+            sx={{
+              backgroundColor: "#2E7D32",
+              color: "white",
+              px: 4,
+              py: 1,
+              "&:hover": { backgroundColor: "#1B5E20" },
+            }}
+          >
+            {submitting ? "Submitting…" : "Submit"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
         <DialogTitle>Delete volunteer request</DialogTitle>
@@ -799,8 +1340,23 @@ const VolunteersRequest = () => {
         </DialogActions>
       </Dialog>
 
-      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar((s) => ({ ...s, open: false }))} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
-        <Alert severity={snackbar.severity} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>{snackbar.message}</Alert>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={(event, reason) => {
+          if (reason === "clickaway") return;
+          setSnackbar((s) => ({ ...s, open: false }));
+        }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+          sx={{ width: "100%" }}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
       </Snackbar>
     </Box>
   );

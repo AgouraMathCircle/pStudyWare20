@@ -21,6 +21,7 @@ import {
 import EnrolledStudents from "./EnrolledStudents";
 import ToDoList from "./ToDoList";
 import SystemSupport from "./SystemSupport";
+import WaitingListStudents from "./WaitingListStudents";
 import StudentList from "./StudentList";
 import "../../../styles/AdminDashboard.css";
 
@@ -34,6 +35,7 @@ const AdminDashboard = () => {
   // Dashboard data state
   const [dashboardData, setDashboardData] = useState(null);
   const [studentCounts, setStudentCounts] = useState({});
+  const [waitingListCounts, setWaitingListCounts] = useState({});
   const [userTrackingSummary, setUserTrackingSummary] = useState([]);
   const [studentList, setStudentList] = useState([]);
   const [message, setMessage] = useState("");
@@ -146,10 +148,16 @@ const AdminDashboard = () => {
             setStudentList(response.studentList.students);
           }
 
-          // Extract dashboard message and student counts
-          if (response.dashboardMessage) {
-            setMessage(response.dashboardMessage.message || "");
-            setStudentCounts(response.dashboardMessage.studentCounts || {});
+          // Extract dashboard message, enrolled counts, and waiting list counts (legacy Admin_Dashboard.aspx)
+          const dm = response.dashboardMessage || response.DashboardMessage;
+          if (dm) {
+            setMessage(dm.message ?? dm.Message ?? "");
+            setStudentCounts(
+              dm.studentCounts ?? dm.StudentCounts ?? {},
+            );
+            setWaitingListCounts(
+              dm.waitingListCounts ?? dm.WaitingListCounts ?? {},
+            );
           }
 
           // Extract user tracking summary
@@ -289,6 +297,9 @@ const AdminDashboard = () => {
     borderRadius: 2,
     boxShadow: PORTAL_CARD_BOX_SHADOW,
     overflow: "hidden",
+    boxSizing: "border-box",
+    pl: "35px",
+    pr: "35px",
     ...portalCardAntiLiftSx,
   };
 
@@ -299,20 +310,54 @@ const AdminDashboard = () => {
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Card sx={panelCardSx}>
-              <CardContent sx={{ p: 3 }}>
+            <Card
+              sx={{
+                ...panelCardSx,
+                display: "flex",
+                flexDirection: "column",
+                minHeight: 0,
+              }}
+            >
+              <CardContent
+                sx={{
+                  px: 1.25,
+                  pt: 1,
+                  pb: 0,
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  minHeight: 0,
+                }}
+              >
                 <Grid
                   container
-                  spacing={2}
-                  sx={{ alignItems: "stretch" }}
+                  spacing={8}
+                  sx={{
+                    alignItems: "stretch",
+                    flex: 1,
+                    minHeight: 0,
+                  }}
                 >
                   <Grid
                     item
                     xs={12}
-                    md={4}
-                    sx={{ display: "flex", flexDirection: "column" }}
+                    md={3}
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      minHeight: 0,
+                    }}
                   >
-                    <Box sx={{ flex: 1, width: "100%", minWidth: 0 }}>
+                    <Box
+                      sx={{
+                        flex: 1,
+                        width: "100%",
+                        minWidth: 0,
+                        minHeight: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
                       <ToDoList
                         trackingSummary={userTrackingSummary}
                         onPublishDocument={handlePublishDocument}
@@ -325,20 +370,71 @@ const AdminDashboard = () => {
                   <Grid
                     item
                     xs={12}
-                    md={4}
-                    sx={{ display: "flex", flexDirection: "column" }}
+                    md={3}
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      minHeight: 0,
+                    }}
                   >
-                    <Box sx={{ flex: 1, width: "100%", minWidth: 0 }}>
+                    <Box
+                      sx={{
+                        flex: 1,
+                        width: "100%",
+                        minWidth: 0,
+                        minHeight: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
                       <EnrolledStudents studentCounts={studentCounts} />
                     </Box>
                   </Grid>
                   <Grid
                     item
                     xs={12}
-                    md={4}
-                    sx={{ display: "flex", flexDirection: "column" }}
+                    md={3}
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      minHeight: 0,
+                    }}
                   >
-                    <Box sx={{ flex: 1, width: "100%", minWidth: 0 }}>
+                    <Box
+                      sx={{
+                        flex: 1,
+                        width: "100%",
+                        minWidth: 0,
+                        minHeight: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
+                      <WaitingListStudents
+                        waitingListCounts={waitingListCounts}
+                      />
+                    </Box>
+                  </Grid>
+                  <Grid
+                    item
+                    xs={12}
+                    md={3}
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      minHeight: 0,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        flex: 1,
+                        width: "100%",
+                        minWidth: 0,
+                        minHeight: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
                       <SystemSupport />
                     </Box>
                   </Grid>
@@ -348,7 +444,7 @@ const AdminDashboard = () => {
           </Grid>
           <Grid item xs={12}>
             <Card sx={panelCardSx}>
-              <CardContent sx={{ p: 3 }}>
+              <CardContent sx={{ px: 1.5, pt: 1.5, pb: 0 }}>
                 <StudentList
                   students={studentList}
                   onExportToExcel={handleExportToExcel}

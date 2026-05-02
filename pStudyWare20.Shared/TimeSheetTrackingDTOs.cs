@@ -7,16 +7,26 @@ namespace pStudyWare20.Shared
     /// </summary>
     public class TimeSheetTrackingEntry
     {
+        /// <summary>Matches legacy grid mLogID.</summary>
         public int LogID { get; set; }
+        /// <summary>Login / account name when present on row.</summary>
         public string Username { get; set; } = string.Empty;
+        /// <summary>Display name from AMC_spSelectTimeTracking Name column (legacy kGrid).</summary>
+        public string Name { get; set; } = string.Empty;
         public string TaskName { get; set; } = string.Empty;
         public DateTime VolunteerDate { get; set; }
+        /// <summary>Pre-formatted start time from SP when present (legacy StartTime column).</summary>
+        public string StartTime { get; set; } = string.Empty;
+        /// <summary>Pre-formatted end time from SP when present (legacy EndTime column).</summary>
+        public string EndTime { get; set; } = string.Empty;
         public string StartHour { get; set; } = string.Empty;
         public string StartMin { get; set; } = string.Empty;
         public string StartType { get; set; } = string.Empty;
         public string EndHour { get; set; } = string.Empty;
         public string EndMin { get; set; } = string.Empty;
         public string EndType { get; set; } = string.Empty;
+        /// <summary>Legacy grid TotalHours column.</summary>
+        public string TotalHours { get; set; } = string.Empty;
         public string TaskDescription { get; set; } = string.Empty;
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }

@@ -120,6 +120,7 @@ namespace pStudyWare20.Services.Implementations
                 var dashboardData = await _adminRepository.GetDashboardMessageAsync(request.Mode, request.Username);
 
                 var studentCounts = new Dictionary<string, int>();
+                var waitingListCounts = new Dictionary<string, int>();
 
                 if (dashboardData is DataSet dataSet && dataSet.Tables.Count > 0 && dataSet.Tables[0].Rows.Count > 0)
                 {
@@ -152,6 +153,29 @@ namespace pStudyWare20.Services.Implementations
                         studentCounts["instudentCntAT"] = GetIntValue(table.Rows[5], "StudentITotal");
                         studentCounts["instudentCntDS"] = GetIntValue(table.Rows[6], "StudentITotal");
                         studentCounts["instudentCntST"] = GetIntValue(table.Rows[13], "StudentITotal");
+
+                        // Waiting list OnSite (WaitingOTotal) / Online (WaitingITotal) — same row index map as legacy Admin_Dashboard.aspx
+                        waitingListCounts["onwaitingCntJA"] = GetIntValue(table.Rows[7], "WaitingOTotal");
+                        waitingListCounts["onwaitingCntJB"] = GetIntValue(table.Rows[8], "WaitingOTotal");
+                        waitingListCounts["onwaitingCntJI"] = GetIntValue(table.Rows[9], "WaitingOTotal");
+                        waitingListCounts["onwaitingCntSA"] = GetIntValue(table.Rows[10], "WaitingOTotal");
+                        waitingListCounts["onwaitingCntSB"] = GetIntValue(table.Rows[11], "WaitingOTotal");
+                        waitingListCounts["onwaitingCntSI"] = GetIntValue(table.Rows[12], "WaitingOTotal");
+                        waitingListCounts["onwaitingCntAI"] = GetIntValue(table.Rows[4], "WaitingOTotal");
+                        waitingListCounts["onwaitingCntAT"] = GetIntValue(table.Rows[5], "WaitingOTotal");
+                        waitingListCounts["onwaitingCntDS"] = GetIntValue(table.Rows[6], "WaitingOTotal");
+                        waitingListCounts["onwaitingCntST"] = GetIntValue(table.Rows[13], "WaitingOTotal");
+
+                        waitingListCounts["inwaitingCntJA"] = GetIntValue(table.Rows[7], "WaitingITotal");
+                        waitingListCounts["inwaitingCntJB"] = GetIntValue(table.Rows[8], "WaitingITotal");
+                        waitingListCounts["inwaitingCntJI"] = GetIntValue(table.Rows[9], "WaitingITotal");
+                        waitingListCounts["inwaitingCntSA"] = GetIntValue(table.Rows[10], "WaitingITotal");
+                        waitingListCounts["inwaitingCntSB"] = GetIntValue(table.Rows[11], "WaitingITotal");
+                        waitingListCounts["inwaitingCntSI"] = GetIntValue(table.Rows[12], "WaitingITotal");
+                        waitingListCounts["inwaitingCntAI"] = GetIntValue(table.Rows[4], "WaitingITotal");
+                        waitingListCounts["inwaitingCntAT"] = GetIntValue(table.Rows[5], "WaitingITotal");
+                        waitingListCounts["inwaitingCntDS"] = GetIntValue(table.Rows[6], "WaitingITotal");
+                        waitingListCounts["inwaitingCntST"] = GetIntValue(table.Rows[13], "WaitingITotal");
                     }
                 }
 
@@ -159,7 +183,8 @@ namespace pStudyWare20.Services.Implementations
                 {
                     IsSuccess = true,
                     Message = "",
-                    StudentCounts = studentCounts
+                    StudentCounts = studentCounts,
+                    WaitingListCounts = waitingListCounts
                 };
             }
             catch (Exception ex)
@@ -259,10 +284,12 @@ namespace pStudyWare20.Services.Implementations
         /// </summary>
         private int GetIntValue(DataRow row, string columnName)
         {
-            if (row[columnName] != DBNull.Value && int.TryParse(row[columnName].ToString(), out int value))
-            {
+            if (row == null || string.IsNullOrEmpty(columnName) || !row.Table.Columns.Contains(columnName))
+                return 0;
+
+            if (row[columnName] != DBNull.Value && int.TryParse(row[columnName]?.ToString(), out int value))
                 return value;
-            }
+
             return 0;
         }
 

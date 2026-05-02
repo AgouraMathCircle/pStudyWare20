@@ -21,7 +21,11 @@ import {
   Notifications as NotificationsIcon,
   Publish as PublishIcon,
 } from "@mui/icons-material";
-import { adminPortalCardHeaderStripSx } from "../../../styles/applicationSurfaces";
+import {
+  adminPortalCardHeaderStripSx,
+  adminDashboardWidgetCardSx,
+  adminDashboardWidgetCardContentSx,
+} from "../../../styles/applicationSurfaces";
 
 const ToDoList = ({
   trackingSummary,
@@ -56,17 +60,17 @@ const ToDoList = ({
   };
 
   return (
-    <Card elevation={3} sx={{ height: "100%" }}>
+    <Card elevation={3} sx={adminDashboardWidgetCardSx}>
       <CardHeader
-        avatar={<NotificationsIcon />}
+        avatar={<NotificationsIcon fontSize="small" />}
         title={
-          <Typography variant="subtitle1" component="div" sx={{ fontSize: '1rem' }}>
+          <Typography variant="subtitle1" component="div" sx={{ fontSize: "0.9375rem" }}>
             To Do List
           </Typography>
         }
         sx={adminPortalCardHeaderStripSx}
       />
-      <CardContent sx={{ p: 2 }}>
+      <CardContent sx={adminDashboardWidgetCardContentSx}>
         {/* Publish Documents Section */}
         {canPublishDocuments && (
           <Box sx={{ mb: 2 }}>
@@ -129,7 +133,9 @@ const ToDoList = ({
         <Typography variant="subtitle2" gutterBottom>
           User Tracking Summary
         </Typography>
-        <TableContainer sx={{ maxHeight: 200, overflowY: "auto" }}>
+        <TableContainer
+          sx={{ flex: 1, minHeight: 0, maxHeight: 220, overflowY: "auto" }}
+        >
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow>

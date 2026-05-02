@@ -10,6 +10,7 @@ using pStudyWare20.Repository.Implementations;
 using pStudyWare20.Data.Models;
 using System.Text;
 using System.Reflection;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -17,6 +18,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
 // Add HttpContextAccessor for IP address tracking
