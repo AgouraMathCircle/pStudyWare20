@@ -17,12 +17,13 @@
 }
 
 .admin-dashboard .MuiCardHeader-root {
-  padding: 12px 16px;
+  padding: 4px 8px 0;
+  min-height: 0;
 }
 
 .admin-dashboard .MuiCardHeader-title {
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 0.9375rem;
 }
 
 .admin-dashboard .MuiTableCell-root {
@@ -77,9 +78,9 @@
   background: #555;
 }
 
-/* Card content area */
+/* Card content — tighter than legacy 16px; no bottom padding (flush with card edge) */
 .admin-dashboard .MuiCardContent-root {
-  padding: 16px;
+  padding: 8px 8px 0;
 }
 
 /* Print styles */

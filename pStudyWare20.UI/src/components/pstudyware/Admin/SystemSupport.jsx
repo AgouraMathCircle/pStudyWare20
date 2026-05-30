@@ -15,7 +15,10 @@ import {
   Support as SupportIcon,
   ChevronRight as ChevronRightIcon,
 } from "@mui/icons-material";
-import { adminPortalCardHeaderStripSx } from "../../../styles/applicationSurfaces";
+import {
+  adminPortalCardHeaderStripSx,
+  adminDashboardWidgetCardSx,
+} from "../../../styles/applicationSurfaces";
 
 const SystemSupport = () => {
   const navigate = useNavigate();
@@ -83,22 +86,42 @@ const SystemSupport = () => {
   };
 
   return (
-    <Card elevation={3} sx={{ height: "100%" }}>
+    <Card elevation={3} sx={adminDashboardWidgetCardSx}>
       <CardHeader
-        avatar={<SupportIcon />}
+        avatar={<SupportIcon fontSize="small" />}
         title={
           <Typography
             variant="subtitle1"
             component="div"
-            sx={{ fontSize: "1rem" }}
+            sx={{ fontSize: "0.9375rem" }}
           >
             System Support
           </Typography>
         }
         sx={adminPortalCardHeaderStripSx}
       />
-      <CardContent sx={{ p: 0, maxHeight: 500, overflowY: "auto" }}>
-        <List dense disablePadding sx={{ py: 0 }}>
+      <CardContent
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          display: "flex",
+          flexDirection: "column",
+          px: 0,
+          pt: 0,
+          pb: 0,
+          overflow: "hidden",
+        }}
+      >
+        <List
+          dense
+          disablePadding
+          sx={{
+            py: 0,
+            flex: 1,
+            minHeight: 0,
+            overflow: "auto",
+          }}
+        >
           {supportLinks.map((link, index) => (
             <React.Fragment key={index}>
               <ListItem disablePadding sx={{ minHeight: 0 }}>

@@ -291,21 +291,25 @@ namespace pStudyWare20.Services.Implementations
                 try
                 {
                     var logIdVal = GetValue(row, table, "mLogID", "LogID", "LogId");
-                    var dateVal = GetValue(row, table, "DateVolunteer", "VolunteerDate", "VolunteerDate");
+                    var dateVal = GetValue(row, table, "DateVolunteer", "VolunteerDate");
                     var createdVal = GetValue(row, table, "CreatedDate");
                     var modifiedVal = GetValue(row, table, "ModifiedDate");
 
                     var entry = new TimeSheetTrackingEntry
                     {
                         LogID = logIdVal != null && logIdVal != DBNull.Value ? Convert.ToInt32(logIdVal) : 0,
-                        Username = GetValue(row, table, "Username", "UserName", "Name")?.ToString() ?? "",
+                        Username = GetValue(row, table, "Username", "UserName")?.ToString() ?? "",
+                        Name = GetValue(row, table, "Name", "VolunteerName")?.ToString() ?? "",
                         TaskName = GetValue(row, table, "TaskName")?.ToString() ?? "",
                         VolunteerDate = dateVal != null && dateVal != DBNull.Value ? Convert.ToDateTime(dateVal) : default,
+                        StartTime = GetValue(row, table, "StartTime")?.ToString() ?? "",
+                        EndTime = GetValue(row, table, "EndTime")?.ToString() ?? "",
+                        TotalHours = GetValue(row, table, "TotalHours")?.ToString() ?? "",
                         StartHour = GetValue(row, table, "StartHour")?.ToString() ?? "",
-                        StartMin = GetValue(row, table, "StartMin")?.ToString() ?? "",
+                        StartMin = GetValue(row, table, "StartMin", "Startmin")?.ToString() ?? "",
                         StartType = GetValue(row, table, "StartType")?.ToString() ?? "",
                         EndHour = GetValue(row, table, "EndHour")?.ToString() ?? "",
-                        EndMin = GetValue(row, table, "EndMin")?.ToString() ?? "",
+                        EndMin = GetValue(row, table, "EndMin", "Endmin")?.ToString() ?? "",
                         EndType = GetValue(row, table, "EndType")?.ToString() ?? "",
                         TaskDescription = GetValue(row, table, "TaskDescription")?.ToString() ?? "",
                         CreatedDate = createdVal != null && createdVal != DBNull.Value ? Convert.ToDateTime(createdVal) : null,

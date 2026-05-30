@@ -26,6 +26,8 @@ import {
   CircularProgress,
   Grid,
   Paper,
+  Card,
+  CardContent,
 } from "@mui/material";
 import {
   Edit as EditIcon,
@@ -38,9 +40,21 @@ import {
   LastPage as LastPageIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
+import {
+  APPLICATION_ADMIN_TITLE_COLOR,
+  PORTAL_CARD_BOX_SHADOW,
+  portalCardAntiLiftSx,
+} from "../../../styles/applicationSurfaces";
 import AdminHeader from "./AdminHeader";
 import studentWaitingListService from "../../../services/studentWaitingListService";
+
+const studentWaitingListPageSx = {
+  flex: 1,
+  minHeight: 0,
+  width: "100%",
+  display: "flex",
+  flexDirection: "column",
+};
 
 const CLASS_OPTIONS = [
   { value: "JB", label: "Junior Beginner" },
@@ -490,13 +504,22 @@ const StudentWaitingList = () => {
   const cellPadding = "0 8px";
 
   return (
-    <Box>
+    <Box sx={studentWaitingListPageSx}>
       <AdminHeader user={user} />
-      <Box sx={{ height: "60px" }} />
+      <Box sx={{ height: "48px" }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Box>
+            <Card
+              sx={{
+                backgroundColor: "white",
+                borderRadius: 2,
+                boxShadow: PORTAL_CARD_BOX_SHADOW,
+                overflow: "hidden",
+                ...portalCardAntiLiftSx,
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
               <Box
                 sx={{
                   mb: 1,
@@ -1282,7 +1305,8 @@ const StudentWaitingList = () => {
                   </Box>
                 </>
               )}
-            </Box>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Container>
@@ -1473,12 +1497,17 @@ const StudentWaitingList = () => {
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
-        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        onClose={(event, reason) => {
+          if (reason === "clickaway") return;
+          setSnackbar((s) => ({ ...s, open: false }));
+        }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           severity={snackbar.severity}
           onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+          sx={{ width: "100%" }}
+          variant="filled"
         >
           {snackbar.message}
         </Alert>

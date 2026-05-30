@@ -129,6 +129,13 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Student Counts")]
         public Dictionary<string, int> StudentCounts { get; set; } = new Dictionary<string, int>();
+
+        /// <summary>
+        /// Waiting list counts by group (OnSite / Online), from same SP rows as <see cref="StudentCounts"/>
+        /// using <c>WaitingOTotal</c> / <c>WaitingITotal</c> (legacy Admin_Dashboard.aspx).
+        /// </summary>
+        [Display(Name = "Waiting List Counts")]
+        public Dictionary<string, int> WaitingListCounts { get; set; } = new Dictionary<string, int>();
     }
 
     /// <summary>

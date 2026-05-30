@@ -11,8 +11,12 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
+import {
+  adminPortalCardHeaderStripSx,
+  adminDashboardWidgetCardSx,
+  adminDashboardWidgetCardContentSx,
+} from "../../../styles/applicationSurfaces";
 import { HourglassEmpty as HourglassIcon } from "@mui/icons-material";
-import { adminPortalCardHeaderStripSx } from "../../../styles/applicationSurfaces";
 
 const WaitingList = ({ waitingListCounts }) => {
   // Define the groups to display
@@ -87,18 +91,18 @@ const WaitingList = ({ waitingListCounts }) => {
   };
 
   return (
-    <Card elevation={3} sx={{ height: "100%" }}>
+    <Card elevation={3} sx={adminDashboardWidgetCardSx}>
       <CardHeader
-        avatar={<HourglassIcon />}
+        avatar={<HourglassIcon fontSize="small" />}
         title={
-          <Typography variant="subtitle1" component="div" sx={{ fontSize: '1rem' }}>
+          <Typography variant="subtitle1" component="div" sx={{ fontSize: "0.9375rem" }}>
             Waiting List
           </Typography>
         }
         sx={adminPortalCardHeaderStripSx}
       />
-      <CardContent sx={{ p: 2 }}>
-        <TableContainer>
+      <CardContent sx={adminDashboardWidgetCardContentSx}>
+        <TableContainer sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
           <Table size="small" sx={{ minWidth: 250 }}>
             <TableHead>
               <TableRow>

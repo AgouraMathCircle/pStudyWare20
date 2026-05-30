@@ -11,10 +11,42 @@ export const APPLICATION_ADMIN_TITLE_COLOR = "#4caf50";
 export const adminPortalCardHeaderStripSx = {
   backgroundColor: "#e8f5e9",
   color: "#2e7d32",
-  padding: "3px 5px",
+  padding: "2px 6px 0",
+  minHeight: 0,
+  "& .MuiCardHeader-content": {
+    margin: 0,
+    width: "100%",
+  },
+  "& .MuiCardHeader-title": {
+    margin: 0,
+    lineHeight: 1.2,
+  },
   "& .MuiCardHeader-avatar": {
     color: "#2e7d32",
   },
+};
+
+/** Top-row admin dashboard cards: stretch to equal row height. */
+export const adminDashboardWidgetCardSx = {
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  minHeight: 0,
+  boxSizing: "border-box",
+  pt: 1.5,
+  px: 1.5,
+  pb: 0,
+};
+
+/** Card body fills remaining height below header (pair with adminDashboardWidgetCardSx). */
+export const adminDashboardWidgetCardContentSx = {
+  flex: 1,
+  minHeight: 0,
+  display: "flex",
+  flexDirection: "column",
+  px: 1,
+  pt: 0.75,
+  pb: 0,
 };
 
 /** AppLayout `<main>` — fills space below nav (avoids min-height 100vh + nav overflow scroll) */

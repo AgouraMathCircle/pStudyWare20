@@ -10,94 +10,95 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Box,
 } from "@mui/material";
 import {
   adminPortalCardHeaderStripSx,
   adminDashboardWidgetCardSx,
   adminDashboardWidgetCardContentSx,
 } from "../../../styles/applicationSurfaces";
-import { School as SchoolIcon } from "@mui/icons-material";
+import { HourglassEmpty as WaitingIcon } from "@mui/icons-material";
 
-const EnrolledStudents = ({ studentCounts }) => {
-  // Define the groups to display
+/**
+ * Waiting list counts by group — matches legacy Admin_Dashboard.aspx third column
+ * (OnSite / Online from AMC_spSelectPostMessage WaitingOTotal / WaitingITotal).
+ */
+const WaitingListStudents = ({ waitingListCounts }) => {
   const groups = [
     {
       key: "JB",
       label: "Junior Beginner",
-      onsiteKey: "onstudentCntJB",
-      onlineKey: "instudentCntJB",
+      onsiteKey: "onwaitingCntJB",
+      onlineKey: "inwaitingCntJB",
     },
     {
       key: "JI",
       label: "Junior Intermediate",
-      onsiteKey: "onstudentCntJI",
-      onlineKey: "instudentCntJI",
+      onsiteKey: "onwaitingCntJI",
+      onlineKey: "inwaitingCntJI",
     },
     {
       key: "JA",
       label: "Junior Advanced",
-      onsiteKey: "onstudentCntJA",
-      onlineKey: "instudentCntJA",
+      onsiteKey: "onwaitingCntJA",
+      onlineKey: "inwaitingCntJA",
     },
     {
       key: "SB",
       label: "Senior Beginner",
-      onsiteKey: "onstudentCntSB",
-      onlineKey: "instudentCntSB",
+      onsiteKey: "onwaitingCntSB",
+      onlineKey: "inwaitingCntSB",
     },
     {
       key: "SI",
       label: "Senior Intermediate",
-      onsiteKey: "onstudentCntSI",
-      onlineKey: "instudentCntSI",
+      onsiteKey: "onwaitingCntSI",
+      onlineKey: "inwaitingCntSI",
     },
     {
       key: "SA",
       label: "Senior Advanced",
-      onsiteKey: "onstudentCntSA",
-      onlineKey: "instudentCntSA",
+      onsiteKey: "onwaitingCntSA",
+      onlineKey: "inwaitingCntSA",
     },
     {
       key: "AT",
       label: "ACT Training",
-      onsiteKey: "onstudentCntAT",
-      onlineKey: "instudentCntAT",
+      onsiteKey: "onwaitingCntAT",
+      onlineKey: "inwaitingCntAT",
     },
     {
       key: "ST",
       label: "PSAT Training",
-      onsiteKey: "onstudentCntST",
-      onlineKey: "instudentCntST",
+      onsiteKey: "onwaitingCntST",
+      onlineKey: "inwaitingCntST",
     },
     {
       key: "AI",
       label: "Game Development",
-      onsiteKey: "onstudentCntAI",
-      onlineKey: "instudentCntAI",
+      onsiteKey: "onwaitingCntAI",
+      onlineKey: "inwaitingCntAI",
     },
     {
       key: "DS",
       label: "Data Science",
-      onsiteKey: "onstudentCntDS",
-      onlineKey: "instudentCntDS",
+      onsiteKey: "onwaitingCntDS",
+      onlineKey: "inwaitingCntDS",
     },
   ];
 
-  // Get count value with fallback
   const getCount = (key) => {
-    if (!studentCounts) return "0";
-    const value = studentCounts[key];
+    if (!waitingListCounts) return "0";
+    const value = waitingListCounts[key];
     return value !== undefined && value !== null ? value.toString() : "0";
   };
 
   return (
     <Card elevation={3} sx={adminDashboardWidgetCardSx}>
       <CardHeader
-        avatar={<SchoolIcon fontSize="small" />}
+        avatar={<WaitingIcon fontSize="small" />}
         title={
           <Typography variant="subtitle1" component="div" sx={{ fontSize: "0.9375rem" }}>
-            Enrolled Students
+            Waiting List
           </Typography>
         }
         sx={adminPortalCardHeaderStripSx}
@@ -107,13 +108,19 @@ const EnrolledStudents = ({ studentCounts }) => {
           <Table size="small" sx={{ minWidth: 250 }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                <TableCell sx={{ fontSize: "0.75rem", padding: "3px 5px" }}>
                   <strong>Group</strong>
                 </TableCell>
-                <TableCell align="center" sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                <TableCell
+                  align="center"
+                  sx={{ fontSize: "0.75rem", padding: "3px 5px" }}
+                >
                   <strong>OnSite</strong>
                 </TableCell>
-                <TableCell align="center" sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                <TableCell
+                  align="center"
+                  sx={{ fontSize: "0.75rem", padding: "3px 5px" }}
+                >
                   <strong>Online</strong>
                 </TableCell>
               </TableRow>
@@ -131,13 +138,23 @@ const EnrolledStudents = ({ studentCounts }) => {
                     },
                   }}
                 >
-                  <TableCell component="th" scope="row" sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <TableCell
+                    component="th"
+                    scope="row"
+                    sx={{ fontSize: "0.75rem", padding: "3px 5px" }}
+                  >
                     {group.label}
                   </TableCell>
-                  <TableCell align="center" sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <TableCell
+                    align="center"
+                    sx={{ fontSize: "0.75rem", padding: "3px 5px" }}
+                  >
                     {getCount(group.onsiteKey)}
                   </TableCell>
-                  <TableCell align="center" sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <TableCell
+                    align="center"
+                    sx={{ fontSize: "0.75rem", padding: "3px 5px" }}
+                  >
                     {getCount(group.onlineKey)}
                   </TableCell>
                 </TableRow>
@@ -150,4 +167,4 @@ const EnrolledStudents = ({ studentCounts }) => {
   );
 };
 
-export default EnrolledStudents;
+export default WaitingListStudents;

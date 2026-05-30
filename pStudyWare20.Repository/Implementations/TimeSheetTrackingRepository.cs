@@ -12,6 +12,9 @@ namespace pStudyWare20.Repository.Implementations
     /// </summary>
     public class TimeSheetTrackingRepository : ITimeSheetTrackingRepository
     {
+        /// <summary>Legacy TimeSheetTracking.aspx.cs — do not use AMC_spUpsertTimeSheetTracking (not in DB).</summary>
+        private const string SpAddTimeTracking = "AMC_spAddTimeTracking";
+
         private readonly AMC_DBContext _context;
         private readonly string _connectionString;
 
@@ -95,7 +98,7 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spDeleteTimeSheetTracking", connection)
+                using var command = new SqlCommand("AMC_spDeleteTimeTracking", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
@@ -126,32 +129,31 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spUpsertTimeSheetTracking", connection)
+                // Legacy: same params as TimeSheetTracking.aspx.cs / AMCWebServices TimeSheetController.TimeSheetEntry
+                using var command = new SqlCommand(SpAddTimeTracking, connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
 
-                command.Parameters.Add(new SqlParameter("@LogID", request.LogID));
+                var logId = request.LogID.HasValue && request.LogID.Value > 0 ? request.LogID.Value : 0;
                 command.Parameters.Add(new SqlParameter("@Username", request.Username ?? ""));
                 command.Parameters.Add(new SqlParameter("@TaskName", request.TaskName ?? ""));
                 command.Parameters.Add(new SqlParameter("@VolunteerDate", request.VolunteerDate));
                 command.Parameters.Add(new SqlParameter("@StartHour", request.StartHour ?? ""));
-                command.Parameters.Add(new SqlParameter("@StartMin", request.StartMin ?? ""));
+                command.Parameters.Add(new SqlParameter("@Startmin", request.StartMin ?? ""));
                 command.Parameters.Add(new SqlParameter("@StartType", request.StartType ?? ""));
                 command.Parameters.Add(new SqlParameter("@EndHour", request.EndHour ?? ""));
-                command.Parameters.Add(new SqlParameter("@EndMin", request.EndMin ?? ""));
+                command.Parameters.Add(new SqlParameter("@Endmin", request.EndMin ?? ""));
                 command.Parameters.Add(new SqlParameter("@EndType", request.EndType ?? ""));
+                command.Parameters.Add(new SqlParameter("@LogID", logId));
                 command.Parameters.Add(new SqlParameter("@TaskDescription", request.TaskDescription ?? ""));
 
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
-
-                return dataTable;
+                await command.ExecuteNonQueryAsync();
+                return new DataTable();
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error upserting timesheet tracking: {ex.Message}", ex);
+                throw new Exception($"Error saving time sheet ({SpAddTimeTracking}): {ex.Message}", ex);
             }
         }
     }
