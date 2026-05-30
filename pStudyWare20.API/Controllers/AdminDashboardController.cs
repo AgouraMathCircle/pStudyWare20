@@ -75,6 +75,31 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
+        /// Get user tracking list (legacy UserTracking.aspx — AMC_spSelectUserTrackingList).
+        /// </summary>
+        [HttpPost("GetUserTrackingList")]
+        [Authorize(Roles = "Admin,SystemAdmin")]
+        public async Task<IActionResult> GetUserTrackingList([FromBody] UserTrackingListRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.Username))
+                {
+                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value
+                        ?? User.FindFirst(ClaimTypes.Email)?.Value
+                        ?? "";
+                }
+
+                var response = await _adminService.GetUserTrackingListAsync(request);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while getting user tracking list", error = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Get dashboard message with student counts (matches GetDashboardMessage method)
         /// </summary>
         /// <param name="request">Dashboard message request</param>
@@ -110,7 +135,7 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Publish document request</param>
         /// <returns>Publish document response</returns>
         [HttpPost("PublishDocument")]
-        [Authorize(Roles = "Admin,SystemAdmin")] // Only admins can publish documents
+        [Authorize(Roles = "Admin,SystemAdmin")]
         public async Task<IActionResult> PublishDocument([FromBody] PublishDocumentRequest request)
         {
             try
@@ -118,6 +143,11 @@ namespace pStudyWare20.API.Controllers
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                if (!IsLegacySystemAdmin())
+                {
+                    return Forbid();
                 }
 
                 var response = await _adminService.PublishDocumentAsync(request);
@@ -226,8 +256,8 @@ namespace pStudyWare20.API.Controllers
             try
             {
                 var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
-                var isSystemAdmin = userRole == "SystemAdmin";
-                var isAdmin = userRole == "Admin" || isSystemAdmin;
+                var isSystemAdmin = IsLegacySystemAdmin();
+                var isAdmin = userRole == "Admin" || userRole == "SystemAdmin" || isSystemAdmin;
 
                 return Ok(new
                 {
@@ -242,6 +272,17 @@ namespace pStudyWare20.API.Controllers
             {
                 return StatusCode(500, new { message = "An error occurred while checking admin privileges", error = ex.Message });
             }
+        }
+
+        /// <summary>
+        /// Legacy Session["SystemAdmin"] == "Y" (JWT SystemAdmin claim or SystemAdmin role).
+        /// </summary>
+        private bool IsLegacySystemAdmin()
+        {
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+            var systemAdmin = User.FindFirst("SystemAdmin")?.Value ?? "";
+            return userRole.Equals("SystemAdmin", StringComparison.OrdinalIgnoreCase)
+                || systemAdmin.Equals("Y", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

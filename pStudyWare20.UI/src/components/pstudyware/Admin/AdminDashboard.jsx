@@ -17,6 +17,7 @@ import AdminHeader from "./AdminHeader";
 import {
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
+  adminDashboardWidgetColumnSx,
 } from "../../../styles/applicationSurfaces";
 import EnrolledStudents from "./EnrolledStudents";
 import ToDoList from "./ToDoList";
@@ -131,7 +132,23 @@ const AdminDashboard = () => {
         const privilegesResponse =
           await adminDashboardService.checkAdminPrivileges();
         console.log("AdminDashboard: Admin privileges", privilegesResponse);
-        setAdminPrivileges(privilegesResponse);
+        const systemAdminFromUser =
+          String(user?.systemAdmin ?? user?.SystemAdmin ?? "").toUpperCase() === "Y";
+        const isSystemAdmin =
+          privilegesResponse?.isSystemAdmin === true ||
+          privilegesResponse?.IsSystemAdmin === true ||
+          systemAdminFromUser;
+        const isAdmin =
+          privilegesResponse?.isAdmin === true ||
+          privilegesResponse?.IsAdmin === true ||
+          user?.memberType?.toUpperCase() === "A" ||
+          user?.role === "Admin";
+        setAdminPrivileges({
+          isAdmin,
+          isSystemAdmin,
+          canPublishDocuments: isSystemAdmin,
+          canExportData: isAdmin,
+        });
 
         // Get complete dashboard data
         const response = await adminDashboardService.getDashboardData(
@@ -205,16 +222,18 @@ const AdminDashboard = () => {
       console.log("AdminDashboard: Publishing document", { sendEmail });
       const response = await adminDashboardService.publishDocument({
         sendEmail,
+        SendEmail: sendEmail,
       });
 
-      if (response.isSuccess) {
+      const success = response?.isSuccess ?? response?.IsSuccess;
+      if (success) {
         showMessage(
-          response.message || "Documents published successfully!",
+          response?.message ?? response?.Message ?? "Documents published successfully!",
           "success"
         );
       } else {
         showMessage(
-          response.errorMessage || "Failed to publish documents.",
+          response?.errorMessage ?? response?.ErrorMessage ?? "Failed to publish documents.",
           "error"
         );
       }
@@ -298,18 +317,34 @@ const AdminDashboard = () => {
     boxShadow: PORTAL_CARD_BOX_SHADOW,
     overflow: "hidden",
     boxSizing: "border-box",
-    pl: "35px",
-    pr: "35px",
+    pl: { xs: 1, sm: 1.5, md: 2, lg: 4.375 },
+    pr: { xs: 1, sm: 1.5, md: 2, lg: 4.375 },
     ...portalCardAntiLiftSx,
+  };
+
+  const panelCardContentSx = {
+    px: { xs: 1, sm: 1.5, md: 2 },
+    pt: { xs: 1, sm: 1.5 },
+    pb: 0,
+    display: "flex",
+    flexDirection: "column",
+    minHeight: 0,
+    "&:last-child": { pb: 0 },
   };
 
   return (
     <Box className="admin-dashboard">
       <AdminHeader user={user} />
-      <Box sx={{ height: "48px" }} />
-      <Container maxWidth="xl" sx={{ mb: 4 }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
+      <Box sx={{ height: { xs: 56, sm: 48 } }} />
+      <Container
+        maxWidth="xl"
+        sx={{
+          mb: { xs: 2, md: 4 },
+          px: { xs: 1, sm: 2, md: 3 },
+        }}
+      >
+        <Grid container spacing={{ xs: 2, md: 3 }}>
+          <Grid item xs={12} sx={{ pb: 0 }}>
             <Card
               sx={{
                 ...panelCardSx,
@@ -318,42 +353,23 @@ const AdminDashboard = () => {
                 minHeight: 0,
               }}
             >
-              <CardContent
-                sx={{
-                  px: 1.25,
-                  pt: 1,
-                  pb: 0,
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  minHeight: 0,
-                }}
-              >
+              <CardContent sx={panelCardContentSx}>
                 <Grid
                   container
-                  spacing={8}
+                  spacing={{ xs: 2, sm: 2, lg: 3 }}
+                  className="admin-dashboard-widgets-row"
                   sx={{
-                    alignItems: "stretch",
-                    flex: 1,
-                    minHeight: 0,
+                    alignItems: "flex-start",
+                    flexWrap: "wrap",
+                    width: "100%",
                   }}
                 >
-                  <Grid
-                    item
-                    xs={12}
-                    md={3}
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      minHeight: 0,
-                    }}
-                  >
+                  <Grid item xs={12} sm={6} lg={3} sx={adminDashboardWidgetColumnSx}>
                     <Box
                       sx={{
-                        flex: 1,
                         width: "100%",
                         minWidth: 0,
-                        minHeight: 0,
+                        maxWidth: "100%",
                         display: "flex",
                         flexDirection: "column",
                       }}
@@ -367,22 +383,11 @@ const AdminDashboard = () => {
                       />
                     </Box>
                   </Grid>
-                  <Grid
-                    item
-                    xs={12}
-                    md={3}
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      minHeight: 0,
-                    }}
-                  >
+                  <Grid item xs={12} sm={6} lg={3} sx={adminDashboardWidgetColumnSx}>
                     <Box
                       sx={{
-                        flex: 1,
                         width: "100%",
                         minWidth: 0,
-                        minHeight: 0,
                         display: "flex",
                         flexDirection: "column",
                       }}
@@ -390,22 +395,12 @@ const AdminDashboard = () => {
                       <EnrolledStudents studentCounts={studentCounts} />
                     </Box>
                   </Grid>
-                  <Grid
-                    item
-                    xs={12}
-                    md={3}
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      minHeight: 0,
-                    }}
-                  >
+                  <Grid item xs={12} sm={6} lg={3} sx={adminDashboardWidgetColumnSx}>
                     <Box
                       sx={{
-                        flex: 1,
                         width: "100%",
                         minWidth: 0,
-                        minHeight: 0,
+                        maxWidth: "100%",
                         display: "flex",
                         flexDirection: "column",
                       }}
@@ -415,22 +410,11 @@ const AdminDashboard = () => {
                       />
                     </Box>
                   </Grid>
-                  <Grid
-                    item
-                    xs={12}
-                    md={3}
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      minHeight: 0,
-                    }}
-                  >
+                  <Grid item xs={12} sm={6} lg={3} sx={adminDashboardWidgetColumnSx}>
                     <Box
                       sx={{
-                        flex: 1,
                         width: "100%",
                         minWidth: 0,
-                        minHeight: 0,
                         display: "flex",
                         flexDirection: "column",
                       }}
@@ -442,9 +426,9 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12}>
+          <Grid item xs={12} sx={{ pt: { xs: 1, md: 1.5 } }}>
             <Card sx={panelCardSx}>
-              <CardContent sx={{ px: 1.5, pt: 1.5, pb: 0 }}>
+              <CardContent sx={panelCardContentSx}>
                 <StudentList
                   students={studentList}
                   onExportToExcel={handleExportToExcel}
@@ -463,11 +447,17 @@ const AdminDashboard = () => {
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{
+          top: { xs: 72, sm: 80 },
+          left: { xs: 8, sm: "auto" },
+          right: { xs: 8, sm: "auto" },
+          width: { xs: "calc(100% - 16px)", sm: "auto" },
+        }}
       >
         <Alert
           onClose={handleCloseSnackbar}
           severity={snackbar.severity}
-          sx={{ width: "100%" }}
+          sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 280 } }}
           variant="filled"
         >
           {snackbar.message}

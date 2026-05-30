@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -7,7 +8,6 @@ import {
   Button,
   FormControlLabel,
   Checkbox,
-  Link,
   Table,
   TableBody,
   TableCell,
@@ -15,7 +15,6 @@ import {
   TableHead,
   TableRow,
   Box,
-  Divider,
 } from "@mui/material";
 import {
   Notifications as NotificationsIcon,
@@ -24,8 +23,42 @@ import {
 import {
   adminPortalCardHeaderStripSx,
   adminDashboardWidgetCardSx,
-  adminDashboardWidgetCardContentSx,
+  adminDashboardWidgetCardContentFlushSx,
+  adminDashboardWidgetTitleSx,
+  adminDashboardWidgetTableCellSx,
+  adminDashboardWidgetTrackingHeaderCellSx,
+  adminDashboardWidgetTableRowSx,
+  adminDashboardWidgetTableScrollSx,
 } from "../../../styles/applicationSurfaces";
+
+const USER_TRACKING_PATH = "/pstudyware/admin/user-tracking";
+
+const curriculumPdfUrl = `${(import.meta.env.BASE_URL || "/").replace(/\/?$/, "/")}documents/AMC_Curriculam.pdf`;
+
+const quickLinkSx = {
+  display: "block",
+  fontSize: "0.875rem",
+  fontWeight: 400,
+  color: "#0000ee",
+  textDecoration: "underline",
+  cursor: "pointer",
+  m: 0,
+  p: 0,
+  lineHeight: 1.15,
+  background: "none",
+  border: "none",
+  borderRadius: 0,
+  boxShadow: "none",
+  textTransform: "none",
+  minHeight: "unset",
+  minWidth: "unset",
+  "&:visited": { color: "#551a8b" },
+  "&:hover": {
+    color: "#551a8b",
+    textDecoration: "underline",
+    background: "none",
+  },
+};
 
 const ToDoList = ({
   trackingSummary,
@@ -40,11 +73,6 @@ const ToDoList = ({
     }
   };
 
-  const handleCheckboxChange = (event) => {
-    setSendEmail(event.target.checked);
-  };
-
-  // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return "-";
     try {
@@ -60,28 +88,44 @@ const ToDoList = ({
   };
 
   return (
-    <Card elevation={3} sx={adminDashboardWidgetCardSx}>
+    <Card
+      elevation={3}
+      className="admin-dashboard-widget-card"
+      sx={{
+        ...adminDashboardWidgetCardSx,
+        width: "100%",
+        maxWidth: "100%",
+      }}
+    >
       <CardHeader
         avatar={<NotificationsIcon fontSize="small" />}
         title={
-          <Typography variant="subtitle1" component="div" sx={{ fontSize: "0.9375rem" }}>
+          <Typography variant="subtitle1" component="div" sx={adminDashboardWidgetTitleSx}>
             To Do List
           </Typography>
         }
         sx={adminPortalCardHeaderStripSx}
       />
-      <CardContent sx={adminDashboardWidgetCardContentSx}>
-        {/* Publish Documents Section */}
+      <CardContent sx={adminDashboardWidgetCardContentFlushSx}>
         {canPublishDocuments && (
-          <Box sx={{ mb: 2 }}>
+          <Box sx={{ width: "100%" }}>
             <Button
               variant="contained"
-              color="primary"
               size="small"
+              fullWidth
               startIcon={<PublishIcon />}
               onClick={handlePublishClick}
-              fullWidth
-              sx={{ mb: 1 }}
+              sx={{
+                textTransform: "none",
+                width: "100%",
+                py: 0.75,
+                mb: 0,
+                backgroundColor: "#174a10",
+                color: "#FFFFFF",
+                "&:hover": {
+                  backgroundColor: "#1f5e14",
+                },
+              }}
             >
               Publish Class Materials
             </Button>
@@ -89,111 +133,103 @@ const ToDoList = ({
               control={
                 <Checkbox
                   checked={sendEmail}
-                  onChange={handleCheckboxChange}
+                  onChange={(e) => setSendEmail(e.target.checked)}
                   size="small"
                 />
               }
-              label={<Typography variant="body2">Send Email</Typography>}
+              label={
+                <Typography sx={{ fontSize: "0.75rem", color: "text.primary" }}>
+                  Send Email
+                </Typography>
+              }
+              sx={{
+                m: 0,
+                mt: 0,
+                ml: 0,
+                alignItems: "center",
+                "& .MuiFormControlLabel-label": { mt: 0 },
+              }}
             />
           </Box>
         )}
 
-        <Divider sx={{ my: 2 }} />
-
-        {/* Quick Links */}
-        <Box sx={{ mb: 2 }}>
-          <Link
-            href="/pstudyware/Documents/AMC_Curriculam.pdf"
+        <Box
+          sx={{
+            mt: 0,
+            mb: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: 0.5,
+          }}
+        >
+          <Box
+            component="a"
+            href={curriculumPdfUrl}
             target="_blank"
             rel="noopener noreferrer"
-            underline="hover"
-            sx={{
-              display: "block",
-              mb: 1,
-              fontSize: "0.875rem",
-            }}
+            sx={quickLinkSx}
           >
-            Curriculum
-          </Link>
-          <Link
-            href="../Pstudyware/UserTracking.aspx"
-            underline="hover"
-            sx={{
-              display: "block",
-              fontSize: "0.875rem",
-            }}
-          >
-            User Tracking
-          </Link>
+            Curriculam
+          </Box>
+          <Box component={RouterLink} to={USER_TRACKING_PATH} sx={quickLinkSx}>
+            UserTracking
+          </Box>
         </Box>
 
-        <Divider sx={{ my: 2 }} />
-
-        {/* User Tracking Summary */}
-        <Typography variant="subtitle2" gutterBottom>
-          User Tracking Summary
-        </Typography>
         <TableContainer
-          sx={{ flex: 1, minHeight: 0, maxHeight: 220, overflowY: "auto" }}
+          sx={{
+            ...adminDashboardWidgetTableScrollSx,
+            flex: 1,
+            minHeight: 0,
+            maxHeight: { xs: 280, sm: 240, md: 220 },
+            overflowY: "auto",
+            mt: 0.25,
+          }}
         >
-          <Table size="small" stickyHeader>
+          <Table
+            size="small"
+            className="admin-dashboard-widget-table admin-dashboard-widget-tracking-table"
+            sx={{
+              width: "100%",
+              minWidth: { xs: 220, sm: "100%" },
+              tableLayout: { xs: "auto", sm: "fixed" },
+            }}
+          >
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontSize: "0.75rem", padding: "3px 5px" }}>
-                  <strong>Date</strong>
+                <TableCell sx={adminDashboardWidgetTrackingHeaderCellSx}>Date</TableCell>
+                <TableCell align="center" sx={adminDashboardWidgetTrackingHeaderCellSx}>
+                  Web#
                 </TableCell>
-                <TableCell align="center" sx={{ fontSize: "0.75rem", padding: "3px 5px" }}>
-                  <strong>Web#</strong>
+                <TableCell align="center" sx={adminDashboardWidgetTrackingHeaderCellSx}>
+                  App#
                 </TableCell>
-                <TableCell align="center" sx={{ fontSize: "0.75rem", padding: "3px 5px" }}>
-                  <strong>App#</strong>
-                </TableCell>
-                <TableCell align="center" sx={{ fontSize: "0.75rem", padding: "3px 5px" }}>
-                  <strong>SRU#</strong>
+                <TableCell align="center" sx={adminDashboardWidgetTrackingHeaderCellSx}>
+                  SRU#
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {trackingSummary && trackingSummary.length > 0 ? (
                 trackingSummary.map((item, index) => (
-                  <TableRow
-                    key={index}
-                    sx={{
-                      "&:nth-of-type(odd)": {
-                        backgroundColor: (theme) => theme.palette.action.hover,
-                      },
-                    }}
-                  >
-                    <TableCell sx={{ fontSize: "0.75rem", padding: "3px 5px" }}>
+                  <TableRow key={index} sx={adminDashboardWidgetTableRowSx}>
+                    <TableCell sx={adminDashboardWidgetTableCellSx}>
                       {formatDate(item.visitedDate || item.VisitedDate)}
                     </TableCell>
-                    <TableCell
-                      align="center"
-                      sx={{ fontSize: "0.75rem", padding: "3px 5px" }}
-                    >
-                      {item.webCount || item.WebCount || 0}
+                    <TableCell align="center" sx={adminDashboardWidgetTableCellSx}>
+                      {item.webCount ?? item.WebCount ?? 0}
                     </TableCell>
-                    <TableCell
-                      align="center"
-                      sx={{ fontSize: "0.75rem", padding: "3px 5px" }}
-                    >
-                      {item.appCount || item.AppCount || 0}
+                    <TableCell align="center" sx={adminDashboardWidgetTableCellSx}>
+                      {item.appCount ?? item.AppCount ?? 0}
                     </TableCell>
-                    <TableCell
-                      align="center"
-                      sx={{ fontSize: "0.75rem", padding: "3px 5px" }}
-                    >
-                      {item.updateScoreCnt || item.UpdateScoreCnt || 0}
+                    <TableCell align="center" sx={adminDashboardWidgetTableCellSx}>
+                      {item.updateScoreCnt ?? item.UpdateScoreCnt ?? 0}
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    align="center"
-                    sx={{ fontSize: "0.75rem", padding: "3px 5px" }}
-                  >
+                  <TableCell colSpan={4} align="center" sx={adminDashboardWidgetTableCellSx}>
                     No tracking data available
                   </TableCell>
                 </TableRow>

@@ -4,7 +4,7 @@ namespace pStudyWare20.Services.Interfaces
 {
     public interface IJwtService
     {
-        string GenerateToken(string userId, string email, string role);
+        string GenerateToken(string userId, string email, string role, string? systemAdmin = null, string? chapterId = null);
         ClaimsPrincipal? ValidateToken(string token);
     }
 } 

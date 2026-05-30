@@ -156,5 +156,34 @@ namespace pStudyWare20.Repository.Implementations
                 throw new Exception($"Error getting student list for export: {ex.Message}", ex);
             }
         }
+
+        /// <summary>
+        /// Get user tracking list (legacy UserTracking.aspx — AMC_spSelectUserTrackingList).
+        /// </summary>
+        public async Task<object> GetUserTrackingListAsync(string username)
+        {
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand("AMC_spSelectUserTrackingList", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                command.Parameters.Add(new SqlParameter("@Username", username));
+
+                var dataTable = new DataTable();
+                using var adapter = new SqlDataAdapter(command);
+                adapter.Fill(dataTable);
+
+                return dataTable;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting user tracking list: {ex.Message}", ex);
+            }
+        }
     }
 }

@@ -22,7 +22,7 @@
 }
 
 .admin-dashboard .MuiCardHeader-title {
-  font-weight: 600;
+  font-weight: 400;
   font-size: 0.9375rem;
 }
 
@@ -34,6 +34,32 @@
   font-weight: 600;
   background-color: #f0f0f0;
   border-bottom: 2px solid #ddd;
+}
+
+.admin-dashboard .admin-dashboard-widget-table .MuiTableCell-head {
+  font-weight: 400;
+  background-color: transparent;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.admin-dashboard .admin-dashboard-widget-bordered-table {
+  border-collapse: collapse;
+  border: 1px solid #54b50a;
+}
+
+.admin-dashboard .admin-dashboard-widget-bordered-table .MuiTableCell-root {
+  border: 1px solid #54b50a;
+}
+
+/* To Do tracking summary — legacy kGridHead */
+.admin-dashboard .admin-dashboard-widget-tracking-table .MuiTableCell-head {
+  font-weight: 700;
+  color: #043807;
+  background: linear-gradient(180deg, #8fd14f 0%, #54b50a 100%);
+  border-right: 1px solid #ffffff;
+  border-bottom: none;
+  padding: 2px 4px;
 }
 
 .admin-dashboard .MuiTableRow-root:hover {
@@ -50,11 +76,79 @@
   border-radius: 8px;
 }
 
-/* Responsive design */
-@media (max-width: 960px) {
-  .admin-dashboard .MuiGrid-item {
+/* —— Responsive layout —— */
+@media (max-width: 599px) {
+  .admin-dashboard .admin-dashboard-widgets-row > .MuiGrid-item {
     flex-basis: 100%;
     max-width: 100%;
+  }
+
+  .admin-dashboard .MuiCardContent-root {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .admin-dashboard .admin-dashboard-widget-bordered-table {
+    min-width: 220px;
+  }
+
+  .admin-dashboard .admin-dashboard-widget-tracking-table {
+    min-width: 220px;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 1199px) {
+  .admin-dashboard .admin-dashboard-widgets-row > .MuiGrid-item {
+    flex-basis: 50%;
+    max-width: 50%;
+  }
+}
+
+@media (min-width: 1200px) {
+  .admin-dashboard .admin-dashboard-widgets-row > .MuiGrid-item {
+    flex-basis: 25%;
+    max-width: 25%;
+  }
+}
+
+/* Student list: horizontal scroll on small screens */
+@media (max-width: 899px) {
+  .admin-dashboard .admin-dashboard-student-table-panel {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-dashboard .admin-dashboard-student-table-panel table {
+    min-width: 720px;
+    table-layout: auto;
+  }
+}
+
+@media (max-width: 599px) {
+  .admin-dashboard .admin-dashboard-student-search-bar .MuiSelect-root,
+  .admin-dashboard .admin-dashboard-student-search-bar .MuiTextField-root {
+    width: 100%;
+  }
+
+  .admin-dashboard .admin-dashboard-student-pagination {
+    justify-content: center;
+  }
+
+  .admin-dashboard .MuiCard-root:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Snackbar: inset on narrow screens */
+@media (max-width: 599px) {
+  .admin-dashboard .MuiSnackbar-root {
+    left: 8px !important;
+    right: 8px !important;
+    transform: none !important;
+  }
+
+  .admin-dashboard .MuiSnackbar-root .MuiAlert-root {
+    width: 100%;
   }
 }
 
@@ -81,6 +175,19 @@
 /* Card content — tighter than legacy 16px; no bottom padding (flush with card edge) */
 .admin-dashboard .MuiCardContent-root {
   padding: 8px 8px 0;
+}
+
+/* Top-row widget cards: no card/header/content padding */
+.admin-dashboard .admin-dashboard-widget-card .MuiCardHeader-root {
+  padding: 0;
+}
+
+.admin-dashboard .admin-dashboard-widget-card .MuiCardContent-root {
+  padding: 0;
+}
+
+.admin-dashboard .admin-dashboard-widget-card .MuiCardContent-root:last-child {
+  padding-bottom: 0;
 }
 
 /* Print styles */
@@ -284,4 +391,18 @@
 
 .admin-dashboard .MuiListItemButton-root:hover {
   background-color: rgba(83, 181, 10, 0.1);
+}
+
+.admin-dashboard .admin-dashboard-widget-list .MuiListItemButton-root {
+  margin: 0;
+  padding-left: 3px;
+  padding-right: 3px;
+  min-height: unset;
+  font-weight: 400;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.admin-dashboard .admin-dashboard-widget-list .MuiListItemText-primary {
+  font-weight: 400;
 }

@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Box,
-  Container,
-  Typography,
-  useTheme,
-  useMediaQuery,
-} from "@mui/material";
+import { Box, Container, Typography } from "@mui/material";
 import {
   AdminPanelSettings as AdminIcon,
   CalendarToday as CalendarIcon,
@@ -13,9 +7,6 @@ import {
 import { applicationRoleHeaderBarSx } from "../../../styles/applicationSurfaces";
 
 const AdminHeader = ({ user }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
   return (
     <Box
       sx={{
@@ -30,13 +21,15 @@ const AdminHeader = ({ user }) => {
         width: "100%",
       }}
     >
-      <Container maxWidth="xl">
+      <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "flex-end",
-            gap: 2,
+            justifyContent: { xs: "center", sm: "flex-end" },
+            flexWrap: "wrap",
+            gap: { xs: 1, sm: 2 },
+            py: { xs: 0.5, sm: 0 },
           }}
         >
           <Box
@@ -45,19 +38,19 @@ const AdminHeader = ({ user }) => {
               alignItems: "center",
               gap: 1,
               backgroundColor: "#fce4ec",
-              px: 2,
-              py: 0.75,
+              px: { xs: 1.25, sm: 2 },
+              py: { xs: 0.5, sm: 0.75 },
               borderRadius: 2,
               boxShadow: "0 2px 4px rgba(211, 47, 47, 0.1)",
             }}
           >
-            <AdminIcon sx={{ fontSize: 18, color: "#c62828" }} />
+            <AdminIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: "#c62828" }} />
             <Typography
               variant="body2"
               sx={{
                 color: "#b71c1c",
                 fontWeight: 600,
-                display: { xs: "none", sm: "block" },
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
               }}
             >
               Welcome, {user?.firstName || "Administrator"}
@@ -70,22 +63,26 @@ const AdminHeader = ({ user }) => {
               alignItems: "center",
               gap: 1,
               backgroundColor: "#fff3e0",
-              px: 2,
-              py: 0.75,
+              px: { xs: 1.25, sm: 2 },
+              py: { xs: 0.5, sm: 0.75 },
               borderRadius: 2,
               boxShadow: "0 2px 4px rgba(255, 152, 0, 0.1)",
             }}
           >
-            <CalendarIcon sx={{ fontSize: 18, color: "#f57c00" }} />
+            <CalendarIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: "#f57c00" }} />
             <Typography
               variant="body2"
               sx={{
                 color: "#e65100",
                 fontWeight: 600,
-                display: { xs: "none", sm: "block" },
+                fontSize: { xs: "0.75rem", sm: "0.875rem" },
               }}
             >
-              {new Date().toLocaleDateString()}
+              {new Date().toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
             </Typography>
           </Box>
         </Box>

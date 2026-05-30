@@ -128,6 +128,19 @@ const adminDashboardService = {
    * Checks if current user has admin privileges
    * @returns {Promise<object>} Admin privilege status
    */
+  getUserTrackingList: async (request) => {
+    try {
+      const response = await api.post(
+        `${ADMIN_DASHBOARD_API_BASE_URL}/GetUserTrackingList`,
+        request
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching user tracking list:", error);
+      throw error;
+    }
+  },
+
   checkAdminPrivileges: async () => {
     try {
       const response = await api.get(

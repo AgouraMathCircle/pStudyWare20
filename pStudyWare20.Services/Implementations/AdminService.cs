@@ -111,6 +111,49 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
+        /// Get user tracking list (legacy UserTracking.aspx).
+        /// </summary>
+        public async Task<UserTrackingListResponse> GetUserTrackingListAsync(UserTrackingListRequest request)
+        {
+            try
+            {
+                var listData = await _adminRepository.GetUserTrackingListAsync(request.Username);
+                var trackingList = new List<UserTrackingListItem>();
+
+                if (listData is DataTable dataTable)
+                {
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        trackingList.Add(new UserTrackingListItem
+                        {
+                            RowID = GetIntValue(row, "RowID"),
+                            FirstName = GetStringValue(row, "FirstName"),
+                            LastName = GetStringValue(row, "LastName"),
+                            UserName = GetStringValue(row, "UserName"),
+                            UserType = GetStringValue(row, "UserType"),
+                            Logindate = GetDateTimeValue(row, "Logindate"),
+                            LoginBy = GetStringValue(row, "LoginBy"),
+                        });
+                    }
+                }
+
+                return new UserTrackingListResponse
+                {
+                    IsSuccess = true,
+                    TrackingList = trackingList
+                };
+            }
+            catch (Exception ex)
+            {
+                return new UserTrackingListResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
         /// Get dashboard message with student counts
         /// </summary>
         public async Task<DashboardMessageResponse> GetDashboardMessageAsync(DashboardMessageRequest request)
@@ -291,6 +334,25 @@ namespace pStudyWare20.Services.Implementations
                 return value;
 
             return 0;
+        }
+
+        private static string GetStringValue(DataRow row, string columnName)
+        {
+            if (row == null || string.IsNullOrEmpty(columnName) || !row.Table.Columns.Contains(columnName))
+                return string.Empty;
+
+            return row[columnName] == DBNull.Value ? string.Empty : row[columnName]?.ToString() ?? string.Empty;
+        }
+
+        private static DateTime? GetDateTimeValue(DataRow row, string columnName)
+        {
+            if (row == null || string.IsNullOrEmpty(columnName) || !row.Table.Columns.Contains(columnName))
+                return null;
+
+            if (row[columnName] == DBNull.Value)
+                return null;
+
+            return DateTime.TryParse(row[columnName]?.ToString(), out var value) ? value : null;
         }
 
     }
