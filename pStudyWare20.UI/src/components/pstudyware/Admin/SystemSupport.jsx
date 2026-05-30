@@ -9,7 +9,6 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
-  Box,
 } from "@mui/material";
 import {
   Support as SupportIcon,
@@ -18,6 +17,11 @@ import {
 import {
   adminPortalCardHeaderStripSx,
   adminDashboardWidgetCardSx,
+  adminDashboardWidgetCardContentFlushSx,
+  adminDashboardWidgetTitleSx,
+  adminDashboardWidgetListItemButtonSx,
+  adminDashboardWidgetListItemTextProps,
+  adminDashboardWidgetTableRowSx,
 } from "../../../styles/applicationSurfaces";
 
 const SystemSupport = () => {
@@ -86,35 +90,29 @@ const SystemSupport = () => {
   };
 
   return (
-    <Card elevation={3} sx={adminDashboardWidgetCardSx}>
+    <Card
+      elevation={3}
+      className="admin-dashboard-widget-card"
+      sx={{
+        ...adminDashboardWidgetCardSx,
+        width: "100%",
+        maxWidth: "100%",
+      }}
+    >
       <CardHeader
         avatar={<SupportIcon fontSize="small" />}
         title={
-          <Typography
-            variant="subtitle1"
-            component="div"
-            sx={{ fontSize: "0.9375rem" }}
-          >
+          <Typography variant="subtitle1" component="div" sx={adminDashboardWidgetTitleSx}>
             System Support
           </Typography>
         }
         sx={adminPortalCardHeaderStripSx}
       />
-      <CardContent
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          display: "flex",
-          flexDirection: "column",
-          px: 0,
-          pt: 0,
-          pb: 0,
-          overflow: "hidden",
-        }}
-      >
+      <CardContent sx={adminDashboardWidgetCardContentFlushSx}>
         <List
           dense
           disablePadding
+          className="admin-dashboard-widget-list"
           sx={{
             py: 0,
             flex: 1,
@@ -123,38 +121,33 @@ const SystemSupport = () => {
           }}
         >
           {supportLinks.map((link, index) => (
-            <React.Fragment key={index}>
-              <ListItem disablePadding sx={{ minHeight: 0 }}>
-                <ListItemButton
-                  onClick={() => handleLinkClick(link)}
-                  sx={{
-                    py: 0.25,
-                    px: 1.5,
-                    minHeight: 32,
-                    "&:hover": {
-                      backgroundColor: (theme) => theme.palette.action.hover,
-                    },
-                  }}
-                >
-                  <ListItemText
-                    primary={link.label}
-                    primaryTypographyProps={{
-                      fontSize: "0.75rem",
-                    }}
-                  />
-                  <ChevronRightIcon fontSize="small" />
-                </ListItemButton>
-              </ListItem>
-              {index < supportLinks.length - 1 && (
-                <Box
-                  sx={{
-                    borderBottom: 1,
-                    borderColor: "divider",
-                    mx: 1.5,
-                  }}
+            <ListItem
+              key={index}
+              disablePadding
+              sx={{
+                minHeight: 0,
+                py: 0,
+                ...adminDashboardWidgetTableRowSx,
+              }}
+            >
+              <ListItemButton
+                onClick={() => handleLinkClick(link)}
+                sx={{
+                  ...adminDashboardWidgetListItemButtonSx,
+                  width: "100%",
+                  backgroundColor: "transparent",
+                  "&:hover": {
+                    backgroundColor: (theme) => theme.palette.action.selected,
+                  },
+                }}
+              >
+                <ListItemText
+                  primary={link.label}
+                  primaryTypographyProps={adminDashboardWidgetListItemTextProps}
                 />
-              )}
-            </React.Fragment>
+                <ChevronRightIcon sx={{ fontSize: "0.875rem" }} />
+              </ListItemButton>
+            </ListItem>
           ))}
         </List>
       </CardContent>

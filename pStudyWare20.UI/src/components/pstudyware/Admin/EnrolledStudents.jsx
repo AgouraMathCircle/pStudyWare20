@@ -16,6 +16,12 @@ import {
   adminPortalCardHeaderStripSx,
   adminDashboardWidgetCardSx,
   adminDashboardWidgetCardContentSx,
+  adminDashboardWidgetTitleSx,
+  adminDashboardWidgetTableCellSx,
+  adminDashboardWidgetTableHeaderCellSx,
+  adminDashboardWidgetTableRowSx,
+  adminDashboardWidgetBorderedTableSx,
+  adminDashboardWidgetTableScrollSx,
 } from "../../../styles/applicationSurfaces";
 import { School as SchoolIcon } from "@mui/icons-material";
 
@@ -92,52 +98,51 @@ const EnrolledStudents = ({ studentCounts }) => {
   };
 
   return (
-    <Card elevation={3} sx={adminDashboardWidgetCardSx}>
+    <Card elevation={3} className="admin-dashboard-widget-card" sx={adminDashboardWidgetCardSx}>
       <CardHeader
         avatar={<SchoolIcon fontSize="small" />}
         title={
-          <Typography variant="subtitle1" component="div" sx={{ fontSize: "0.9375rem" }}>
+          <Typography variant="subtitle1" component="div" sx={adminDashboardWidgetTitleSx}>
             Enrolled Students
           </Typography>
         }
         sx={adminPortalCardHeaderStripSx}
       />
       <CardContent sx={adminDashboardWidgetCardContentSx}>
-        <TableContainer sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
-          <Table size="small" sx={{ minWidth: 250 }}>
+        <TableContainer
+          sx={{
+            ...adminDashboardWidgetTableScrollSx,
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+          }}
+        >
+          <Table
+            size="small"
+            className="admin-dashboard-widget-table admin-dashboard-widget-bordered-table"
+            sx={adminDashboardWidgetBorderedTableSx}
+          >
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
-                  <strong>Group</strong>
+                <TableCell sx={adminDashboardWidgetTableHeaderCellSx}>Group</TableCell>
+                <TableCell align="center" sx={adminDashboardWidgetTableHeaderCellSx}>
+                  OnSite
                 </TableCell>
-                <TableCell align="center" sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
-                  <strong>OnSite</strong>
-                </TableCell>
-                <TableCell align="center" sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
-                  <strong>Online</strong>
+                <TableCell align="center" sx={adminDashboardWidgetTableHeaderCellSx}>
+                  Online
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {groups.map((group) => (
-                <TableRow
-                  key={group.key}
-                  sx={{
-                    "&:nth-of-type(odd)": {
-                      backgroundColor: (theme) => theme.palette.action.hover,
-                    },
-                    "&:hover": {
-                      backgroundColor: (theme) => theme.palette.action.selected,
-                    },
-                  }}
-                >
-                  <TableCell component="th" scope="row" sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                <TableRow key={group.key} sx={adminDashboardWidgetTableRowSx}>
+                  <TableCell component="th" scope="row" sx={adminDashboardWidgetTableCellSx}>
                     {group.label}
                   </TableCell>
-                  <TableCell align="center" sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <TableCell align="center" sx={adminDashboardWidgetTableCellSx}>
                     {getCount(group.onsiteKey)}
                   </TableCell>
-                  <TableCell align="center" sx={{ fontSize: '0.75rem', padding: '3px 5px' }}>
+                  <TableCell align="center" sx={adminDashboardWidgetTableCellSx}>
                     {getCount(group.onlineKey)}
                   </TableCell>
                 </TableRow>

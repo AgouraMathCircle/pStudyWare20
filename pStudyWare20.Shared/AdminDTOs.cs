@@ -282,4 +282,37 @@ namespace pStudyWare20.Shared
         [Display(Name = "Error Message")]
         public string ErrorMessage { get; set; } = string.Empty;
     }
+
+    /// <summary>
+    /// Request for user tracking list (legacy UserTracking.aspx — AMC_spSelectUserTrackingList).
+    /// </summary>
+    public class UserTrackingListRequest
+    {
+        [Display(Name = "Username")]
+        public string Username { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Single user tracking row.
+    /// </summary>
+    public class UserTrackingListItem
+    {
+        public int RowID { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+        public string UserType { get; set; } = string.Empty;
+        public DateTime? Logindate { get; set; }
+        public string LoginBy { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Response for user tracking list.
+    /// </summary>
+    public class UserTrackingListResponse
+    {
+        public bool IsSuccess { get; set; }
+        public string ErrorMessage { get; set; } = string.Empty;
+        public List<UserTrackingListItem> TrackingList { get; set; } = new();
+    }
 }

@@ -49,7 +49,12 @@ namespace pStudyWare20.Services.Implementations
                 string role = GetUserRole(user);
 
                 // Generate JWT token
-                var token = _jwtService.GenerateToken(user.pMemberID.ToString(), user.EmailID ?? user.UserName, role);
+                var token = _jwtService.GenerateToken(
+                    user.pMemberID.ToString(),
+                    user.EmailID ?? user.UserName,
+                    role,
+                    user.systemAdmin,
+                    user.ChapterID?.ToString());
 
                 return new LoginResponse
                 {

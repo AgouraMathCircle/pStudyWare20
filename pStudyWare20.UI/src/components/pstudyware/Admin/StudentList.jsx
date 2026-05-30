@@ -166,19 +166,32 @@ const StudentList = ({
         sx={{
           mb: 1,
           display: "flex",
-          alignItems: "center",
+          alignItems: { xs: "stretch", sm: "center" },
           justifyContent: "space-between",
+          flexDirection: { xs: "column", sm: "row" },
           flexWrap: "wrap",
-          gap: 2,
+          gap: { xs: 1, sm: 2 },
         }}
       >
         <Typography
           variant="subtitle1"
-          sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: "1rem" }}
+          sx={{
+            fontWeight: 600,
+            color: APPLICATION_ADMIN_TITLE_COLOR,
+            fontSize: { xs: "0.9375rem", sm: "1rem" },
+            textAlign: { xs: "center", sm: "left" },
+          }}
         >
           Current Session Student List
         </Typography>
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            justifyContent: { xs: "center", sm: "flex-end" },
+            flexWrap: "wrap",
+          }}
+        >
           {canExportData && (
             <Button
               variant="contained"
@@ -205,17 +218,27 @@ const StudentList = ({
       </Box>
 
       <Box
+        className="admin-dashboard-student-search-bar"
         sx={{
           backgroundColor: "#4caf50",
-          p: 0.5,
+          p: { xs: 1, sm: 0.5 },
           borderRadius: 1,
           display: "flex",
-          alignItems: "center",
-          gap: 1,
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: { xs: 1, sm: 1 },
           flexWrap: "wrap",
+          flexDirection: { xs: "column", sm: "row" },
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            flex: { xs: "1 1 100%", sm: "0 1 auto" },
+            minWidth: 0,
+          }}
+        >
           <Typography
             sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
           >
@@ -228,7 +251,9 @@ const StudentList = ({
             sx={{
               color: "white",
               fontSize: "0.75rem",
-              minWidth: 100,
+              flex: 1,
+              minWidth: { xs: 0, sm: 100 },
+              width: { xs: "100%", sm: "auto" },
               "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
               "& .MuiSelect-icon": { color: "white" },
             }}
@@ -308,7 +333,9 @@ const StudentList = ({
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           sx={{
-            minWidth: 150,
+            flex: { xs: "1 1 100%", sm: "1 1 150px" },
+            minWidth: { xs: 0, sm: 150 },
+            width: { xs: "100%", sm: "auto" },
             "& .MuiOutlinedInput-root": {
               backgroundColor: "white",
               fontSize: "0.75rem",
@@ -328,6 +355,8 @@ const StudentList = ({
             minHeight: 32,
             py: 0,
             px: 1,
+            alignSelf: { xs: "stretch", sm: "center" },
+            width: { xs: "100%", sm: "auto" },
             "&:hover": { backgroundColor: "#f5f5f5" },
           }}
         >
@@ -335,7 +364,11 @@ const StudentList = ({
         </Button>
       </Box>
 
-      <TableContainer component={Paper} sx={{ width: "100%" }}>
+      <TableContainer
+        component={Paper}
+        className="admin-dashboard-student-table-panel"
+        sx={{ width: "100%", maxWidth: "100%", overflowX: "auto" }}
+      >
         <Table
           sx={{
             width: "100%",
@@ -639,15 +672,16 @@ const StudentList = ({
       </TableContainer>
 
       <Box
+        className="admin-dashboard-student-pagination"
         sx={{
           backgroundColor: "#4caf50",
-          p: 0.5,
+          p: { xs: 1, sm: 0.5 },
           borderRadius: 1,
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: { xs: "center", sm: "space-between" },
           flexWrap: "wrap",
-          gap: 1,
+          gap: { xs: 1.25, sm: 1 },
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
@@ -718,11 +752,25 @@ const StudentList = ({
           </Select>
         </Box>
 
-        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+        <Typography
+          sx={{
+            color: "white",
+            fontSize: "0.75rem",
+            textAlign: "center",
+            flexBasis: { xs: "100%", sm: "auto" },
+          }}
+        >
           Page(s): {totalPages > 0 ? currentPage : 0} of {totalPages}
         </Typography>
 
-        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+        <Typography
+          sx={{
+            color: "white",
+            fontSize: "0.75rem",
+            textAlign: "center",
+            flexBasis: { xs: "100%", sm: "auto" },
+          }}
+        >
           Record(s):{" "}
           {totalRecords > 0
             ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
@@ -733,7 +781,13 @@ const StudentList = ({
           of {totalRecords}
         </Typography>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
+        <Box
+          sx={{
+            display: { xs: "none", md: "flex" },
+            alignItems: "center",
+            gap: 0.25,
+          }}
+        >
           <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
             Go to Page Number:
           </Typography>

@@ -22,6 +22,11 @@ namespace pStudyWare20.Repository.Interfaces
         Task<object> GetUserTrackingSummaryAsync();
 
         /// <summary>
+        /// Get user tracking list (legacy UserTracking.aspx).
+        /// </summary>
+        Task<object> GetUserTrackingListAsync(string username);
+
+        /// <summary>
         /// Get dashboard message with student counts
         /// </summary>
         /// <param name="mode">Mode parameter (A for admin)</param>

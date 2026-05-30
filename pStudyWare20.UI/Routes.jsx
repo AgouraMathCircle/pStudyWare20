@@ -71,6 +71,7 @@ import PostMessage from "./src/components/pstudyware/Admin/PostMessage";
 import UploadAnswerKey from "./src/components/pstudyware/Admin/UploadAnswerKey";
 import UpdateLookupSemester from "./src/components/pstudyware/Admin/UpdateLookupSemester";
 import AdminReportCard from "./src/components/pstudyware/Admin/AdminReportCard";
+import AdminUserTracking from "./src/components/pstudyware/Admin/AdminUserTracking";
 import {
   InstructorShell,
   InstructorDashboard,
@@ -474,6 +475,28 @@ const AppRoutes = () => {
                   allowedMemberTypes={["A"]}
                 >
                   <TimeSheetTracking />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/user-tracking"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <AdminUserTracking />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/user-tracking"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <AdminUserTracking />
                 </RoleProtectedRoute>
               }
             />
