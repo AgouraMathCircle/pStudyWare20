@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -13,10 +13,33 @@ import {
   VideoCall as VideoCallIcon,
   AccessTime as AccessTimeIcon,
   Event as EventIcon,
+  Person as PersonIcon,
   VpnKey as VpnKeyIcon,
   MeetingRoom as MeetingRoomIcon,
 } from "@mui/icons-material";
 import meetingDetailsService from "../../../services/meetingDetailsService";
+
+// Class code -> full name (matches the mapping used across the app, e.g. DocumentList)
+const CLASS_LABELS = {
+  JB: "Junior Beginner",
+  JI: "Junior Intermediate",
+  JA: "Junior Advanced",
+  SB: "Senior Beginner",
+  SI: "Senior Intermediate",
+  SA: "Senior Advanced",
+  DS: "Data Science",
+  AI: "Artificial Intelligence",
+  GD: "Game Development",
+  AD: "App Development",
+  DM: "Data Management",
+  ST: "PSAT/SAT",
+  AT: "ACT",
+};
+
+const getClassLabel = (classCode) => {
+  if (!classCode) return "";
+  return CLASS_LABELS[classCode] || classCode;
+};
 
 // Module-level cache per username so GetAllMeetingSchedules is only called once per user per TTL
 const MEETING_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
@@ -135,36 +158,22 @@ const StudentMeetingSchedule = ({ username }) => {
   }
 
   return (
-    <Card
-      elevation={3}
-      sx={{
-        border: "1px solid #4caf50",
-        borderRadius: "10px",
-      }}
-    >
+    <Card elevation={0} className="meeting-schedule-card">
       <CardHeader
-        avatar={<VideoCallIcon sx={{ color: "#ff5722", fontSize: 30 }} />}
+        avatar={
+          <Box className="meeting-header-badge">
+            <VideoCallIcon sx={{ fontSize: 22 }} />
+          </Box>
+        }
         title={
-          <Typography
-            variant="h5"
-            component="div"
-            sx={{
-              color: "#ff5722",
-              fontWeight: 700,
-              fontSize: "1.5rem",
-            }}
-          >
+          <Typography variant="h5" component="div" className="meeting-header-title">
             Meeting Schedule
           </Typography>
         }
-        sx={{
-          backgroundColor: "#f1f8f4",
-          borderBottom: "2px solid #4caf50",
-          padding: "12px 16px",
-        }}
+        className="meeting-schedule-header"
       />
-      <CardContent sx={{ p: 2 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <CardContent className="meeting-schedule-content">
+        <Box className="meeting-grid">
           {meetings.map((meeting, index) => {
             // Extract properties with fallback for camelCase/PascalCase
             const rowId =
@@ -179,69 +188,78 @@ const StudentMeetingSchedule = ({ username }) => {
             const meetingID =
               getProp(meeting, "MeetingID") || getProp(meeting, "MeetingId");
             const passcode = getProp(meeting, "Passcode");
+            const firstName =
+              getProp(meeting, "FirstName") || getProp(meeting, "StudentFirstName");
+            const lastName =
+              getProp(meeting, "LastName") || getProp(meeting, "StudentLastName");
+            const studentName =
+              getProp(meeting, "StudentName") ||
+              getProp(meeting, "Name") ||
+              [firstName, lastName].filter(Boolean).join(" ");
 
             return (
-              <Box
-                key={rowId || index}
-                sx={{
-                  border: "2px solid #4caf50",
-                  borderRadius: "10px",
-                  padding: 2,
-                  backgroundColor: "#fafafa",
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: "#333",
-                    fontSize: "1rem",
-                    lineHeight: 1.6,
-                  }}
-                  component="div"
+              <Box key={rowId || index} className="meeting-card">
+                {/* Accent ribbon */}
+                <Box className="meeting-card-accent" />
+
+                {/* Head: badge + class + date/time */}
+                <Box className="meeting-card-head">
+                  <Box className="meeting-badge">
+                    <EventIcon sx={{ fontSize: 22 }} />
+                  </Box>
+                  <Box className="meeting-info">
+                    <Typography component="div" className="meeting-title">
+                      {getClassLabel(chapterName || className)}
+                      {section ? ` · Section ${section}` : ""}
+                    </Typography>
+                    {studentName && (
+                      <Box className="meeting-student-name">
+                        <PersonIcon sx={{ fontSize: 15 }} />
+                        <span>{studentName}</span>
+                      </Box>
+                    )}
+                    {meetingDate && (
+                      <Box className="meeting-datetime">
+                        <AccessTimeIcon sx={{ fontSize: 15 }} />
+                        <span>
+                          {meetingDate}
+                          {meetingTime ? ` · ${meetingTime} PST` : ""}
+                        </span>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+
+                {/* Details: meeting id + passcode */}
+                {(meetingID || passcode) && (
+                  <Box className="meeting-meta">
+                    {meetingID && (
+                      <Box className="meeting-detail-row">
+                        <MeetingRoomIcon sx={{ fontSize: 16 }} />
+                        <span className="meeting-detail-label">Meeting ID</span>
+                        <span className="meeting-detail-value">{meetingID}</span>
+                      </Box>
+                    )}
+                    {passcode && (
+                      <Box className="meeting-detail-row">
+                        <VpnKeyIcon sx={{ fontSize: 16 }} />
+                        <span className="meeting-detail-label">Passcode</span>
+                        <span className="meeting-detail-value">{passcode}</span>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+
+                {/* Full-width Join button */}
+                <Link
+                  href={meetingURL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="meeting-join-btn"
                 >
-                  {/* Sentence: "[Class] [Section] is on [Date]." */}
-                  <Box component="span" sx={{ color: "#4caf50", fontWeight: 600 }}>
-                    {chapterName || className}
-                    {section ? ` Section ${section}` : ""}
-                  </Box>
-                  {" is on "}
-                  <Box component="span" sx={{ fontWeight: 600 }}>
-                    {meetingDate}
-                    {meetingTime ? ` at ${meetingTime} (PST)` : ""}.
-                  </Box>
-                  {" Join at "}
-                  <Link
-                    href={meetingURL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{
-                      color: "#1976d2",
-                      fontWeight: 600,
-                      textDecoration: "underline",
-                      "&:hover": { textDecoration: "underline" },
-                    }}
-                  >
-                    Launch meeting
-                  </Link>
-                  {meetingID && (
-                    <>
-                      {" Meeting ID: "}
-                      <Box component="span" sx={{ color: "#4caf50", fontWeight: 500 }}>
-                        {meetingID}
-                      </Box>
-                      {passcode ? ". " : "."}
-                    </>
-                  )}
-                  {passcode && (
-                    <>
-                      {meetingID ? ". " : " "}
-                      {"Passcode: "}
-                      <Box component="span" sx={{ color: "#4caf50", fontWeight: 500 }}>
-                        {passcode}
-                      </Box>
-                      .
-                    </>
-                  )}
-                </Typography>
+                  <VideoCallIcon sx={{ fontSize: 18 }} />
+                  Launch meeting
+                </Link>
               </Box>
             );
           })}

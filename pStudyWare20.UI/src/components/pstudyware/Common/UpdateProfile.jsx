@@ -22,6 +22,28 @@ import { countries } from "../../../constants/countries";
 import StudentHeader from "../Student/StudentHeader";
 
 const GRADES = Array.from({ length: 12 }, (_, i) => i + 1);
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const getPhoneDigits = (phoneNumber) => String(phoneNumber || "").replace(/\D/g, "");
+
+const validateProfileForm = (data) => {
+  const errors = {};
+  const email = String(data.studentEmail || "").trim();
+  const phoneNumber = String(data.phoneNumber || "").trim();
+  const phoneDigits = getPhoneDigits(phoneNumber);
+
+  if (!email) {
+    errors.studentEmail = "Student email address is required.";
+  } else if (!EMAIL_PATTERN.test(email)) {
+    errors.studentEmail = "Enter a valid email address.";
+  }
+
+  if (phoneNumber && phoneDigits.length !== 10) {
+    errors.phoneNumber = "Enter a valid 10-digit phone number.";
+  }
+
+  return errors;
+};
 
 /**
  * Update student profile — mirrors pStudayWare/UpdateProfile.aspx + UpdateProfile.aspx.cs
@@ -50,6 +72,7 @@ const UpdateProfile = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
 
   const [formData, setFormData] = useState({
     studentID: "",
@@ -141,11 +164,26 @@ const UpdateProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const nextValue = name === "phoneNumber" ? value.replace(/\D/g, "").slice(0, 10) : value;
+    setFormData((prev) => ({ ...prev, [name]: nextValue }));
+    if (validationErrors[name]) {
+      setValidationErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const nextValidationErrors = validateProfileForm(formData);
+    if (Object.keys(nextValidationErrors).length > 0) {
+      setValidationErrors(nextValidationErrors);
+      setError("Please fix the highlighted fields before submitting.");
+      return;
+    }
+
     const sid = parseInt(formData.studentID, 10);
     if (!Number.isFinite(sid) || sid <= 0) {
       setError("Missing or invalid Student ID.");
@@ -161,13 +199,13 @@ const UpdateProfile = () => {
         studentID: sid,
         studentFName: formData.studentFName,
         studentLName: formData.studentLName,
-        studentEmail: formData.studentEmail,
+        studentEmail: formData.studentEmail.trim(),
         school: formData.school,
         grade: String(formData.grade ?? ""),
         city: formData.city,
         state: formData.state,
         country: formData.country,
-        phoneNumber: formData.phoneNumber,
+        phoneNumber: getPhoneDigits(formData.phoneNumber),
         class: "",
         memberType: user?.memberType ?? "",
       });
@@ -209,10 +247,29 @@ const UpdateProfile = () => {
     <Box>
       <StudentHeader user={user} />
       <Box sx={{ height: "48px" }} />
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-          <PersonIcon sx={{ fontSize: 28, color: "#1976d2" }} />
-          <Typography variant="h5" sx={{ fontWeight: 600, color: "#1976d2" }}>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
+          <Box
+            sx={{
+              width: 42,
+              height: 42,
+              borderRadius: "50%",
+              backgroundColor: "rgba(25, 118, 210, 0.12)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <PersonIcon sx={{ fontSize: 28, color: "#1976d2" }} />
+          </Box>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 700,
+              color: "#1976d2",
+              fontSize: { xs: "1.6rem", md: "2rem" },
+            }}
+          >
             Update Your Profile
           </Typography>
         </Box>
@@ -229,10 +286,18 @@ const UpdateProfile = () => {
           </Alert>
         )}
 
-        <Paper elevation={3} sx={{ p: 4 }}>
+        <Paper
+          elevation={3}
+          sx={{
+            p: { xs: 2.5, md: 4 },
+            borderRadius: 3,
+            backgroundColor: "rgba(255, 255, 255, 0.97)",
+            boxShadow: "0 18px 45px rgba(0, 0, 0, 0.22)",
+          }}
+        >
           <form onSubmit={handleSubmit}>
             <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
                   label="Student First Name"
@@ -243,7 +308,7 @@ const UpdateProfile = () => {
                   variant="outlined"
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
                   label="Student Last Name"
@@ -254,7 +319,7 @@ const UpdateProfile = () => {
                   variant="outlined"
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
                   label="Student Email Address"
@@ -264,9 +329,11 @@ const UpdateProfile = () => {
                   onChange={handleInputChange}
                   required
                   variant="outlined"
+                  error={Boolean(validationErrors.studentEmail)}
+                  helperText={validationErrors.studentEmail}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
                   label="School"
@@ -276,7 +343,7 @@ const UpdateProfile = () => {
                   variant="outlined"
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                 <FormControl fullWidth variant="outlined">
                   <InputLabel>Grade</InputLabel>
                   <Select
@@ -293,7 +360,7 @@ const UpdateProfile = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
                   fullWidth
                   label="Parent Contact Phone"
@@ -301,9 +368,16 @@ const UpdateProfile = () => {
                   value={formData.phoneNumber}
                   onChange={handleInputChange}
                   variant="outlined"
+                  error={Boolean(validationErrors.phoneNumber)}
+                  helperText={validationErrors.phoneNumber || "Use 10 digits, e.g. 9999999999."}
+                  inputProps={{
+                    inputMode: "numeric",
+                    maxLength: 10,
+                    pattern: "[0-9]*",
+                  }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
                   fullWidth
                   label="City"
@@ -313,7 +387,7 @@ const UpdateProfile = () => {
                   variant="outlined"
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <TextField
                   fullWidth
                   label="State"
@@ -323,7 +397,7 @@ const UpdateProfile = () => {
                   variant="outlined"
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <FormControl fullWidth variant="outlined">
                   <InputLabel>Country</InputLabel>
                   <Select
@@ -340,15 +414,23 @@ const UpdateProfile = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12}>
-                <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+              <Grid size={{ xs: 12 }}>
+                <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 2 }}>
                   <Button
                     type="submit"
                     variant="contained"
                     color="primary"
                     size="large"
                     disabled={submitting}
-                    sx={{ minWidth: 200, height: 45, fontSize: "1rem" }}
+                    sx={{
+                      minWidth: { xs: "100%", sm: 240 },
+                      height: 48,
+                      fontSize: "1rem",
+                      fontWeight: 700,
+                      borderRadius: 2,
+                      textTransform: "uppercase",
+                      boxShadow: "0 8px 18px rgba(25, 118, 210, 0.25)",
+                    }}
                   >
                     {submitting ? <CircularProgress size={24} /> : "Submit"}
                   </Button>
