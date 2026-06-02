@@ -1,11 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { Box, Container, Grid, Paper, Typography, Button } from "@mui/material";
-import { Add as AddIcon } from "@mui/icons-material";
+import { Box, Container, Grid, Paper, Typography, Button, Card, CardContent } from "@mui/material";
+import { 
+  Add as AddIcon,
+  AccessTime as AccessTimeIcon,
+  CheckCircle as CheckCircleIcon,
+  AssignmentTurnedIn as AssignmentTurnedInIcon,
+} from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import DashboardMessages from "../Student/DashboardMessages";
 import studentDashboardService from "../../../services/studentDashboardService";
 import volunteerDashboardService from "../../../services/volunteerDashboardService";
+import VolunteerAvailability from "./VolunteerAvailability";
 import VolunteerTimeSheetGrid from "./VolunteerTimeSheetGrid";
 
 const VolunteerDashboard = () => {
@@ -142,85 +148,245 @@ const VolunteerDashboard = () => {
 
   if (authLoading || loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
-        <Typography>Loading…</Typography>
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", backgroundColor: "#f5f6fa" }}>
+        <Box sx={{ textAlign: "center" }}>
+          <Typography variant="h6" sx={{ color: "#667eea", fontWeight: 600 }}>Loading your dashboard…</Typography>
+        </Box>
       </Box>
     );
   }
 
   if (!isAuthenticated || !user || !isValidated) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
-        <Typography>Access denied.</Typography>
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", backgroundColor: "#f5f6fa" }}>
+        <Box sx={{ textAlign: "center" }}>
+          <Typography variant="h6" sx={{ color: "#f5576c", fontWeight: 600 }}>Access denied. Please log in as a volunteer.</Typography>
+        </Box>
       </Box>
     );
   }
 
   return (
-    <Container maxWidth="xl" sx={{ pb: 4 }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center", mb: 1 }}>
-            <Typography variant="h5" component="h1" sx={{ flexGrow: 1 }}>
-              Volunteer dashboard
-            </Typography>
-            <Button
-              variant="contained"
-              color="secondary"
-              startIcon={<AddIcon />}
-              component={RouterLink}
-              to="/pstudyware/volunteer/time-sheet"
+    <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f6fa" }}>
+      <Container maxWidth="xl" sx={{ pb: 4 }}>
+        <Grid container spacing={3}>
+          {/* Header Section */}
+          <Grid item xs={12}>
+            <Box 
+              sx={{ 
+                display: "flex", 
+                flexWrap: "wrap", 
+                gap: 2, 
+                alignItems: "center", 
+                mb: 3,
+                backgroundColor: "#ffffff",
+                p: 3,
+                borderRadius: 2,
+                border: "1px solid #e8f5e9",
+                boxShadow: "0 6px 20px rgba(58, 90, 63, 0.08)"
+              }}
             >
-              Log hours
-            </Button>
-          </Box>
+              <Typography 
+                variant="h4" 
+                component="h1" 
+                sx={{ 
+                  flexGrow: 1, 
+                  fontWeight: 700,
+                  color: "#2e7d32",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1
+                }}
+              >
+                <AssignmentTurnedInIcon sx={{ fontSize: 32, color: "#2e7d32" }} />
+                Volunteer Dashboard
+              </Typography>
+              <Button
+                variant="contained"
+                sx={{
+                  background: "linear-gradient(135deg, #2e7d32 0%, #43a047 100%)",
+                  color: "white",
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1.2,
+                  borderRadius: 2,
+                  textTransform: "none",
+                  fontSize: "1rem",
+                  transition: "all 0.3s ease",
+                  boxShadow: "0 10px 20px rgba(67, 160, 71, 0.24)",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                  }
+                }}
+                startIcon={<AddIcon />}
+                component={RouterLink}
+                to="/pstudyware/volunteer/time-sheet"
+              >
+                Log Hours
+              </Button>
+            </Box>
+          </Grid>
+
+          {/* Stats Cards */}
+          <Grid item xs={12} md={4}>
+            <Card 
+              sx={{ 
+                height: "100%",
+                borderRadius: 2,
+                boxShadow: "0 10px 26px rgba(46, 125, 50, 0.08)",
+                border: "1px solid #e8f5e9",
+                transition: "transform 0.3s ease",
+                "&:hover": {
+                  transform: "translateY(-4px)",
+                }
+              }}
+            >
+              <CardContent sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", p: 3 }}>
+                <Box>
+                  <Typography variant="subtitle2" sx={{ color: "#388e3c", opacity: 0.9, mb: 1, fontWeight: 600 }}>
+                    Total Volunteer Hours
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: "#1b5e20" }}>
+                    {(summary.totalVolunteerHours ?? 0).toFixed(2)}
+                  </Typography>
+                </Box>
+                <AccessTimeIcon sx={{ fontSize: 48, color: "#66bb6a" }} />
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Card 
+              sx={{ 
+                height: "100%",
+                borderRadius: 2,
+                boxShadow: "0 10px 26px rgba(46, 125, 50, 0.08)",
+                border: "1px solid #e8f5e9",
+                transition: "transform 0.3s ease",
+                "&:hover": {
+                  transform: "translateY(-4px)",
+                }
+              }}
+            >
+              <CardContent sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", p: 3 }}>
+                <Box>
+                  <Typography variant="subtitle2" sx={{ color: "#388e3c", opacity: 0.9, mb: 1, fontWeight: 600 }}>
+                    Total Entries
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700, color: "#1b5e20" }}>
+                    {summary.totalEntries ?? 0}
+                  </Typography>
+                </Box>
+                <CheckCircleIcon sx={{ fontSize: 48, color: "#66bb6a" }} />
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Card 
+              sx={{ 
+                height: "100%",
+                borderRadius: 2,
+                boxShadow: "0 10px 26px rgba(46, 125, 50, 0.08)",
+                border: "1px solid #e8f5e9",
+                transition: "transform 0.3s ease",
+                "&:hover": {
+                  transform: "translateY(-4px)",
+                }
+              }}
+            >
+              <CardContent sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", p: 3 }}>
+                <Box sx={{ width: "100%" }}>
+                  <Typography variant="subtitle2" sx={{ color: "#388e3c", opacity: 0.9, mb: 1, fontWeight: 600 }}>
+                    Most Frequent Task
+                  </Typography>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      fontWeight: 700,
+                      color: "#1b5e20",
+                      fontSize: "1.2rem",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    {summary.mostFrequentTask || "—"}
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* Messages Section */}
+          <Grid item xs={12}>
+            <DashboardMessages
+              username={username}
+              chapterId={chapterId}
+              dashboardMessages={dashboardMessages}
+              loading={messagesLoading}
+            />
+          </Grid>
+
+          {/* Sidebar - Availability */}
+          <Grid item xs={12} lg={4}>
+            <Box sx={{ 
+              backgroundColor: "white",
+              borderRadius: 2,
+              boxShadow: "0 10px 26px rgba(46, 125, 50, 0.08)",
+              overflow: "hidden"
+            }}>
+              <Box sx={{
+                backgroundColor: "#e8f5e9",
+                color: "#1b5e20",
+                p: 2.5,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                borderBottom: "1px solid #c8e6c9"
+              }}>
+                <CheckCircleIcon sx={{ color: "#2e7d32" }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, m: 0 }}>
+                  Availability
+                </Typography>
+              </Box>
+              <VolunteerAvailability embedded />
+            </Box>
+          </Grid>
+
+          {/* Main Content Grid */}
+          <Grid item xs={12} lg={8}>
+            <Box sx={{ 
+              backgroundColor: "white",
+              borderRadius: 2,
+              boxShadow: "0 10px 26px rgba(46, 125, 50, 0.08)",
+              overflow: "hidden"
+            }}>
+              <Box sx={{
+                backgroundColor: "#e8f5e9",
+                color: "#1b5e20",
+                p: 2.5,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                borderBottom: "1px solid #c8e6c9"
+              }}>
+                <AccessTimeIcon sx={{ color: "#2e7d32" }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, m: 0 }}>
+                  Time Sheet Records
+                </Typography>
+              </Box>
+              <VolunteerTimeSheetGrid
+                rows={entries}
+                loading={listLoading}
+                error={listError}
+                onEntriesChanged={loadDashboard}
+              />
+            </Box>
+          </Grid>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, height: "100%" }}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Total volunteer hours
-            </Typography>
-            <Typography variant="h5">
-              {(summary.totalVolunteerHours ?? 0).toFixed(2)}
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, height: "100%" }}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Entries
-            </Typography>
-            <Typography variant="h5">{summary.totalEntries ?? 0}</Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2, height: "100%" }}>
-            <Typography variant="subtitle2" color="text.secondary">
-              Most frequent task
-            </Typography>
-            <Typography variant="body1" sx={{ fontWeight: 600 }}>
-              {summary.mostFrequentTask || "—"}
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={12}>
-          <DashboardMessages
-            username={username}
-            chapterId={chapterId}
-            dashboardMessages={dashboardMessages}
-            loading={messagesLoading}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <VolunteerTimeSheetGrid
-            rows={entries}
-            loading={listLoading}
-            error={listError}
-            onEntriesChanged={loadDashboard}
-          />
-        </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </Box>
   );
 };
 
