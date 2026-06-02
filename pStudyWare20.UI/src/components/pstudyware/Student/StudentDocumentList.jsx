@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -28,6 +28,34 @@ import {
   LastPage as LastPageIcon,
 } from "@mui/icons-material";
 import PdfViewer from "../../common/PdfViewer";
+
+const tableColumnWidths = {
+  actions: 132,
+  docNumber: 76,
+  className: 120,
+  topics: 170,
+  description: 170,
+  documentName: 260,
+  session: 160,
+  postedDate: 130,
+};
+
+const headerCellSx = {
+  fontWeight: 700,
+  borderRight: "1px solid #4caf50",
+  fontSize: "0.78rem",
+  padding: "10px 12px",
+  color: "#1b5e20",
+  backgroundColor: "#e8f5e8",
+  whiteSpace: "nowrap",
+};
+
+const bodyCellSx = {
+  borderRight: "1px solid #4caf50",
+  fontSize: "0.75rem",
+  padding: "8px 12px",
+  verticalAlign: "middle",
+};
 
 const StudentDocumentList = ({
   documents,
@@ -137,7 +165,7 @@ const StudentDocumentList = ({
         month: "short",
         day: "numeric",
       });
-    } catch (e) {
+    } catch {
       return dateString;
     }
   };
@@ -312,93 +340,66 @@ const StudentDocumentList = ({
       </Box>
 
       {/* Table */}
-      <TableContainer component={Paper} sx={{ width: "100%" }}>
-        <Table sx={{ width: "100%", tableLayout: "fixed" }}>
+      <TableContainer
+        component={Paper}
+        sx={{
+          width: "100%",
+          overflowX: "auto",
+          border: "1px solid #d7edd9",
+          borderRadius: 1.5,
+        }}
+      >
+        <Table
+          sx={{
+            minWidth: 1218,
+            tableLayout: "fixed",
+            "& .MuiTableCell-root": {
+              boxSizing: "border-box",
+            },
+          }}
+        >
+          <colgroup>
+            <col style={{ width: tableColumnWidths.actions }} />
+            <col style={{ width: tableColumnWidths.docNumber }} />
+            <col style={{ width: tableColumnWidths.className }} />
+            <col style={{ width: tableColumnWidths.topics }} />
+            <col style={{ width: tableColumnWidths.description }} />
+            <col style={{ width: tableColumnWidths.documentName }} />
+            <col style={{ width: tableColumnWidths.session }} />
+            <col style={{ width: tableColumnWidths.postedDate }} />
+          </colgroup>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
               <TableCell
                 sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "10%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
+                  ...headerCellSx,
+                  textAlign: "center",
                 }}
               >
                 Actions
               </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "8%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                }}
-              >
+              <TableCell sx={headerCellSx}>
                 Doc #
               </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "10%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                }}
-              >
+              <TableCell sx={headerCellSx}>
                 Class
               </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "15%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                }}
-              >
+              <TableCell sx={headerCellSx}>
                 Topics
               </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "12%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                }}
-              >
+              <TableCell sx={headerCellSx}>
                 Description
               </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "20%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                }}
-              >
+              <TableCell sx={headerCellSx}>
                 Document Name
               </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  width: "15%",
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                }}
-              >
+              <TableCell sx={headerCellSx}>
                 Session
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  padding: "8px 12px",
-                  width: "10%",
+                  ...headerCellSx,
+                  borderRight: "none",
                 }}
               >
                 Posted Date
@@ -425,17 +426,24 @@ const StudentDocumentList = ({
                 <TableRow key={doc.docID || index} hover>
                   <TableCell
                     sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: "8px 12px",
+                      ...bodyCellSx,
+                      textAlign: "center",
                     }}
                   >
-                    <Box sx={{ display: "flex", gap: 0.5 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 0.5,
+                        minWidth: 104,
+                      }}
+                    >
                       <Tooltip title="View">
                         <IconButton
                           size="small"
                           onClick={() => onView(doc.docName)}
-                          sx={{ color: "#4caf50" }}
+                          sx={{ color: "#4caf50", p: 0.5 }}
                         >
                           <ViewIcon fontSize="small" />
                         </IconButton>
@@ -444,7 +452,7 @@ const StudentDocumentList = ({
                         <IconButton
                           size="small"
                           onClick={() => onDownload(doc.docName)}
-                          sx={{ color: "#4caf50" }}
+                          sx={{ color: "#4caf50", p: 0.5 }}
                         >
                           <DownloadIcon fontSize="small" />
                         </IconButton>
@@ -454,7 +462,7 @@ const StudentDocumentList = ({
                           <IconButton
                             size="small"
                             onClick={() => onOpenVideo(doc.videoURL)}
-                            sx={{ color: "#f44336" }}
+                            sx={{ color: "#f44336", p: 0.5 }}
                           >
                             <VideoIcon fontSize="small" />
                           </IconButton>
@@ -463,20 +471,12 @@ const StudentDocumentList = ({
                     </Box>
                   </TableCell>
                   <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: "8px 12px",
-                    }}
+                    sx={bodyCellSx}
                   >
                     {doc.docID}
                   </TableCell>
                   <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: "8px 12px",
-                    }}
+                    sx={bodyCellSx}
                   >
                     <Tooltip title={getClassLabel(doc.class)}>
                       <Chip
@@ -491,28 +491,18 @@ const StudentDocumentList = ({
                     </Tooltip>
                   </TableCell>
                   <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: "8px 12px",
-                    }}
+                    sx={bodyCellSx}
                   >
                     {doc.topics || "N/A"}
                   </TableCell>
                   <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: "8px 12px",
-                    }}
+                    sx={bodyCellSx}
                   >
                     {doc.description || "N/A"}
                   </TableCell>
                   <TableCell
                     sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: "8px 12px",
+                      ...bodyCellSx,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -523,18 +513,15 @@ const StudentDocumentList = ({
                     </Tooltip>
                   </TableCell>
                   <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: "8px 12px",
-                    }}
+                    sx={bodyCellSx}
                   >
                     {doc.session || "N/A"}
                   </TableCell>
                   <TableCell
                     sx={{
+                      ...bodyCellSx,
                       fontSize: "0.75rem",
-                      padding: "8px 12px",
+                      borderRight: "none",
                     }}
                   >
                     {formatDate(doc.uploadedDate)}

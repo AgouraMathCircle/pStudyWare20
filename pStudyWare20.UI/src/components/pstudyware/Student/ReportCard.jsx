@@ -202,7 +202,7 @@ const ReportCard = ({ username: propUsername }) => {
           sx={{
             fontWeight: 600,
             color: "#1976d2",
-            fontSize: isStandalonePage ? "2rem" : "1rem",
+            fontSize: isStandalonePage ? "2rem" : "0.9rem",
           }}
         >
           {isStandalonePage ? "Report Card" : "Last Session - Report Card"}

@@ -1,68 +1,155 @@
-/* Student Dashboard Styles */
+/* ============================================================
+   Student Dashboard — Green Theme Redesign
+   (visual-only; no logic/structure changes)
+   Brand palette:
+     --sw-green        #2e7d32  (primary)
+     --sw-green-light  #4caf50  (accent)
+     --sw-green-dark   #1b5e20  (hover)
+     --sw-green-soft   #e8f5e9  (badge / table head bg)
+     --sw-bg           #f0f7f0  (page background)
+     --sw-text         #1a1a2e  (near-black text)
+   ============================================================ */
 
-.student-dashboard-container {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+.student-dashboard {
+  --sw-green: #2e7d32;
+  --sw-green-light: #4caf50;
+  --sw-green-dark: #1b5e20;
+  --sw-green-soft: #e8f5e9;
+  --sw-bg: #f0f7f0;
+  --sw-text: #1a1a2e;
+  --sw-muted: #6b7280;
+  --sw-card-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  --sw-radius-card: 16px;
+  --sw-radius-btn: 10px;
+
+  /* Zoom / scale fix — slightly more compact, breathable layout */
+  font-size: 14px;
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--sw-text);
+
+  position: relative;
+  /* Chalkboard math background — same as the old site */
+  background: #1a1a1a url("/src/assets/images/bg.jpg") center top / cover no-repeat fixed;
   min-height: 100vh;
-  padding: 20px 0;
+  padding: 80px 0 32px;
 }
 
-/* Page Header */
-.dashboard-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* White content column floating over the chalkboard (mirrors old layout) */
+.student-dashboard > .MuiContainer-root {
+  background: #ffffff;
+  border-radius: var(--sw-radius-card);
+  padding: 28px 28px 32px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* Headings use Plus Jakarta Sans */
+.student-dashboard h1,
+.student-dashboard h2,
+.student-dashboard h3,
+.student-dashboard h4,
+.student-dashboard h5,
+.student-dashboard h6,
+.student-dashboard .MuiTypography-h1,
+.student-dashboard .MuiTypography-h2,
+.student-dashboard .MuiTypography-h3,
+.student-dashboard .MuiTypography-h4,
+.student-dashboard .MuiTypography-h5,
+.student-dashboard .MuiTypography-h6,
+.student-dashboard .MuiCardHeader-title {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.student-dashboard .MuiContainer-root {
+  position: relative;
+  z-index: 1;
+}
+
+/* Soft green glow at the top of the page */
+.student-dashboard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 220px;
+  background: radial-gradient(circle at top center, rgba(76, 175, 80, 0.14) 0%, transparent 62%);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------
+   Header / page banner
+   ------------------------------------------------------------ */
+.student-dashboard .dashboard-header {
+  background: linear-gradient(135deg, var(--sw-green) 0%, var(--sw-green-dark) 100%);
   color: white;
-  padding: 30px 0;
-  margin-bottom: 30px;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 24px 0;
+  margin-bottom: 24px;
+  border-radius: var(--sw-radius-card);
+  box-shadow: 0 6px 18px rgba(27, 94, 32, 0.18);
 }
 
 .dashboard-header h1 {
   margin: 0;
-  font-size: 2.5rem;
-  font-weight: 700;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-size: 2.1rem;
+  font-weight: 800;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .dashboard-header p {
-  margin: 10px 0 0 0;
-  font-size: 1.1rem;
-  opacity: 0.9;
+  margin: 8px 0 0 0;
+  font-size: 1rem;
+  opacity: 0.92;
 }
 
-/* Registration Notice Card */
+/* ------------------------------------------------------------
+   Registration Notice Card
+   ------------------------------------------------------------ */
 .registration-notice {
-  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-  border: 2px solid #ff9800;
-  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid var(--sw-green-soft);
+  border-left: 4px solid var(--sw-green-light);
+  border-radius: var(--sw-radius-card);
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.2);
+  box-shadow: var(--sw-card-shadow);
 }
 
 .registration-notice h6 {
-  color: #ff9800;
+  color: var(--sw-green-dark);
   font-weight: 700;
-  margin-bottom: 15px;
+  margin-bottom: 14px;
   display: flex;
   align-items: center;
+  gap: 10px;
+}
+
+.registration-notice p,
+.registration-notice .youtube-link {
+  color: #3b3b3b;
+  line-height: 1.65;
 }
 
 .registration-notice .warning-icon {
   margin-right: 8px;
-  color: #ff9800;
+  color: var(--sw-green);
 }
 
 .registration-notice .youtube-link {
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: #1976d2;
+  color: var(--sw-green);
   margin: 10px 0;
   transition: color 0.3s ease;
 }
 
 .registration-notice .youtube-link:hover {
-  color: #1565c0;
+  color: var(--sw-green-dark);
   text-decoration: underline;
 }
 
@@ -71,71 +158,142 @@
   color: #f44336;
 }
 
-/* Final Exam Section */
+/* ------------------------------------------------------------
+   Final Exam Section
+   ------------------------------------------------------------ */
 .final-exam-section {
-  background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
-  border: 2px solid #f44336;
-  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid var(--sw-green-soft);
+  border-left: 4px solid var(--sw-green-light);
+  border-radius: var(--sw-radius-card);
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.2);
+  box-shadow: var(--sw-card-shadow);
 }
 
 .final-exam-section h6 {
-  color: #f44336;
+  color: var(--sw-green-dark);
   font-weight: 700;
-  margin-bottom: 15px;
+  margin-bottom: 14px;
   display: flex;
   align-items: center;
+  gap: 10px;
+}
+
+.final-exam-section p {
+  color: #4a4a4a;
+  line-height: 1.65;
+}
+
+.final-exam-button {
+  background: linear-gradient(135deg, var(--sw-green) 0%, var(--sw-green-light) 100%);
+  border-radius: var(--sw-radius-btn);
+  box-shadow: 0 8px 18px rgba(46, 125, 50, 0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  min-width: 190px;
+  height: 46px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.final-exam-button:hover {
+  background: var(--sw-green-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 22px rgba(27, 94, 32, 0.28);
 }
 
 .final-exam-section .info-icon {
   margin-right: 8px;
-  color: #f44336;
+  color: var(--sw-green);
 }
 
-.final-exam-button {
-  background: linear-gradient(45deg, #f44336 30%, #ff7043 90%);
-  border-radius: 25px;
-  box-shadow: 0 3px 5px 2px rgba(244, 67, 54, 0.3);
-  transition: all 0.3s ease;
-  min-width: 200px;
-  height: 50px;
-  font-size: 1.1rem;
-  font-weight: 600;
+/* ------------------------------------------------------------
+   Cards (MUI Paper / Card scoped to dashboard)
+   ------------------------------------------------------------ */
+.student-dashboard .MuiPaper-root,
+.student-dashboard .MuiCard-root {
+  border-radius: var(--sw-radius-card);
+  background: #ffffff;
+  box-shadow: var(--sw-card-shadow);
+  border: 1px solid #eef3ee;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.final-exam-button:hover {
+/* Subtle hover lift on cards */
+.student-dashboard .MuiCard-root:hover,
+.student-dashboard .MuiPaper-elevation1:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+  box-shadow: 0 8px 22px rgba(27, 94, 32, 0.12);
 }
 
-/* Cards */
+/* Keep popovers/menus from inheriting the lift transform */
+.student-dashboard .MuiPopover-paper,
+.student-dashboard .MuiMenu-paper {
+  transform: none !important;
+}
+
+/* MUI buttons — green primary, rounded, smooth hover */
+.student-dashboard .MuiButton-root {
+  border-radius: var(--sw-radius-btn);
+  text-transform: none;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.student-dashboard .MuiButton-containedPrimary,
+.student-dashboard .MuiButton-contained.MuiButton-colorPrimary {
+  background-color: var(--sw-green);
+  color: #fff;
+}
+
+.student-dashboard .MuiButton-containedPrimary:hover,
+.student-dashboard .MuiButton-contained.MuiButton-colorPrimary:hover {
+  background-color: var(--sw-green-dark);
+}
+
+.student-dashboard .MuiButton-outlinedPrimary,
+.student-dashboard .MuiButton-outlined.MuiButton-colorPrimary {
+  border-color: var(--sw-green);
+  color: var(--sw-green);
+}
+
+.student-dashboard .MuiButton-outlinedPrimary:hover,
+.student-dashboard .MuiButton-outlined.MuiButton-colorPrimary:hover {
+  border-color: var(--sw-green-dark);
+  background-color: var(--sw-green-soft);
+}
+
+.student-dashboard .MuiButton-root:hover {
+  transform: translateY(-1px);
+}
+
+/* Generic dashboard card helper */
 .dashboard-card {
   background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  margin-bottom: 20px;
+  border-radius: var(--sw-radius-card);
+  box-shadow: var(--sw-card-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 16px;
+  border-left: 4px solid var(--sw-green-light);
 }
 
 .dashboard-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 22px rgba(27, 94, 32, 0.12);
 }
 
 .dashboard-card .card-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--sw-green) 0%, var(--sw-green-dark) 100%);
   color: white;
-  padding: 15px 20px;
-  border-radius: 10px 10px 0 0;
+  padding: 14px 18px;
+  border-radius: var(--sw-radius-card) var(--sw-radius-card) 0 0;
   display: flex;
   align-items: center;
 }
 
 .dashboard-card .card-header h6 {
   margin: 0;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
 }
@@ -145,50 +303,387 @@
 }
 
 .dashboard-card .card-content {
-  padding: 20px;
+  padding: 18px;
 }
 
-/* Tables */
-.dashboard-table {
+/* ------------------------------------------------------------
+   Stat / Info cards & green icon badges
+   ------------------------------------------------------------ */
+.stat-card {
+  background: #fff;
+  border-radius: var(--sw-radius-card);
+  border-left: 4px solid var(--sw-green-light);
+  box-shadow: var(--sw-card-shadow);
+  padding: 18px 20px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(27, 94, 32, 0.12);
+}
+
+.stat-card .stat-number {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--sw-text);
+  line-height: 1.1;
+}
+
+.stat-card .stat-label {
+  color: var(--sw-muted);
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--sw-green-soft);
+  color: var(--sw-green);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ------------------------------------------------------------
+   Meeting Schedule (ticket grid redesign)
+   ------------------------------------------------------------ */
+.student-dashboard .meeting-schedule-card {
+  border: 1px solid #eef3ee;
+  border-radius: var(--sw-radius-card);
+  overflow: hidden;
+}
+
+.student-dashboard .meeting-schedule-header {
+  background: linear-gradient(135deg, #f4faf5 0%, #eaf6ec 100%);
+  border-bottom: 1px solid var(--sw-green-soft);
+  padding: 16px 20px;
+  justify-content: center;
+}
+
+/* center the header title + badge as a unit */
+.student-dashboard .meeting-schedule-header .MuiCardHeader-content {
+  flex: 0 1 auto;
+}
+
+.meeting-header-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--sw-green);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 14px rgba(46, 125, 50, 0.28);
+}
+
+.meeting-header-title {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  color: var(--sw-green-dark);
+  font-weight: 800;
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+.student-dashboard .meeting-schedule-content {
+  padding: 22px;
+}
+
+/* Responsive multi-column grid — fills the full width */
+.meeting-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+}
+
+/* Individual meeting "ticket" card */
+.meeting-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid #eef3ee;
+  border-radius: 16px;
+  padding: 18px 18px 18px 22px;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Left accent ribbon (gradient) */
+.meeting-card-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 5px;
+  background: linear-gradient(180deg, var(--sw-green-light) 0%, var(--sw-green) 100%);
+}
+
+.meeting-card-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.meeting-badge {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--sw-green-soft);
+  color: var(--sw-green);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.meeting-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.meeting-title {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--sw-text);
+  line-height: 1.3;
+}
+
+.meeting-datetime {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  color: var(--sw-muted);
+  font-size: 0.84rem;
+  font-weight: 500;
+}
+
+.meeting-student-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  color: var(--sw-green-dark);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.meeting-student-name svg {
+  color: var(--sw-green);
+  flex-shrink: 0;
+}
+
+/* Meeting ID / Passcode detail rows */
+.meeting-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--sw-bg);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.meeting-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.83rem;
+}
+
+.meeting-detail-row svg {
+  color: var(--sw-green);
+  flex-shrink: 0;
+}
+
+.meeting-detail-label {
+  color: var(--sw-muted);
+  font-weight: 500;
+  min-width: 78px;
+}
+
+.meeting-detail-value {
+  font-weight: 700;
+  color: var(--sw-green-dark);
+  letter-spacing: 0.03em;
+  margin-left: auto;
+}
+
+/* Full-width Launch button */
+.student-dashboard a.meeting-join-btn,
+.meeting-join-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: linear-gradient(135deg, var(--sw-green) 0%, var(--sw-green-light) 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 11px 16px;
+  border-radius: var(--sw-radius-btn);
+  text-decoration: none;
+  box-shadow: 0 5px 14px rgba(46, 125, 50, 0.22);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.student-dashboard a.meeting-join-btn:hover,
+.meeting-join-btn:hover {
+  background: linear-gradient(135deg, var(--sw-green-dark) 0%, var(--sw-green) 100%);
+  color: #ffffff;
+  text-decoration: none;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(27, 94, 32, 0.28);
+}
+
+/* ---- 3D / motion effects ------------------------------------ */
+
+/* Continuous 3D coin-flip of the Zoom/video icon in the header */
+@keyframes zoomFlip3d {
+  0% { transform: rotateY(0deg); }
+  100% { transform: rotateY(360deg); }
+}
+
+/* Expanding "live" pulse ring around the header badge */
+@keyframes livePulse {
+  0% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.45); }
+  70% { box-shadow: 0 0 0 14px rgba(46, 125, 50, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0); }
+}
+
+.meeting-header-badge {
+  perspective: 600px;
+  animation: livePulse 2.2s ease-out infinite;
+}
+
+.meeting-header-badge svg {
+  transform-style: preserve-3d;
+  animation: zoomFlip3d 3.5s linear infinite;
+}
+
+/* 3D stage + tilt-lift on hover */
+.meeting-card {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.meeting-card:hover {
+  transform: perspective(1000px) rotateX(2deg) translateY(-5px);
+  box-shadow: 0 16px 34px rgba(27, 94, 32, 0.18);
+}
+
+/* Coin-flip the calendar badge when its card is hovered */
+.meeting-badge {
+  perspective: 500px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.meeting-badge svg {
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.meeting-card:hover .meeting-badge {
+  background: var(--sw-green-light);
+  color: #fff;
+}
+
+.meeting-card:hover .meeting-badge svg {
+  transform: rotateY(360deg);
+}
+
+/* Spin the Zoom icon inside the Launch button on hover */
+.meeting-join-btn svg {
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.meeting-join-btn:hover svg {
+  transform: rotate(360deg) scale(1.15);
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .meeting-header-badge,
+  .meeting-header-badge svg,
+  .meeting-badge svg,
+  .meeting-join-btn svg {
+    animation: none !important;
+    transition: none !important;
+  }
+  .meeting-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@media (max-width: 600px) {
+  .meeting-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ------------------------------------------------------------
+   Tables
+   ------------------------------------------------------------ */
+.dashboard-table,
+.student-dashboard .MuiTable-root {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
-.dashboard-table th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 12px 8px;
+.dashboard-table th,
+.student-dashboard .MuiTableHead-root .MuiTableCell-root {
+  background: var(--sw-green-soft);
+  color: var(--sw-green);
+  padding: 12px 10px;
   text-align: left;
   font-weight: 600;
   font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  border-bottom: none;
 }
 
-.dashboard-table td {
-  padding: 10px 8px;
-  border-bottom: 1px solid #e0e0e0;
-  font-size: 0.85rem;
+.dashboard-table td,
+.student-dashboard .MuiTableBody-root .MuiTableCell-root {
+  padding: 11px 10px;
+  border-bottom: 1px solid #eef3ee;
+  font-size: 0.88rem;
+  color: var(--sw-text);
 }
 
-.dashboard-table tr:hover {
-  background-color: #f5f5f5;
+/* Alternating rows: white / #f9fafb */
+.dashboard-table tr:nth-child(even),
+.student-dashboard .MuiTableBody-root .MuiTableRow-root:nth-of-type(even) {
+  background-color: #f9fafb;
 }
 
-.dashboard-table tr:nth-child(even) {
-  background-color: #fafafa;
+/* Row hover */
+.dashboard-table tr:hover,
+.student-dashboard .MuiTableBody-root .MuiTableRow-root:hover {
+  background-color: #f0fdf4;
 }
 
-/* Status Chips */
+/* ------------------------------------------------------------
+   Status Chips
+   ------------------------------------------------------------ */
 .status-chip {
   font-size: 0.75rem;
   font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
 }
 
 .status-chip.open {
-  background-color: #e8f5e8;
-  color: #2e7d32;
+  background-color: var(--sw-green-soft);
+  color: var(--sw-green);
 }
 
 .status-chip.closed {
@@ -201,44 +696,50 @@
   color: #ef6c00;
 }
 
-/* Buttons */
+/* ------------------------------------------------------------
+   Buttons (custom classes)
+   ------------------------------------------------------------ */
 .submit-button {
-  background: linear-gradient(45deg, #1976d2 30%, #42a5f5 90%);
-  border-radius: 25px;
-  box-shadow: 0 3px 5px 2px rgba(25, 118, 210, 0.3);
-  transition: all 0.3s ease;
-  min-width: 120px;
-  height: 40px;
-  font-weight: 600;
+  background: linear-gradient(135deg, var(--sw-green) 0%, var(--sw-green-light) 100%);
+  border-radius: var(--sw-radius-btn);
+  box-shadow: 0 8px 18px rgba(46, 125, 50, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  min-width: 130px;
+  height: 42px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .submit-button:hover {
+  background: var(--sw-green-dark);
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(25, 118, 210, 0.4);
+  box-shadow: 0 12px 22px rgba(27, 94, 32, 0.24);
 }
 
 .submit-button:disabled {
   opacity: 0.6;
   transform: none;
-  box-shadow: 0 3px 5px 2px rgba(25, 118, 210, 0.3);
+  box-shadow: 0 6px 14px rgba(46, 125, 50, 0.12);
 }
 
 .edit-button {
-  background: linear-gradient(45deg, #ff9800 30%, #ffb74d 90%);
+  background: linear-gradient(135deg, var(--sw-green-light) 0%, var(--sw-green) 100%);
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
-  transition: all 0.3s ease;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  box-shadow: 0 6px 14px rgba(46, 125, 50, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .edit-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+  transform: scale(1.08);
+  box-shadow: 0 10px 18px rgba(27, 94, 32, 0.26);
 }
 
-/* Loading States */
+/* ------------------------------------------------------------
+   Loading States
+   ------------------------------------------------------------ */
 .loading-container {
   display: flex;
   justify-content: center;
@@ -249,42 +750,66 @@
 
 .loading-spinner {
   margin-bottom: 20px;
+  color: var(--sw-green);
 }
 
 .loading-text {
-  color: #666;
-  font-size: 1.1rem;
+  color: var(--sw-muted);
+  font-size: 1rem;
 }
 
-/* Messages */
+/* ------------------------------------------------------------
+   Alerts / Messages
+   ------------------------------------------------------------ */
+.student-dashboard .MuiAlert-root {
+  border-radius: var(--sw-radius-card);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
 .message-container {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .success-message {
-  background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
-  border: 1px solid #4caf50;
-  color: #2e7d32;
-  padding: 15px;
-  border-radius: 8px;
+  background: var(--sw-green-soft);
+  border: 1px solid var(--sw-green-light);
+  color: var(--sw-green-dark);
+  padding: 14px;
+  border-radius: var(--sw-radius-btn);
   display: flex;
   align-items: center;
 }
 
 .error-message {
-  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  background: #ffebee;
   border: 1px solid #f44336;
   color: #c62828;
-  padding: 15px;
-  border-radius: 8px;
+  padding: 14px;
+  border-radius: var(--sw-radius-btn);
   display: flex;
   align-items: center;
 }
 
-/* Registration Grid */
+.student-dashboard .section-title {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--sw-green-dark);
+  margin-bottom: 14px;
+}
+
+.student-dashboard .section-subtitle {
+  color: var(--sw-muted);
+  margin-bottom: 20px;
+  line-height: 1.55;
+}
+
+/* ------------------------------------------------------------
+   Registration Grid / specialized tables
+   ------------------------------------------------------------ */
 .registration-grid {
   overflow-x: auto;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .registration-table {
@@ -292,12 +817,12 @@
 }
 
 .registration-table th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--sw-green-soft);
+  color: var(--sw-green);
   padding: 12px 8px;
   text-align: center;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   white-space: nowrap;
 }
 
@@ -305,7 +830,7 @@
   padding: 10px 8px;
   text-align: center;
   font-size: 0.8rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #eef3ee;
 }
 
 .registration-table .checkbox-cell {
@@ -318,26 +843,43 @@
   width: 80px;
 }
 
-/* Profile Table */
+/* Profile Table — horizontal-scroll data grid */
+.profile-table-container {
+  border: 1px solid #eef3ee;
+}
+
+/* Keep short values on one line; let long text columns wrap */
+.profile-table-container .MuiTableCell-root {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.profile-table-container .MuiTableCell-root:nth-child(3),  /* Student Name */
+.profile-table-container .MuiTableCell-root:nth-child(7),  /* School */
+.profile-table-container .MuiTableCell-root:nth-child(8),  /* Parent */
+.profile-table-container .MuiTableCell-root:nth-child(10) { /* Email */
+  white-space: normal;
+}
+
 .profile-table {
   width: 100%;
   overflow-x: auto;
 }
 
 .profile-table th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--sw-green-soft);
+  color: var(--sw-green);
   padding: 12px 8px;
   text-align: left;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   white-space: nowrap;
 }
 
 .profile-table td {
   padding: 10px 8px;
   font-size: 0.8rem;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #eef3ee;
 }
 
 /* Report Card Table */
@@ -347,60 +889,81 @@
 }
 
 .report-card-table th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--sw-green-soft);
+  color: var(--sw-green);
   padding: 10px 6px;
   text-align: left;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   white-space: nowrap;
 }
 
 .report-card-table td {
   padding: 8px 6px;
-  font-size: 0.75rem;
-  border-bottom: 1px solid #e0e0e0;
+  font-size: 0.74rem;
+  border-bottom: 1px solid #eef3ee;
 }
 
-/* Responsive Design */
+/* ------------------------------------------------------------
+   Checkboxes / links pick up the green accent
+   ------------------------------------------------------------ */
+.student-dashboard .MuiCheckbox-root.Mui-checked {
+  color: var(--sw-green);
+}
+
+.student-dashboard a:not(.MuiButton-root):not(.meeting-join-btn) {
+  color: var(--sw-green);
+}
+
+.student-dashboard a:not(.MuiButton-root):not(.meeting-join-btn):hover {
+  color: var(--sw-green-dark);
+}
+
+/* ------------------------------------------------------------
+   Responsive Design
+   ------------------------------------------------------------ */
 @media (max-width: 1200px) {
   .dashboard-header h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
 
   .dashboard-header p {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 }
 
 @media (max-width: 768px) {
+  .student-dashboard {
+    padding-top: 72px;
+  }
+
   .student-dashboard-container {
     padding: 10px 0;
   }
 
   .dashboard-header {
-    padding: 20px 0;
-    margin-bottom: 20px;
+    padding: 18px 0;
+    margin-bottom: 18px;
   }
 
   .dashboard-header h1 {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
   }
 
   .registration-notice,
   .final-exam-section {
-    padding: 15px;
-    margin-bottom: 15px;
+    padding: 14px;
+    margin-bottom: 14px;
   }
 
   .dashboard-card .card-content {
-    padding: 15px;
+    padding: 14px;
   }
 
   .dashboard-table th,
   .dashboard-table td {
     padding: 8px 4px;
-    font-size: 0.75rem;
+    font-size: 0.74rem;
   }
 
   .registration-table th,
@@ -424,7 +987,7 @@
 
 @media (max-width: 480px) {
   .dashboard-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
 
   .registration-notice h6,
@@ -435,25 +998,66 @@
   .final-exam-button {
     min-width: 150px;
     height: 40px;
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 
   .submit-button {
     min-width: 100px;
-    height: 35px;
-    font-size: 0.9rem;
+    height: 36px;
+    font-size: 0.88rem;
   }
 }
 
-/* Animation Classes */
+/* ------------------------------------------------------------
+   Animations — fade in & stagger
+   ------------------------------------------------------------ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* MUI v7 fix: the legacy `<Grid item xs={12}>` rows no longer receive a
+   width (the API moved to `size`), so they collapse to content width and
+   leave the right side empty. Force the dashboard's top-level rows to span
+   the full width — their original full-row intent — and stagger them in. */
+.student-dashboard .MuiContainer-root > .MuiGrid-container > * {
+  flex-basis: 100%;
+  max-width: 100%;
+  width: 100%;
+  animation: fadeInUp 0.3s ease forwards;
+  opacity: 0;
+}
+
+.student-dashboard .MuiContainer-root > .MuiGrid-container > *:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.student-dashboard .MuiContainer-root > .MuiGrid-container > *:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.student-dashboard .MuiContainer-root > .MuiGrid-container > *:nth-child(3) {
+  animation-delay: 0.2s;
+}
+.student-dashboard .MuiContainer-root > .MuiGrid-container > *:nth-child(4) {
+  animation-delay: 0.3s;
+}
+.student-dashboard .MuiContainer-root > .MuiGrid-container > *:nth-child(n + 5) {
+  animation-delay: 0.35s;
+}
+
 .fade-in {
-  animation: fadeIn 0.5s ease-in;
+  animation: fadeInUp 0.4s ease forwards;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -462,7 +1066,7 @@
 }
 
 .slide-in-left {
-  animation: slideInLeft 0.5s ease-out;
+  animation: slideInLeft 0.45s ease-out;
 }
 
 @keyframes slideInLeft {
@@ -477,7 +1081,7 @@
 }
 
 .slide-in-right {
-  animation: slideInRight 0.5s ease-out;
+  animation: slideInRight 0.45s ease-out;
 }
 
 @keyframes slideInRight {
@@ -491,7 +1095,9 @@
   }
 }
 
-/* Utility Classes */
+/* ------------------------------------------------------------
+   Utility Classes
+   ------------------------------------------------------------ */
 .text-center {
   text-align: center;
 }
@@ -552,29 +1158,36 @@
   padding: 24px;
 }
 
-/* Custom Scrollbar */
+/* ------------------------------------------------------------
+   Custom Scrollbar (scoped to dashboard)
+   ------------------------------------------------------------ */
+.student-dashboard ::-webkit-scrollbar,
 .registration-grid::-webkit-scrollbar,
 .profile-table::-webkit-scrollbar,
 .report-card-table::-webkit-scrollbar {
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
+.student-dashboard ::-webkit-scrollbar-track,
 .registration-grid::-webkit-scrollbar-track,
 .profile-table::-webkit-scrollbar-track,
 .report-card-table::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: var(--sw-bg);
+  border-radius: 10px;
 }
 
+.student-dashboard ::-webkit-scrollbar-thumb,
 .registration-grid::-webkit-scrollbar-thumb,
 .profile-table::-webkit-scrollbar-thumb,
 .report-card-table::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+  background: #a5d6a7;
+  border-radius: 10px;
 }
 
+.student-dashboard ::-webkit-scrollbar-thumb:hover,
 .registration-grid::-webkit-scrollbar-thumb:hover,
 .profile-table::-webkit-scrollbar-thumb:hover,
 .report-card-table::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--sw-green-light);
 }

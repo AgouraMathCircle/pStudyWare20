@@ -351,8 +351,12 @@ const StudentProfile = ({ username, chapterId }) => {
       </Box>
 
       {/* Table */}
-      <TableContainer component={Paper} sx={{ mb: 2, width: "100%" }}>
-        <Table sx={{ width: "100%", tableLayout: "fixed" }}>
+      <TableContainer
+        component={Paper}
+        className="profile-table-container"
+        sx={{ mb: 2, width: "100%", overflowX: "auto", borderRadius: 2 }}
+      >
+        <Table sx={{ width: "100%", minWidth: 1100 }}>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
               <TableCell

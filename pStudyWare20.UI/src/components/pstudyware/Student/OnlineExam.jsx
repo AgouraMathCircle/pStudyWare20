@@ -33,6 +33,45 @@ import { useAuth } from "../../../contexts/AuthContext";
 import onlineExamService from "../../../services/onlineExamService";
 import StudentHeader from "./StudentHeader";
 
+const pageSx = {
+  minHeight: "100vh",
+  pt: 9,
+  pb: 5,
+};
+
+const selectionCardSx = {
+  mb: 3,
+  borderRadius: 3,
+  border: "1px solid #dbeedc",
+  boxShadow: "0 14px 32px rgba(23, 74, 16, 0.12)",
+  overflow: "hidden",
+};
+
+const fieldSx = {
+  "& .MuiInputBase-root": {
+    minHeight: 54,
+    backgroundColor: "#fff",
+  },
+  "& .MuiInputLabel-root": {
+    maxWidth: "calc(100% - 32px)",
+  },
+};
+
+const primaryButtonSx = {
+  backgroundColor: "#174a10",
+  minHeight: 54,
+  px: 3,
+  borderRadius: 2,
+  fontWeight: 700,
+  letterSpacing: 0.3,
+  whiteSpace: "nowrap",
+  boxShadow: "0 8px 18px rgba(23, 74, 16, 0.24)",
+  "&:hover": {
+    backgroundColor: "#0f3209",
+    boxShadow: "0 10px 22px rgba(23, 74, 16, 0.3)",
+  },
+};
+
 const OnlineExam = () => {
   const { user, isAuthenticated } = useAuth();
   const [searchParams] = useSearchParams();
@@ -434,27 +473,48 @@ const OnlineExam = () => {
   }
 
   return (
-    <Container maxWidth="xl">
+    <Box sx={pageSx}>
       <StudentHeader />
 
-      <Box sx={{ mt: 3, mb: 3 }}>
-        <Typography variant="h4" gutterBottom sx={{ color: "#174a10" }}>
-          Online Exam
+      <Container maxWidth="xl">
+      <Box sx={{ mb: 3 }}>
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            color: "#174a10",
+            fontWeight: 800,
+            fontSize: { xs: "1.7rem", md: "2.2rem" },
+          }}
+        >
+          Update Score
         </Typography>
 
         {/* Instructions */}
         {showForm && (
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography variant="h6" sx={{ color: "#174a10", mb: 2 }}>
+          <Card sx={selectionCardSx}>
+            <CardContent sx={{ p: { xs: 2.5, md: 3.5 } }}>
+              <Typography
+                variant="h6"
+                sx={{ color: "#174a10", mb: 2, fontWeight: 700 }}
+              >
                 Instructions
               </Typography>
-              <Box sx={{ pl: 2 }}>
+              <Box
+                sx={{
+                  pl: { xs: 0, md: 1 },
+                  color: "#334155",
+                  "& p": { mb: 1.25 },
+                }}
+              >
                 <Typography variant="body2" paragraph>
                   <strong>Step 1:</strong> Download the questions (Quiz,
                   Classwork, Homework, Final exam) and answer each question
                   carefully.{" "}
-                  <Link href="/student/documents" sx={{ color: "white" }}>
+                  <Link
+                    href="/pstudyware/student/class-material"
+                    sx={{ color: "#174a10", fontWeight: 700 }}
+                  >
                     Click here to download the Questions (Quiz, Classwork,
                     Homework, Final exam).
                   </Link>
@@ -491,9 +551,17 @@ const OnlineExam = () => {
                   you believe this is an error.
                 </Alert>
               ) : (
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={4}>
-                    <FormControl fullWidth>
+                <Box
+                  sx={{
+                    backgroundColor: "#f4fbf5",
+                    border: "1px solid #dbeedc",
+                    borderRadius: 2,
+                    p: { xs: 2, md: 2.5 },
+                  }}
+                >
+                <Grid container spacing={2.5} alignItems="stretch">
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <FormControl fullWidth sx={fieldSx}>
                       <InputLabel>Student Name</InputLabel>
                       <Select
                         value={selectedStudent}
@@ -509,8 +577,8 @@ const OnlineExam = () => {
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12} md={4}>
-                    <FormControl fullWidth>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <FormControl fullWidth sx={fieldSx}>
                       <InputLabel>Session</InputLabel>
                       <Select
                         value={selectedSession}
@@ -526,8 +594,8 @@ const OnlineExam = () => {
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12} md={4}>
-                    <FormControl fullWidth>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <FormControl fullWidth sx={fieldSx}>
                       <InputLabel>Exam Type</InputLabel>
                       <Select
                         value={selectedExamType}
@@ -543,20 +611,21 @@ const OnlineExam = () => {
                     </FormControl>
                   </Grid>
 
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12, md: 2 }}>
                     <Button
                       variant="contained"
                       onClick={handleGetAnswerSheet}
                       disabled={questionsLoading}
                       sx={{
-                        backgroundColor: "#174a10",
-                        "&:hover": { backgroundColor: "#0f3209" },
+                        ...primaryButtonSx,
+                        width: "100%",
                       }}
                     >
                       {questionsLoading ? "Loading..." : "Get Answer Sheet"}
                     </Button>
                   </Grid>
                 </Grid>
+                </Box>
               )}
             </CardContent>
           </Card>
@@ -610,7 +679,7 @@ const OnlineExam = () => {
               <Grid container spacing={2}>
                 {/* Group 1 */}
                 {group1.length > 0 && (
-                  <Grid item xs={12} md={questions.length > 10 ? 4 : 12}>
+                  <Grid size={{ xs: 12, md: questions.length > 10 ? 4 : 12 }}>
                     <Paper elevation={2} sx={{ p: 2 }}>
                       <Typography
                         variant="subtitle1"
@@ -677,7 +746,7 @@ const OnlineExam = () => {
 
                 {/* Group 2 */}
                 {group2.length > 0 && (
-                  <Grid item xs={12} md={4}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <Paper elevation={2} sx={{ p: 2 }}>
                       <Typography
                         variant="subtitle1"
@@ -744,7 +813,7 @@ const OnlineExam = () => {
 
                 {/* Group 3 */}
                 {group3.length > 0 && (
-                  <Grid item xs={12} md={4}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <Paper elevation={2} sx={{ p: 2 }}>
                       <Typography
                         variant="subtitle1"
@@ -890,6 +959,7 @@ const OnlineExam = () => {
           </Card>
         )}
       </Box>
+      </Container>
 
       {/* Snackbar for messages */}
       <Snackbar
@@ -906,7 +976,7 @@ const OnlineExam = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 
