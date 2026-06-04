@@ -79,6 +79,7 @@ import {
 import {
   VolunteerShell,
   VolunteerDashboard,
+  VolunteerClassMaterial,
   VolunteerTimeSheet,
 } from "./src/components/pstudyware/Volunteer";
 import SentEmail from "./src/components/pstudyware/Common/SentEmail";
@@ -88,6 +89,7 @@ import {
   MeetingDetails,
   UpdatePassword,
 } from "./src/components/pstudyware/Common";
+import EmailInbox from "./src/components/pstudyware/EmailInbox/EmailInbox";
 
 function UpdateProfileRedirect() {
   const { studentId } = useParams();
@@ -297,6 +299,15 @@ const AppRoutes = () => {
               element={
                 <ProtectedRoute>
                   <EmailManager />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/pstudyware/email/inbox"
+              element={
+                <ProtectedRoute>
+                  <EmailInbox />
                 </ProtectedRoute>
               }
             />
@@ -815,6 +826,19 @@ const AppRoutes = () => {
                 >
                   <VolunteerShell>
                     <VolunteerDashboard />
+                  </VolunteerShell>
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/volunteer/class-material"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Volunteer"]}
+                  allowedMemberTypes={["V"]}
+                >
+                  <VolunteerShell>
+                    <VolunteerClassMaterial />
                   </VolunteerShell>
                 </RoleProtectedRoute>
               }
