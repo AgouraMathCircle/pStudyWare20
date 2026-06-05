@@ -63,4 +63,28 @@ namespace pStudyWare20.Shared
         public string Response { get; set; } = string.Empty;
         public string Comments { get; set; } = string.Empty;
     }
+
+    /// <summary>
+    /// Request model for volunteer availability summary
+    /// </summary>
+    public class VolunteerAvailabilitySummaryRequest
+    {
+        [Display(Name = "Username")]
+        public string Username { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Response model for volunteer availability summary
+    /// </summary>
+    public class VolunteerAvailabilitySummaryResponse
+    {
+        [Display(Name = "Is Success")]
+        public bool IsSuccess { get; set; }
+
+        [Display(Name = "Error Message")]
+        public string ErrorMessage { get; set; } = string.Empty;
+
+        [Display(Name = "Summary Data")]
+        public object SummaryData { get; set; } = new object();
+    }
 }

@@ -127,5 +127,58 @@ namespace pStudyWare20.API.Controllers
                 });
             }
         }
+
+        /// <summary>
+        /// Gets the volunteer availability summary
+        /// </summary>
+        /// <param name="request">Volunteer availability summary request data</param>
+        /// <returns>Result of the summary operation</returns>
+        [HttpPost("GetAvailabilitySummary")]
+        public async Task<IActionResult> GetAvailabilitySummary([FromBody] VolunteerAvailabilitySummaryRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new 
+                    { 
+                        message = "Invalid request data", 
+                        errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) 
+                    });
+                }
+
+                // Get username from JWT token if not provided in request
+                if (string.IsNullOrEmpty(request.Username))
+                {
+                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value 
+                                     ?? User.FindFirst(ClaimTypes.Email)?.Value 
+                                     ?? "";
+                }
+
+                if (string.IsNullOrEmpty(request.Username))
+                {
+                    return BadRequest(new { message = "Username is required." });
+                }
+
+                var response = await _volunteerAvailabilityService.GetVolunteerAvailabilitySummaryAsync(request);
+                
+                if (response.IsSuccess)
+                {
+                    return Ok(response);
+                }
+                else
+                {
+                    return BadRequest(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new 
+                { 
+                    message = "An error occurred while getting volunteer availability summary", 
+                    error = ex.Message 
+                });
+            }
+        }
     }
 }

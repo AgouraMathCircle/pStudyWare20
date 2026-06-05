@@ -12,6 +12,11 @@ const volunteerAvailabilityService = {
     const response = await api.post(`${BASE}/UpdateAvailability`, request);
     return response.data;
   },
+
+  getAvailabilitySummary: async (request) => {
+    const response = await api.post(`${BASE}/GetAvailabilitySummary`, request);
+    return response.data;
+  },
 };
 
 export default volunteerAvailabilityService;

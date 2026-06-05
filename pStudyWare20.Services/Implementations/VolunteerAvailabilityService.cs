@@ -1,6 +1,7 @@
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
+using System.Data;
 
 namespace pStudyWare20.Services.Implementations
 {
@@ -69,6 +70,60 @@ namespace pStudyWare20.Services.Implementations
                     ErrorMessage = $"An error occurred while getting volunteer availability: {ex.Message}"
                 };
             }
+        }
+
+        /// <summary>
+        /// Gets the volunteer availability summary using the repository
+        /// </summary>
+        public async Task<VolunteerAvailabilitySummaryResponse> GetVolunteerAvailabilitySummaryAsync(VolunteerAvailabilitySummaryRequest request)
+        {
+            try
+            {
+                var summaryData = await _volunteerAvailabilityRepository.GetVolunteerAvailabilitySummaryAsync(request.Username);
+                var rows = NormalizeSummaryData(summaryData);
+
+                return new VolunteerAvailabilitySummaryResponse
+                {
+                    IsSuccess = true,
+                    SummaryData = rows
+                };
+            }
+            catch (Exception ex)
+            {
+                return new VolunteerAvailabilitySummaryResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"An error occurred while getting volunteer availability summary: {ex.Message}"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Convert DataTable from AMC_spVolunteerAvailability_Summary to JSON-friendly row dictionaries
+        /// </summary>
+        private static List<Dictionary<string, object?>> NormalizeSummaryData(object summaryData)
+        {
+            if (summaryData is DataTable dt)
+                return DataTableToRows(dt);
+            if (summaryData is List<Dictionary<string, object?>> already)
+                return already;
+            return new List<Dictionary<string, object?>>();
+        }
+
+        private static List<Dictionary<string, object?>> DataTableToRows(DataTable dt)
+        {
+            var list = new List<Dictionary<string, object?>>(dt.Rows.Count);
+            foreach (DataRow row in dt.Rows)
+            {
+                var dict = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+                foreach (DataColumn col in dt.Columns)
+                {
+                    var val = row[col];
+                    dict[col.ColumnName] = val == DBNull.Value ? null : val;
+                }
+                list.Add(dict);
+            }
+            return list;
         }
     }
 }

@@ -20,5 +20,12 @@ namespace pStudyWare20.Services.Interfaces
         /// <param name="request">The volunteer availability select request data</param>
         /// <returns>Volunteer availability select response indicating success or failure status</returns>
         Task<VolunteerAvailabilitySelectResponse> GetVolunteerAvailabilityAsync(VolunteerAvailabilitySelectRequest request);
+
+        /// <summary>
+        /// Gets the volunteer availability summary
+        /// </summary>
+        /// <param name="request">The volunteer availability summary request data</param>
+        /// <returns>Volunteer availability summary response indicating success or failure status</returns>
+        Task<VolunteerAvailabilitySummaryResponse> GetVolunteerAvailabilitySummaryAsync(VolunteerAvailabilitySummaryRequest request);
     }
 }

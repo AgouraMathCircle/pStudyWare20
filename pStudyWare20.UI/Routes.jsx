@@ -816,6 +816,27 @@ const AppRoutes = () => {
               <Route path="update-password" element={<UpdatePassword />} />
             </Route>
 
+            {/* Coordinator Routes */}
+            <Route
+              path="/pstudyware/coordinator"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Instructor"]}
+                  allowedMemberTypes={["I"]}
+                >
+                  <InstructorShell />
+                </RoleProtectedRoute>
+              }
+            >
+              <Route
+                index
+                element={
+                  <Navigate to="/pstudyware/coordinator/dashboard" replace />
+                }
+              />
+              <Route path="dashboard" element={<InstructorDashboard />} />
+            </Route>
+
             {/* Volunteer Routes */}
             <Route
               path="/pstudyware/volunteer/dashboard"

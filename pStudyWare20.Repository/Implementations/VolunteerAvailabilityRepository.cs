@@ -122,5 +122,34 @@ namespace pStudyWare20.Repository.Implementations
                 };
             }
         }
+
+        /// <summary>
+        /// Get volunteer availability summary from the database using AMC_spVolunteerAvailability_Summary
+        /// </summary>
+        public async Task<object> GetVolunteerAvailabilitySummaryAsync(string username)
+        {
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand("AMC_spVolunteerAvailability_Summary", connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                command.Parameters.Add(new SqlParameter("@Username", username));
+
+                var dataTable = new DataTable();
+                using var adapter = new SqlDataAdapter(command);
+                adapter.Fill(dataTable);
+
+                return dataTable;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting volunteer availability summary: {ex.Message}", ex);
+            }
+        }
     }
 }

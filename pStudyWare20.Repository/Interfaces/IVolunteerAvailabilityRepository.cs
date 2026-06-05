@@ -20,5 +20,12 @@ namespace pStudyWare20.Repository.Interfaces
         /// <param name="request">The volunteer availability select request data</param>
         /// <returns>Volunteer availability select response</returns>
         Task<VolunteerAvailabilitySelectResponse> GetVolunteerAvailabilityAsync(VolunteerAvailabilitySelectRequest request);
+
+        /// <summary>
+        /// Get volunteer availability summary from the database using AMC_spVolunteerAvailability_Summary
+        /// </summary>
+        /// <param name="username">The username</param>
+        /// <returns>Volunteer availability summary data</returns>
+        Task<object> GetVolunteerAvailabilitySummaryAsync(string username);
     }
 }
