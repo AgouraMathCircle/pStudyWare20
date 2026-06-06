@@ -56,7 +56,7 @@ const RoleProtectedRoute = ({
         case "A":
           return <Navigate to="/admin/dashboard" replace />;
         case "I":
-          return <Navigate to="/instructor/dashboard" replace />;
+          return <Navigate to="/pstudyware/instructor/dashboard" replace />;
         case "S":
           return <Navigate to="/pstudyware/student/dashboard" replace />;
         case "V":
@@ -69,7 +69,7 @@ const RoleProtectedRoute = ({
         case "Admin":
           return <Navigate to="/admin/dashboard" replace />;
         case "Instructor":
-          return <Navigate to="/instructor/dashboard" replace />;
+          return <Navigate to="/pstudyware/instructor/dashboard" replace />;
         case "Student":
           return <Navigate to="/pstudyware/student/dashboard" replace />;
         case "Volunteer":

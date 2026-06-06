@@ -186,6 +186,11 @@ const Navbar = () => {
       icon: <MessageIcon fontSize="small" />,
     },
     {
+      label: "Inbox",
+      href: "/pstudyware/email/inbox",
+      icon: <MessageIcon fontSize="small" />,
+    },
+    {
       label: "Change Password",
       href: "/pstudyware/student/update-password",
       icon: <LockIcon fontSize="small" />,
@@ -242,6 +247,11 @@ const Navbar = () => {
       icon: <MessageIcon fontSize="small" />,
     },
     {
+      label: "Inbox",
+      href: "/pstudyware/email/inbox",
+      icon: <MessageIcon fontSize="small" />,
+    },
+    {
       label: "Password",
       href: "/pstudyware/admin/update-password",
       icon: <LockIcon fontSize="small" />,
@@ -282,6 +292,11 @@ const Navbar = () => {
       icon: <MessageIcon fontSize="small" />,
     },
     {
+      label: "Inbox",
+      href: "/pstudyware/email/inbox",
+      icon: <MessageIcon fontSize="small" />,
+    },
+    {
       label: "Change Password",
       href: "/pstudyware/instructor/update-password",
       icon: <LockIcon fontSize="small" />,
@@ -307,8 +322,18 @@ const Navbar = () => {
       icon: <AssignmentIcon fontSize="small" />,
     },
     {
+      label: "Class Materials",
+      href: "/pstudyware/volunteer/class-material",
+      icon: <ResourcesIcon fontSize="small" />,
+    },
+    {
       label: "Message Center",
       href: "/pstudyware/volunteer/message-center",
+      icon: <MessageIcon fontSize="small" />,
+    },
+    {
+      label: "Inbox",
+      href: "/pstudyware/email/inbox",
       icon: <MessageIcon fontSize="small" />,
     },
     {

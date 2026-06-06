@@ -79,6 +79,7 @@ import {
 import {
   VolunteerShell,
   VolunteerDashboard,
+  VolunteerClassMaterial,
   VolunteerTimeSheet,
 } from "./src/components/pstudyware/Volunteer";
 import SentEmail from "./src/components/pstudyware/Common/SentEmail";
@@ -88,6 +89,7 @@ import {
   MeetingDetails,
   UpdatePassword,
 } from "./src/components/pstudyware/Common";
+import EmailInbox from "./src/components/pstudyware/EmailInbox/EmailInbox";
 
 function UpdateProfileRedirect() {
   const { studentId } = useParams();
@@ -297,6 +299,15 @@ const AppRoutes = () => {
               element={
                 <ProtectedRoute>
                   <EmailManager />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/pstudyware/email/inbox"
+              element={
+                <ProtectedRoute>
+                  <EmailInbox />
                 </ProtectedRoute>
               }
             />
@@ -805,6 +816,27 @@ const AppRoutes = () => {
               <Route path="update-password" element={<UpdatePassword />} />
             </Route>
 
+            {/* Coordinator Routes */}
+            <Route
+              path="/pstudyware/coordinator"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Instructor"]}
+                  allowedMemberTypes={["I"]}
+                >
+                  <InstructorShell />
+                </RoleProtectedRoute>
+              }
+            >
+              <Route
+                index
+                element={
+                  <Navigate to="/pstudyware/coordinator/dashboard" replace />
+                }
+              />
+              <Route path="dashboard" element={<InstructorDashboard />} />
+            </Route>
+
             {/* Volunteer Routes */}
             <Route
               path="/pstudyware/volunteer/dashboard"
@@ -815,6 +847,19 @@ const AppRoutes = () => {
                 >
                   <VolunteerShell>
                     <VolunteerDashboard />
+                  </VolunteerShell>
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/volunteer/class-material"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Volunteer"]}
+                  allowedMemberTypes={["V"]}
+                >
+                  <VolunteerShell>
+                    <VolunteerClassMaterial />
                   </VolunteerShell>
                 </RoleProtectedRoute>
               }

@@ -227,5 +227,50 @@ namespace pStudyWare20.Repository.Implementations
                 throw new Exception($"Error updating password: {ex.Message}", ex);
             }
         }
+
+        public async Task<(string currentSession, string currentSemester)> GetCurrentSessionAndSemesterAsync(string chapterId)
+        {
+            string currentSession = "";
+            string currentSemester = "";
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                // 1. Get Current Semester from AMC_spSelectSemesterLookup
+                using (var command = new SqlCommand("AMC_spSelectSemesterLookup", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    using var reader = await command.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
+                    {
+                        var semIndex = reader.GetOrdinal("semester");
+                        currentSemester = reader.GetValue(semIndex)?.ToString()?.Trim() ?? "";
+                    }
+                }
+
+                // 2. Get Current Session from AMC_spSelectCurrentSession
+                using (var command = new SqlCommand("AMC_spSelectCurrentSession", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.Add(new SqlParameter("@ChapterID", string.IsNullOrEmpty(chapterId) ? "3" : chapterId));
+                    using var reader = await command.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
+                    {
+                        var sessIndex = reader.GetOrdinal("Session");
+                        currentSession = reader.GetValue(sessIndex)?.ToString()?.Trim() ?? "";
+                    }
+                }
+            }
+            catch
+            {
+                // Fallbacks if tables are empty or error occurs
+                if (string.IsNullOrEmpty(currentSession)) currentSession = "S2026";
+                if (string.IsNullOrEmpty(currentSemester)) currentSemester = "Spring 2026";
+            }
+
+            return (currentSession, currentSemester);
+        }
     }
 }

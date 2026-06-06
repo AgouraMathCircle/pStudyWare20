@@ -12,6 +12,8 @@ namespace pStudyWare20.Entity
         public string MemberType { get; set; } = string.Empty;
         public string ChapterID { get; set; } = string.Empty;
         public string SystemAdmin { get; set; } = string.Empty;
+        public string CurrentSession { get; set; } = string.Empty;
+        public string CurrentSemester { get; set; } = string.Empty;
         public DateTime ExpiresAt { get; set; }
     }
 } 
