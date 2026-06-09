@@ -156,6 +156,12 @@ const UpdatePassword = () => {
   const isDashboardShell =
     location.pathname.startsWith("/pstudyware/instructor/") ||
     location.pathname.startsWith("/pstudyware/volunteer/");
+  const isAdminPasswordPage =
+    user?.role === "Admin" ||
+    user?.role === "SystemAdmin" ||
+    user?.memberType?.toUpperCase() === "A" ||
+    location.pathname.startsWith("/pstudyware/admin/") ||
+    location.pathname.startsWith("/admin/");
 
   return (
     <Box>
