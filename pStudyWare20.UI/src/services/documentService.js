@@ -1,4 +1,6 @@
 import api from "./api";
+import config, { getPublicDocumentUrl } from "../utils/config";
+import { parseBlobError } from "../utils/excelExport";
 
 const inFlightRequests = new Map();
 
@@ -166,13 +168,49 @@ const documentService = {
   },
 
   /**
-   * Download document
+   * Download document via API (class materials).
+   * @param {string} docName - Document name
+   * @returns {Promise<void>}
+   */
+  downloadClassMaterial: async (docName) =>
+    documentService.downloadDocumentFromApi(
+      docName,
+      "/Document/DownloadClassMaterial"
+    ),
+
+  /**
+   * Download a document file via API.
+   * @param {string} docName - Document name
+   * @param {string} endpoint - API endpoint path
+   * @returns {Promise<void>}
+   */
+  downloadDocumentFromApi: async (docName, endpoint) => {
+    if (!docName) {
+      return;
+    }
+
+    const blob = await documentService.fetchDocumentBlob(docName, endpoint);
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = docName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
+
+  /**
+   * Download document (static path fallback).
    * @param {string} docName - Document name
    * @param {string} basePath - Base path for documents
    * @returns {void}
    */
-  downloadDocument: (docName, basePath = "/pStudyWare/Documents/") => {
-    const url = `${basePath}${docName}`;
+  downloadDocument: (docName, basePath = config.paths.publicDocuments) => {
+    const url =
+      basePath === config.paths.publicDocuments
+        ? getPublicDocumentUrl(docName)
+        : `${basePath}${docName}`;
     const link = document.createElement("a");
     link.href = url;
     link.download = docName;
@@ -187,8 +225,11 @@ const documentService = {
    * @param {string} basePath - Base path for documents
    * @returns {void}
    */
-  viewDocument: (docName, basePath = "/pStudyWare/Documents/") => {
-    const url = `${basePath}${docName}`;
+  viewDocument: (docName, basePath = config.paths.publicDocuments) => {
+    const url =
+      basePath === config.paths.publicDocuments
+        ? getPublicDocumentUrl(docName)
+        : `${basePath}${docName}`;
     window.open(url, "_blank");
   },
 
@@ -264,6 +305,30 @@ const documentService = {
   },
 
   /**
+   * Get student list for document upload (legacy DisplayMode = "H").
+   * @param {string} username - Portal username
+   * @returns {Promise<Object>} Student list response
+   */
+  getStudentListForDocuments: async (username) => {
+    try {
+      const response = await api.post(
+        "/StudentScore/GetStudentList",
+        {
+          username,
+          type: "H",
+        },
+        {
+          timeout: 30000,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching student list for documents:", error);
+      throw error;
+    }
+  },
+
+  /**
    * Add student document
    * @param {Object} documentData - Document data including file
    * @returns {Promise<Object>} Upload response
@@ -295,8 +360,8 @@ const documentService = {
       const response = await api.post(
         "/Document/DeleteStudentDocument",
         {
-          DocumentID: documentID,
-          DocumentName: documentName,
+          documentID,
+          documentName,
         },
         {
           timeout: 30000, // 30 seconds for delete operations
@@ -377,29 +442,122 @@ const documentService = {
   },
 
   /**
+   * Fetch class material PDF from API storage.
+   * @param {string} docName - Document file name
+   * @returns {Promise<Blob>} PDF blob
+   */
+  fetchClassMaterialBlob: async (docName) =>
+    documentService.fetchDocumentBlob(docName, "/Document/ViewClassMaterial"),
+
+  /**
+   * Fetch a document file from an API endpoint.
+   * @param {string} docName - Document file name
+   * @param {string} endpoint - API endpoint path
+   * @returns {Promise<Blob>} PDF blob
+   */
+  fetchDocumentBlob: async (docName, endpoint) => {
+    try {
+      const response = await api.get(endpoint, {
+        params: { fileName: docName },
+        responseType: "blob",
+        timeout: 60000,
+      });
+
+      const blob = response.data;
+      const contentType = response.headers?.["content-type"] || "";
+
+      if (
+        blob instanceof Blob &&
+        (contentType.includes("application/json") || blob.type.includes("json"))
+      ) {
+        const message = await parseBlobError(blob);
+        throw new Error(message || "Unable to open document.");
+      }
+
+      return blob instanceof Blob
+        ? blob
+        : new Blob([blob], { type: "application/pdf" });
+    } catch (error) {
+      if (error.response?.data instanceof Blob) {
+        throw new Error(await parseBlobError(error.response.data));
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Fetch student document file from API storage.
+   * @param {string} docName - Document file name
+   * @param {string} endpoint - API endpoint path
+   * @returns {Promise<Blob>} PDF blob
+   */
+  fetchStudentDocumentBlob: async (docName, endpoint) =>
+    documentService.fetchDocumentBlob(docName, endpoint),
+
+  /**
    * View student document in new window
    * @param {string} docName - Document name
-   * @returns {void}
+   * @returns {Promise<void>}
    */
-  viewStudentDocument: (docName) => {
-    const url = `/pStudyWare/AMC_Student_Docs/${docName}`;
-    window.open(url, "_blank");
+  viewStudentDocument: async (docName) => {
+    if (!docName) {
+      return;
+    }
+
+    const blob = await documentService.fetchStudentDocumentBlob(
+      docName,
+      "/Document/ViewStudentDocument"
+    );
+    const pdfBlob =
+      blob.type && blob.type !== "application/octet-stream"
+        ? blob
+        : new Blob([blob], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(pdfBlob);
+    const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+
+    if (!newWindow) {
+      window.URL.revokeObjectURL(url);
+      throw new Error(
+        "Unable to open document. Please allow popups for this site."
+      );
+    }
+
+    setTimeout(() => window.URL.revokeObjectURL(url), 120000);
   },
 
   /**
    * Download student document
    * @param {string} docName - Document name
-   * @returns {void}
+   * @returns {Promise<void>}
    */
-  downloadStudentDocument: (docName) => {
-    const url = `/pStudyWare/AMC_Student_Docs/${docName}`;
+  downloadStudentDocument: async (docName) => {
+    if (!docName) {
+      return;
+    }
+
+    const blob = await documentService.fetchStudentDocumentBlob(
+      docName,
+      "/Document/DownloadStudentDocument"
+    );
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
     link.download = docName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
 };
+
+/** AMC_spDeleteDocuments @DocID = API documentID (table mDocID), not display row docID. */
+export const getStudentDocumentDeleteId = (doc) => {
+  const id = doc?.documentID ?? doc?.DocumentID;
+  const parsed = Number(id);
+  return Number.isFinite(parsed) && parsed > 0 ? String(parsed) : "";
+};
+
+export const getStudentDocumentName = (doc) =>
+  doc?.documentName ?? doc?.DocumentName ?? "";
 
 export default documentService;

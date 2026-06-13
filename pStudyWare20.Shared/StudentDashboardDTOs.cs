@@ -284,6 +284,7 @@ namespace pStudyWare20.Shared
         public string Announcement { get; set; } = string.Empty;
         public string Competitions { get; set; } = string.Empty;
         public string TodoList { get; set; } = string.Empty;
+        public List<ReportCardEntry> ReportCardEntries { get; set; } = new List<ReportCardEntry>();
     }
 
     /// <summary>

@@ -153,6 +153,7 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Answers")]
         [Required(ErrorMessage = "Answers are required")]
+        [MinLength(1, ErrorMessage = "At least one answer is required")]
         public List<StudentExamAnswer> Answers { get; set; } = new List<StudentExamAnswer>();
 
         [Display(Name = "Score ID")]

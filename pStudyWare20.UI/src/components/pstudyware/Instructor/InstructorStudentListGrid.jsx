@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
 import {
   Box,
   Button,
@@ -14,10 +13,12 @@ import {
   TableRow,
   TextField,
   Typography,
-  Link,
 } from "@mui/material";
 import { Edit as EditIcon } from "@mui/icons-material";
+import { useUpdateProfileModal } from "../../../contexts/UpdateProfileModalContext";
 import InstructorPortalPaginationBar from "./InstructorPortalPaginationBar";
+import SortableHeader from "../Common/SortableHeader";
+import { sortRows, toSortableNumber } from "../../../utils/tableSort";
 import {
   instructorCellBodySx,
   instructorCellBodySxLast,
@@ -84,16 +85,27 @@ function filterRows(rows, searchBy, searchCriteria, searchText) {
   });
 }
 
+const getStudentListFieldValue = (row, field) => {
+  const col = COLS.find((c) => c.searchBy === field);
+  if (!col) return "";
+  const val = cell(row, col.keys);
+  if (field === "STUDENT_ID") return toSortableNumber(val);
+  return val;
+};
+
 /**
  * My Student List — same table/search/pagination chrome as instructor student-documents.
  */
 const InstructorStudentListGrid = ({ rows = [], loading = false, error = null }) => {
+  const { openUpdateProfile } = useUpdateProfileModal();
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("contains");
   const [searchText, setSearchText] = useState("");
   const [filteredRows, setFilteredRows] = useState(rows);
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
+  const [sortField, setSortField] = useState("STUDENT_NAME");
+  const [sortOrder, setSortOrder] = useState("asc");
   const pageSize = 10;
 
   useEffect(() => {
@@ -109,13 +121,26 @@ const InstructorStudentListGrid = ({ rows = [], loading = false, error = null })
     setGoToPageInput("1");
   };
 
-  const totalRecords = filteredRows.length;
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
+
+  const sortedRows = useMemo(
+    () => sortRows(filteredRows, sortField, sortOrder, getStudentListFieldValue),
+    [filteredRows, sortField, sortOrder],
+  );
+
+  const totalRecords = sortedRows.length;
   const totalPages = Math.ceil(totalRecords / pageSize) || 0;
 
   const pageRows = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    return filteredRows.slice(start, start + pageSize);
-  }, [filteredRows, currentPage, pageSize]);
+    return sortedRows.slice(start, start + pageSize);
+  }, [sortedRows, currentPage, pageSize]);
 
   const handlePageChange = (page) => {
     const maxPage = Math.ceil(totalRecords / pageSize) || 1;
@@ -261,9 +286,15 @@ const InstructorStudentListGrid = ({ rows = [], loading = false, error = null })
           <TableHead>
             <TableRow sx={instructorTableHeadRowSx}>
               {COLS.map((c) => (
-                <TableCell key={c.label} sx={instructorCellHeaderSx}>
-                  {c.label}
-                </TableCell>
+                <SortableHeader
+                  key={c.label}
+                  label={c.label}
+                  field={c.searchBy}
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  headCellSx={instructorCellHeaderSx}
+                />
               ))}
               <TableCell sx={instructorCellHeaderSxLast} align="right">
                 Profile
@@ -301,20 +332,22 @@ const InstructorStudentListGrid = ({ rows = [], loading = false, error = null })
                     ))}
                     <TableCell sx={instructorCellBodySxLast} align="right">
                       {sid ? (
-                        <Link
-                          component={RouterLink}
-                          to={`/UpdateProfile/${sid}`}
-                          underline="hover"
+                        <Box
+                          onClick={() => openUpdateProfile(sid)}
                           sx={{
                             display: "inline-flex",
                             alignItems: "center",
                             gap: 0.5,
                             fontSize: "0.75rem",
+                            color: "#0000ee",
+                            textDecoration: "underline",
+                            cursor: "pointer",
+                            "&:hover": { color: "#551a8b" },
                           }}
                         >
                           <EditIcon sx={{ fontSize: "1rem" }} />
                           Update
-                        </Link>
+                        </Box>
                       ) : (
                         "—"
                       )}

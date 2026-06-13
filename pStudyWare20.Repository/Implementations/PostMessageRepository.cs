@@ -70,6 +70,8 @@ namespace pStudyWare20.Repository.Implementations
                 var list = new List<AlertListRowDto>();
                 foreach (DataRow row in dataTable.Rows)
                 {
+                    var description = GetString(row, "Description");
+                    var messageCol = GetString(row, "Message");
                     list.Add(new AlertListRowDto
                     {
                         MessageID = GetInt(row, "MessageID"),
@@ -77,8 +79,8 @@ namespace pStudyWare20.Repository.Implementations
                         PostedBy = GetString(row, "PostedBy"),
                         PostedDate = GetString(row, "PostedDate"),
                         AlertDate = GetString(row, "AlertDate"),
-                        Description = GetString(row, "Description"),
-                        Message = GetString(row, "Message"),
+                        Description = description,
+                        Message = string.IsNullOrWhiteSpace(messageCol) ? description : messageCol,
                         Active = GetBool(row, "Active")
                     });
                 }

@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Card,
-  CardContent,
   Typography,
   Box,
   Table,
@@ -23,6 +21,7 @@ import {
   Cancel as CancelIcon
 } from '@mui/icons-material';
 import studentDashboardService from '../../../services/studentDashboardService';
+import { APPLICATION_ADMIN_TITLE_COLOR } from '../styles/applicationSurfaces';
 
 const RegistrationSection = ({ registrationData, username, onSuccess, onError }) => {
   const [selectedStudents, setSelectedStudents] = useState([]);
@@ -121,11 +120,10 @@ const RegistrationSection = ({ registrationData, username, onSuccess, onError })
   };
 
   return (
-    <Card sx={{ mb: 3 }}>
-      <CardContent>
-        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: '#1976d2', fontSize: '1rem' }}>
-          Course Registration
-        </Typography>
+    <Box>
+      <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: '1rem' }}>
+        Course Registration
+      </Typography>
 
         {/* Important Notice */}
         <Alert 
@@ -323,8 +321,7 @@ const RegistrationSection = ({ registrationData, username, onSuccess, onError })
             It will help us accommodate the waiting list students.
           </Typography>
         </Box>
-      </CardContent>
-    </Card>
+    </Box>
   );
 };
 

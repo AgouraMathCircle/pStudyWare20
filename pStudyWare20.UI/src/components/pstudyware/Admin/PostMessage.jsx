@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Container,
@@ -32,12 +32,28 @@ import {
 import { Refresh as RefreshIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Save as SaveIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
+import AdminSessionListPagination from "./AdminSessionListPagination";
+import SortableHeader from "../Common/SortableHeader";
 import postMessageService from "../../../services/postMessageService";
+import {
+  sortRows,
+  toSortableDate,
+  toSortableNumber,
+} from "../../../utils/tableSort";
 import {
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
-  APPLICATION_ADMIN_TITLE_COLOR,
-} from "../../../styles/applicationSurfaces";
+  adminSessionListEmptyCellSx,
+  adminSessionListEmptyTextSx,
+  adminSessionListGridTableSx,
+  adminSessionListHeaderBarSx,
+  adminSessionListTableBodyCellSx,
+  adminSessionListTableBodyRowSx,
+  adminSessionListTableHeadCellSx,
+  adminSessionListTableHeadRowSx,
+  adminSessionListTitleSx,
+  adminSessionListToolbarButtonSx,
+} from "../styles/applicationSurfaces";
 
 // Normalize API response to array of items (handles PostMessageListResponse or legacy shapes)
 function normalizeAlertList(res) {
@@ -48,15 +64,72 @@ function normalizeAlertList(res) {
   return [];
 }
 
+const POST_MESSAGE_COLUMN_WIDTHS = {
+  rowId: "5%",
+  postDate: "12%",
+  message: "48%",
+  active: "8%",
+  edit: "6%",
+  delete: "6%",
+};
+
+function getMessageText(row) {
+  if (!row || typeof row !== "object") return "";
+  const direct =
+    row.Description ??
+    row.description ??
+    row.Message ??
+    row.message;
+  if (direct != null && String(direct).trim() !== "") {
+    return String(direct);
+  }
+  for (const [key, value] of Object.entries(row)) {
+    if (/^(description|message)$/i.test(key) && value != null && String(value).trim() !== "") {
+      return String(value);
+    }
+  }
+  return "";
+}
+
+function isActiveValue(value) {
+  return (
+    value === true ||
+    value === 1 ||
+    value === "1" ||
+    String(value).toLowerCase() === "true"
+  );
+}
+
 // Get display fields from a row (legacy uses AlertDate, Description; API uses same + Message)
 function rowDisplay(row) {
   return {
     messageID: row.MessageID ?? row.messageID ?? row.MessageId,
     rowID: row.RowID ?? row.rowID ?? row.RowId,
-    postDate: row.AlertDate ?? row.alertDate ?? row.PostedDate ?? row.postedDate ?? "",
-    message: row.Description ?? row.description ?? row.Message ?? row.message ?? "",
-    active: row.Active === true || row.active === true || row.Active === "1" || row.active === "1",
+    postDate:
+      row.AlertDate ??
+      row.alertDate ??
+      row.PostedDate ??
+      row.postedDate ??
+      "",
+    message: getMessageText(row),
+    active: isActiveValue(row.Active ?? row.active),
   };
+}
+
+function getPostMessageFieldValue(row, field) {
+  const d = rowDisplay(row);
+  switch (field) {
+    case "rowNum":
+      return toSortableNumber(d.rowID ?? d.messageID);
+    case "postDate":
+      return toSortableDate(d.postDate);
+    case "postMessage":
+      return d.message;
+    case "active":
+      return d.active ? 1 : 0;
+    default:
+      return "";
+  }
 }
 
 // Format date for input (YYYY-MM-DD for input type="date") from stored value
@@ -96,8 +169,52 @@ const PostMessage = () => {
     message: "",
     severity: "info",
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [goToPageInput, setGoToPageInput] = useState("1");
+  const [sortField, setSortField] = useState("postDate");
+  const [sortOrder, setSortOrder] = useState("desc");
 
+  const pageSize = 25;
   const username = user?.email || user?.username || "";
+
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
+
+  const sortedAlertList = useMemo(
+    () => sortRows(alertList, sortField, sortOrder, getPostMessageFieldValue),
+    [alertList, sortField, sortOrder],
+  );
+
+  const totalRecords = sortedAlertList.length;
+  const totalPages = Math.ceil(totalRecords / pageSize) || 0;
+
+  const paginatedAlertList = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return sortedAlertList.slice(start, start + pageSize);
+  }, [sortedAlertList, currentPage, pageSize]);
+
+  const handlePageChange = (page) => {
+    const maxPage = Math.ceil(sortedAlertList.length / pageSize) || 1;
+    if (page >= 1 && page <= maxPage) {
+      setCurrentPage(page);
+      setGoToPageInput(page.toString());
+    }
+  };
+
+  const handleGoToPage = () => {
+    const page = parseInt(goToPageInput, 10);
+    const maxPage = Math.ceil(sortedAlertList.length / pageSize) || 1;
+    if (!isNaN(page) && page >= 1 && page <= maxPage) {
+      setCurrentPage(page);
+    } else {
+      setGoToPageInput(currentPage.toString());
+    }
+  };
 
   const loadAlertList = async () => {
     setLoading(true);
@@ -106,6 +223,8 @@ const PostMessage = () => {
       const data = typeof res === "string" ? (() => { try { return JSON.parse(res); } catch { return res; } })() : res;
       const list = normalizeAlertList(data);
       setAlertList(list);
+      setCurrentPage(1);
+      setGoToPageInput("1");
       if (!data?.isSuccess && data?.isSuccess === false && data?.errorMessage) {
         setSnackbar({ open: true, message: data.errorMessage, severity: "warning" });
       }
@@ -212,8 +331,6 @@ const PostMessage = () => {
     loadAlertList();
   }, []);
 
-  const cellPadding = "0 8px";
-
   return (
     <Box sx={{ minHeight: "100vh" }}>
       <AdminHeader />
@@ -233,20 +350,8 @@ const PostMessage = () => {
               <CardContent sx={{ p: 3 }}>
             <Box>
               {/* Header: title + buttons */}
-              <Box
-                sx={{
-                  mb: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  flexWrap: "wrap",
-                  gap: 2,
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: "1rem" }}
-                >
+              <Box sx={adminSessionListHeaderBarSx}>
+                <Typography variant="subtitle1" sx={adminSessionListTitleSx}>
                   Post Message List
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1 }}>
@@ -256,7 +361,7 @@ const PostMessage = () => {
                     startIcon={<AddIcon />}
                     onClick={openAdd}
                     disabled={loading}
-                    sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                    sx={adminSessionListToolbarButtonSx}
                   >
                     Add Post Message
                   </Button>
@@ -266,7 +371,7 @@ const PostMessage = () => {
                     startIcon={<RefreshIcon />}
                     onClick={loadAlertList}
                     disabled={loading}
-                    sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                    sx={adminSessionListToolbarButtonSx}
                   >
                     Refresh
                   </Button>
@@ -280,174 +385,105 @@ const PostMessage = () => {
               ) : (
                 <>
               <TableContainer component={Paper} sx={{ width: "100%" }}>
-                <Table
-                  sx={{
-                    width: "100%",
-                    tableLayout: "fixed",
-                    "& .MuiTableCell-root": { paddingTop: 0, paddingBottom: 0 },
-                  }}
-                  size="small"
-                >
+                <Table sx={adminSessionListGridTableSx} size="small">
                   <TableHead>
-                    <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
+                    <TableRow sx={adminSessionListTableHeadRowSx}>
+                      <SortableHeader
+                        label="Row #"
+                        field="rowNum"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        align="center"
+                        headCellSx={adminSessionListTableHeadCellSx(POST_MESSAGE_COLUMN_WIDTHS.rowId)}
+                      />
+                      <SortableHeader
+                        label="Post Date"
+                        field="postDate"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        align="left"
+                        headCellSx={adminSessionListTableHeadCellSx(POST_MESSAGE_COLUMN_WIDTHS.postDate)}
+                      />
+                      <SortableHeader
+                        label="Post Message"
+                        field="postMessage"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        align="left"
+                        headCellSx={adminSessionListTableHeadCellSx(POST_MESSAGE_COLUMN_WIDTHS.message)}
+                      />
+                      <SortableHeader
+                        label="Active"
+                        field="active"
+                        sortField={sortField}
+                        sortOrder={sortOrder}
+                        onSort={handleSort}
+                        align="left"
+                        headCellSx={adminSessionListTableHeadCellSx(POST_MESSAGE_COLUMN_WIDTHS.active)}
+                      />
                       <TableCell
                         align="center"
-                        sx={{
-                          fontWeight: 400,
-                          borderRight: "1px solid #4caf50",
-                          width: "5%",
-                          fontSize: "0.75rem",
-                          padding: cellPadding,
-                        }}
-                      >
-                        Row #
-                      </TableCell>
-                      <TableCell
-                        align="left"
-                        sx={{
-                          fontWeight: 400,
-                          borderRight: "1px solid #4caf50",
-                          width: "12%",
-                          fontSize: "0.75rem",
-                          padding: cellPadding,
-                        }}
-                      >
-                        Post Date
-                      </TableCell>
-                      <TableCell
-                        align="left"
-                        sx={{
-                          fontWeight: 400,
-                          borderRight: "1px solid #4caf50",
-                          width: "36%",
-                          fontSize: "0.75rem",
-                          padding: cellPadding,
-                        }}
-                      >
-                        Post Message
-                      </TableCell>
-                      <TableCell
-                        align="left"
-                        sx={{
-                          fontWeight: 400,
-                          borderRight: "1px solid #4caf50",
-                          width: "8%",
-                          fontSize: "0.75rem",
-                          padding: cellPadding,
-                        }}
-                      >
-                        Active
-                      </TableCell>
-                      <TableCell
-                        align="center"
-                        sx={{
-                          fontWeight: 400,
-                          borderRight: "1px solid #4caf50",
-                          width: "5%",
-                          fontSize: "0.75rem",
-                          padding: cellPadding,
-                        }}
+                        sx={adminSessionListTableHeadCellSx(POST_MESSAGE_COLUMN_WIDTHS.edit)}
                       >
                         Edit
                       </TableCell>
                       <TableCell
                         align="center"
-                        sx={{
-                          fontWeight: 400,
-                          width: "5%",
-                          fontSize: "0.75rem",
-                          padding: cellPadding,
-                        }}
+                        sx={adminSessionListTableHeadCellSx(POST_MESSAGE_COLUMN_WIDTHS.delete, true)}
                       >
                         Delete
                       </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {alertList.length === 0 ? (
+                    {paginatedAlertList.length === 0 ? (
                       <TableRow>
-                        <TableCell
-                          colSpan={6}
-                          align="center"
-                          sx={{
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                            py: 3,
-                          }}
-                        >
+                        <TableCell colSpan={6} align="center" sx={adminSessionListEmptyCellSx}>
                           <Typography
                             variant="body2"
                             color="textSecondary"
-                            sx={{ fontSize: "0.75rem" }}
+                            sx={adminSessionListEmptyTextSx}
                           >
-                            No post messages. Click &quot;Add Post Message&quot; to create one.
+                            {alertList.length === 0
+                              ? 'No post messages. Click "Add Post Message" to create one.'
+                              : "No records on this page."}
                           </Typography>
                         </TableCell>
                       </TableRow>
                     ) : (
-                      alertList.map((row, index) => {
+                      paginatedAlertList.map((row, index) => {
                         const d = rowDisplay(row);
+                        const displayRowNumber =
+                          d.rowID ?? (currentPage - 1) * pageSize + index + 1;
                         return (
                           <TableRow
                             key={d.messageID ?? d.rowID ?? index}
                             hover
-                            sx={{
-                              "&:nth-of-type(odd)": {
-                                backgroundColor: "#f9f9f9",
-                              },
-                            }}
+                            sx={adminSessionListTableBodyRowSx}
                           >
-                            <TableCell
-                              align="center"
-                              sx={{
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              {d.rowID ?? index + 1}
+                            <TableCell align="center" sx={adminSessionListTableBodyCellSx()}>
+                              {displayRowNumber}
+                            </TableCell>
+                            <TableCell align="left" sx={adminSessionListTableBodyCellSx()}>
+                              {d.postDate || "—"}
                             </TableCell>
                             <TableCell
                               align="left"
-                              sx={{
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
+                              sx={adminSessionListTableBodyCellSx({ ellipsis: true })}
                             >
-                              {d.postDate}
+                              <Tooltip title={d.message || "—"}>
+                                <span>{d.message || "—"}</span>
+                              </Tooltip>
                             </TableCell>
-                            <TableCell
-                              align="left"
-                              sx={{
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                                maxWidth: 400,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                              }}
-                            >
-                              {d.message}
-                            </TableCell>
-                            <TableCell
-                              align="left"
-                              sx={{
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
+                            <TableCell align="left" sx={adminSessionListTableBodyCellSx()}>
                               {d.active ? "Yes" : "No"}
                             </TableCell>
                             <TableCell
                               align="center"
-                              sx={{
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                                verticalAlign: "middle",
-                              }}
+                              sx={adminSessionListTableBodyCellSx({ action: true })}
                             >
                               <Tooltip title="Edit">
                                 <IconButton
@@ -461,11 +497,7 @@ const PostMessage = () => {
                             </TableCell>
                             <TableCell
                               align="center"
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                                verticalAlign: "middle",
-                              }}
+                              sx={adminSessionListTableBodyCellSx({ action: true, isLast: true })}
                             >
                               <Tooltip title="Delete">
                                 <IconButton
@@ -485,6 +517,17 @@ const PostMessage = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
+
+              <AdminSessionListPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalRecords={totalRecords}
+                pageSize={pageSize}
+                goToPageInput={goToPageInput}
+                onGoToPageInputChange={setGoToPageInput}
+                onPageChange={handlePageChange}
+                onGoToPage={handleGoToPage}
+              />
                 </>
               )}
             </Box>

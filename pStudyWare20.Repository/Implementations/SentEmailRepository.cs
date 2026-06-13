@@ -1,6 +1,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using pStudyWare20.Data.Models;
+using pStudyWare20.Repository.Helpers;
 using pStudyWare20.Repository.Interfaces;
 using System.Data;
 
@@ -30,6 +31,8 @@ namespace pStudyWare20.Repository.Implementations
 
             try
             {
+                username = await PortalUsernameResolver.ResolveAsync(_context, username);
+
                 using (var connection = new SqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();

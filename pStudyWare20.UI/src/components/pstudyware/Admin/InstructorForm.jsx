@@ -15,7 +15,7 @@ import {
   Box,
   Typography,
 } from "@mui/material";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../styles/applicationSurfaces";
 
 const InstructorForm = ({
   open,

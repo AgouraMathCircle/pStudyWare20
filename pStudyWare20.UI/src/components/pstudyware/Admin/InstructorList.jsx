@@ -4,7 +4,6 @@ import {
   Button,
   TextField,
   Box,
-  IconButton,
   Tooltip,
   Table,
   TableBody,
@@ -19,20 +18,49 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Chip,
 } from "@mui/material";
 import {
   Download as DownloadIcon,
   Refresh as RefreshIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  FirstPage as FirstPageIcon,
-  KeyboardArrowLeft as PrevPageIcon,
-  KeyboardArrowRight as NextPageIcon,
-  LastPage as LastPageIcon,
   Add as AddIcon,
 } from "@mui/icons-material";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
+import {
+  adminSessionListEmptyCellSx,
+  adminSessionListEmptyTextSx,
+  adminSessionListFindButtonSx,
+  adminSessionListHeaderBarSx,
+  adminSessionListMenuItemSx,
+  adminSessionListSearchBarSx,
+  adminSessionListSearchFieldSx,
+  adminSessionListSearchLabelSx,
+  adminSessionListSearchSelectSx,
+  adminSessionListTableActionLinkSx,
+  adminSessionListTableBodyCellSx,
+  adminSessionListTableBodyRowSx,
+  adminSessionListTableContainerSx,
+  adminSessionListTableHeadCellSx,
+  adminSessionListTableHeadRowSx,
+  adminSessionListTableSx,
+  adminSessionListTitleSx,
+  adminSessionListToolbarButtonSx,
+} from "../styles/applicationSurfaces";
+import AdminSessionListPagination from "./AdminSessionListPagination";
+import SortableHeader from "../Common/SortableHeader";
+
+const instructorListColumnWidths = {
+  edit: "4%",
+  delete: "4%",
+  id: "6%",
+  firstName: "10%",
+  lastName: "10%",
+  chapter: "11%",
+  type: "8%",
+  class: "10%",
+  username: "10%",
+  email: "10%",
+  phone: "8%",
+  status: "7%",
+};
 
 const InstructorList = ({
   instructors,
@@ -69,7 +97,7 @@ const InstructorList = ({
 
   // Handle go to specific page
   const handleGoToPage = () => {
-    const page = parseInt(goToPageInput);
+    const page = parseInt(goToPageInput, 10);
     const totalPages = Math.ceil(
       (filteredAndSortedInstructors?.length || 0) / pageSize,
     );
@@ -86,11 +114,12 @@ const InstructorList = ({
     setGoToPageInput("1");
   };
 
-  // Handle sort
-  const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === "asc";
+  const handleSort = (field) => {
+    const isAsc = orderBy === field && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
+    setOrderBy(field);
+    setCurrentPage(1);
+    setGoToPageInput("1");
   };
 
   // Handle delete confirmation dialog
@@ -146,14 +175,7 @@ const InstructorList = ({
   // Get status display
   const getStatusDisplay = (status) => {
     const isActive = status === "1" || status?.toLowerCase() === "active";
-    return (
-      <Chip
-        label={isActive ? "Active" : "Inactive"}
-        color={isActive ? "success" : "default"}
-        size="small"
-        sx={{ fontSize: "0.7rem", height: "20px" }}
-      />
-    );
+    return isActive ? "Active" : "Inactive";
   };
 
   // Filter and sort instructors
@@ -243,25 +265,10 @@ const InstructorList = ({
   );
   const totalRecords = filteredAndSortedInstructors?.length || 0;
 
-  const cellPadding = "0 8px";
-
   return (
     <Box>
-      {/* Header */}
-      <Box
-        sx={{
-          mb: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 2,
-        }}
-      >
-        <Typography
-          variant="subtitle1"
-          sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: "1rem" }}
-        >
+      <Box sx={adminSessionListHeaderBarSx}>
+        <Typography variant="subtitle1" sx={adminSessionListTitleSx}>
           Instructor List
         </Typography>
         <Box sx={{ display: "flex", gap: 1 }}>
@@ -272,7 +279,7 @@ const InstructorList = ({
               size="small"
               startIcon={<AddIcon />}
               onClick={onAdd}
-              sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+              sx={adminSessionListToolbarButtonSx}
             >
               Add Instructor
             </Button>
@@ -284,7 +291,7 @@ const InstructorList = ({
               size="small"
               startIcon={<DownloadIcon />}
               onClick={onExportToExcel}
-              sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+              sx={adminSessionListToolbarButtonSx}
             >
               Export Excel
             </Button>
@@ -295,98 +302,67 @@ const InstructorList = ({
             size="small"
             startIcon={<RefreshIcon />}
             onClick={onRefresh}
-            sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+            sx={adminSessionListToolbarButtonSx}
           >
             Refresh
           </Button>
         </Box>
       </Box>
 
-      {/* Search Bar */}
-      <Box
-        sx={{
-          backgroundColor: "#4caf50",
-          p: 0.5,
-          borderRadius: 1,
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          flexWrap: "wrap",
-        }}
-      >
+      <Box sx={adminSessionListSearchBarSx}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography
-            sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
-          >
-            Search By:
-          </Typography>
+          <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
           <Select
             value={searchBy}
             onChange={(e) => setSearchBy(e.target.value)}
             size="small"
-            sx={{
-              color: "white",
-              fontSize: "0.75rem",
-              minWidth: 100,
-              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
-              "& .MuiSelect-icon": { color: "white" },
-            }}
+            sx={adminSessionListSearchSelectSx}
           >
-            <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
               -ALL-
             </MenuItem>
-            <MenuItem value="INSTRUCTOR_ID" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="INSTRUCTOR_ID" sx={adminSessionListMenuItemSx}>
               Instructor ID
             </MenuItem>
-            <MenuItem value="FIRST_NAME" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="FIRST_NAME" sx={adminSessionListMenuItemSx}>
               First Name
             </MenuItem>
-            <MenuItem value="LAST_NAME" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="LAST_NAME" sx={adminSessionListMenuItemSx}>
               Last Name
             </MenuItem>
-            <MenuItem value="EMAIL" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="EMAIL" sx={adminSessionListMenuItemSx}>
               Email
             </MenuItem>
-            <MenuItem value="CHAPTER" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="CHAPTER" sx={adminSessionListMenuItemSx}>
               Chapter
             </MenuItem>
-            <MenuItem value="CLASS" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="CLASS" sx={adminSessionListMenuItemSx}>
               Class
             </MenuItem>
-            <MenuItem value="TYPE" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="TYPE" sx={adminSessionListMenuItemSx}>
               Type
             </MenuItem>
           </Select>
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography
-            sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
-          >
-            Criteria:
-          </Typography>
+          <Typography sx={adminSessionListSearchLabelSx}>Criteria:</Typography>
           <Select
             value={searchCriteria}
             onChange={(e) => setSearchCriteria(e.target.value)}
             size="small"
-            sx={{
-              color: "white",
-              fontSize: "0.75rem",
-              minWidth: 100,
-              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
-              "& .MuiSelect-icon": { color: "white" },
-            }}
+            sx={adminSessionListSearchSelectSx}
           >
-            <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="" sx={adminSessionListMenuItemSx}>
               Select Criteria
             </MenuItem>
-            <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
               Equals
             </MenuItem>
-            <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
               Contains
             </MenuItem>
-            <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="starts_with" sx={adminSessionListMenuItemSx}>
               Starts With
             </MenuItem>
           </Select>
@@ -397,177 +373,109 @@ const InstructorList = ({
           placeholder="Search Text"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          sx={{
-            minWidth: 150,
-            "& .MuiOutlinedInput-root": {
-              backgroundColor: "white",
-              fontSize: "0.75rem",
-            },
-          }}
+          sx={adminSessionListSearchFieldSx}
         />
 
         <Button
           variant="contained"
           size="small"
           onClick={handleSearch}
-          sx={{
-            backgroundColor: "white",
-            color: "#4caf50",
-            fontSize: "0.75rem",
-            textTransform: "none",
-            minHeight: 32,
-            py: 0,
-            px: 1,
-            "&:hover": { backgroundColor: "#f5f5f5" },
-          }}
+          sx={adminSessionListFindButtonSx}
         >
           Find
         </Button>
       </Box>
 
-      {/* Table */}
-      <TableContainer component={Paper} sx={{ width: "100%" }}>
-        <Table
-          sx={{
-            width: "100%",
-            tableLayout: "fixed",
-            "& .MuiTableCell-root": { paddingTop: 0, paddingBottom: 0 },
-          }}
-          size="small"
-        >
+      <TableContainer component={Paper} sx={adminSessionListTableContainerSx}>
+        <Table sx={adminSessionListTableSx} size="small">
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "4%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
+            <TableRow sx={adminSessionListTableHeadRowSx}>
+              <TableCell sx={adminSessionListTableHeadCellSx(instructorListColumnWidths.edit)}>
                 Edit
               </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "4%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
+              <TableCell sx={adminSessionListTableHeadCellSx(instructorListColumnWidths.delete)}>
                 Delete
               </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "6%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
-                ID
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "10%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
-                First Name
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "10%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
-                Last Name
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "11%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
-                Chapter
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "8%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
-                Type
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "10%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
-                Class
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "10%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
-                Username
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "10%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
-                Email
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "8%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
-                Phone
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  width: "7%",
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
-                Status
-              </TableCell>
+              <SortableHeader
+                label="ID"
+                field="instructorID"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.id)}
+              />
+              <SortableHeader
+                label="First Name"
+                field="firstName"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.firstName)}
+              />
+              <SortableHeader
+                label="Last Name"
+                field="lastName"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.lastName)}
+              />
+              <SortableHeader
+                label="Chapter"
+                field="chapterName"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.chapter)}
+              />
+              <SortableHeader
+                label="Type"
+                field="instructorType"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.type)}
+              />
+              <SortableHeader
+                label="Class"
+                field="class"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.class)}
+              />
+              <SortableHeader
+                label="Username"
+                field="userName"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.username)}
+              />
+              <SortableHeader
+                label="Email"
+                field="emailID"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.email)}
+              />
+              <SortableHeader
+                label="Phone"
+                field="contactPhone"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.phone)}
+              />
+              <SortableHeader
+                label="Status"
+                field="memberStatus"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.status, true)}
+              />
             </TableRow>
           </TableHead>
           <TableBody>
@@ -575,180 +483,69 @@ const InstructorList = ({
               paginatedInstructors.map((instructor, index) => (
                 <TableRow
                   key={instructor.instructorID || index}
-                  sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}
+                  sx={adminSessionListTableBodyRowSx}
                 >
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                      verticalAlign: "middle",
-                    }}
-                  >
-                    <Tooltip title="Edit Instructor">
-                      <IconButton
-                        size="small"
-                        color="primary"
-                        onClick={() => onEdit(instructor)}
-                        sx={{ padding: "2px" }}
-                      >
-                        <EditIcon sx={{ fontSize: "1rem" }} />
-                      </IconButton>
+                  <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
+                    <Box onClick={() => onEdit(instructor)} sx={adminSessionListTableActionLinkSx}>
+                      Edit
+                    </Box>
+                  </TableCell>
+                  <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
+                    <Box
+                      onClick={() => handleDeleteClick(instructor)}
+                      sx={adminSessionListTableActionLinkSx}
+                    >
+                      Delete
+                    </Box>
+                  </TableCell>
+                  <TableCell sx={adminSessionListTableBodyCellSx()}>
+                    {instructor.instructorID ?? "—"}
+                  </TableCell>
+                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                    <Tooltip title={instructor.firstName ?? "—"}>
+                      <span>{instructor.firstName || "—"}</span>
                     </Tooltip>
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                      verticalAlign: "middle",
-                    }}
-                  >
-                    <Tooltip title="Delete Instructor">
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDeleteClick(instructor)}
-                        sx={{ padding: "2px" }}
-                      >
-                        <DeleteIcon sx={{ fontSize: "1rem" }} />
-                      </IconButton>
+                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                    <Tooltip title={instructor.lastName ?? "—"}>
+                      <span>{instructor.lastName || "—"}</span>
                     </Tooltip>
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                    }}
-                  >
-                    {instructor.instructorID || "-"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <Tooltip title={instructor.firstName ?? "-"}>
-                      <span>{instructor.firstName || "-"}</span>
+                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                    <Tooltip title={instructor.chapterName ?? "—"}>
+                      <span>{instructor.chapterName || "—"}</span>
                     </Tooltip>
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <Tooltip title={instructor.lastName ?? "-"}>
-                      <span>{instructor.lastName || "-"}</span>
+                  <TableCell sx={adminSessionListTableBodyCellSx()}>
+                    {getInstructorTypeText(instructor.instructorType) || "—"}
+                  </TableCell>
+                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                    <Tooltip title={getClassText(instructor.class) || "—"}>
+                      <span>{getClassText(instructor.class) || "—"}</span>
                     </Tooltip>
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <Tooltip title={instructor.chapterName ?? "-"}>
-                      <span>{instructor.chapterName || "-"}</span>
+                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                    <Tooltip title={instructor.userName ?? "—"}>
+                      <span>{instructor.userName || "—"}</span>
                     </Tooltip>
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                    }}
-                  >
-                    {getInstructorTypeText(instructor.instructorType) || "-"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <Tooltip title={getClassText(instructor.class) || "-"}>
-                      <span>{getClassText(instructor.class) || "-"}</span>
+                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                    <Tooltip title={instructor.emailID ?? "—"}>
+                      <span>{instructor.emailID || "—"}</span>
                     </Tooltip>
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <Tooltip title={instructor.userName ?? "-"}>
-                      <span>{instructor.userName || "-"}</span>
-                    </Tooltip>
+                  <TableCell sx={adminSessionListTableBodyCellSx()}>
+                    {instructor.contactPhone || "—"}
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <Tooltip title={instructor.emailID ?? "-"}>
-                      <span>{instructor.emailID || "-"}</span>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      borderRight: "1px solid #4caf50",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                    }}
-                  >
-                    {instructor.contactPhone || "-"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      width: "7%",
-                      fontSize: "0.75rem",
-                      padding: cellPadding,
-                    }}
-                  >
+                  <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
                     {getStatusDisplay(instructor.memberStatus)}
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={12}
-                  align="center"
-                  sx={{ fontSize: "0.75rem", padding: cellPadding, py: 3 }}
-                >
-                  <Typography
-                    variant="body2"
-                    color="textSecondary"
-                    sx={{ fontSize: "0.75rem" }}
-                  >
+                <TableCell colSpan={12} align="center" sx={adminSessionListEmptyCellSx}>
+                  <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
                     {searchText
                       ? "No instructors found matching your search criteria."
                       : "No instructor data available."}
@@ -760,147 +557,16 @@ const InstructorList = ({
         </Table>
       </TableContainer>
 
-      {/* Pagination Bar */}
-      <Box
-        sx={{
-          backgroundColor: "#4caf50",
-          p: 0.5,
-          borderRadius: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 1,
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-          <IconButton
-            size="small"
-            sx={{ color: "white", padding: "2px" }}
-            onClick={() => handlePageChange(1)}
-            disabled={currentPage === 1}
-          >
-            <FirstPageIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            sx={{ color: "white", padding: "2px" }}
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            <PrevPageIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            sx={{ color: "white", padding: "2px" }}
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages || totalPages === 0}
-          >
-            <NextPageIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            sx={{ color: "white", padding: "2px" }}
-            onClick={() => handlePageChange(totalPages)}
-            disabled={currentPage === totalPages || totalPages === 0}
-          >
-            <LastPageIcon fontSize="small" />
-          </IconButton>
-        </Box>
-
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-          <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-            GoTo
-          </Typography>
-          <Select
-            size="small"
-            value={totalPages > 0 ? currentPage : ""}
-            onChange={(e) => handlePageChange(Number(e.target.value))}
-            disabled={totalPages === 0}
-            sx={{
-              color: "white",
-              minWidth: 50,
-              fontSize: "0.75rem",
-              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
-              "& .MuiSelect-icon": { color: "white" },
-            }}
-          >
-            {totalPages > 0 ? (
-              Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <MenuItem
-                    key={page}
-                    value={page}
-                    sx={{ fontSize: "0.75rem" }}
-                  >
-                    {page}
-                  </MenuItem>
-                ),
-              )
-            ) : (
-              <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
-                -
-              </MenuItem>
-            )}
-          </Select>
-        </Box>
-
-        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-          Page(s): {totalPages > 0 ? currentPage : 0} of {totalPages}
-        </Typography>
-
-        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-          Record(s):{" "}
-          {totalRecords > 0
-            ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
-                currentPage * pageSize,
-                totalRecords,
-              )}`
-            : "0"}{" "}
-          of {totalRecords}
-        </Typography>
-
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-          <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-            Go to Page Number:
-          </Typography>
-          <TextField
-            size="small"
-            type="number"
-            value={goToPageInput}
-            onChange={(e) => setGoToPageInput(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === "Enter") {
-                handleGoToPage();
-              }
-            }}
-            sx={{
-              width: 50,
-              "& .MuiOutlinedInput-root": {
-                backgroundColor: "white",
-                fontSize: "0.75rem",
-              },
-            }}
-            inputProps={{ min: 1, max: totalPages || 1 }}
-          />
-          <Button
-            size="small"
-            variant="contained"
-            onClick={handleGoToPage}
-            sx={{
-              backgroundColor: "white",
-              color: "#4caf50",
-              fontSize: "0.75rem",
-              minHeight: 32,
-              py: 0,
-              px: 0.75,
-              "&:hover": { backgroundColor: "#f5f5f5" },
-            }}
-          >
-            Go
-          </Button>
-        </Box>
-      </Box>
+      <AdminSessionListPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalRecords={totalRecords}
+        pageSize={pageSize}
+        goToPageInput={goToPageInput}
+        onGoToPageInputChange={setGoToPageInput}
+        onPageChange={handlePageChange}
+        onGoToPage={handleGoToPage}
+      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>

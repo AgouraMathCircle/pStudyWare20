@@ -19,7 +19,7 @@ import { Refresh as RefreshIcon, Download as DownloadIcon } from "@mui/icons-mat
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
 import specialEventsRegistrationService from "../../../services/specialEventsRegistrationService";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../styles/applicationSurfaces";
 
 const SpecialEventsRegistration = () => {
   const { user } = useAuth();
@@ -81,21 +81,9 @@ const SpecialEventsRegistration = () => {
     if (!username) return;
     setExporting(true);
     try {
-      const response = await specialEventsRegistrationService.exportToExcel({
+      await specialEventsRegistrationService.exportToExcel({
         Username: username,
       });
-      const blob =
-        response?.data instanceof Blob
-          ? response.data
-          : new Blob([response?.data ?? ""]);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download =
-        response?.headers?.["content-disposition"]?.match(/filename="?([^"]+)"?/)?.[1] ??
-        "SpecialEventsRegistration.xlsx";
-      a.click();
-      window.URL.revokeObjectURL(url);
       setSnackbar({
         open: true,
         message: "Export downloaded.",

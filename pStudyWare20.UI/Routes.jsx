@@ -4,7 +4,6 @@ import {
   Routes,
   Route,
   Navigate,
-  useParams,
 } from "react-router-dom";
 import { AuthProvider } from "./src/contexts/AuthContext";
 import AppLayout from "./src/components/AppLayout";
@@ -46,10 +45,13 @@ import Login from "./src/components/Login";
 import ProtectedRoute from "./src/components/ProtectedRoute";
 import RoleProtectedRoute from "./src/components/RoleProtectedRoute";
 import StudentDashboard from "./src/components/pstudyware/Student/StudentDashboard";
+import StudentChangePassword from "./src/components/pstudyware/Student/StudentChangePassword";
 import ClassMaterial from "./src/components/pstudyware/Student/ClassMaterial";
-import UpdateProfile from "./src/components/pstudyware/Common/UpdateProfile";
+import { UpdateProfileRouteOpener } from "./src/contexts/UpdateProfileModalContext";
 import StudentDocuments from "./src/components/pstudyware/Student/StudentDocuments";
 import OnlineExam from "./src/components/pstudyware/Student/OnlineExam";
+import StudentScore from "./src/components/pstudyware/Student/StudentScore";
+import FinalExam from "./src/components/pstudyware/Student/FinalExam";
 import ReportCard from "./src/components/pstudyware/Student/ReportCard";
 import AdminDashboard from "./src/components/pstudyware/Admin/AdminDashboard";
 import AdminInstructors from "./src/components/pstudyware/Admin/AdminInstructors";
@@ -79,7 +81,6 @@ import {
 import {
   VolunteerShell,
   VolunteerDashboard,
-  VolunteerClassMaterial,
   VolunteerTimeSheet,
 } from "./src/components/pstudyware/Volunteer";
 import SentEmail from "./src/components/pstudyware/Common/SentEmail";
@@ -89,12 +90,7 @@ import {
   MeetingDetails,
   UpdatePassword,
 } from "./src/components/pstudyware/Common";
-import EmailInbox from "./src/components/pstudyware/EmailInbox/EmailInbox";
 
-function UpdateProfileRedirect() {
-  const { studentId } = useParams();
-  return <Navigate to={`/UpdateProfile/${studentId}`} replace />;
-}
 
 // function PstudywareUpdateProfileRedirect() {
 //   const { studentId } = useParams();
@@ -217,7 +213,7 @@ const AppRoutes = () => {
                   allowedRoles={["Student"]}
                   allowedMemberTypes={["S"]}
                 >
-                  <OnlineExam />
+                  <StudentScore />
                 </RoleProtectedRoute>
               }
             />
@@ -228,7 +224,51 @@ const AppRoutes = () => {
                   allowedRoles={["Student"]}
                   allowedMemberTypes={["S"]}
                 >
+                  <StudentScore />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/online-exam"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
                   <OnlineExam />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/student/online-exam"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
+                  <OnlineExam />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/final-exam"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
+                  <FinalExam />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/student/final-exam"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
+                  <FinalExam />
                 </RoleProtectedRoute>
               }
             />
@@ -302,15 +342,6 @@ const AppRoutes = () => {
                 </ProtectedRoute>
               }
             />
-
-            <Route
-              path="/pstudyware/email/inbox"
-              element={
-                <ProtectedRoute>
-                  <EmailInbox />
-                </ProtectedRoute>
-              }
-            />
             <Route
               path="/pstudyware/student/update-password"
               element={
@@ -318,12 +349,12 @@ const AppRoutes = () => {
                   allowedRoles={["Student"]}
                   allowedMemberTypes={["S"]}
                 >
-                  <UpdatePassword />
+                  <StudentChangePassword />
                 </RoleProtectedRoute>
               }
             />
             <Route
-              path="/UpdateProfile"
+              path="/UpdateProfile/:studentId?"
               element={
                 <RoleProtectedRoute
                   allowedRoles={[
@@ -334,23 +365,7 @@ const AppRoutes = () => {
                   ]}
                   allowedMemberTypes={["S", "A", "I"]}
                 >
-                  <UpdateProfile />
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/UpdateProfile/:studentId"
-              element={
-                <RoleProtectedRoute
-                  allowedRoles={[
-                    "Student",
-                    "Admin",
-                    "SystemAdmin",
-                    "Instructor",
-                  ]}
-                  allowedMemberTypes={["S", "A", "I"]}
-                >
-                  <UpdateProfile />
+                  <UpdateProfileRouteOpener />
                 </RoleProtectedRoute>
               }
             />
@@ -369,7 +384,7 @@ const AppRoutes = () => {
                   allowedRoles={["Student"]}
                   allowedMemberTypes={["S"]}
                 >
-                  <UpdateProfileRedirect />
+                  <UpdateProfileRouteOpener />
                 </RoleProtectedRoute>
               }
             />
@@ -816,27 +831,6 @@ const AppRoutes = () => {
               <Route path="update-password" element={<UpdatePassword />} />
             </Route>
 
-            {/* Coordinator Routes */}
-            <Route
-              path="/pstudyware/coordinator"
-              element={
-                <RoleProtectedRoute
-                  allowedRoles={["Instructor"]}
-                  allowedMemberTypes={["I"]}
-                >
-                  <InstructorShell />
-                </RoleProtectedRoute>
-              }
-            >
-              <Route
-                index
-                element={
-                  <Navigate to="/pstudyware/coordinator/dashboard" replace />
-                }
-              />
-              <Route path="dashboard" element={<InstructorDashboard />} />
-            </Route>
-
             {/* Volunteer Routes */}
             <Route
               path="/pstudyware/volunteer/dashboard"
@@ -847,19 +841,6 @@ const AppRoutes = () => {
                 >
                   <VolunteerShell>
                     <VolunteerDashboard />
-                  </VolunteerShell>
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/pstudyware/volunteer/class-material"
-              element={
-                <RoleProtectedRoute
-                  allowedRoles={["Volunteer"]}
-                  allowedMemberTypes={["V"]}
-                >
-                  <VolunteerShell>
-                    <VolunteerClassMaterial />
                   </VolunteerShell>
                 </RoleProtectedRoute>
               }

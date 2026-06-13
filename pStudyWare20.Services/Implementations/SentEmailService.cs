@@ -39,8 +39,10 @@ namespace pStudyWare20.Services.Implementations
                             Subject = GetStringValue(row, "Subject"),
                             SendDate = GetDateTimeValue(row, "SendDate"),
                             Message = GetStringValue(row, "Message"),
-                            EmailID = GetIntValue(row, "EmailID"),
-                            Name = GetStringValue(row, "Name"),
+                            EmailID = GetIntValue(row, "EmailID") != 0
+                                ? GetIntValue(row, "EmailID")
+                                : GetIntValue(row, "TrackingID"),
+                            Name = GetStringValue(row, "Name", "StudentName", "MessageTo"),
                             SendBy = GetStringValue(row, "SendBy")
                         });
                     }
@@ -119,12 +121,20 @@ namespace pStudyWare20.Services.Implementations
         /// <summary>
         /// Helper method to get string value from DataRow (handles missing columns)
         /// </summary>
-        private string GetStringValue(DataRow row, string columnName)
+        private string GetStringValue(DataRow row, params string[] columnNames)
         {
-            if (row.Table.Columns.Contains(columnName) && row[columnName] != DBNull.Value)
+            foreach (var columnName in columnNames)
             {
-                return row[columnName]?.ToString() ?? "";
+                if (row.Table.Columns.Contains(columnName) && row[columnName] != DBNull.Value)
+                {
+                    var value = row[columnName]?.ToString();
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        return value;
+                    }
+                }
             }
+
             return "";
         }
 

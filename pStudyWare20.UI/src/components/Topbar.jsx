@@ -23,19 +23,21 @@ import {
   Edit as EditIcon,
   Group as GroupIcon,
 } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../services";
+import { isPortalRoute } from "../utils/routeUtils";
 
 const Topbar = () => {
   const theme = useTheme();
   const _isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = React.useState(null);
 
   React.useEffect(() => {
     const currentUser = authService.getCurrentUser();
     setUser(currentUser);
-  }, []);
+  }, [location.pathname]);
 
   // Initialize authentication state on component mount
   React.useEffect(() => {
@@ -161,8 +163,9 @@ const Topbar = () => {
     }
   };
 
-  // Hide topbar for authenticated students and admins, not on login page
-  if (user) {
+  // Hide topbar on portal routes for authenticated students, admins, and instructors
+  const onPortalRoute = isPortalRoute(location.pathname);
+  if (user && onPortalRoute) {
     const isStudent =
       user.role === "Student" || user.memberType?.toUpperCase() === "S";
     const isAdmin =

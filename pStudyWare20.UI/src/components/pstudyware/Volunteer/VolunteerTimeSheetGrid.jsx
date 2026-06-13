@@ -22,6 +22,9 @@ import {
   DeleteOutline as DeleteIcon,
 } from "@mui/icons-material";
 import timeSheetTrackingService from "../../../services/timeSheetTrackingService";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
+import SortableHeader from "../Common/SortableHeader";
+import { sortRows, toSortableDate, toSortableNumber } from "../../../utils/tableSort";
 
 function formatClock(hour, min, type) {
   if (hour === undefined || hour === null || hour === "") return "—";
@@ -54,6 +57,27 @@ function rowId(row) {
   return Number.isFinite(n) ? n : null;
 }
 
+const timeSheetHeadCellSx = { fontWeight: 700 };
+
+const getTimeSheetFieldValue = (row, field) => {
+  switch (field) {
+    case "logID":
+      return toSortableNumber(row?.logID ?? row?.LogID ?? row?.mLogID);
+    case "username":
+      return row?.username ?? row?.Username ?? "";
+    case "taskName":
+      return row?.taskName ?? row?.TaskName ?? "";
+    case "volunteerDate":
+      return toSortableDate(row?.volunteerDate ?? row?.VolunteerDate);
+    case "totalHours":
+      return toSortableNumber(row?.totalHours ?? row?.TotalHours);
+    case "createdDate":
+      return toSortableDate(row?.createdDate ?? row?.CreatedDate);
+    default:
+      return "";
+  }
+};
+
 /**
  * My Time Sheet — Volunteer_Dashboard.aspx kGrid columns (AMC_spSelectTimeTracking).
  */
@@ -61,7 +85,11 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [search, setSearch] = useState("");
+  const [sortField, setSortField] = useState("volunteerDate");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [deletingId, setDeletingId] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null });
+  const [alertDialog, setAlertDialog] = useState({ open: false, message: "" });
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -80,27 +108,51 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
     });
   }, [rows, search]);
 
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
+    setPage(0);
+  };
+
+  const sorted = useMemo(
+    () => sortRows(filtered, sortField, sortOrder, getTimeSheetFieldValue),
+    [filtered, sortField, sortOrder],
+  );
+
   const pageRows = useMemo(() => {
     const start = page * rowsPerPage;
-    return filtered.slice(start, start + rowsPerPage);
-  }, [filtered, page, rowsPerPage]);
+    return sorted.slice(start, start + rowsPerPage);
+  }, [sorted, page, rowsPerPage]);
 
-  const handleDelete = async (id) => {
+  const handleDeleteClick = (id) => {
     if (!id) return;
-    const ok = window.confirm("Do you want to delete this entry?");
-    if (!ok) return;
+    setDeleteConfirm({ open: true, id });
+  };
+
+  const handleDeleteConfirm = async () => {
+    const id = deleteConfirm.id;
+    setDeleteConfirm({ open: false, id: null });
+    if (!id) return;
+
     setDeletingId(id);
     try {
       const res = await timeSheetTrackingService.deleteTimeSheetTrackingById(id);
       if (res?.isSuccess === false) {
-        window.alert(res?.errorMessage || res?.message || "Delete failed.");
+        setAlertDialog({
+          open: true,
+          message: res?.errorMessage || res?.message || "Delete failed.",
+        });
       } else if (typeof onEntriesChanged === "function") {
         onEntriesChanged();
       }
     } catch (e) {
       const msg =
-        e?.response?.data?.message ?? e?.response?.data?.error ?? e?.message ?? "Delete failed.";
-      window.alert(msg);
+        e?.response?.data?.message ??
+        e?.response?.data?.error ??
+        e?.message ??
+        "Delete failed.";
+      setAlertDialog({ open: true, message: msg });
     } finally {
       setDeletingId(null);
     }
@@ -143,17 +195,58 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>#</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Task name</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Date volunteer</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Start time</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>End time</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
-                Total hours
-              </TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Created</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 700 }} colSpan={2}>
+              <SortableHeader
+                label="#"
+                field="logID"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={timeSheetHeadCellSx}
+              />
+              <SortableHeader
+                label="Name"
+                field="username"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={timeSheetHeadCellSx}
+              />
+              <SortableHeader
+                label="Task name"
+                field="taskName"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={timeSheetHeadCellSx}
+              />
+              <SortableHeader
+                label="Date volunteer"
+                field="volunteerDate"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={timeSheetHeadCellSx}
+              />
+              <TableCell sx={timeSheetHeadCellSx}>Start time</TableCell>
+              <TableCell sx={timeSheetHeadCellSx}>End time</TableCell>
+              <SortableHeader
+                label="Total hours"
+                field="totalHours"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={timeSheetHeadCellSx}
+                align="right"
+              />
+              <SortableHeader
+                label="Created"
+                field="createdDate"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={timeSheetHeadCellSx}
+              />
+              <TableCell align="center" sx={timeSheetHeadCellSx} colSpan={2}>
                 Actions
               </TableCell>
             </TableRow>
@@ -214,7 +307,7 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
                               color="error"
                               aria-label="Delete entry"
                               disabled={deletingId === id}
-                              onClick={() => handleDelete(id)}
+                              onClick={() => handleDeleteClick(id)}
                             >
                               <DeleteIcon fontSize="small" />
                             </IconButton>
@@ -232,7 +325,7 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
       </TableContainer>
       <TablePagination
         component="div"
-        count={filtered.length}
+        count={sorted.length}
         page={page}
         onPageChange={(_, p) => setPage(p)}
         rowsPerPage={rowsPerPage}
@@ -241,6 +334,29 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
           setPage(0);
         }}
         rowsPerPageOptions={[10, 20, 50]}
+      />
+
+      <AppConfirmDialog
+        open={deleteConfirm.open}
+        onClose={() => {
+          if (!deletingId) {
+            setDeleteConfirm({ open: false, id: null });
+          }
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Entry"
+        message="Do you want to delete this entry?"
+        confirmLabel="Delete"
+        confirmColor="error"
+        icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+        loading={Boolean(deletingId)}
+      />
+
+      <AppConfirmDialog
+        open={alertDialog.open}
+        onClose={() => setAlertDialog({ open: false, message: "" })}
+        title="Notice"
+        message={alertDialog.message}
       />
     </Paper>
   );

@@ -2,12 +2,13 @@ using Microsoft.Extensions.Configuration;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
+using System.Linq;
 using System.Text.Json;
 
 namespace pStudyWare20.Services.Implementations
 {
     /// <summary>
-    /// Implementation of final exam business logic operations (matches legacy controller)
+    /// Final exam business logic — mirrors legacy FinalExam.aspx.cs.
     /// </summary>
     public class FinalExamService : IFinalExamService
     {
@@ -20,230 +21,291 @@ namespace pStudyWare20.Services.Implementations
             _configuration = configuration;
         }
 
-        /// <summary>
-        /// Get student list (matches legacy controller exactly)
-        /// </summary>
         public StudentListResponse GetStudentList(StudentListRequest request)
         {
-            StudentListResponse response = new StudentListResponse();
+            var response = new StudentListResponse();
             try
             {
-                var result = _finalExamRepository.GetStudentListAsync(request).Result;
+                if (string.IsNullOrWhiteSpace(request.Mode))
+                {
+                    request.Mode = "E";
+                }
 
+                var result = _finalExamRepository.GetStudentListAsync(request).Result;
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    var studentList = new List<StudentListItem>();
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
+                    if (rows != null)
                     {
-                        foreach (System.Data.DataRow row in dataTable.Rows)
+                        foreach (var row in rows)
                         {
-                            studentList.Add(new StudentListItem
+                            response.Students.Add(new StudentListItem
                             {
-                                Value = row["Value"]?.ToString() ?? string.Empty,
-                                Text = row["Text"]?.ToString() ?? string.Empty
+                                Value = GetStringFromElement(row, "StudentID"),
+                                Text = GetStringFromElement(row, "StudentName")
                             });
                         }
                     }
-                    response.Students = studentList;
                 }
 
                 response.IsSuccess = true;
-                response.ErrorMessage = "";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
+                response.ErrorMessage = ex.GetBaseException().Message;
             }
 
             return response;
         }
 
-        /// <summary>
-        /// Get exam questions (matches legacy controller exactly)
-        /// </summary>
         public ExamQuestionsResponse GetExamQuestions(ExamQuestionsRequest request)
         {
-            ExamQuestionsResponse response = new ExamQuestionsResponse();
+            var response = new ExamQuestionsResponse();
             try
             {
                 var result = _finalExamRepository.GetExamQuestionsAsync(request).Result;
-
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
+                    if (rows != null)
                     {
-                        foreach (System.Data.DataRow row in dataTable.Rows)
+                        foreach (var row in rows)
                         {
                             response.Questions.Add(new ExamQuestion
                             {
-                                Question = Convert.ToInt32(row["Question"]),
-                                AnswerKey = row["AnswerKey"]?.ToString() ?? string.Empty,
-                                Points = Convert.ToInt32(row["Points"]),
-                                CreatedDate = row["CreatedDate"] != DBNull.Value ? Convert.ToDateTime(row["CreatedDate"]) : null
+                                Question = GetIntFromElement(row, "Question"),
+                                AnswerKey = GetStringFromElement(row, "AnswerKey"),
+                                Points = GetIntFromElement(row, "Points"),
+                                CreatedDate = GetDateFromElement(row, "CreatedDate")
                             });
                         }
                     }
                 }
 
                 response.IsSuccess = true;
-                response.ErrorMessage = "";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
+                response.ErrorMessage = ex.GetBaseException().Message;
             }
 
             return response;
         }
 
-        /// <summary>
-        /// Validate score update (matches legacy controller exactly)
-        /// </summary>
         public ScoreValidationResponse ValidateScoreUpdate(ScoreValidationRequest request)
         {
-            ScoreValidationResponse response = new ScoreValidationResponse();
+            var response = new ScoreValidationResponse();
             try
             {
-                var result = _finalExamRepository.ValidateScoreUpdateAsync(request).Result;
+                if (string.IsNullOrWhiteSpace(request.Source))
+                {
+                    request.Source = "OnlineExam";
+                }
 
+                var result = _finalExamRepository.ValidateScoreUpdateAsync(request).Result;
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
+                    if (rows != null && rows.Count > 0)
                     {
-                        var enableScoreUpdate = dataTable.Rows[0]["EnableScoreUpdate"]?.ToString();
+                        var enableScoreUpdate = GetStringFromElement(rows[0], "EnableScoreUpdate");
                         response.EnableScoreUpdate = enableScoreUpdate == "Y";
                     }
                 }
 
                 response.IsSuccess = true;
-                response.ErrorMessage = "";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
+                response.ErrorMessage = ex.GetBaseException().Message;
             }
 
             return response;
         }
 
-        /// <summary>
-        /// Get current session (matches legacy controller exactly)
-        /// </summary>
         public CurrentSessionResponse GetCurrentSession(CurrentSessionRequest request)
         {
-            CurrentSessionResponse response = new CurrentSessionResponse();
+            var response = new CurrentSessionResponse();
             try
             {
                 var result = _finalExamRepository.GetCurrentSessionAsync(request).Result;
-
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
+                    if (rows != null)
                     {
-                        foreach (System.Data.DataRow row in dataTable.Rows)
+                        foreach (var row in rows)
                         {
                             response.Sessions.Add(new SessionItem
                             {
-                                Session = row["Session"]?.ToString() ?? string.Empty
+                                Session = GetStringFromElement(row, "Session")
                             });
                         }
                     }
                 }
 
                 response.IsSuccess = true;
-                response.ErrorMessage = "";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
+                response.ErrorMessage = ex.GetBaseException().Message;
             }
 
             return response;
         }
 
-        /// <summary>
-        /// Get student scores (matches legacy controller exactly)
-        /// </summary>
         public StudentScoresResponse GetStudentScores(StudentScoresRequest request)
         {
-            StudentScoresResponse response = new StudentScoresResponse();
+            var response = new StudentScoresResponse();
             try
             {
                 var result = _finalExamRepository.GetStudentScoresAsync(request).Result;
-
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
+                    if (rows != null)
                     {
-                        foreach (System.Data.DataRow row in dataTable.Rows)
+                        foreach (var row in rows)
                         {
                             response.Scores.Add(new StudentScore
                             {
-                                StudentName = row["StudentName"]?.ToString() ?? string.Empty,
-                                Group = row["Class"]?.ToString() ?? string.Empty,
-                                Semester = row["CurrentSemester"]?.ToString() ?? string.Empty,
-                                ExamDate = DateTime.TryParse(row["ExamDate"]?.ToString(), out var examDate) ? examDate : DateTime.MinValue,
-                                TotalCredit = float.TryParse(row["TotalScore"]?.ToString(), out var totalScore) ? totalScore : 0,
-                                ReceivedCredit = float.TryParse(row["ReceivedScore"]?.ToString(), out var receivedScore) ? receivedScore : 0,
-                                Comments = row["Comments"]?.ToString() ?? string.Empty
+                                StudentID = GetIntFromElement(row, "StudentID"),
+                                StudentName = GetStringFromElement(row, "StudentName"),
+                                Group = GetStringFromElement(row, "Group"),
+                                Grade = GetStringFromElement(row, "Grade"),
+                                Semester = GetStringFromElement(row, "CurrentSession"),
+                                ExamType = GetStringFromElement(row, "ExamType"),
+                                ExamDate = GetDateFromElement(row, "ExamDate") ?? DateTime.MinValue,
+                                TotalCredit = GetFloatFromElement(row, "TotalCredit"),
+                                ReceivedCredit = GetFloatFromElement(row, "ReceivedCredit"),
+                                Comments = GetStringFromElement(row, "Comments"),
+                                SubmittedDate = GetStringFromElement(row, "SubmittedDate")
                             });
                         }
                     }
                 }
 
                 response.IsSuccess = true;
-                response.ErrorMessage = "";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
+                response.ErrorMessage = ex.GetBaseException().Message;
             }
 
             return response;
         }
 
-        /// <summary>
-        /// Submit exam (matches legacy controller exactly)
-        /// </summary>
         public SubmitExamResponse SubmitExam(SubmitExamRequest request)
         {
-            SubmitExamResponse response = new SubmitExamResponse();
+            var response = new SubmitExamResponse();
             try
             {
-                var result = _finalExamRepository.SubmitExamAsync(request).Result;
+                if (request.Answers == null ||
+                    request.Answers.All(a => string.IsNullOrWhiteSpace(a.AnswerKey)))
+                {
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "Please select at least one answer before submitting.";
+                    return response;
+                }
 
+                var result = _finalExamRepository.SubmitExamAsync(request).Result;
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
+                    if (rows != null && rows.Count > 0)
                     {
-                        response.TotalScore = dataTable.Rows[0]["FinalExamTotalScore"]?.ToString() ?? "0";
-                        response.ReceivedScore = dataTable.Rows[0]["FinalExamReceivedScore"]?.ToString() ?? "0";
+                        response.TotalScore = GetStringFromElement(rows[0], "FinalExamTotalScore");
+                        response.ReceivedScore = GetStringFromElement(rows[0], "FinalExamReceivedScore");
                         response.Message = "Exam submitted successfully";
+                        response.IsSuccess = true;
+                        return response;
                     }
                 }
 
-                response.IsSuccess = true;
-                response.ErrorMessage = "";
+                response.IsSuccess = false;
+                response.ErrorMessage = "Exam submission did not return a score. Please contact support.";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.ErrorMessage = ex.Message;
-                response.Message = "";
+                response.ErrorMessage = ex.GetBaseException().Message;
+                response.Message = string.Empty;
             }
 
             return response;
+        }
+
+        private static string GetStringFromElement(JsonElement row, string propertyName)
+        {
+            if (row.TryGetProperty(propertyName, out var prop))
+            {
+                return prop.ValueKind switch
+                {
+                    JsonValueKind.Null or JsonValueKind.Undefined => string.Empty,
+                    JsonValueKind.String => prop.GetString() ?? string.Empty,
+                    _ => prop.ToString()
+                };
+            }
+            return string.Empty;
+        }
+
+        private static int GetIntFromElement(JsonElement row, string propertyName)
+        {
+            if (row.TryGetProperty(propertyName, out var prop) &&
+                prop.ValueKind != JsonValueKind.Null &&
+                prop.ValueKind != JsonValueKind.Undefined)
+            {
+                if (prop.TryGetInt32(out var intVal))
+                {
+                    return intVal;
+                }
+                if (int.TryParse(prop.ToString(), out var parsed))
+                {
+                    return parsed;
+                }
+            }
+            return 0;
+        }
+
+        private static float GetFloatFromElement(JsonElement row, string propertyName)
+        {
+            if (row.TryGetProperty(propertyName, out var prop) &&
+                prop.ValueKind != JsonValueKind.Null &&
+                prop.ValueKind != JsonValueKind.Undefined)
+            {
+                if (prop.TryGetSingle(out var floatVal))
+                {
+                    return floatVal;
+                }
+                if (float.TryParse(prop.ToString(), out var parsed))
+                {
+                    return parsed;
+                }
+            }
+            return 0;
+        }
+
+        private static DateTime? GetDateFromElement(JsonElement row, string propertyName)
+        {
+            if (row.TryGetProperty(propertyName, out var prop) &&
+                prop.ValueKind != JsonValueKind.Null &&
+                prop.ValueKind != JsonValueKind.Undefined)
+            {
+                if (prop.TryGetDateTime(out var dateVal))
+                {
+                    return dateVal;
+                }
+                if (DateTime.TryParse(prop.ToString(), out var parsed))
+                {
+                    return parsed;
+                }
+            }
+            return null;
         }
     }
 }

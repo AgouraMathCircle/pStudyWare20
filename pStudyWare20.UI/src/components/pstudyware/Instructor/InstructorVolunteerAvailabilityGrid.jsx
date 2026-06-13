@@ -15,6 +15,8 @@ import {
   Typography,
 } from "@mui/material";
 import InstructorPortalPaginationBar from "./InstructorPortalPaginationBar";
+import SortableHeader from "../Common/SortableHeader";
+import { sortRows, toSortableDate, toSortableNumber } from "../../../utils/tableSort";
 import {
   instructorCellBodySx,
   instructorCellBodySxLast,
@@ -76,6 +78,14 @@ function cell(row, keys) {
   return "";
 }
 
+function rawCell(row, keys) {
+  if (!row || typeof row !== "object") return "";
+  for (const k of keys) {
+    if (row[k] !== undefined && row[k] !== null) return row[k];
+  }
+  return "";
+}
+
 function matchField(fieldValue, search, criteria) {
   const f = String(fieldValue ?? "").toLowerCase();
   const s = String(search ?? "").toLowerCase();
@@ -97,6 +107,18 @@ function filterRows(rows, searchBy, searchCriteria, searchText) {
   });
 }
 
+const getAvailabilityFieldValue = (row, field) => {
+  const col = COLS.find((c) => c.searchBy === field);
+  if (!col) return "";
+  if (field === "INSTRUCTOR_ID") {
+    return toSortableNumber(rawCell(row, col.keys));
+  }
+  if (field === "RESPONSE_DATE") {
+    return toSortableDate(rawCell(row, col.keys));
+  }
+  return cell(row, col.keys);
+};
+
 const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error = null }) => {
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("contains");
@@ -104,6 +126,8 @@ const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error
   const [filteredRows, setFilteredRows] = useState(rows);
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
+  const [sortField, setSortField] = useState("RESPONSE_DATE");
+  const [sortOrder, setSortOrder] = useState("desc");
   const pageSize = 10;
 
   useEffect(() => {
@@ -119,13 +143,26 @@ const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error
     setGoToPageInput("1");
   };
 
-  const totalRecords = filteredRows.length;
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
+
+  const sortedRows = useMemo(
+    () => sortRows(filteredRows, sortField, sortOrder, getAvailabilityFieldValue),
+    [filteredRows, sortField, sortOrder],
+  );
+
+  const totalRecords = sortedRows.length;
   const totalPages = Math.ceil(totalRecords / pageSize) || 0;
 
   const pageRows = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    return filteredRows.slice(start, start + pageSize);
-  }, [filteredRows, currentPage, pageSize]);
+    return sortedRows.slice(start, start + pageSize);
+  }, [sortedRows, currentPage, pageSize]);
 
   const handlePageChange = (page) => {
     const maxPage = Math.ceil(totalRecords / pageSize) || 1;
@@ -249,12 +286,17 @@ const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error
           <TableHead>
             <TableRow sx={instructorTableHeadRowSx}>
               {COLS.map((c, i) => (
-                <TableCell
+                <SortableHeader
                   key={c.label}
-                  sx={i === COLS.length - 1 ? instructorCellHeaderSxLast : instructorCellHeaderSx}
-                >
-                  {c.label}
-                </TableCell>
+                  label={c.label}
+                  field={c.searchBy}
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  headCellSx={
+                    i === COLS.length - 1 ? instructorCellHeaderSxLast : instructorCellHeaderSx
+                  }
+                />
               ))}
             </TableRow>
           </TableHead>

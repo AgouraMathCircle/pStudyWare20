@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
-  CardHeader,
   Typography,
   Box,
   Link,
@@ -12,12 +11,36 @@ import {
 import {
   VideoCall as VideoCallIcon,
   AccessTime as AccessTimeIcon,
-  Event as EventIcon,
-  Person as PersonIcon,
   VpnKey as VpnKeyIcon,
   MeetingRoom as MeetingRoomIcon,
 } from "@mui/icons-material";
 import meetingDetailsService from "../../../services/meetingDetailsService";
+import {
+  PORTAL_CARD_BOX_SHADOW,
+  portalCardAntiLiftSx,
+  adminSessionListHeaderBarSx,
+  adminSessionListTitleSx,
+} from "../styles/applicationSurfaces";
+
+const sectionTitle = "Meeting Schedule";
+
+const defaultPanelCardSx = {
+  backgroundColor: "white",
+  borderRadius: 2,
+  boxShadow: PORTAL_CARD_BOX_SHADOW,
+  overflow: "hidden",
+  boxSizing: "border-box",
+  pl: "35px",
+  pr: "35px",
+  ...portalCardAntiLiftSx,
+};
+
+const panelContentSx = {
+  px: 1.5,
+  pt: 1,
+  pb: 0,
+  "&:last-child": { pb: 1.5 },
+};
 
 // Class code -> full name (matches the mapping used across the app, e.g. DocumentList)
 const CLASS_LABELS = {
@@ -41,6 +64,24 @@ const getClassLabel = (classCode) => {
   return CLASS_LABELS[classCode] || classCode;
 };
 
+const getMeetingClassDisplay = (meeting, getProp) => {
+  const className = getProp(meeting, "ClassName");
+  if (className) return className;
+
+  const classCode = getProp(meeting, "Class");
+  if (classCode) return getClassLabel(classCode);
+
+  return getProp(meeting, "ChapterName");
+};
+
+const formatMeetingDateTime = (meetingDate, meetingTime) => {
+  if (!meetingDate) return "";
+  if (meetingTime && !meetingDate.includes(meetingTime)) {
+    return `${meetingDate} ${meetingTime}`;
+  }
+  return meetingDate;
+};
+
 // Module-level cache per username so GetAllMeetingSchedules is only called once per user per TTL
 const MEETING_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
 const meetingSchedulesCacheByUser = {}; // { [username]: { data: [...], time: number } }
@@ -59,7 +100,15 @@ const getActiveMeetings = (response) => {
   );
 };
 
-const StudentMeetingSchedule = ({ username }) => {
+const renderSectionHeader = () => (
+  <Box sx={adminSessionListHeaderBarSx}>
+    <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
+      {sectionTitle}
+    </Typography>
+  </Box>
+);
+
+const StudentMeetingSchedule = ({ username, panelCardSx = defaultPanelCardSx }) => {
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -133,10 +182,11 @@ const StudentMeetingSchedule = ({ username }) => {
 
   if (loading) {
     return (
-      <Card elevation={3}>
-        <CardContent>
-          <Box display="flex" justifyContent="center" alignItems="center" p={3}>
-            <CircularProgress size={40} />
+      <Card sx={panelCardSx}>
+        <CardContent sx={panelContentSx}>
+          {renderSectionHeader()}
+          <Box display="flex" justifyContent="center" alignItems="center" p={2}>
+            <CircularProgress size={32} />
           </Box>
         </CardContent>
       </Card>
@@ -145,8 +195,9 @@ const StudentMeetingSchedule = ({ username }) => {
 
   if (error) {
     return (
-      <Card elevation={3}>
-        <CardContent>
+      <Card sx={panelCardSx}>
+        <CardContent sx={panelContentSx}>
+          {renderSectionHeader()}
           <Alert severity="warning">{error}</Alert>
         </CardContent>
       </Card>
@@ -154,33 +205,18 @@ const StudentMeetingSchedule = ({ username }) => {
   }
 
   if (meetings.length === 0) {
-    return null; // Don't show section if no meetings
+    return null;
   }
 
   return (
-    <Card elevation={0} className="meeting-schedule-card">
-      <CardHeader
-        avatar={
-          <Box className="meeting-header-badge">
-            <VideoCallIcon sx={{ fontSize: 22 }} />
-          </Box>
-        }
-        title={
-          <Typography variant="h5" component="div" className="meeting-header-title">
-            Meeting Schedule
-          </Typography>
-        }
-        className="meeting-schedule-header"
-      />
-      <CardContent className="meeting-schedule-content">
+    <Card sx={panelCardSx} className="meeting-schedule-card">
+      <CardContent sx={panelContentSx}>
+        {renderSectionHeader()}
         <Box className="meeting-grid">
           {meetings.map((meeting, index) => {
             // Extract properties with fallback for camelCase/PascalCase
             const rowId =
               getProp(meeting, "RowID") || getProp(meeting, "RowId");
-            const chapterName = getProp(meeting, "ChapterName");
-            const className = getProp(meeting, "Class");
-            const section = getProp(meeting, "Section");
             const meetingURL =
               getProp(meeting, "MeetingURL") || getProp(meeting, "MeetingUrl");
             const meetingDate = getProp(meeting, "MeetingDate");
@@ -188,61 +224,44 @@ const StudentMeetingSchedule = ({ username }) => {
             const meetingID =
               getProp(meeting, "MeetingID") || getProp(meeting, "MeetingId");
             const passcode = getProp(meeting, "Passcode");
-            const firstName =
-              getProp(meeting, "FirstName") || getProp(meeting, "StudentFirstName");
-            const lastName =
-              getProp(meeting, "LastName") || getProp(meeting, "StudentLastName");
-            const studentName =
-              getProp(meeting, "StudentName") ||
-              getProp(meeting, "Name") ||
-              [firstName, lastName].filter(Boolean).join(" ");
+            const classDisplay = getMeetingClassDisplay(meeting, getProp);
+            const section = getProp(meeting, "Section");
 
             return (
               <Box key={rowId || index} className="meeting-card">
-                {/* Accent ribbon */}
-                <Box className="meeting-card-accent" />
-
-                {/* Head: badge + class + date/time */}
-                <Box className="meeting-card-head">
-                  <Box className="meeting-badge">
-                    <EventIcon sx={{ fontSize: 22 }} />
-                  </Box>
-                  <Box className="meeting-info">
-                    <Typography component="div" className="meeting-title">
-                      {getClassLabel(chapterName || className)}
-                      {section ? ` · Section ${section}` : ""}
+                <Box className="meeting-card-main">
+                  {classDisplay && (
+                    <Typography component="div" className="meeting-class">
+                      {classDisplay}
                     </Typography>
-                    {studentName && (
-                      <Box className="meeting-student-name">
-                        <PersonIcon sx={{ fontSize: 15 }} />
-                        <span>{studentName}</span>
-                      </Box>
-                    )}
-                    {meetingDate && (
-                      <Box className="meeting-datetime">
-                        <AccessTimeIcon sx={{ fontSize: 15 }} />
-                        <span>
-                          {meetingDate}
-                          {meetingTime ? ` · ${meetingTime} PST` : ""}
-                        </span>
-                      </Box>
-                    )}
-                  </Box>
+                  )}
+                  {section && (
+                    <Typography component="div" className="meeting-section">
+                      Section {section}
+                    </Typography>
+                  )}
+                  {meetingDate && (
+                    <Box className="meeting-datetime">
+                      <AccessTimeIcon sx={{ fontSize: 14 }} />
+                      <span>
+                        {formatMeetingDateTime(meetingDate, meetingTime)}
+                      </span>
+                    </Box>
+                  )}
                 </Box>
 
-                {/* Details: meeting id + passcode */}
                 {(meetingID || passcode) && (
                   <Box className="meeting-meta">
                     {meetingID && (
                       <Box className="meeting-detail-row">
-                        <MeetingRoomIcon sx={{ fontSize: 16 }} />
-                        <span className="meeting-detail-label">Meeting ID</span>
+                        <MeetingRoomIcon sx={{ fontSize: 15 }} />
+                        <span className="meeting-detail-label">ID</span>
                         <span className="meeting-detail-value">{meetingID}</span>
                       </Box>
                     )}
                     {passcode && (
                       <Box className="meeting-detail-row">
-                        <VpnKeyIcon sx={{ fontSize: 16 }} />
+                        <VpnKeyIcon sx={{ fontSize: 15 }} />
                         <span className="meeting-detail-label">Passcode</span>
                         <span className="meeting-detail-value">{passcode}</span>
                       </Box>
@@ -250,15 +269,15 @@ const StudentMeetingSchedule = ({ username }) => {
                   </Box>
                 )}
 
-                {/* Full-width Join button */}
                 <Link
                   href={meetingURL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="meeting-join-btn"
+                  underline="none"
                 >
-                  <VideoCallIcon sx={{ fontSize: 18 }} />
-                  Launch meeting
+                  <VideoCallIcon sx={{ fontSize: 16 }} />
+                  Launch
                 </Link>
               </Box>
             );

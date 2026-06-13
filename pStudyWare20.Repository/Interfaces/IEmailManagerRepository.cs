@@ -47,6 +47,11 @@ namespace pStudyWare20.Repository.Interfaces
         Task<DataSet> UpdateMessageStatusAsync(string mode, string trackingId, string sendTo);
 
         /// <summary>
+        /// Returns tracking IDs that have been soft-deleted (Status='A').
+        /// </summary>
+        Task<HashSet<int>> GetArchivedTrackingIdsAsync(IReadOnlyCollection<int> trackingIds);
+
+        /// <summary>
         /// Get instructor email groups using AMC_spSelectEmailGroupbyUserName
         /// </summary>
         /// <param name="username">Username</param>

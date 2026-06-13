@@ -1,4 +1,5 @@
 import api from "./api";
+import { postExcelExport } from "../utils/excelExport";
 
 const EMAIL_MANAGER_API_BASE_URL = "/EmailManager";
 
@@ -12,7 +13,8 @@ const emailManagerService = {
     try {
       const response = await api.post(
         `${EMAIL_MANAGER_API_BASE_URL}/GetMessages`,
-        { username: username || "" }
+        { username: username || "" },
+        { timeout: 120000 }
       );
       return response.data;
     } catch (error) {
@@ -27,10 +29,19 @@ const emailManagerService = {
    * @returns {Promise<object>} Get message response
    */
   getMessage: async (emailId) => {
+    const parsedId = Number(emailId);
+    if (!Number.isFinite(parsedId) || parsedId <= 0) {
+      return {
+        isSuccess: false,
+        errorMessage: "A valid email ID is required",
+      };
+    }
+
     try {
       const response = await api.post(
         `${EMAIL_MANAGER_API_BASE_URL}/GetMessage`,
-        { emailID: emailId }
+        { emailID: parsedId },
+        { timeout: 30000 }
       );
       return response.data;
     } catch (error) {
@@ -58,7 +69,8 @@ const emailManagerService = {
     try {
       const response = await api.post(
         `${EMAIL_MANAGER_API_BASE_URL}/SendMessage`,
-        request
+        request,
+        { timeout: 60000 }
       );
       return response.data;
     } catch (error) {
@@ -127,46 +139,19 @@ const emailManagerService = {
   },
 
   /**
-   * Exports messages to Excel
+   * Exports messages to Excel (.xlsx)
    * @param {string} username - Username
-   * @returns {Promise<Blob>} Excel file blob
+   * @returns {Promise<{isSuccess: boolean, fileName: string}>}
    */
   exportMessagesToExcel: async (username) => {
     try {
-      const response = await api.post(
+      const fileName = await postExcelExport(
+        api,
         `${EMAIL_MANAGER_API_BASE_URL}/ExportMessagesToExcel`,
         { username },
-        {
-          responseType: "blob", // Important for file downloads
-        }
+        "MessageCenter.xlsx"
       );
-
-      // Read the blob content as text to add proper Excel HTML headers
-      const blobText = await response.data.text();
-
-      // Add proper Excel HTML headers if not already present
-      // This ensures Excel recognizes the file format correctly
-      const excelHeader =
-        '<?xml version="1.0"?>\n' +
-        '<?mso-application progid="Excel.Sheet"?>\n' +
-        '<html xmlns:o="urn:schemas-microsoft-com:office:office"\n' +
-        '      xmlns:x="urn:schemas-microsoft-com:office:excel"\n' +
-        '      xmlns="http://www.w3.org/TR/REC-html40">\n';
-
-      // Check if the content already has Excel headers
-      let finalContent = blobText;
-      if (!blobText.includes('<?mso-application progid="Excel.Sheet"?>')) {
-        // Replace <html> with Excel header, preserving all body content
-        // The backend returns: <html><body><table>...</table></body></html>
-        finalContent = blobText.replace(/^<html[^>]*>/i, excelHeader.trim());
-      }
-
-      // Create a new Blob with proper Excel HTML MIME type
-      const blob = new Blob([finalContent], {
-        type: "application/vnd.ms-excel",
-      });
-
-      return blob;
+      return { isSuccess: true, fileName };
     } catch (error) {
       console.error("Error exporting messages to Excel:", error);
       throw error;

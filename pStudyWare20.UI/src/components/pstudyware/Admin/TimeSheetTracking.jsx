@@ -40,12 +40,18 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
+import SortableHeader from "../Common/SortableHeader";
 import timeSheetTrackingService from "../../../services/timeSheetTrackingService";
+import {
+  sortRows,
+  toSortableDate,
+  toSortableNumber,
+} from "../../../utils/tableSort";
 import {
   APPLICATION_ADMIN_TITLE_COLOR,
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
-} from "../../../styles/applicationSurfaces";
+} from "../styles/applicationSurfaces";
 
 const timeSheetTrackingPageSx = {
   flex: 1,
@@ -149,6 +155,42 @@ function matchesCriteria(fieldValue, searchCriteria, searchLower) {
   return fv.includes(searchLower);
 }
 
+function getTimeSheetFieldValue(row, field) {
+  switch (field) {
+    case "logID":
+      return toSortableNumber(row.logID ?? row.LogID ?? row.mLogID);
+    case "name":
+      return row.name ?? row.Name ?? "";
+    case "taskName":
+      return row.taskName ?? row.TaskName ?? "";
+    case "volunteerDate":
+      return toSortableDate(row.volunteerDate ?? row.VolunteerDate);
+    case "startTime": {
+      const { start } = displayStartEnd(row);
+      return start === "—" ? "" : start;
+    }
+    case "endTime": {
+      const { end } = displayStartEnd(row);
+      return end === "—" ? "" : end;
+    }
+    case "totalHours":
+      return toSortableNumber(row.totalHours ?? row.TotalHours);
+    case "createdDate":
+      return toSortableDate(row.createdDate ?? row.CreatedDate);
+    default:
+      return "";
+  }
+}
+
+const timeSheetHeadCellSx = (width, isLast = false) => ({
+  fontWeight: 400,
+  borderRight: isLast ? undefined : "1px solid #4caf50",
+  width,
+  fontSize: "0.75rem",
+  padding: cellPadding,
+  whiteSpace: isLast ? "nowrap" : undefined,
+});
+
 const TimeSheetTracking = () => {
   const { user } = useAuth();
   const [list, setList] = useState([]);
@@ -158,6 +200,8 @@ const TimeSheetTracking = () => {
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
+  const [sortField, setSortField] = useState("volunteerDate");
+  const [sortOrder, setSortOrder] = useState("desc");
   const pageSize = 20;
 
   const [formOpen, setFormOpen] = useState(false);
@@ -294,12 +338,25 @@ const TimeSheetTracking = () => {
     });
   }, [list, searchBy, searchCriteria, searchText]);
 
-  const totalRecords = filteredList.length;
+  const sortedList = useMemo(
+    () => sortRows(filteredList, sortField, sortOrder, getTimeSheetFieldValue),
+    [filteredList, sortField, sortOrder],
+  );
+
+  const totalRecords = sortedList.length;
   const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
   const paginatedList = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    return filteredList.slice(start, start + pageSize);
-  }, [filteredList, currentPage, pageSize]);
+    return sortedList.slice(start, start + pageSize);
+  }, [sortedList, currentPage, pageSize]);
+
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -731,94 +788,14 @@ const TimeSheetTracking = () => {
                       >
                         <TableHead>
                           <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "5%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              #
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "12%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Name
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "14%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Task Name
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "10%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Date Volunteer
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "11%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Start Time
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "11%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              End Time
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "8%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Total Hours
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "11%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Created Date
-                            </TableCell>
+                            <SortableHeader label="#" field="logID" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("5%")} />
+                            <SortableHeader label="Name" field="name" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("12%")} />
+                            <SortableHeader label="Task Name" field="taskName" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("14%")} />
+                            <SortableHeader label="Date Volunteer" field="volunteerDate" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("10%")} />
+                            <SortableHeader label="Start Time" field="startTime" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("11%")} />
+                            <SortableHeader label="End Time" field="endTime" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("11%")} />
+                            <SortableHeader label="Total Hours" field="totalHours" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("8%")} />
+                            <SortableHeader label="Created Date" field="createdDate" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("11%")} />
                             <TableCell
                               sx={{
                                 fontWeight: 400,

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -7,6 +8,7 @@ import {
   Alert,
   CircularProgress,
   Grid,
+  Link,
 } from "@mui/material";
 import {
   Warning as WarningIcon,
@@ -16,13 +18,72 @@ import {
 } from "@mui/icons-material";
 import studentDashboardService from "../../../services/studentDashboardService";
 
+const IMPORTANT_NOTICE_LINKS = [
+  {
+    label: "Subscribe and Watch all the Lectures Notes Video",
+    href: "https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/featured",
+    external: true,
+    color: "#f44336",
+  },
+  {
+    label: "Send your message to your instructor.",
+    href: "/pstudyware/student/message-center",
+    external: false,
+    color: "#1976d2",
+  },
+];
+
+const importantNoticeLinkSx = (color) => ({
+  display: "block",
+  color,
+  fontSize: "0.875rem",
+  fontWeight: 500,
+  lineHeight: 1.15,
+  m: 0,
+  p: 0,
+  textDecoration: "none",
+  "&:hover": {
+    textDecoration: "underline",
+  },
+});
+
+const messageCardGridSx = {
+  flex: "1 1 0",
+  minWidth: "0",
+  alignSelf: "flex-start",
+};
+
+const messageCardContentSx = {
+  px: 2,
+  pt: 1.5,
+  pb: 0,
+  "&:last-child": { pb: 0.75 },
+  display: "flex",
+  flexDirection: "column",
+  width: "100%",
+};
+
+const messageCardBodySx = {
+  color: "#333",
+  lineHeight: 1.35,
+  wordWrap: "break-word",
+  overflowWrap: "break-word",
+  whiteSpace: "normal",
+};
+
+const messageCardHeaderSx = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  mb: 0.75,
+};
+
 const DashboardMessages = ({
   username,
   chapterId,
   dashboardMessages: propsDashboardMessages,
   loading: propsLoading,
 }) => {
-  // When parent passes data (single fetch from StudentDashboard), use it and don't call API
   const isControlled = propsDashboardMessages != null;
   const [internalMessages, setInternalMessages] = useState({
     importantNotice: "",
@@ -36,7 +97,6 @@ const DashboardMessages = ({
   const dashboardMessages = isControlled ? propsDashboardMessages : internalMessages;
   const loading = isControlled ? (propsLoading ?? false) : internalLoading;
 
-  // Only fetch when not controlled by parent (e.g. if used elsewhere without props)
   useEffect(() => {
     if (isControlled || !username || !chapterId) {
       if (isControlled) setError(null);
@@ -80,51 +140,33 @@ const DashboardMessages = ({
     };
   }, [isControlled, username, chapterId]);
 
-  // Show loading state
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-        <CircularProgress />
+      <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
+        <CircularProgress size={32} />
       </Box>
     );
   }
 
-  // Show error state
   if (error) {
     return (
-      <Alert severity="error" sx={{ mb: 3 }}>
+      <Alert severity="error" sx={{ mb: 0 }}>
         {error}
       </Alert>
     );
   }
 
   return (
-    <Box sx={{ mb: 3 }}>
-      {/* Dashboard Messages Section */}
-      <Typography
-        variant="h6"
-        sx={{ mb: 3, fontWeight: 600, color: "#1976d2" }}
-      >
-        Dashboard Messages
-      </Typography>
-
+    <Box sx={{ width: "100%" }}>
       <Grid
         container
-        spacing={2}
-        sx={{ display: "flex", justifyContent: "space-between" }}
+        spacing={1}
+        sx={{ display: "flex", justifyContent: "space-between", mb: 0 }}
       >
-        {/* Important Notice Card */}
-        {dashboardMessages.importantNotice && (
-          <Grid
-            item
-            xs={12}
-            sm={6}
-            md={3}
-            sx={{ flex: "1 1 0", minWidth: "0" }}
-          >
+        {(dashboardMessages.importantNotice || IMPORTANT_NOTICE_LINKS.length > 0) && (
+          <Grid item xs={12} sm={6} md={3} sx={messageCardGridSx}>
             <Card
               sx={{
-                height: "100%",
                 backgroundColor: "#e3f2fd",
                 borderRadius: 2,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
@@ -132,23 +174,8 @@ const DashboardMessages = ({
                 overflow: "hidden",
               }}
             >
-              <CardContent
-                sx={{
-                  p: 2,
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  width: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    mb: 1,
-                  }}
-                >
+              <CardContent sx={messageCardContentSx}>
+                <Box sx={messageCardHeaderSx}>
                   <Typography
                     variant="h6"
                     sx={{ fontWeight: 600, color: "#f44336", fontSize: "1rem" }}
@@ -157,36 +184,51 @@ const DashboardMessages = ({
                   </Typography>
                   <WarningIcon sx={{ color: "#f44336", fontSize: 24 }} />
                 </Box>
-                <Typography
-                  variant="body2"
+                {dashboardMessages.importantNotice && (
+                  <Typography variant="body2" sx={messageCardBodySx}>
+                    {dashboardMessages.importantNotice}
+                  </Typography>
+                )}
+                <Box
                   sx={{
-                    color: "#333",
-                    lineHeight: 1.5,
-                    flex: 1,
-                    wordWrap: "break-word",
-                    overflowWrap: "break-word",
-                    whiteSpace: "normal",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 0,
+                    mt: dashboardMessages.importantNotice ? 0.25 : 0,
                   }}
                 >
-                  {dashboardMessages.importantNotice}
-                </Typography>
+                  {IMPORTANT_NOTICE_LINKS.map((item) =>
+                    item.external ? (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={importantNoticeLinkSx(item.color)}
+                      >
+                        {item.label}
+                      </Link>
+                    ) : (
+                      <Link
+                        key={item.href}
+                        component={RouterLink}
+                        to={item.href}
+                        sx={importantNoticeLinkSx(item.color)}
+                      >
+                        {item.label}
+                      </Link>
+                    )
+                  )}
+                </Box>
               </CardContent>
             </Card>
           </Grid>
         )}
 
-        {/* Announcement Card */}
         {dashboardMessages.announcement && (
-          <Grid
-            item
-            xs={12}
-            sm={6}
-            md={3}
-            sx={{ flex: "1 1 0", minWidth: "0" }}
-          >
+          <Grid item xs={12} sm={6} md={3} sx={messageCardGridSx}>
             <Card
               sx={{
-                height: "100%",
                 backgroundColor: "#e8f5e8",
                 borderRadius: 2,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
@@ -194,23 +236,8 @@ const DashboardMessages = ({
                 overflow: "hidden",
               }}
             >
-              <CardContent
-                sx={{
-                  p: 2,
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  width: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    mb: 1,
-                  }}
-                >
+              <CardContent sx={messageCardContentSx}>
+                <Box sx={messageCardHeaderSx}>
                   <Typography
                     variant="h6"
                     sx={{ fontWeight: 600, color: "#2196f3", fontSize: "1rem" }}
@@ -219,17 +246,7 @@ const DashboardMessages = ({
                   </Typography>
                   <InfoIcon sx={{ color: "#2196f3", fontSize: 24 }} />
                 </Box>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: "#333",
-                    lineHeight: 1.5,
-                    flex: 1,
-                    wordWrap: "break-word",
-                    overflowWrap: "break-word",
-                    whiteSpace: "normal",
-                  }}
-                >
+                <Typography variant="body2" sx={messageCardBodySx}>
                   {dashboardMessages.announcement}
                 </Typography>
               </CardContent>
@@ -237,18 +254,10 @@ const DashboardMessages = ({
           </Grid>
         )}
 
-        {/* Competitions Card */}
         {dashboardMessages.competitions && (
-          <Grid
-            item
-            xs={12}
-            sm={6}
-            md={3}
-            sx={{ flex: "1 1 0", minWidth: "0" }}
-          >
+          <Grid item xs={12} sm={6} md={3} sx={messageCardGridSx}>
             <Card
               sx={{
-                height: "100%",
                 backgroundColor: "#fff3e0",
                 borderRadius: 2,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
@@ -256,23 +265,8 @@ const DashboardMessages = ({
                 overflow: "hidden",
               }}
             >
-              <CardContent
-                sx={{
-                  p: 2,
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  width: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    mb: 1,
-                  }}
-                >
+              <CardContent sx={messageCardContentSx}>
+                <Box sx={messageCardHeaderSx}>
                   <Typography
                     variant="h6"
                     sx={{ fontWeight: 600, color: "#4caf50", fontSize: "1rem" }}
@@ -281,17 +275,7 @@ const DashboardMessages = ({
                   </Typography>
                   <EmojiEventsIcon sx={{ color: "#4caf50", fontSize: 24 }} />
                 </Box>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: "#333",
-                    lineHeight: 1.5,
-                    flex: 1,
-                    wordWrap: "break-word",
-                    overflowWrap: "break-word",
-                    whiteSpace: "normal",
-                  }}
-                >
+                <Typography variant="body2" sx={messageCardBodySx}>
                   {dashboardMessages.competitions}
                 </Typography>
               </CardContent>
@@ -299,18 +283,10 @@ const DashboardMessages = ({
           </Grid>
         )}
 
-        {/* Todo List Card */}
         {dashboardMessages.todoList && (
-          <Grid
-            item
-            xs={12}
-            sm={6}
-            md={3}
-            sx={{ flex: "1 1 0", minWidth: "0" }}
-          >
+          <Grid item xs={12} sm={6} md={3} sx={messageCardGridSx}>
             <Card
               sx={{
-                height: "100%",
                 backgroundColor: "#f3e5f5",
                 borderRadius: 2,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
@@ -318,23 +294,8 @@ const DashboardMessages = ({
                 overflow: "hidden",
               }}
             >
-              <CardContent
-                sx={{
-                  p: 2,
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  width: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    mb: 1,
-                  }}
-                >
+              <CardContent sx={messageCardContentSx}>
+                <Box sx={messageCardHeaderSx}>
                   <Typography
                     variant="h6"
                     sx={{ fontWeight: 600, color: "#9c27b0", fontSize: "1rem" }}
@@ -343,17 +304,7 @@ const DashboardMessages = ({
                   </Typography>
                   <ChecklistIcon sx={{ color: "#9c27b0", fontSize: 24 }} />
                 </Box>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: "#333",
-                    lineHeight: 1.5,
-                    flex: 1,
-                    wordWrap: "break-word",
-                    overflowWrap: "break-word",
-                    whiteSpace: "normal",
-                  }}
-                >
+                <Typography variant="body2" sx={messageCardBodySx}>
                   {dashboardMessages.todoList}
                 </Typography>
               </CardContent>

@@ -4,7 +4,7 @@ import {
   School as SchoolIcon,
   CalendarToday as CalendarIcon,
 } from "@mui/icons-material";
-import { applicationRoleHeaderBarSx } from "../../../styles/applicationSurfaces";
+import { applicationRoleHeaderBarSx } from "../styles/applicationSurfaces";
 import instructorHeaderBg from "../../../assets/images/bg.jpg";
 
 /**

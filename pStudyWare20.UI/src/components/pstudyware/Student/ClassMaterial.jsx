@@ -4,8 +4,6 @@ import {
   Box,
   Alert,
   Snackbar,
-  Typography,
-  CircularProgress,
   Grid,
   Card,
   CardContent,
@@ -15,9 +13,9 @@ import documentService from "../../../services/documentService";
 import StudentDocumentList from "./StudentDocumentList";
 import StudentHeader from "./StudentHeader";
 import {
-  PORTAL_CARD_BOX_SHADOW,
-  portalCardAntiLiftSx,
-} from "../../../styles/applicationSurfaces";
+  adminSessionListPanelCardSx,
+  adminSessionListPanelContentSx,
+} from "../styles/applicationSurfaces";
 
 const ClassMaterial = () => {
   const { user, isAuthenticated } = useAuth();
@@ -103,9 +101,17 @@ const ClassMaterial = () => {
     setSelectedPdf(null);
   };
 
-  // Handle download document
-  const handleDownload = (docName) => {
-    documentService.downloadDocument(docName);
+  // Handle download document via API (avoids SPA/static path issues)
+  const handleDownload = async (docName) => {
+    try {
+      await documentService.downloadClassMaterial(docName);
+    } catch (err) {
+      console.error("Error downloading class material:", err);
+      showMessage(
+        err?.message || "Unable to download document. Please try again.",
+        "error"
+      );
+    }
   };
 
   // Handle open video
@@ -146,27 +152,6 @@ const ClassMaterial = () => {
     }
   };
 
-  // Show loading while fetching data
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "400px",
-          gap: 2,
-        }}
-      >
-        <CircularProgress size={60} />
-        <Typography variant="h6" color="textSecondary">
-          Loading Class Materials...
-        </Typography>
-      </Box>
-    );
-  }
-
   // Check authentication
   if (!isAuthenticated || !user) {
     return (
@@ -188,23 +173,21 @@ const ClassMaterial = () => {
   return (
     <Box className="student-dashboard">
       <StudentHeader user={user} />
-      {/* Spacer to account for fixed StudentHeader */}
-      <Box sx={{ height: "48px" }} />
+      <Box sx={{ height: "48px" }} aria-hidden />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Card
-              sx={{
-                backgroundColor: "white",
-                borderRadius: 2,
-                boxShadow: PORTAL_CARD_BOX_SHADOW,
-                overflow: "hidden",
-                ...portalCardAntiLiftSx,
-              }}
-            >
-              <CardContent sx={{ p: 0 }}>
+            <Card sx={adminSessionListPanelCardSx}>
+              <CardContent
+                sx={{
+                  ...adminSessionListPanelContentSx,
+                  pt: 1,
+                  "&:last-child": { pb: 1.5 },
+                }}
+              >
                 <StudentDocumentList
                   documents={documents}
+                  loading={loading}
                   onRefresh={handleRefresh}
                   onView={handleView}
                   onDownload={handleDownload}

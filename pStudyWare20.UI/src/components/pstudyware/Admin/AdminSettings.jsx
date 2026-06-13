@@ -3,7 +3,7 @@ import { Container, Box, Card, CardContent, Typography } from "@mui/material";
 import { Settings as SettingsIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../styles/applicationSurfaces";
 
 const AdminSettings = () => {
   const { user } = useAuth();

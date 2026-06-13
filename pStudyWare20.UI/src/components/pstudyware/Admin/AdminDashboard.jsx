@@ -18,7 +18,7 @@ import {
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
   adminDashboardWidgetColumnSx,
-} from "../../../styles/applicationSurfaces";
+} from "../styles/applicationSurfaces";
 import EnrolledStudents from "./EnrolledStudents";
 import ToDoList from "./ToDoList";
 import SystemSupport from "./SystemSupport";
@@ -249,16 +249,10 @@ const AdminDashboard = () => {
       console.log("AdminDashboard: Exporting to Excel");
       showMessage("Generating Excel file...", "info");
 
-      const blob = await adminDashboardService.exportStudentListToExcel({
+      await adminDashboardService.exportStudentListToExcel({
         username: user.email || user.username,
         mode: "D",
       });
-
-      // Download the file
-      adminDashboardService.downloadExcelFile(
-        blob,
-        `StudentList_${new Date().toISOString().split("T")[0]}.xlsx`
-      );
 
       showMessage("Excel file downloaded successfully!", "success");
     } catch (err) {
@@ -317,33 +311,17 @@ const AdminDashboard = () => {
     boxShadow: PORTAL_CARD_BOX_SHADOW,
     overflow: "hidden",
     boxSizing: "border-box",
-    pl: { xs: 1, sm: 1.5, md: 2, lg: 4.375 },
-    pr: { xs: 1, sm: 1.5, md: 2, lg: 4.375 },
+    pl: "35px",
+    pr: "35px",
     ...portalCardAntiLiftSx,
-  };
-
-  const panelCardContentSx = {
-    px: { xs: 1, sm: 1.5, md: 2 },
-    pt: { xs: 1, sm: 1.5 },
-    pb: 0,
-    display: "flex",
-    flexDirection: "column",
-    minHeight: 0,
-    "&:last-child": { pb: 0 },
   };
 
   return (
     <Box className="admin-dashboard">
       <AdminHeader user={user} />
-      <Box sx={{ height: { xs: 56, sm: 48 } }} />
-      <Container
-        maxWidth="xl"
-        sx={{
-          mb: { xs: 2, md: 4 },
-          px: { xs: 1, sm: 2, md: 3 },
-        }}
-      >
-        <Grid container spacing={{ xs: 2, md: 3 }}>
+      <Box sx={{ height: "48px" }} />
+      <Container maxWidth="xl" sx={{ mb: 4 }}>
+        <Grid container spacing={2}>
           <Grid item xs={12} sx={{ pb: 0 }}>
             <Card
               sx={{
@@ -353,18 +331,28 @@ const AdminDashboard = () => {
                 minHeight: 0,
               }}
             >
-              <CardContent sx={panelCardContentSx}>
+              <CardContent
+                sx={{
+                  px: 2,
+                  pt: 1.5,
+                  pb: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  minHeight: 0,
+                  "&:last-child": { pb: 0 },
+                }}
+              >
                 <Grid
                   container
-                  spacing={{ xs: 2, sm: 2, lg: 3 }}
+                  spacing={4}
                   className="admin-dashboard-widgets-row"
                   sx={{
                     alignItems: "flex-start",
-                    flexWrap: "wrap",
+                    flexWrap: { xs: "wrap", md: "nowrap" },
                     width: "100%",
                   }}
                 >
-                  <Grid item xs={12} sm={6} lg={3} sx={adminDashboardWidgetColumnSx}>
+                  <Grid item xs={12} sm={6} md={3} sx={adminDashboardWidgetColumnSx}>
                     <Box
                       sx={{
                         width: "100%",
@@ -383,7 +371,7 @@ const AdminDashboard = () => {
                       />
                     </Box>
                   </Grid>
-                  <Grid item xs={12} sm={6} lg={3} sx={adminDashboardWidgetColumnSx}>
+                  <Grid item xs={12} sm={6} md={3} sx={adminDashboardWidgetColumnSx}>
                     <Box
                       sx={{
                         width: "100%",
@@ -395,7 +383,7 @@ const AdminDashboard = () => {
                       <EnrolledStudents studentCounts={studentCounts} />
                     </Box>
                   </Grid>
-                  <Grid item xs={12} sm={6} lg={3} sx={adminDashboardWidgetColumnSx}>
+                  <Grid item xs={12} sm={6} md={3} sx={adminDashboardWidgetColumnSx}>
                     <Box
                       sx={{
                         width: "100%",
@@ -410,11 +398,12 @@ const AdminDashboard = () => {
                       />
                     </Box>
                   </Grid>
-                  <Grid item xs={12} sm={6} lg={3} sx={adminDashboardWidgetColumnSx}>
+                  <Grid item xs={12} sm={6} md={3} sx={adminDashboardWidgetColumnSx}>
                     <Box
                       sx={{
                         width: "100%",
                         minWidth: 0,
+                        maxWidth: "100%",
                         display: "flex",
                         flexDirection: "column",
                       }}
@@ -426,9 +415,9 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sx={{ pt: { xs: 1, md: 1.5 } }}>
+          <Grid item xs={12} sx={{ pt: "8px !important" }}>
             <Card sx={panelCardSx}>
-              <CardContent sx={panelCardContentSx}>
+              <CardContent sx={{ px: 1.5, pt: 1.5, pb: 0 }}>
                 <StudentList
                   students={studentList}
                   onExportToExcel={handleExportToExcel}
@@ -447,17 +436,11 @@ const AdminDashboard = () => {
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        sx={{
-          top: { xs: 72, sm: 80 },
-          left: { xs: 8, sm: "auto" },
-          right: { xs: 8, sm: "auto" },
-          width: { xs: "calc(100% - 16px)", sm: "auto" },
-        }}
       >
         <Alert
           onClose={handleCloseSnackbar}
           severity={snackbar.severity}
-          sx={{ width: { xs: "100%", sm: "auto" }, minWidth: { sm: 280 } }}
+          sx={{ width: "100%" }}
           variant="filled"
         >
           {snackbar.message}

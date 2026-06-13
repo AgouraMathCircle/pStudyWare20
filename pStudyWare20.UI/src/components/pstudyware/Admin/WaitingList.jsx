@@ -15,7 +15,7 @@ import {
   adminPortalCardHeaderStripSx,
   adminDashboardWidgetCardSx,
   adminDashboardWidgetCardContentSx,
-} from "../../../styles/applicationSurfaces";
+} from "../styles/applicationSurfaces";
 import { HourglassEmpty as HourglassIcon } from "@mui/icons-material";
 
 const WaitingList = ({ waitingListCounts }) => {

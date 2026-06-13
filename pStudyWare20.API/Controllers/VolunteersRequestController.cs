@@ -74,18 +74,22 @@ namespace pStudyWare20.API.Controllers
         }
 
         [HttpPost("ExportToExcel")]
-        public async Task<ActionResult<ExportExcelResponse>> ExportToExcel([FromBody] ExportExcelRequest request)
+        public async Task<IActionResult> ExportToExcel([FromBody] ExportExcelRequest request)
         {
             if (request == null)
-                return BadRequest(new ExportExcelResponse { IsSuccess = false, ErrorMessage = "Request body is required." });
+                return BadRequest(new { message = "Request body is required." });
             try
             {
                 var response = await _service.ExportToExcelAsync(request);
-                return Ok(response);
+                if (!response.IsSuccess)
+                    return BadRequest(new { message = response.ErrorMessage });
+
+                return File(response.FileContent, response.ContentType, response.FileName);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ExportExcelResponse { IsSuccess = false, ErrorMessage = ex.Message });
+                _logger.LogError(ex, "ExportToExcel error: {Message}", ex.Message);
+                return StatusCode(500, new { message = "An error occurred while exporting to Excel", error = ex.Message });
             }
         }
     }

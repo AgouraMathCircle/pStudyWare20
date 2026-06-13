@@ -16,9 +16,9 @@ import AdminHeader from "./AdminHeader";
 import InstructorList from "./InstructorList";
 import InstructorForm from "./InstructorForm";
 import {
-  PORTAL_CARD_BOX_SHADOW,
-  portalCardAntiLiftSx,
-} from "../../../styles/applicationSurfaces";
+  adminSessionListPanelCardSx,
+  adminSessionListPanelContentSx,
+} from "../styles/applicationSurfaces";
 
 const instructorManagementPageSx = {
   flex: 1,
@@ -212,14 +212,8 @@ const InstructorManagement = () => {
       console.log("InstructorManagement: Exporting to Excel");
       showMessage("Generating Excel file...", "info");
 
-      const blob = await instructorService.exportInstructorListToExcel(
+      await instructorService.exportInstructorListToExcel(
         user.email || user.username
-      );
-
-      // Download the file
-      instructorService.downloadExcelFile(
-        blob,
-        `InstructorList_${new Date().toISOString().split("T")[0]}.xlsx`
       );
 
       showMessage("Excel file downloaded successfully!", "success");
@@ -302,16 +296,8 @@ const InstructorManagement = () => {
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Card
-              sx={{
-                backgroundColor: "white",
-                borderRadius: 2,
-                boxShadow: PORTAL_CARD_BOX_SHADOW,
-                overflow: "hidden",
-                ...portalCardAntiLiftSx,
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
+            <Card sx={adminSessionListPanelCardSx}>
+              <CardContent sx={adminSessionListPanelContentSx}>
                 <InstructorList
                   instructors={instructors}
                   onExportToExcel={handleExportToExcel}

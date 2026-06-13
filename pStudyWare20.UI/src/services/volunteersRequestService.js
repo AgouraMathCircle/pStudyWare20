@@ -1,4 +1,5 @@
 import api from "./api";
+import { postExcelExport } from "../utils/excelExport";
 
 const BASE = "/VolunteersRequest";
 
@@ -19,8 +20,13 @@ const volunteersRequestService = {
   },
 
   exportToExcel: async (request) => {
-    const response = await api.post(`${BASE}/ExportToExcel`, request);
-    return response.data;
+    const fileName = await postExcelExport(
+      api,
+      `${BASE}/ExportToExcel`,
+      request,
+      "VolunteersRequest.xlsx"
+    );
+    return { isSuccess: true, fileName };
   },
 };
 

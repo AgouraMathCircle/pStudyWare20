@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using pStudyWare20.API.Helpers;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
-using System.Security.Claims;
 
 namespace pStudyWare20.API.Controllers
 {
@@ -30,8 +30,9 @@ namespace pStudyWare20.API.Controllers
         {
             try
             {
-                // Get username from JWT token if not provided
-                var userUsername = username ?? User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                var userUsername = string.IsNullOrWhiteSpace(username)
+                    ? PortalClaimsHelper.GetPortalUsername(User)
+                    : username;
 
                 if (string.IsNullOrEmpty(userUsername))
                 {
