@@ -25,7 +25,7 @@ import {
   APPLICATION_ADMIN_TITLE_COLOR,
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
-} from "../../../styles/applicationSurfaces";
+} from "../styles/applicationSurfaces";
 
 const pageShellSx = {
   flex: 1,

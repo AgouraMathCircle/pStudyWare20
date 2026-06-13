@@ -248,45 +248,101 @@ namespace pStudyWare20.Services.Implementations
         }
 
         // Helper methods for JSON deserialization
+        private static bool TryGetRowElement(
+            Dictionary<string, System.Text.Json.JsonElement> row,
+            string key,
+            out System.Text.Json.JsonElement element)
+        {
+            if (row.TryGetValue(key, out element))
+            {
+                return true;
+            }
+
+            foreach (var kvp in row)
+            {
+                if (string.Equals(kvp.Key, key, StringComparison.OrdinalIgnoreCase))
+                {
+                    element = kvp.Value;
+                    return true;
+                }
+            }
+
+            element = default;
+            return false;
+        }
+
         private string GetStringValue(Dictionary<string, System.Text.Json.JsonElement> row, string key)
         {
-            if (row.ContainsKey(key) && row[key].ValueKind != System.Text.Json.JsonValueKind.Null)
+            if (TryGetRowElement(row, key, out var element)
+                && element.ValueKind != System.Text.Json.JsonValueKind.Null)
             {
-                return row[key].ToString();
+                return element.ToString();
             }
             return string.Empty;
         }
 
-        private int? GetIntValue(Dictionary<string, System.Text.Json.JsonElement> row, string key)
+        private int? GetIntValue(Dictionary<string, System.Text.Json.JsonElement> row, string key) =>
+            GetStaticIntValue(row, key);
+
+        private static int? GetStaticIntValue(Dictionary<string, System.Text.Json.JsonElement> row, string key)
         {
-            if (row.ContainsKey(key) && row[key].ValueKind == System.Text.Json.JsonValueKind.Number)
+            if (!TryGetRowElement(row, key, out var element)
+                || element.ValueKind == System.Text.Json.JsonValueKind.Null)
             {
-                return row[key].GetInt32();
+                return null;
             }
+
+            if (element.ValueKind == System.Text.Json.JsonValueKind.Number)
+            {
+                if (element.TryGetInt32(out var intValue))
+                {
+                    return intValue;
+                }
+
+                if (element.TryGetInt64(out var longValue) && longValue <= int.MaxValue)
+                {
+                    return (int)longValue;
+                }
+            }
+
+            if (element.ValueKind == System.Text.Json.JsonValueKind.String
+                && int.TryParse(element.GetString(), out var parsed))
+            {
+                return parsed;
+            }
+
             return null;
         }
 
+        /// <summary>
+        /// AMC_spStudentDocuments exposes table mDocID as DocumentID; AMC_spDeleteDocuments @DocID uses that value.
+        /// The mDocID column in the result set is a display row number only.
+        /// </summary>
+        private static int ResolveStudentDocumentDeleteId(Dictionary<string, System.Text.Json.JsonElement> row) =>
+            GetStaticIntValue(row, "DocumentID") ?? 0;
+
         private long? GetLongValue(Dictionary<string, System.Text.Json.JsonElement> row, string key)
         {
-            if (row.ContainsKey(key) && row[key].ValueKind == System.Text.Json.JsonValueKind.Number)
+            if (TryGetRowElement(row, key, out var element)
+                && element.ValueKind == System.Text.Json.JsonValueKind.Number)
             {
-                return row[key].GetInt64();
+                return element.GetInt64();
             }
             return null;
         }
 
         private DateTime? GetDateTimeValue(Dictionary<string, System.Text.Json.JsonElement> row, string key)
         {
-            if (row.ContainsKey(key) && row[key].ValueKind != System.Text.Json.JsonValueKind.Null)
+            if (TryGetRowElement(row, key, out var element)
+                && element.ValueKind != System.Text.Json.JsonValueKind.Null)
             {
                 try
                 {
-                    return row[key].GetDateTime();
+                    return element.GetDateTime();
                 }
                 catch
                 {
-                    // Try parsing as string if DateTime parse fails
-                    var str = row[key].ToString();
+                    var str = element.ToString();
                     if (DateTime.TryParse(str, out DateTime result))
                     {
                         return result;
@@ -317,7 +373,7 @@ namespace pStudyWare20.Services.Implementations
                     {
                         documents.Add(new StudentDocument
                         {
-                            DocumentID = GetIntValue(row, "DocumentID") ?? 0,
+                            DocumentID = ResolveStudentDocumentDeleteId(row),
                             DocID = GetIntValue(row, "mDocID") ?? 0,
                             Description = GetStringValue(row, "Description"),
                             Type = GetStringValue(row, "Type"),
@@ -349,25 +405,41 @@ namespace pStudyWare20.Services.Implementations
             var response = new DocumentOperationResponse();
             try
             {
-                // Save file to disk first
-                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "pStudyWare", "AMC_Student_Docs");
-                if (!Directory.Exists(uploadPath))
+                request.StudentID = ExtractStudentId(request.StudentID);
+                if (string.IsNullOrWhiteSpace(request.StudentID))
                 {
-                    Directory.CreateDirectory(uploadPath);
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "Student ID is required.";
+                    response.Message = "Failed to upload document";
+                    return response;
                 }
 
-                // Create filename based on student info, session, and year
-                var fileName = $"{request.StudentID}_{request.Session}_{DateTime.Now.Year}.pdf";
-                fileName = fileName.Replace("(", "_").Replace(")", "").Replace("-", "_").Replace(" ", "");
+                if (request.FileContent == null || request.FileContent.Length == 0)
+                {
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "File content is required.";
+                    response.Message = "Failed to upload document";
+                    return response;
+                }
+
+                var uploadPath = GetStudentDocsUploadPath();
+                Directory.CreateDirectory(uploadPath);
+
+                // Legacy StudentDocuments.aspx.cs naming: StudentID_StudentName_Session_Year.pdf
+                var studentName = string.IsNullOrWhiteSpace(request.StudentName)
+                    ? "Student"
+                    : request.StudentName.Trim();
+                var fileName = BuildStudentDocumentFileName(
+                    request.StudentID,
+                    studentName,
+                    request.Session);
 
                 var filePath = Path.Combine(uploadPath, fileName);
                 await File.WriteAllBytesAsync(filePath, request.FileContent);
 
-                // Update request with actual file name
                 request.FileName = fileName;
 
-                // Call repository to add document metadata
-                var result = await _documentRepository.AddStudentDocumentAsync(request);
+                await _documentRepository.AddStudentDocumentAsync(request);
 
                 response.IsSuccess = true;
                 response.Message = "Document uploaded successfully";
@@ -390,15 +462,32 @@ namespace pStudyWare20.Services.Implementations
             var response = new DocumentOperationResponse();
             try
             {
-                // Delete file from disk first
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "pStudyWare", "AMC_Student_Docs", request.DocumentName);
+                if (string.IsNullOrWhiteSpace(request.DocumentName))
+                {
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "Document name is required.";
+                    response.Message = "Failed to delete document";
+                    return response;
+                }
+
+                if (!TryResolveDeleteDocumentId(request.DocumentID, out var docId))
+                {
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "Invalid document ID.";
+                    response.Message = "Failed to delete document";
+                    return response;
+                }
+
+                request.DocumentID = docId.ToString();
+
+                // Delete file from disk first (ignore if already removed)
+                var filePath = Path.Combine(GetStudentDocsUploadPath(), request.DocumentName);
                 if (File.Exists(filePath))
                 {
                     File.Delete(filePath);
                 }
 
-                // Call repository to delete document metadata
-                var result = await _documentRepository.DeleteStudentDocumentAsync(request);
+                await _documentRepository.DeleteStudentDocumentAsync(request);
 
                 response.IsSuccess = true;
                 response.Message = "Document deleted successfully";
@@ -411,6 +500,169 @@ namespace pStudyWare20.Services.Implementations
             }
 
             return response;
+        }
+
+        /// <summary>
+        /// Read student document bytes from configured storage path.
+        /// </summary>
+        public async Task<StudentDocumentFileResponse> GetStudentDocumentFileAsync(string documentName)
+        {
+            var response = new StudentDocumentFileResponse();
+            try
+            {
+                if (!TryGetSafeStudentDocumentFileName(documentName, out var safeFileName))
+                {
+                    response.ErrorMessage = "Invalid document name.";
+                    return response;
+                }
+
+                var filePath = Path.Combine(GetStudentDocsUploadPath(), safeFileName);
+                if (!File.Exists(filePath))
+                {
+                    response.ErrorMessage = "Document file was not found.";
+                    return response;
+                }
+
+                response.FileContent = await File.ReadAllBytesAsync(filePath);
+                response.FileName = safeFileName;
+                response.ContentType = GetStudentDocumentContentType(safeFileName);
+                response.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                response.ErrorMessage = ex.Message;
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// Read class material PDF bytes from configured/legacy storage paths.
+        /// Legacy: ~/pStudyWare/Documents/ (Documents.aspx OpenFile).
+        /// </summary>
+        public async Task<StudentDocumentFileResponse> GetClassMaterialFileAsync(string documentName)
+        {
+            var response = new StudentDocumentFileResponse();
+            try
+            {
+                if (!TryGetSafeStudentDocumentFileName(documentName, out var safeFileName))
+                {
+                    response.ErrorMessage = "Invalid document name.";
+                    return response;
+                }
+
+                string? foundPath = null;
+                foreach (var directory in GetClassMaterialSearchDirectories())
+                {
+                    if (!Directory.Exists(directory))
+                    {
+                        continue;
+                    }
+
+                    var candidate = Path.Combine(directory, safeFileName);
+                    if (File.Exists(candidate))
+                    {
+                        foundPath = candidate;
+                        break;
+                    }
+                }
+
+                if (foundPath == null)
+                {
+                    response.ErrorMessage = "Document file was not found.";
+                    return response;
+                }
+
+                response.FileContent = await File.ReadAllBytesAsync(foundPath);
+                response.FileName = safeFileName;
+                response.ContentType = GetStudentDocumentContentType(safeFileName);
+                response.IsSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                response.ErrorMessage = ex.Message;
+            }
+
+            return response;
+        }
+
+        private IEnumerable<string> GetClassMaterialSearchDirectories()
+        {
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            var configured = _configuration["DocumentStorage:ClassMaterialDocsPath"];
+            if (!string.IsNullOrWhiteSpace(configured))
+            {
+                var resolved = Path.IsPathRooted(configured)
+                    ? configured
+                    : Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), configured));
+
+                if (seen.Add(resolved))
+                {
+                    yield return resolved;
+                }
+            }
+
+            foreach (var legacyPath in new[]
+            {
+                Path.Combine(Directory.GetCurrentDirectory(), "pStudyWare", "Documents"),
+                Path.Combine(Directory.GetCurrentDirectory(), "pStudyWare", "AMC_Docs"),
+            })
+            {
+                if (seen.Add(legacyPath))
+                {
+                    yield return legacyPath;
+                }
+            }
+        }
+
+        private static bool TryGetSafeStudentDocumentFileName(string? documentName, out string safeFileName)
+        {
+            safeFileName = string.Empty;
+            if (string.IsNullOrWhiteSpace(documentName))
+            {
+                return false;
+            }
+
+            var trimmed = documentName.Trim();
+            if (trimmed.Contains("..", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            var fileName = Path.GetFileName(trimmed);
+            if (string.IsNullOrWhiteSpace(fileName) ||
+                !string.Equals(fileName, trimmed, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                return false;
+            }
+
+            safeFileName = fileName;
+            return true;
+        }
+
+        private static string GetStudentDocumentContentType(string fileName)
+        {
+            var extension = Path.GetExtension(fileName);
+            return extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase)
+                ? "application/pdf"
+                : "application/octet-stream";
+        }
+
+        private static bool TryResolveDeleteDocumentId(string? rawDocumentId, out int docId)
+        {
+            docId = 0;
+            if (string.IsNullOrWhiteSpace(rawDocumentId))
+            {
+                return false;
+            }
+
+            return int.TryParse(rawDocumentId.Trim(), out docId) && docId > 0;
         }
 
         /// <summary>
@@ -509,5 +761,50 @@ namespace pStudyWare20.Services.Implementations
 
             return response;
         }
+
+        /// <summary>
+        /// Legacy: ~/pStudyWare/AMC_Student_Docs/ (StudentDocuments.aspx.cs).
+        /// Override with DocumentStorage:StudentDocsPath in appsettings.
+        /// </summary>
+        private string GetStudentDocsUploadPath()
+        {
+            var configured = _configuration["DocumentStorage:StudentDocsPath"];
+            if (string.IsNullOrWhiteSpace(configured))
+            {
+                return Path.Combine(Directory.GetCurrentDirectory(), "pStudyWare", "AMC_Student_Docs");
+            }
+
+            return Path.IsPathRooted(configured)
+                ? configured
+                : Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), configured));
+        }
+
+        private static string ExtractStudentId(string? studentId)
+        {
+            var value = (studentId ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            var parts = value.Split('~');
+            return parts.Length >= 2 ? parts[1].Trim() : value;
+        }
+
+        private static string BuildStudentDocumentFileName(
+            string studentId,
+            string studentName,
+            string session)
+        {
+            var fileName = $"{studentId}_{studentName}_{session}_{DateTime.Now.Year}.pdf";
+            return SanitizeStudentDocumentFileName(fileName);
+        }
+
+        private static string SanitizeStudentDocumentFileName(string fileName) =>
+            fileName.Trim()
+                .Replace("(", "_", StringComparison.Ordinal)
+                .Replace(")", "", StringComparison.Ordinal)
+                .Replace("-", "_", StringComparison.Ordinal)
+                .Replace(" ", "", StringComparison.Ordinal);
     }
 }

@@ -40,7 +40,6 @@ import {
   People as PeopleIcon,
   VolunteerActivism as VolunteerActivismIcon,
   AdminPanelSettings as AdminIcon,
-  Person as PersonIcon,
   Settings as SettingsIcon,
   Notifications as NotificationsIcon,
   AccountCircle as AccountCircleIcon,
@@ -64,6 +63,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../services";
 import { useAuth } from "../contexts/AuthContext";
 import useNavigation from "../hooks/useNavigation";
+import { getPortalDashboardPath, isPortalRoute } from "../utils/routeUtils";
 import "../styles/Navbar.css";
 // Import images from src/assets
 import logoImg from "../assets/images/logo.png";
@@ -156,11 +156,6 @@ const Navbar = () => {
       icon: <DashboardIcon fontSize="small" />,
     },
     {
-      label: "Update Profile",
-      href: "/UpdateProfile",
-      icon: <PersonIcon fontSize="small" />,
-    },
-    {
       label: "Class Material",
       href: "/pstudyware/student/class-material",
       icon: <SchoolIcon fontSize="small" />,
@@ -183,11 +178,6 @@ const Navbar = () => {
     {
       label: "Message Center",
       href: "/pstudyware/student/message-center",
-      icon: <MessageIcon fontSize="small" />,
-    },
-    {
-      label: "Inbox",
-      href: "/pstudyware/email/inbox",
       icon: <MessageIcon fontSize="small" />,
     },
     {
@@ -247,11 +237,6 @@ const Navbar = () => {
       icon: <MessageIcon fontSize="small" />,
     },
     {
-      label: "Inbox",
-      href: "/pstudyware/email/inbox",
-      icon: <MessageIcon fontSize="small" />,
-    },
-    {
       label: "Password",
       href: "/pstudyware/admin/update-password",
       icon: <LockIcon fontSize="small" />,
@@ -292,11 +277,6 @@ const Navbar = () => {
       icon: <MessageIcon fontSize="small" />,
     },
     {
-      label: "Inbox",
-      href: "/pstudyware/email/inbox",
-      icon: <MessageIcon fontSize="small" />,
-    },
-    {
       label: "Change Password",
       href: "/pstudyware/instructor/update-password",
       icon: <LockIcon fontSize="small" />,
@@ -322,18 +302,8 @@ const Navbar = () => {
       icon: <AssignmentIcon fontSize="small" />,
     },
     {
-      label: "Class Materials",
-      href: "/pstudyware/volunteer/class-material",
-      icon: <ResourcesIcon fontSize="small" />,
-    },
-    {
       label: "Message Center",
       href: "/pstudyware/volunteer/message-center",
-      icon: <MessageIcon fontSize="small" />,
-    },
-    {
-      label: "Inbox",
-      href: "/pstudyware/email/inbox",
       icon: <MessageIcon fontSize="small" />,
     },
     {
@@ -372,16 +342,39 @@ const Navbar = () => {
     user &&
     (user.memberType?.toUpperCase() === "V" || user.role === "Volunteer");
 
-  // Select menu based on user type
-  let menuItems = regularMenuItems;
-  if (isAdmin) {
-    menuItems = adminMenuItems;
-  } else if (isInstructor) {
-    menuItems = instructorMenuItems;
-  } else if (isVolunteer) {
-    menuItems = volunteerMenuItems;
-  } else if (isStudent) {
-    menuItems = studentMenuItems;
+  const onPortalRoute = isPortalRoute(location.pathname);
+  const showPortalMenu =
+    onPortalRoute && (isAdmin || isInstructor || isVolunteer || isStudent);
+
+  const getPublicMenuItems = () => {
+    if (!isAuthenticated || !user) {
+      return regularMenuItems;
+    }
+
+    const dashboardPath = getPortalDashboardPath(user);
+    return regularMenuItems.map((item) =>
+      item.label === "Login"
+        ? {
+            label: "Dashboard",
+            href: dashboardPath,
+            icon: <DashboardIcon fontSize="small" />,
+          }
+        : item,
+    );
+  };
+
+  // Public pages always use the external menu; portal pages use role menus
+  let menuItems = getPublicMenuItems();
+  if (showPortalMenu) {
+    if (isAdmin) {
+      menuItems = adminMenuItems;
+    } else if (isInstructor) {
+      menuItems = instructorMenuItems;
+    } else if (isVolunteer) {
+      menuItems = volunteerMenuItems;
+    } else if (isStudent) {
+      menuItems = studentMenuItems;
+    }
   }
 
   const handleDrawerToggle = () => {
@@ -406,6 +399,15 @@ const Navbar = () => {
     logout();
     navigate("/");
     closeMobileMenu();
+  };
+
+  const handleLogoClick = () => {
+    if (showPortalMenu) {
+      navigate(getPortalDashboardPath(user));
+      return;
+    }
+
+    navigate("/");
   };
 
   const handleNavigation = (href, external = false, action = null) => {
@@ -565,8 +567,8 @@ const Navbar = () => {
             color: "#ffffff", // White text for contrast against green background
             fontWeight: isActive ? 600 : 400,
             textTransform: "none",
-            fontSize: isAdmin || isStudent ? "0.85rem" : "1rem",
-            px: isAdmin || isStudent ? 0.8 : 2,
+            fontSize: showPortalMenu ? "0.85rem" : "1rem",
+            px: showPortalMenu ? 0.8 : 2,
             py: 1,
             minWidth: "auto",
             "&:hover": {
@@ -647,13 +649,7 @@ const Navbar = () => {
             cursor: "pointer",
           }}
           onClick={() => {
-            if (isStudent) {
-              navigate("/pstudyware/student/dashboard");
-            } else if (isAdmin) {
-              navigate("/pstudyware/admin/dashboard");
-            } else {
-              navigate("/");
-            }
+            handleLogoClick();
             handleDrawerToggle();
           }}
         >
@@ -715,16 +711,7 @@ const Navbar = () => {
                 mr: 2,
                 cursor: "pointer",
               }}
-              onClick={() => {
-                // Navigate to appropriate dashboard based on user type
-                if (isStudent) {
-                  navigate("/pstudyware/student/dashboard");
-                } else if (isAdmin) {
-                  navigate("/pstudyware/admin/dashboard");
-                } else {
-                  navigate("/");
-                }
-              }}
+              onClick={handleLogoClick}
             >
               <Box
                 component="img"
@@ -748,10 +735,10 @@ const Navbar = () => {
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: isAdmin || isStudent ? "center" : "flex-end",
-                  gap: isAdmin || isStudent ? 0.1 : 1,
+                  justifyContent: showPortalMenu ? "center" : "flex-end",
+                  gap: showPortalMenu ? 0.1 : 1,
                   flex: 1,
-                  mx: isAdmin || isStudent ? 3 : 0,
+                  mx: showPortalMenu ? 3 : 0,
                 }}
               >
                 {menuItems.map((item) => renderMenuItem(item, false))}

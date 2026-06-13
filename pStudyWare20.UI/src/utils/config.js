@@ -93,6 +93,13 @@ const config = {
     domain: import.meta.env.VITE_PRODUCTION_DOMAIN || "https://pstudyware.com",
   },
 
+  // Static document paths (local public folder or production CDN via VITE_PUBLIC_DOCUMENTS_URL)
+  paths: {
+    publicDocuments:
+      import.meta.env.VITE_PUBLIC_DOCUMENTS_URL || "/pstudyware/Documents/",
+    studentDocuments: "/pstudyware/Documents/AMC_Student_Docs/",
+  },
+
   // File Upload
   upload: {
     maxFileSize: parseInt(import.meta.env.VITE_MAX_FILE_SIZE) || 10485760,
@@ -169,6 +176,38 @@ export const isProduction = () => {
 // Helper function to get API URL based on environment
 export const getApiUrl = () => {
   return isProduction() ? config.production.apiUrl : config.api.url;
+};
+
+// Helper function to build a URL for files under public/pstudyware/Documents
+export const getPublicDocumentUrl = (fileName) => {
+  if (!fileName) return "";
+  if (
+    fileName.startsWith("http://") ||
+    fileName.startsWith("https://") ||
+    fileName.startsWith("/")
+  ) {
+    return fileName;
+  }
+  const base = config.paths.publicDocuments.endsWith("/")
+    ? config.paths.publicDocuments
+    : `${config.paths.publicDocuments}/`;
+  const encodedName = fileName
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `${base}${encodedName}`;
+};
+
+export const getStudentDocumentUrl = (fileName) => {
+  if (!fileName) return "";
+  if (
+    fileName.startsWith("http://") ||
+    fileName.startsWith("https://") ||
+    fileName.startsWith("/")
+  ) {
+    return fileName;
+  }
+  return `${config.paths.studentDocuments}${fileName}`;
 };
 
 // Helper function to get theme color

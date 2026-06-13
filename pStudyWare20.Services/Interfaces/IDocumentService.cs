@@ -72,6 +72,17 @@ namespace pStudyWare20.Services.Interfaces
         Task<DocumentOperationResponse> DeleteStudentDocumentAsync(DeleteDocumentRequest request);
 
         /// <summary>
+        /// Read a student document file from storage for view/download.
+        /// </summary>
+        Task<StudentDocumentFileResponse> GetStudentDocumentFileAsync(string documentName);
+
+        /// <summary>
+        /// Read a class material PDF from storage for view/download.
+        /// Legacy path: ~/pStudyWare/Documents/
+        /// </summary>
+        Task<StudentDocumentFileResponse> GetClassMaterialFileAsync(string documentName);
+
+        /// <summary>
         /// Get current session
         /// </summary>
         /// <param name="request">Get current session request</param>

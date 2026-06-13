@@ -15,7 +15,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import meetingDetailsService from "../../../services/meetingDetailsService";
 import MeetingList from "./MeetingList";
 import MeetingForm from "./MeetingForm";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../styles/applicationSurfaces";
 
 const MeetingDetails = () => {
   const { user } = useAuth();

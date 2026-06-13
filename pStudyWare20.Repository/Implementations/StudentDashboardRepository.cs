@@ -1,6 +1,5 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
-using pStudyWare20.Data.Models;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Shared;
 using System.Data;
@@ -69,12 +68,14 @@ namespace pStudyWare20.Repository.Implementations
 
         public async Task<DataTable> GetReportCardAsync(string username)
         {
+            var reportUsername = username?.Trim() ?? string.Empty;
+
             using var connection = new SqlConnection(_connectionString);
             using var command = new SqlCommand("AMC_spReportCard_StudentDashboard", connection)
             {
                 CommandType = CommandType.StoredProcedure
             };
-            command.Parameters.Add(new SqlParameter("@Username", username));
+            command.Parameters.Add(new SqlParameter("@Username", reportUsername));
             var dataTable = new DataTable();
             using var adapter = new SqlDataAdapter(command);
             await connection.OpenAsync();

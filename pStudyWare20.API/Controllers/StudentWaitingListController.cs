@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using pStudyWare20.Services.Interfaces;
@@ -186,25 +187,29 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">ExportExcelRequest</param>
         /// <returns>ExportExcelResponse</returns>
         [HttpPost("ExportToExcel")]
-        public async Task<ActionResult<ExportExcelResponse>> ExportToExcel([FromBody] ExportExcelRequest request)
+        public async Task<IActionResult> ExportToExcel([FromBody] ExportExcelRequest request)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
             }
 
             try
             {
+                if (string.IsNullOrEmpty(request.Username))
+                {
+                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                }
+
                 var response = await _service.ExportToExcelAsync(request);
-                return Ok(response);
+                if (!response.IsSuccess)
+                    return BadRequest(new { message = response.ErrorMessage });
+
+                return File(response.FileContent, response.ContentType, response.FileName);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ExportExcelResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = ex.Message
-                });
+                return StatusCode(500, new { message = "An error occurred while exporting to Excel", error = ex.Message });
             }
         }
     }

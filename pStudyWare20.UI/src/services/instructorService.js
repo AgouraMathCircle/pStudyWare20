@@ -1,4 +1,5 @@
 import api from "./api";
+import { downloadExcelBlob, postExcelExport } from "../utils/excelExport";
 
 /**
  * Instructor Service
@@ -64,14 +65,13 @@ const instructorService = {
    */
   exportInstructorListToExcel: async (username) => {
     try {
-      const response = await api.post(
+      const fileName = await postExcelExport(
+        api,
         "/Instructor/ExportInstructorListToExcel",
         { username },
-        {
-          responseType: "blob",
-        }
+        "InstructorList.xlsx"
       );
-      return response.data;
+      return { isSuccess: true, fileName };
     } catch (error) {
       console.error("Error exporting instructor list to Excel:", error);
       throw error;
@@ -84,14 +84,7 @@ const instructorService = {
    * @param {string} filename - Filename for download
    */
   downloadExcelFile: (blob, filename) => {
-    const url = window.URL.createObjectURL(new Blob([blob]));
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", filename);
-    document.body.appendChild(link);
-    link.click();
-    link.parentNode.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    downloadExcelBlob(blob, filename);
   },
 };
 

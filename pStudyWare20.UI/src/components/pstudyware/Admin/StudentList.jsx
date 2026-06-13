@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from "react";
-import { Link as RouterLink } from "react-router-dom";
 import {
   Typography,
   Button,
@@ -15,18 +14,51 @@ import {
   Paper,
   Select,
   MenuItem,
-  IconButton,
 } from "@mui/material";
 import {
   Download as DownloadIcon,
   Refresh as RefreshIcon,
-  Edit as EditIcon,
-  FirstPage as FirstPageIcon,
-  KeyboardArrowLeft as PrevPageIcon,
-  KeyboardArrowRight as NextPageIcon,
-  LastPage as LastPageIcon,
 } from "@mui/icons-material";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
+import { useUpdateProfileModal } from "../../../contexts/UpdateProfileModalContext";
+import {
+  adminSessionListFindButtonSx,
+  adminSessionListGridTableSx,
+  adminSessionListHeaderBarSx,
+  adminSessionListMenuItemSx,
+  adminSessionListSearchBarSx,
+  adminSessionListSearchFieldSx,
+  adminSessionListSearchLabelSx,
+  adminSessionListSearchSelectSx,
+  adminSessionListTitleSx,
+  adminSessionListToolbarButtonSx,
+} from "../styles/applicationSurfaces";
+import AdminSessionListPagination from "./AdminSessionListPagination";
+import SortableHeader from "../Common/SortableHeader";
+
+const tableActionLinkSx = {
+  fontSize: "0.75rem",
+  fontWeight: 400,
+  color: "#0000ee",
+  textDecoration: "underline",
+  cursor: "pointer",
+  lineHeight: 1.2,
+  "&:visited": { color: "#551a8b" },
+  "&:hover": { color: "#551a8b" },
+};
+
+const studentListColumnWidths = {
+  edit: "4%",
+  studentId: "10%",
+  studentName: "11%",
+  class: "15%",
+  grade: "5%",
+  school: "10%",
+  parent: "10%",
+  session: "7%",
+  location: "7%",
+  phone: "8%",
+  email: "13%",
+};
 
 const StudentList = ({
   students,
@@ -41,6 +73,7 @@ const StudentList = ({
   const [orderBy, setOrderBy] = useState("studentID");
   const [order, setOrder] = useState("asc");
   const [goToPageInput, setGoToPageInput] = useState("1");
+  const { openUpdateProfile } = useUpdateProfileModal();
 
   const pageSize = 25;
 
@@ -67,6 +100,14 @@ const StudentList = ({
   };
 
   const handleSearch = () => {
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
+
+  const handleSort = (field) => {
+    const isAsc = orderBy === field && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(field);
     setCurrentPage(1);
     setGoToPageInput("1");
   };
@@ -162,36 +203,11 @@ const StudentList = ({
 
   return (
     <Box>
-      <Box
-        sx={{
-          mb: 1,
-          display: "flex",
-          alignItems: { xs: "stretch", sm: "center" },
-          justifyContent: "space-between",
-          flexDirection: { xs: "column", sm: "row" },
-          flexWrap: "wrap",
-          gap: { xs: 1, sm: 2 },
-        }}
-      >
-        <Typography
-          variant="subtitle1"
-          sx={{
-            fontWeight: 600,
-            color: APPLICATION_ADMIN_TITLE_COLOR,
-            fontSize: { xs: "0.9375rem", sm: "1rem" },
-            textAlign: { xs: "center", sm: "left" },
-          }}
-        >
+      <Box sx={adminSessionListHeaderBarSx}>
+        <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
           Current Session Student List
         </Typography>
-        <Box
-          sx={{
-            display: "flex",
-            gap: 1,
-            justifyContent: { xs: "center", sm: "flex-end" },
-            flexWrap: "wrap",
-          }}
-        >
+        <Box sx={{ display: "flex", gap: 1 }}>
           {canExportData && (
             <Button
               variant="contained"
@@ -199,7 +215,7 @@ const StudentList = ({
               size="small"
               startIcon={<DownloadIcon />}
               onClick={onExportToExcel}
-              sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+              sx={adminSessionListToolbarButtonSx}
             >
               Export Excel
             </Button>
@@ -210,118 +226,76 @@ const StudentList = ({
             size="small"
             startIcon={<RefreshIcon />}
             onClick={onRefresh}
-            sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+            sx={adminSessionListToolbarButtonSx}
           >
             Refresh
           </Button>
         </Box>
       </Box>
 
-      <Box
-        className="admin-dashboard-student-search-bar"
-        sx={{
-          backgroundColor: "#4caf50",
-          p: { xs: 1, sm: 0.5 },
-          borderRadius: 1,
-          display: "flex",
-          alignItems: { xs: "stretch", sm: "center" },
-          gap: { xs: 1, sm: 1 },
-          flexWrap: "wrap",
-          flexDirection: { xs: "column", sm: "row" },
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 0.5,
-            flex: { xs: "1 1 100%", sm: "0 1 auto" },
-            minWidth: 0,
-          }}
-        >
-          <Typography
-            sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
-          >
-            Search By:
-          </Typography>
+      <Box sx={adminSessionListSearchBarSx}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
           <Select
             value={searchBy}
             onChange={(e) => setSearchBy(e.target.value)}
             size="small"
-            sx={{
-              color: "white",
-              fontSize: "0.75rem",
-              flex: 1,
-              minWidth: { xs: 0, sm: 100 },
-              width: { xs: "100%", sm: "auto" },
-              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
-              "& .MuiSelect-icon": { color: "white" },
-            }}
+            sx={adminSessionListSearchSelectSx}
           >
-            <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
               -ALL-
             </MenuItem>
-            <MenuItem value="STUDENT_ID" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="STUDENT_ID" sx={adminSessionListMenuItemSx}>
               Student ID
             </MenuItem>
-            <MenuItem value="STUDENT_NAME" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="STUDENT_NAME" sx={adminSessionListMenuItemSx}>
               Student Name
             </MenuItem>
-            <MenuItem value="CLASS" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="CLASS" sx={adminSessionListMenuItemSx}>
               Class
             </MenuItem>
-            <MenuItem value="GRADE" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="GRADE" sx={adminSessionListMenuItemSx}>
               Grade
             </MenuItem>
-            <MenuItem value="SCHOOL" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="SCHOOL" sx={adminSessionListMenuItemSx}>
               School
             </MenuItem>
-            <MenuItem value="PARENT" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="PARENT" sx={adminSessionListMenuItemSx}>
               Parent
             </MenuItem>
-            <MenuItem value="PHONE" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="PHONE" sx={adminSessionListMenuItemSx}>
               Phone
             </MenuItem>
-            <MenuItem value="EMAIL" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="EMAIL" sx={adminSessionListMenuItemSx}>
               Email
             </MenuItem>
-            <MenuItem value="SESSION" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="SESSION" sx={adminSessionListMenuItemSx}>
               Session
             </MenuItem>
-            <MenuItem value="LOCATION" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="LOCATION" sx={adminSessionListMenuItemSx}>
               Location
             </MenuItem>
           </Select>
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography
-            sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
-          >
-            Criteria:
-          </Typography>
+          <Typography sx={adminSessionListSearchLabelSx}>Criteria:</Typography>
           <Select
             value={searchCriteria}
             onChange={(e) => setSearchCriteria(e.target.value)}
             size="small"
-            sx={{
-              color: "white",
-              fontSize: "0.75rem",
-              minWidth: 100,
-              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
-              "& .MuiSelect-icon": { color: "white" },
-            }}
+            sx={adminSessionListSearchSelectSx}
           >
-            <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="" sx={adminSessionListMenuItemSx}>
               Select Criteria
             </MenuItem>
-            <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
               Equals
             </MenuItem>
-            <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
               Contains
             </MenuItem>
-            <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="starts_with" sx={adminSessionListMenuItemSx}>
               Starts With
             </MenuItem>
           </Select>
@@ -332,173 +306,163 @@ const StudentList = ({
           placeholder="Search Text"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          sx={{
-            flex: { xs: "1 1 100%", sm: "1 1 150px" },
-            minWidth: { xs: 0, sm: 150 },
-            width: { xs: "100%", sm: "auto" },
-            "& .MuiOutlinedInput-root": {
-              backgroundColor: "white",
-              fontSize: "0.75rem",
-            },
-          }}
+          sx={adminSessionListSearchFieldSx}
         />
 
         <Button
           variant="contained"
           size="small"
           onClick={handleSearch}
-          sx={{
-            backgroundColor: "white",
-            color: "#4caf50",
-            fontSize: "0.75rem",
-            textTransform: "none",
-            minHeight: 32,
-            py: 0,
-            px: 1,
-            alignSelf: { xs: "stretch", sm: "center" },
-            width: { xs: "100%", sm: "auto" },
-            "&:hover": { backgroundColor: "#f5f5f5" },
-          }}
+          sx={adminSessionListFindButtonSx}
         >
           Find
         </Button>
       </Box>
 
-      <TableContainer
-        component={Paper}
-        className="admin-dashboard-student-table-panel"
-        sx={{ width: "100%", maxWidth: "100%", overflowX: "auto" }}
-      >
-        <Table
-          sx={{
-            width: "100%",
-            tableLayout: "fixed",
-            "& .MuiTableCell-root": { paddingTop: 0, paddingBottom: 0 },
-          }}
-          size="small"
-        >
+      <TableContainer component={Paper} sx={{ width: "100%" }}>
+        <Table sx={adminSessionListGridTableSx} size="small">
           <TableHead>
             <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
               <TableCell
                 sx={{
                   fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "5%",
+                  width: studentListColumnWidths.edit,
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
               >
                 Edit
               </TableCell>
-              <TableCell
-                sx={{
+              <SortableHeader
+                label="Student #"
+                field="studentID"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={{
                   fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "6%",
+                  width: studentListColumnWidths.studentId,
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
-              >
-                Student #
-              </TableCell>
-              <TableCell
-                sx={{
+              />
+              <SortableHeader
+                label="Student Name"
+                field="studentName"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={{
                   fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "12%",
+                  width: studentListColumnWidths.studentName,
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
-              >
-                Student Name
-              </TableCell>
-              <TableCell
-                sx={{
+              />
+              <SortableHeader
+                label="Class"
+                field="class"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={{
                   fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "8%",
+                  width: studentListColumnWidths.class,
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
-              >
-                Class
-              </TableCell>
-              <TableCell
-                sx={{
+              />
+              <SortableHeader
+                label="Grade"
+                field="grade"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={{
                   fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "6%",
+                  width: studentListColumnWidths.grade,
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
-              >
-                Grade
-              </TableCell>
-              <TableCell
-                sx={{
+              />
+              <SortableHeader
+                label="School"
+                field="school"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={{
                   fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "11%",
+                  width: studentListColumnWidths.school,
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
-              >
-                School
-              </TableCell>
-              <TableCell
-                sx={{
+              />
+              <SortableHeader
+                label="Parent"
+                field="parentName"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={{
                   fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "11%",
+                  width: studentListColumnWidths.parent,
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
-              >
-                Parent
-              </TableCell>
-              <TableCell
-                sx={{
+              />
+              <SortableHeader
+                label="Session"
+                field="eventSession"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={{
                   fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "8%",
+                  width: studentListColumnWidths.session,
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
-              >
-                Session
-              </TableCell>
-              <TableCell
-                sx={{
+              />
+              <SortableHeader
+                label="Location"
+                field="eventLocation"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={{
                   fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "8%",
+                  width: studentListColumnWidths.location,
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
-              >
-                Location
-              </TableCell>
-              <TableCell
-                sx={{
+              />
+              <SortableHeader
+                label="Contact #"
+                field="phoneNumber"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={{
                   fontWeight: 400,
-                  borderRight: "1px solid #4caf50",
-                  width: "9%",
+                  width: studentListColumnWidths.phone,
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
-              >
-                Contact #
-              </TableCell>
-              <TableCell
-                sx={{
+              />
+              <SortableHeader
+                label="Email"
+                field="emailAddress"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={{
                   fontWeight: 400,
-                  width: "16%",
+                  width: studentListColumnWidths.email,
                   fontSize: "0.75rem",
                   padding: cellPadding,
                 }}
-              >
-                Email
-              </TableCell>
+              />
             </TableRow>
           </TableHead>
           <TableBody>
@@ -514,31 +478,24 @@ const StudentList = ({
                   >
                     <TableCell
                       sx={{
-                        borderRight: "1px solid #4caf50",
                         fontSize: "0.75rem",
                         padding: cellPadding,
                         verticalAlign: "middle",
                       }}
                     >
                       {sid ? (
-                        <Tooltip title="Update profile">
-                          <IconButton
-                            component={RouterLink}
-                            to={`/UpdateProfile/${sid}`}
-                            size="small"
-                            color="primary"
-                            sx={{ padding: "2px" }}
-                          >
-                            <EditIcon sx={{ fontSize: "1rem" }} />
-                          </IconButton>
-                        </Tooltip>
+                        <Box
+                          onClick={() => openUpdateProfile(sid)}
+                          sx={tableActionLinkSx}
+                        >
+                          Edit
+                        </Box>
                       ) : (
                         "—"
                       )}
                     </TableCell>
                     <TableCell
                       sx={{
-                        borderRight: "1px solid #4caf50",
                         fontSize: "0.75rem",
                         padding: cellPadding,
                       }}
@@ -547,7 +504,6 @@ const StudentList = ({
                     </TableCell>
                     <TableCell
                       sx={{
-                        borderRight: "1px solid #4caf50",
                         fontSize: "0.75rem",
                         padding: cellPadding,
                         overflow: "hidden",
@@ -561,16 +517,19 @@ const StudentList = ({
                     </TableCell>
                     <TableCell
                       sx={{
-                        borderRight: "1px solid #4caf50",
                         fontSize: "0.75rem",
                         padding: cellPadding,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      {student.class || "—"}
+                      <Tooltip title={student.class ?? "—"}>
+                        <span>{student.class || "—"}</span>
+                      </Tooltip>
                     </TableCell>
                     <TableCell
                       sx={{
-                        borderRight: "1px solid #4caf50",
                         fontSize: "0.75rem",
                         padding: cellPadding,
                       }}
@@ -579,7 +538,6 @@ const StudentList = ({
                     </TableCell>
                     <TableCell
                       sx={{
-                        borderRight: "1px solid #4caf50",
                         fontSize: "0.75rem",
                         padding: cellPadding,
                         overflow: "hidden",
@@ -593,7 +551,6 @@ const StudentList = ({
                     </TableCell>
                     <TableCell
                       sx={{
-                        borderRight: "1px solid #4caf50",
                         fontSize: "0.75rem",
                         padding: cellPadding,
                         overflow: "hidden",
@@ -607,7 +564,6 @@ const StudentList = ({
                     </TableCell>
                     <TableCell
                       sx={{
-                        borderRight: "1px solid #4caf50",
                         fontSize: "0.75rem",
                         padding: cellPadding,
                       }}
@@ -616,7 +572,6 @@ const StudentList = ({
                     </TableCell>
                     <TableCell
                       sx={{
-                        borderRight: "1px solid #4caf50",
                         fontSize: "0.75rem",
                         padding: cellPadding,
                       }}
@@ -625,7 +580,6 @@ const StudentList = ({
                     </TableCell>
                     <TableCell
                       sx={{
-                        borderRight: "1px solid #4caf50",
                         fontSize: "0.75rem",
                         padding: cellPadding,
                       }}
@@ -671,161 +625,16 @@ const StudentList = ({
         </Table>
       </TableContainer>
 
-      <Box
-        className="admin-dashboard-student-pagination"
-        sx={{
-          backgroundColor: "#4caf50",
-          p: { xs: 1, sm: 0.5 },
-          borderRadius: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: { xs: "center", sm: "space-between" },
-          flexWrap: "wrap",
-          gap: { xs: 1.25, sm: 1 },
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-          <IconButton
-            size="small"
-            sx={{ color: "white", padding: "2px" }}
-            onClick={() => handlePageChange(1)}
-            disabled={currentPage === 1}
-          >
-            <FirstPageIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            sx={{ color: "white", padding: "2px" }}
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            <PrevPageIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            sx={{ color: "white", padding: "2px" }}
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages || totalPages === 0}
-          >
-            <NextPageIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            sx={{ color: "white", padding: "2px" }}
-            onClick={() => handlePageChange(totalPages)}
-            disabled={currentPage === totalPages || totalPages === 0}
-          >
-            <LastPageIcon fontSize="small" />
-          </IconButton>
-        </Box>
-
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-          <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-            GoTo
-          </Typography>
-          <Select
-            size="small"
-            value={totalPages > 0 ? currentPage : ""}
-            onChange={(e) => handlePageChange(Number(e.target.value))}
-            disabled={totalPages === 0}
-            sx={{
-              color: "white",
-              minWidth: 50,
-              fontSize: "0.75rem",
-              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
-              "& .MuiSelect-icon": { color: "white" },
-            }}
-          >
-            {totalPages > 0 ? (
-              Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (p) => (
-                  <MenuItem key={p} value={p} sx={{ fontSize: "0.75rem" }}>
-                    {p}
-                  </MenuItem>
-                ),
-              )
-            ) : (
-              <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
-                -
-              </MenuItem>
-            )}
-          </Select>
-        </Box>
-
-        <Typography
-          sx={{
-            color: "white",
-            fontSize: "0.75rem",
-            textAlign: "center",
-            flexBasis: { xs: "100%", sm: "auto" },
-          }}
-        >
-          Page(s): {totalPages > 0 ? currentPage : 0} of {totalPages}
-        </Typography>
-
-        <Typography
-          sx={{
-            color: "white",
-            fontSize: "0.75rem",
-            textAlign: "center",
-            flexBasis: { xs: "100%", sm: "auto" },
-          }}
-        >
-          Record(s):{" "}
-          {totalRecords > 0
-            ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
-                currentPage * pageSize,
-                totalRecords,
-              )}`
-            : "0"}{" "}
-          of {totalRecords}
-        </Typography>
-
-        <Box
-          sx={{
-            display: { xs: "none", md: "flex" },
-            alignItems: "center",
-            gap: 0.25,
-          }}
-        >
-          <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-            Go to Page Number:
-          </Typography>
-          <TextField
-            size="small"
-            type="number"
-            value={goToPageInput}
-            onChange={(e) => setGoToPageInput(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === "Enter") handleGoToPage();
-            }}
-            sx={{
-              width: 50,
-              "& .MuiOutlinedInput-root": {
-                backgroundColor: "white",
-                fontSize: "0.75rem",
-              },
-            }}
-            inputProps={{ min: 1, max: totalPages || 1 }}
-          />
-          <Button
-            size="small"
-            variant="contained"
-            onClick={handleGoToPage}
-            sx={{
-              backgroundColor: "white",
-              color: "#4caf50",
-              fontSize: "0.75rem",
-              minHeight: 32,
-              py: 0,
-              px: 0.75,
-              "&:hover": { backgroundColor: "#f5f5f5" },
-            }}
-          >
-            Go
-          </Button>
-        </Box>
-      </Box>
+      <AdminSessionListPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalRecords={totalRecords}
+        pageSize={pageSize}
+        goToPageInput={goToPageInput}
+        onGoToPageInputChange={setGoToPageInput}
+        onPageChange={handlePageChange}
+        onGoToPage={handleGoToPage}
+      />
     </Box>
   );
 };

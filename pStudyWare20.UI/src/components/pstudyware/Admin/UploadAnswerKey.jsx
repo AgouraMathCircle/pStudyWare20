@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Container, Typography, Paper } from "@mui/material";
 import AdminHeader from "./AdminHeader";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../styles/applicationSurfaces";
 
 const UploadAnswerKey = () => {
   return (

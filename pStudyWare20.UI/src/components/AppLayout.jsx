@@ -4,14 +4,16 @@ import { Box } from "@mui/material";
 import {
   applicationMainSx,
   authenticatedPortalShellSx,
-} from "../styles/applicationSurfaces";
+} from "./pstudyware/styles/applicationSurfaces";
 import portalBackgroundImg from "../assets/images/bg.jpg";
 import Topbar from "./Topbar";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import ScrollToTop from "./ScrollToTop";
+import { UpdateProfileModalProvider } from "../contexts/UpdateProfileModalContext";
 import { authService } from "../services";
 import useScrollToTop from "../hooks/useScrollToTop";
+import { isPortalRoute } from "../utils/routeUtils";
 
 const AppLayout = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -78,7 +80,8 @@ const AppLayout = ({ children }) => {
     };
   }, []);
 
-  const showAuthenticatedPortalChrome = isAuthenticated;
+  const onPortalRoute = isPortalRoute(location.pathname);
+  const showAuthenticatedPortalChrome = isAuthenticated && onPortalRoute;
 
   const authenticatedPortalSx = {
     ...authenticatedPortalShellSx,
@@ -97,20 +100,22 @@ const AppLayout = ({ children }) => {
   };
 
   return (
-    <div className="App">
-      {renderNavigation()}
-      <Box component="main" sx={applicationMainSx}>
-        {showAuthenticatedPortalChrome ? (
-          <Box sx={authenticatedPortalSx}>{children}</Box>
-        ) : (
-          children
-        )}
-      </Box>
-      {/* Marketing footer only for visitors; hide for any logged-in session */}
-      {!isAuthenticated ? <Footer /> : null}
-      {/* Scroll to top button - show on all pages */}
-      <ScrollToTop />
-    </div>
+    <UpdateProfileModalProvider>
+      <div className="App">
+        {renderNavigation()}
+        <Box component="main" sx={applicationMainSx}>
+          {showAuthenticatedPortalChrome ? (
+            <Box sx={authenticatedPortalSx}>{children}</Box>
+          ) : (
+            children
+          )}
+        </Box>
+        {/* Marketing footer on public pages */}
+        {!onPortalRoute ? <Footer /> : null}
+        {/* Scroll to top button - show on all pages */}
+        <ScrollToTop />
+      </div>
+    </UpdateProfileModalProvider>
   );
 };
 

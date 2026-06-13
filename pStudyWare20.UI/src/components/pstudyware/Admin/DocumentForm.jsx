@@ -17,7 +17,7 @@ import {
   Grid,
   Chip,
 } from "@mui/material";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
+import { APPLICATION_ADMIN_TITLE_COLOR } from "../styles/applicationSurfaces";
 import {
   CloudUpload as UploadIcon,
   Close as CloseIcon,

@@ -14,7 +14,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TableSortLabel,
   TextField,
   Tooltip,
   Typography,
@@ -26,8 +25,12 @@ import {
   VideoLibrary as VideoIcon,
   Refresh as RefreshIcon,
   Add as AddIcon,
+  Publish as PublishIcon,
 } from "@mui/icons-material";
 import InstructorPortalPaginationBar from "./InstructorPortalPaginationBar";
+import SortableHeader from "../Common/SortableHeader";
+import { sortRows, toSortableDate } from "../../../utils/tableSort";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
 import {
   INSTRUCTOR_CELL_PADDING,
   instructorCellBodySx,
@@ -86,6 +89,25 @@ function matchField(fieldValue, search, criteria) {
   return f.includes(s);
 }
 
+const getClassMaterialFieldValue = (doc, field) => {
+  switch (field) {
+    case "classVal":
+      return doc.classVal ?? "";
+    case "topics":
+      return doc.topics ?? "";
+    case "description":
+      return doc.description ?? "";
+    case "docName":
+      return doc.docName ?? "";
+    case "session":
+      return doc.session ?? "";
+    case "uploadedDate":
+      return toSortableDate(doc.uploadedDate);
+    default:
+      return "";
+  }
+};
+
 /**
  * Class material for instructors — same table/search/pagination chrome as report-card.
  */
@@ -108,19 +130,25 @@ const InstructorClassMaterialList = ({
     [safeDocuments]
   );
 
-  const [orderBy, setOrderBy] = useState("uploadedDate");
-  const [order, setOrder] = useState("desc");
+  const [sortField, setSortField] = useState("uploadedDate");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [searchText, setSearchText] = useState("");
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("contains");
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    type: null,
+    doc: null,
+  });
+  const [alertDialog, setAlertDialog] = useState({ open: false, message: "" });
   const pageSize = 10;
 
   const handleSort = (property) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
+    const isAsc = sortField === property && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(property);
   };
 
   const filtered = useMemo(() => {
@@ -165,23 +193,10 @@ const InstructorClassMaterialList = ({
     });
   }, [rows, searchText, searchBy, searchCriteria]);
 
-  const sorted = useMemo(() => {
-    return [...filtered].sort((a, b) => {
-      const av = a[orderBy];
-      const bv = b[orderBy];
-      if (av == null && bv == null) return 0;
-      if (av == null) return 1;
-      if (bv == null) return -1;
-      if (typeof av === "number" && typeof bv === "number") {
-        return order === "asc" ? av - bv : bv - av;
-      }
-      const as = String(av).toLowerCase();
-      const bs = String(bv).toLowerCase();
-      if (as < bs) return order === "asc" ? -1 : 1;
-      if (as > bs) return order === "asc" ? 1 : -1;
-      return 0;
-    });
-  }, [filtered, orderBy, order]);
+  const sorted = useMemo(
+    () => sortRows(filtered, sortField, sortOrder, getClassMaterialFieldValue),
+    [filtered, sortField, sortOrder]
+  );
 
   const totalRecords = sorted.length;
   const totalPages = Math.ceil(totalRecords / pageSize) || 0;
@@ -219,28 +234,66 @@ const InstructorClassMaterialList = ({
   const handleDeleteClick = (doc) => {
     const id = doc.docID;
     if (id === 0 || id === "0") {
-      window.alert(
-        "You cannot delete this document. Document has posted already."
-      );
+      setAlertDialog({
+        open: true,
+        message:
+          "You cannot delete this document. Document has posted already.",
+      });
       return;
     }
-    if (window.confirm(`Are you sure you want to delete "${doc.docName}"?`)) {
-      onDelete(id, doc.docName);
-    }
+    setConfirmDialog({ open: true, type: "delete", doc });
   };
 
   const handlePublishClick = (doc) => {
     if (isPublished(doc)) {
-      window.alert(
-        "You cannot publish this document. Document has published already."
-      );
+      setAlertDialog({
+        open: true,
+        message:
+          "You cannot publish this document. Document has published already.",
+      });
       return;
     }
-    if (
-      window.confirm(`Do you want to publish this document "${doc.docName}"?`)
-    ) {
+    setConfirmDialog({ open: true, type: "publish", doc });
+  };
+
+  const handleConfirmDialogClose = () => {
+    setConfirmDialog({ open: false, type: null, doc: null });
+  };
+
+  const handleConfirmDialogAction = () => {
+    const { type, doc } = confirmDialog;
+    handleConfirmDialogClose();
+    if (!doc) {
+      return;
+    }
+    if (type === "delete") {
+      onDelete(doc.docID, doc.docName);
+    } else if (type === "publish") {
       onPublish(doc.docID);
     }
+  };
+
+  const getConfirmDialogContent = () => {
+    const { type, doc } = confirmDialog;
+    if (type === "delete") {
+      return {
+        title: "Delete Document",
+        message: `Are you sure you want to delete "${doc?.docName}"?`,
+        confirmLabel: "Delete",
+        confirmColor: "error",
+        icon: <DeleteIcon sx={{ fontSize: 20 }} />,
+      };
+    }
+    if (type === "publish") {
+      return {
+        title: "Publish Document",
+        message: `Do you want to publish this document "${doc?.docName}"?`,
+        confirmLabel: "Publish",
+        confirmColor: "primary",
+        icon: <PublishIcon sx={{ fontSize: 20 }} />,
+      };
+    }
+    return null;
   };
 
   const renderPostedCell = (doc) => {
@@ -476,52 +529,54 @@ const InstructorClassMaterialList = ({
               {headCell(false, "Delete")}
               {headCell(false, "Video")}
               {headCell(false, "Doc #")}
-              {headCell(
-                false,
-                <TableSortLabel
-                  active={orderBy === "classVal"}
-                  direction={orderBy === "classVal" ? order : "asc"}
-                  onClick={() => handleSort("classVal")}
-                  sx={{ fontSize: "0.75rem" }}
-                >
-                  Class
-                </TableSortLabel>
-              )}
-              {headCell(
-                false,
-                <TableSortLabel
-                  active={orderBy === "topics"}
-                  direction={orderBy === "topics" ? order : "asc"}
-                  onClick={() => handleSort("topics")}
-                  sx={{ fontSize: "0.75rem" }}
-                >
-                  Topics
-                </TableSortLabel>
-              )}
-              {headCell(false, "Description")}
-              {headCell(false, "Name")}
-              {headCell(
-                false,
-                <TableSortLabel
-                  active={orderBy === "session"}
-                  direction={orderBy === "session" ? order : "asc"}
-                  onClick={() => handleSort("session")}
-                  sx={{ fontSize: "0.75rem" }}
-                >
-                  Session
-                </TableSortLabel>
-              )}
-              {headCell(
-                false,
-                <TableSortLabel
-                  active={orderBy === "uploadedDate"}
-                  direction={orderBy === "uploadedDate" ? order : "asc"}
-                  onClick={() => handleSort("uploadedDate")}
-                  sx={{ fontSize: "0.75rem" }}
-                >
-                  Posted Date
-                </TableSortLabel>
-              )}
+              <SortableHeader
+                label="Class"
+                field="classVal"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={instructorCellHeaderSx}
+              />
+              <SortableHeader
+                label="Topics"
+                field="topics"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={instructorCellHeaderSx}
+              />
+              <SortableHeader
+                label="Description"
+                field="description"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={instructorCellHeaderSx}
+              />
+              <SortableHeader
+                label="Name"
+                field="docName"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={instructorCellHeaderSx}
+              />
+              <SortableHeader
+                label="Session"
+                field="session"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={instructorCellHeaderSx}
+              />
+              <SortableHeader
+                label="Posted Date"
+                field="uploadedDate"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={instructorCellHeaderSx}
+              />
               {headCell(true, "Posted")}
             </TableRow>
           </TableHead>
@@ -699,6 +754,26 @@ const InstructorClassMaterialList = ({
         setGoToPageInput={setGoToPageInput}
         onGoToPage={handleGoToPage}
         extraInfo={`Published: ${publishedCount} | Unpublished: ${rows.length - publishedCount}`}
+      />
+
+      {getConfirmDialogContent() && (
+        <AppConfirmDialog
+          open={confirmDialog.open}
+          onClose={handleConfirmDialogClose}
+          onConfirm={handleConfirmDialogAction}
+          title={getConfirmDialogContent().title}
+          message={getConfirmDialogContent().message}
+          confirmLabel={getConfirmDialogContent().confirmLabel}
+          confirmColor={getConfirmDialogContent().confirmColor}
+          icon={getConfirmDialogContent().icon}
+        />
+      )}
+
+      <AppConfirmDialog
+        open={alertDialog.open}
+        onClose={() => setAlertDialog({ open: false, message: "" })}
+        title="Notice"
+        message={alertDialog.message}
       />
     </Box>
   );

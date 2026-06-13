@@ -8,6 +8,11 @@ namespace pStudyWare20.Repository.Interfaces
     public interface IStudentScoreRepository
     {
         /// <summary>
+        /// Get student list for score update (legacy: BindStudentList with DisplayMode "E").
+        /// </summary>
+        Task<string> GetStudentListAsync(OnlineExamStudentListRequest request);
+
+        /// <summary>
         /// Get student scores using stored procedure
         /// </summary>
         /// <param name="request">Get student scores request</param>

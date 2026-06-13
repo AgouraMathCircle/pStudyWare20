@@ -1,4 +1,5 @@
 import api from "./api";
+import { downloadExcelBlob, postExcelExport } from "../utils/excelExport";
 
 const ADMIN_DASHBOARD_API_BASE_URL = "/AdminDashboard";
 
@@ -110,14 +111,13 @@ const adminDashboardService = {
    */
   exportStudentListToExcel: async (request) => {
     try {
-      const response = await api.post(
+      const fileName = await postExcelExport(
+        api,
         `${ADMIN_DASHBOARD_API_BASE_URL}/ExportStudentListToExcel`,
         request,
-        {
-          responseType: "blob", // Important for file downloads
-        }
+        "StudentList.xlsx"
       );
-      return response.data;
+      return { isSuccess: true, fileName };
     } catch (error) {
       console.error("Error exporting student list to Excel:", error);
       throw error;
@@ -162,19 +162,7 @@ const adminDashboardService = {
    * @param {string} filename - Filename for download
    */
   downloadExcelFile: (blob, filename = "StudentList.xlsx") => {
-    // Create a temporary URL for the blob
-    const url = window.URL.createObjectURL(blob);
-
-    // Create a temporary anchor element and trigger download
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-
-    // Clean up
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    downloadExcelBlob(blob, filename);
   },
 };
 

@@ -13,7 +13,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  IconButton,
   Tooltip,
   Dialog,
   DialogTitle,
@@ -29,23 +28,38 @@ import {
   CardContent,
 } from "@mui/material";
 import {
-  Edit as EditIcon,
-  Delete as DeleteIcon,
   Download as DownloadIcon,
   Refresh as RefreshIcon,
-  FirstPage as FirstPageIcon,
-  KeyboardArrowLeft as PrevPageIcon,
-  KeyboardArrowRight as NextPageIcon,
-  LastPage as LastPageIcon,
+  Delete as DeleteIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import registeredStudentListService from "../../../services/registeredStudentListService";
 import AdminHeader from "./AdminHeader";
+import AdminSessionListPagination from "./AdminSessionListPagination";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
+import SortableHeader from "../Common/SortableHeader";
 import {
-  PORTAL_CARD_BOX_SHADOW,
-  portalCardAntiLiftSx,
-  APPLICATION_ADMIN_TITLE_COLOR,
-} from "../../../styles/applicationSurfaces";
+  ADMIN_SESSION_LIST_CELL_PADDING,
+  adminSessionListEmptyCellSx,
+  adminSessionListEmptyTextSx,
+  adminSessionListFindButtonSx,
+  adminSessionListGridTableSx,
+  adminSessionListHeaderBarSx,
+  adminSessionListMenuItemSx,
+  adminSessionListPanelCardSx,
+  adminSessionListPanelContentSx,
+  adminSessionListSearchBarSx,
+  adminSessionListSearchFieldSx,
+  adminSessionListSearchLabelSx,
+  adminSessionListSearchSelectSx,
+  adminSessionListTableActionLinkSx,
+  adminSessionListTableBodyCellSx,
+  adminSessionListTableBodyRowSx,
+  adminSessionListTableHeadCellSx,
+  adminSessionListTableHeadRowSx,
+  adminSessionListTitleSx,
+  adminSessionListToolbarButtonSx,
+} from "../styles/applicationSurfaces";
 
 const RegisteredStudentList = () => {
   const { user } = useAuth();
@@ -63,6 +77,8 @@ const RegisteredStudentList = () => {
   const [orderBy, setOrderBy] = useState("studentID");
   const [order, setOrder] = useState("asc");
   const [goToPageInput, setGoToPageInput] = useState("1");
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState(null);
   const [privileges, setPrivileges] = useState({
     canUpdateStudents: false,
     canDeleteStudents: false,
@@ -84,7 +100,6 @@ const RegisteredStudentList = () => {
   });
 
   const pageSize = 25; // Match original page size
-  const cellPadding = "0 8px";
 
   // Class options (from original ASP.NET page)
   const classOptions = [
@@ -226,26 +241,41 @@ const RegisteredStudentList = () => {
   };
 
   // Handle delete student
-  const handleDeleteStudent = async (studentId) => {
+  const handleDeleteStudent = (studentId) => {
     if (!studentId || studentId === "0") {
-      alert("You cannot delete this student.");
+      setError("You cannot delete this student.");
       return;
     }
 
-    const confirmed = window.confirm("Do you want to delete this student?");
-    if (!confirmed) return;
+    setStudentToDelete(studentId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirmClose = () => {
+    if (loading) {
+      return;
+    }
+    setDeleteConfirmOpen(false);
+    setStudentToDelete(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!studentToDelete) {
+      return;
+    }
 
     try {
       setLoading(true);
       setError(null);
 
       const response = await registeredStudentListService.deleteStudent(
-        studentId
+        studentToDelete
       );
 
       if (response.isSuccess) {
         setSuccess(response.message || "Student deleted successfully");
-        fetchData(); // Refresh data
+        handleDeleteConfirmClose();
+        fetchData();
       } else {
         setError(response.errorMessage || "Failed to delete student");
       }
@@ -304,6 +334,14 @@ const RegisteredStudentList = () => {
 
   // Handle search
   const handleSearch = () => {
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
+
+  const handleSort = (field) => {
+    const isAsc = orderBy === field && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(field);
     setCurrentPage(1);
     setGoToPageInput("1");
   };
@@ -434,31 +472,10 @@ const RegisteredStudentList = () => {
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Card
-              sx={{
-                backgroundColor: "white",
-                borderRadius: 2,
-                boxShadow: PORTAL_CARD_BOX_SHADOW,
-                overflow: "hidden",
-                ...portalCardAntiLiftSx,
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                {/* Header — match InstructorList */}
-                <Box
-                  sx={{
-                    mb: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 2,
-                  }}
-                >
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR, fontSize: "1rem" }}
-                  >
+            <Card sx={adminSessionListPanelCardSx}>
+              <CardContent sx={adminSessionListPanelContentSx}>
+                <Box sx={adminSessionListHeaderBarSx}>
+                  <Typography variant="subtitle1" sx={adminSessionListTitleSx}>
                     Student List
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1 }}>
@@ -470,7 +487,7 @@ const RegisteredStudentList = () => {
                         startIcon={<DownloadIcon />}
                         onClick={handleExportToExcel}
                         disabled={loading}
-                        sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                        sx={adminSessionListToolbarButtonSx}
                       >
                         Export Excel
                       </Button>
@@ -482,7 +499,7 @@ const RegisteredStudentList = () => {
                       startIcon={<RefreshIcon />}
                       onClick={fetchData}
                       disabled={loading}
-                      sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                      sx={adminSessionListToolbarButtonSx}
                     >
                       Refresh
                     </Button>
@@ -509,109 +526,78 @@ const RegisteredStudentList = () => {
                   </Alert>
                 )}
 
-                {/* Search Bar — match InstructorList */}
-                <Box
-                  sx={{
-                    backgroundColor: "#4caf50",
-                    p: 0.5,
-                    borderRadius: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    flexWrap: "wrap",
-                  }}
-                >
+                <Box sx={adminSessionListSearchBarSx}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <Typography
-                      sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
-                    >
-                      Search By:
-                    </Typography>
+                    <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
                     <Select
                       value={searchBy}
                       onChange={(e) => setSearchBy(e.target.value)}
                       size="small"
-                      sx={{
-                        color: "white",
-                        fontSize: "0.75rem",
-                        minWidth: 100,
-                        "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
-                        "& .MuiSelect-icon": { color: "white" },
-                      }}
+                      sx={adminSessionListSearchSelectSx}
                     >
-                      <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
                         -ALL-
                       </MenuItem>
-                      <MenuItem value="STUDENT_ID" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="STUDENT_ID" sx={adminSessionListMenuItemSx}>
                         Student ID
                       </MenuItem>
-                      <MenuItem value="STUDENT_NAME" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="STUDENT_NAME" sx={adminSessionListMenuItemSx}>
                         Student Name
                       </MenuItem>
-                      <MenuItem value="CHAPTER" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="CHAPTER" sx={adminSessionListMenuItemSx}>
                         Chapter
                       </MenuItem>
-                      <MenuItem value="CLASS" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="CLASS" sx={adminSessionListMenuItemSx}>
                         Class
                       </MenuItem>
-                      <MenuItem value="GRADE" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="GRADE" sx={adminSessionListMenuItemSx}>
                         Grade
                       </MenuItem>
-                      <MenuItem value="SCHOOL" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="SCHOOL" sx={adminSessionListMenuItemSx}>
                         School
                       </MenuItem>
-                      <MenuItem value="PARENT" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="PARENT" sx={adminSessionListMenuItemSx}>
                         Parent
                       </MenuItem>
-                      <MenuItem value="PHONE" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="PHONE" sx={adminSessionListMenuItemSx}>
                         Phone
                       </MenuItem>
-                      <MenuItem value="EMAIL" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="EMAIL" sx={adminSessionListMenuItemSx}>
                         Email
                       </MenuItem>
-                      <MenuItem value="SESSION" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="SESSION" sx={adminSessionListMenuItemSx}>
                         Session
                       </MenuItem>
-                      <MenuItem value="LOCATION" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="LOCATION" sx={adminSessionListMenuItemSx}>
                         Location
                       </MenuItem>
-                      <MenuItem value="STATE" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="STATE" sx={adminSessionListMenuItemSx}>
                         State
                       </MenuItem>
-                      <MenuItem value="CITY" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="CITY" sx={adminSessionListMenuItemSx}>
                         City
                       </MenuItem>
                     </Select>
                   </Box>
 
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <Typography
-                      sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
-                    >
-                      Criteria:
-                    </Typography>
+                    <Typography sx={adminSessionListSearchLabelSx}>Criteria:</Typography>
                     <Select
                       value={searchCriteria}
                       onChange={(e) => setSearchCriteria(e.target.value)}
                       size="small"
-                      sx={{
-                        color: "white",
-                        fontSize: "0.75rem",
-                        minWidth: 100,
-                        "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
-                        "& .MuiSelect-icon": { color: "white" },
-                      }}
+                      sx={adminSessionListSearchSelectSx}
                     >
-                      <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="" sx={adminSessionListMenuItemSx}>
                         Select Criteria
                       </MenuItem>
-                      <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
                         Equals
                       </MenuItem>
-                      <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
                         Contains
                       </MenuItem>
-                      <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>
+                      <MenuItem value="starts_with" sx={adminSessionListMenuItemSx}>
                         Starts With
                       </MenuItem>
                     </Select>
@@ -622,221 +608,145 @@ const RegisteredStudentList = () => {
                     placeholder="Search Text"
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
-                    sx={{
-                      minWidth: 150,
-                      "& .MuiOutlinedInput-root": {
-                        backgroundColor: "white",
-                        fontSize: "0.75rem",
-                      },
-                    }}
+                    sx={adminSessionListSearchFieldSx}
                   />
 
                   <Button
                     variant="contained"
                     size="small"
                     onClick={handleSearch}
-                    sx={{
-                      backgroundColor: "white",
-                      color: "#4caf50",
-                      fontSize: "0.75rem",
-                      textTransform: "none",
-                      minHeight: 32,
-                      py: 0,
-                      px: 1,
-                      "&:hover": { backgroundColor: "#f5f5f5" },
-                    }}
+                    sx={adminSessionListFindButtonSx}
                   >
                     Find
                   </Button>
                 </Box>
 
-                {/* Table — match InstructorList layout */}
                 <TableContainer component={Paper} sx={{ width: "100%" }}>
-                  <Table
-                    sx={{
-                      width: "100%",
-                      tableLayout: "fixed",
-                      "& .MuiTableCell-root": { paddingTop: 0, paddingBottom: 0 },
-                    }}
-                    size="small"
-                  >
+                  <Table sx={adminSessionListGridTableSx} size="small">
                     <TableHead>
-                      <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
+                      <TableRow sx={adminSessionListTableHeadRowSx}>
                         <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "4%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
+                          sx={adminSessionListTableHeadCellSx("4%")}
                         >
                           Edit
                         </TableCell>
                         <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "4%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
+                          sx={adminSessionListTableHeadCellSx("4%")}
                         >
                           Delete
                         </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "5%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Student #
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "9%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Student Name
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "7%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Chapter
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "6%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Class
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "4%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Grade
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "9%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          School
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "7%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Parent
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "6%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Phone
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "9%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Email
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "5%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Session
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "5%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Location
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "7%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Reg. Date
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "5%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          State
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            width: "5%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          City
-                        </TableCell>
+                        <SortableHeader
+                          label="Student #"
+                          field="studentID"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("10%")}
+                        />
+                        <SortableHeader
+                          label="Student Name"
+                          field="studentName"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("9%")}
+                        />
+                        <SortableHeader
+                          label="Chapter"
+                          field="chapter"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("7%")}
+                        />
+                        <SortableHeader
+                          label="Class"
+                          field="class"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("6%")}
+                        />
+                        <SortableHeader
+                          label="Grade"
+                          field="grade"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("4%")}
+                        />
+                        <SortableHeader
+                          label="School"
+                          field="school"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("9%")}
+                        />
+                        <SortableHeader
+                          label="Parent"
+                          field="parentName"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("7%")}
+                        />
+                        <SortableHeader
+                          label="Phone"
+                          field="phoneNumber"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("6%")}
+                        />
+                        <SortableHeader
+                          label="Email"
+                          field="emailAddress"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("9%")}
+                        />
+                        <SortableHeader
+                          label="Session"
+                          field="eventSession"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("5%")}
+                        />
+                        <SortableHeader
+                          label="Location"
+                          field="eventLocation"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("5%")}
+                        />
+                        <SortableHeader
+                          label="Reg. Date"
+                          field="registeredDate"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("7%")}
+                        />
+                        <SortableHeader
+                          label="State"
+                          field="sState"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("5%")}
+                        />
+                        <SortableHeader
+                          label="City"
+                          field="city"
+                          sortField={orderBy}
+                          sortOrder={order}
+                          onSort={handleSort}
+                          headCellSx={adminSessionListTableHeadCellSx("5%", true)}
+                        />
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -844,64 +754,39 @@ const RegisteredStudentList = () => {
                         paginatedStudents.map((student, index) => (
                           <TableRow
                             key={student.studentID || index}
-                            sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}
+                            sx={adminSessionListTableBodyRowSx}
                           >
-                            <TableCell
-                              sx={{
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                                verticalAlign: "middle",
-                              }}
-                            >
+                            <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
                               {privileges.canUpdateStudents ? (
-                                <Tooltip title="Edit Student">
-                                  <IconButton
-                                    size="small"
-                                    color="primary"
-                                    onClick={() => handleUpdateClass(student)}
-                                    sx={{ padding: "2px" }}
-                                  >
-                                    <EditIcon sx={{ fontSize: "1rem" }} />
-                                  </IconButton>
-                                </Tooltip>
-                              ) : null}
+                                <Box
+                                  onClick={() => handleUpdateClass(student)}
+                                  sx={adminSessionListTableActionLinkSx}
+                                >
+                                  Edit
+                                </Box>
+                              ) : (
+                                "—"
+                              )}
                             </TableCell>
-                            <TableCell
-                              sx={{
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                                verticalAlign: "middle",
-                              }}
-                            >
+                            <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
                               {privileges.canDeleteStudents ? (
-                                <Tooltip title="Delete Student">
-                                  <IconButton
-                                    size="small"
-                                    color="error"
-                                    onClick={() => handleDeleteStudent(student.studentID)}
-                                    sx={{ padding: "2px" }}
-                                  >
-                                    <DeleteIcon sx={{ fontSize: "1rem" }} />
-                                  </IconButton>
-                                </Tooltip>
-                              ) : null}
+                                <Box
+                                  onClick={() => handleDeleteStudent(student.studentID)}
+                                  sx={adminSessionListTableActionLinkSx}
+                                >
+                                  Delete
+                                </Box>
+                              ) : (
+                                "—"
+                              )}
+                            </TableCell>
+                            <TableCell sx={adminSessionListTableBodyCellSx()}>
+                              {student.studentID || "—"}
                             </TableCell>
                             <TableCell
                               sx={{
-                                borderRight: "1px solid #4caf50",
                                 fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              {student.studentID || "-"}
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
+                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -913,9 +798,8 @@ const RegisteredStudentList = () => {
                             </TableCell>
                             <TableCell
                               sx={{
-                                borderRight: "1px solid #4caf50",
                                 fontSize: "0.75rem",
-                                padding: cellPadding,
+                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -927,9 +811,8 @@ const RegisteredStudentList = () => {
                             </TableCell>
                             <TableCell
                               sx={{
-                                borderRight: "1px solid #4caf50",
                                 fontSize: "0.75rem",
-                                padding: cellPadding,
+                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -941,18 +824,16 @@ const RegisteredStudentList = () => {
                             </TableCell>
                             <TableCell
                               sx={{
-                                borderRight: "1px solid #4caf50",
                                 fontSize: "0.75rem",
-                                padding: cellPadding,
+                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
                               }}
                             >
                               {student.grade || "-"}
                             </TableCell>
                             <TableCell
                               sx={{
-                                borderRight: "1px solid #4caf50",
                                 fontSize: "0.75rem",
-                                padding: cellPadding,
+                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -964,9 +845,8 @@ const RegisteredStudentList = () => {
                             </TableCell>
                             <TableCell
                               sx={{
-                                borderRight: "1px solid #4caf50",
                                 fontSize: "0.75rem",
-                                padding: cellPadding,
+                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -978,18 +858,16 @@ const RegisteredStudentList = () => {
                             </TableCell>
                             <TableCell
                               sx={{
-                                borderRight: "1px solid #4caf50",
                                 fontSize: "0.75rem",
-                                padding: cellPadding,
+                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
                               }}
                             >
                               {student.phoneNumber || "-"}
                             </TableCell>
                             <TableCell
                               sx={{
-                                borderRight: "1px solid #4caf50",
                                 fontSize: "0.75rem",
-                                padding: cellPadding,
+                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -1001,18 +879,16 @@ const RegisteredStudentList = () => {
                             </TableCell>
                             <TableCell
                               sx={{
-                                borderRight: "1px solid #4caf50",
                                 fontSize: "0.75rem",
-                                padding: cellPadding,
+                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
                               }}
                             >
                               {student.eventSession || "-"}
                             </TableCell>
                             <TableCell
                               sx={{
-                                borderRight: "1px solid #4caf50",
                                 fontSize: "0.75rem",
-                                padding: cellPadding,
+                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -1024,9 +900,8 @@ const RegisteredStudentList = () => {
                             </TableCell>
                             <TableCell
                               sx={{
-                                borderRight: "1px solid #4caf50",
                                 fontSize: "0.75rem",
-                                padding: cellPadding,
+                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
                               }}
                             >
                               {student.registeredDate
@@ -1035,9 +910,8 @@ const RegisteredStudentList = () => {
                             </TableCell>
                             <TableCell
                               sx={{
-                                borderRight: "1px solid #4caf50",
                                 fontSize: "0.75rem",
-                                padding: cellPadding,
+                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
                               }}
                             >
                               {student.sState || "-"}
@@ -1045,7 +919,7 @@ const RegisteredStudentList = () => {
                             <TableCell
                               sx={{
                                 fontSize: "0.75rem",
-                                padding: cellPadding,
+                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
@@ -1059,16 +933,8 @@ const RegisteredStudentList = () => {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell
-                            colSpan={16}
-                            align="center"
-                            sx={{ fontSize: "0.75rem", padding: cellPadding, py: 3 }}
-                          >
-                            <Typography
-                              variant="body2"
-                              color="textSecondary"
-                              sx={{ fontSize: "0.75rem" }}
-                            >
+                          <TableCell colSpan={16} align="center" sx={adminSessionListEmptyCellSx}>
+                            <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
                               {searchText
                                 ? "No students found matching your search criteria."
                                 : "No student data available."}
@@ -1080,141 +946,16 @@ const RegisteredStudentList = () => {
                   </Table>
                 </TableContainer>
 
-                {/* Pagination Bar — match InstructorList */}
-                <Box
-                  sx={{
-                    backgroundColor: "#4caf50",
-                    p: 0.5,
-                    borderRadius: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 1,
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-                    <IconButton
-                      size="small"
-                      sx={{ color: "white", padding: "2px" }}
-                      onClick={() => handlePageChange(1)}
-                      disabled={currentPage === 1}
-                    >
-                      <FirstPageIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      sx={{ color: "white", padding: "2px" }}
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      <PrevPageIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      sx={{ color: "white", padding: "2px" }}
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages || totalPages === 0}
-                    >
-                      <NextPageIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      sx={{ color: "white", padding: "2px" }}
-                      onClick={() => handlePageChange(totalPages)}
-                      disabled={currentPage === totalPages || totalPages === 0}
-                    >
-                      <LastPageIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-                    <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                      GoTo
-                    </Typography>
-                    <Select
-                      size="small"
-                      value={totalPages > 0 ? currentPage : ""}
-                      onChange={(e) => handlePageChange(Number(e.target.value))}
-                      disabled={totalPages === 0}
-                      sx={{
-                        color: "white",
-                        minWidth: 50,
-                        fontSize: "0.75rem",
-                        "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
-                        "& .MuiSelect-icon": { color: "white" },
-                      }}
-                    >
-                      {totalPages > 0 ? (
-                        Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                          <MenuItem key={page} value={page} sx={{ fontSize: "0.75rem" }}>
-                            {page}
-                          </MenuItem>
-                        ))
-                      ) : (
-                        <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
-                          -
-                        </MenuItem>
-                      )}
-                    </Select>
-                  </Box>
-
-                  <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                    Page(s): {totalPages > 0 ? currentPage : 0} of {totalPages}
-                  </Typography>
-
-                  <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                    Record(s):{" "}
-                    {totalRecords > 0
-                      ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
-                          currentPage * pageSize,
-                          totalRecords,
-                        )}`
-                      : "0"}{" "}
-                    of {totalRecords}
-                  </Typography>
-
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-                    <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                      Go to Page Number:
-                    </Typography>
-                    <TextField
-                      size="small"
-                      type="number"
-                      value={goToPageInput}
-                      onChange={(e) => setGoToPageInput(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          handleGoToPage();
-                        }
-                      }}
-                      sx={{
-                        width: 50,
-                        "& .MuiOutlinedInput-root": {
-                          backgroundColor: "white",
-                          fontSize: "0.75rem",
-                        },
-                      }}
-                      inputProps={{ min: 1, max: totalPages || 1 }}
-                    />
-                    <Button
-                      size="small"
-                      variant="contained"
-                      onClick={handleGoToPage}
-                      sx={{
-                        backgroundColor: "white",
-                        color: "#4caf50",
-                        fontSize: "0.75rem",
-                        minHeight: 32,
-                        py: 0,
-                        px: 0.75,
-                        "&:hover": { backgroundColor: "#f5f5f5" },
-                      }}
-                    >
-                      Go
-                    </Button>
-                  </Box>
-                </Box>
+                <AdminSessionListPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalRecords={totalRecords}
+                  pageSize={pageSize}
+                  goToPageInput={goToPageInput}
+                  onGoToPageInputChange={setGoToPageInput}
+                  onPageChange={handlePageChange}
+                  onGoToPage={handleGoToPage}
+                />
 
                 {/* Update Class Dialog */}
                 <Dialog
@@ -1390,6 +1131,18 @@ const RegisteredStudentList = () => {
           </Grid>
         </Grid>
       </Container>
+
+      <AppConfirmDialog
+        open={deleteConfirmOpen}
+        onClose={handleDeleteConfirmClose}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Student"
+        message="Do you want to delete this student?"
+        confirmLabel="Delete"
+        confirmColor="error"
+        icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+        loading={loading}
+      />
     </Box>
   );
 };

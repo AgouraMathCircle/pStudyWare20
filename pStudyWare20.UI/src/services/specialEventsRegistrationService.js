@@ -1,4 +1,5 @@
 import api from "./api";
+import { postExcelExport } from "../utils/excelExport";
 
 const BASE = "/SpecialEventsRegistration";
 
@@ -24,12 +25,13 @@ const specialEventsRegistrationService = {
     return response.data;
   },
   exportToExcel: async (request) => {
-    const response = await api.post(
+    const fileName = await postExcelExport(
+      api,
       `${BASE}/ExportSpecialEventsRegistrationToExcel`,
       request,
-      { responseType: "blob" }
+      "SpecialEventsRegistration.xlsx"
     );
-    return response;
+    return { isSuccess: true, fileName };
   },
   getDashboardData: async (username) => {
     const response = await api.get(`${BASE}/GetDashboardData`, {

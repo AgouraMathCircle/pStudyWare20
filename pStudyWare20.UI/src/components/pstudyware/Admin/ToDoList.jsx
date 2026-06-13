@@ -20,20 +20,21 @@ import {
   Notifications as NotificationsIcon,
   Publish as PublishIcon,
 } from "@mui/icons-material";
+import { getPublicDocumentUrl } from "../../../utils/config";
 import {
   adminPortalCardHeaderStripSx,
   adminDashboardWidgetCardSx,
   adminDashboardWidgetCardContentFlushSx,
   adminDashboardWidgetTitleSx,
-  adminDashboardWidgetTableCellSx,
   adminDashboardWidgetTrackingHeaderCellSx,
+  adminDashboardWidgetTrackingCellSx,
+  adminDashboardWidgetTrackingTableSx,
   adminDashboardWidgetTableRowSx,
-  adminDashboardWidgetTableScrollSx,
-} from "../../../styles/applicationSurfaces";
+} from "../styles/applicationSurfaces";
 
 const USER_TRACKING_PATH = "/pstudyware/admin/user-tracking";
 
-const curriculumPdfUrl = `${(import.meta.env.BASE_URL || "/").replace(/\/?$/, "/")}documents/AMC_Curriculam.pdf`;
+const curriculumPdfUrl = getPublicDocumentUrl("AMC_Curriculam.pdf");
 
 const quickLinkSx = {
   display: "block",
@@ -158,8 +159,10 @@ const ToDoList = ({
             mt: 0,
             mb: 0,
             display: "flex",
-            flexDirection: "column",
-            gap: 0.5,
+            flexDirection: "row",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 1.5,
           }}
         >
           <Box
@@ -178,10 +181,12 @@ const ToDoList = ({
 
         <TableContainer
           sx={{
-            ...adminDashboardWidgetTableScrollSx,
             flex: 1,
             minHeight: 0,
-            maxHeight: { xs: 280, sm: 240, md: 220 },
+            maxHeight: 160,
+            width: "100%",
+            maxWidth: "100%",
+            overflowX: "hidden",
             overflowY: "auto",
             mt: 0.25,
           }}
@@ -189,22 +194,20 @@ const ToDoList = ({
           <Table
             size="small"
             className="admin-dashboard-widget-table admin-dashboard-widget-tracking-table"
-            sx={{
-              width: "100%",
-              minWidth: { xs: 220, sm: "100%" },
-              tableLayout: { xs: "auto", sm: "fixed" },
-            }}
+            sx={adminDashboardWidgetTrackingTableSx}
           >
             <TableHead>
               <TableRow>
-                <TableCell sx={adminDashboardWidgetTrackingHeaderCellSx}>Date</TableCell>
-                <TableCell align="center" sx={adminDashboardWidgetTrackingHeaderCellSx}>
+                <TableCell sx={{ ...adminDashboardWidgetTrackingHeaderCellSx, width: "38%" }}>
+                  Date
+                </TableCell>
+                <TableCell align="center" sx={{ ...adminDashboardWidgetTrackingHeaderCellSx, width: "20%" }}>
                   Web#
                 </TableCell>
-                <TableCell align="center" sx={adminDashboardWidgetTrackingHeaderCellSx}>
+                <TableCell align="center" sx={{ ...adminDashboardWidgetTrackingHeaderCellSx, width: "20%" }}>
                   App#
                 </TableCell>
-                <TableCell align="center" sx={adminDashboardWidgetTrackingHeaderCellSx}>
+                <TableCell align="center" sx={{ ...adminDashboardWidgetTrackingHeaderCellSx, width: "22%" }}>
                   SRU#
                 </TableCell>
               </TableRow>
@@ -213,23 +216,23 @@ const ToDoList = ({
               {trackingSummary && trackingSummary.length > 0 ? (
                 trackingSummary.map((item, index) => (
                   <TableRow key={index} sx={adminDashboardWidgetTableRowSx}>
-                    <TableCell sx={adminDashboardWidgetTableCellSx}>
+                    <TableCell sx={adminDashboardWidgetTrackingCellSx}>
                       {formatDate(item.visitedDate || item.VisitedDate)}
                     </TableCell>
-                    <TableCell align="center" sx={adminDashboardWidgetTableCellSx}>
+                    <TableCell align="center" sx={adminDashboardWidgetTrackingCellSx}>
                       {item.webCount ?? item.WebCount ?? 0}
                     </TableCell>
-                    <TableCell align="center" sx={adminDashboardWidgetTableCellSx}>
+                    <TableCell align="center" sx={adminDashboardWidgetTrackingCellSx}>
                       {item.appCount ?? item.AppCount ?? 0}
                     </TableCell>
-                    <TableCell align="center" sx={adminDashboardWidgetTableCellSx}>
+                    <TableCell align="center" sx={adminDashboardWidgetTrackingCellSx}>
                       {item.updateScoreCnt ?? item.UpdateScoreCnt ?? 0}
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} align="center" sx={adminDashboardWidgetTableCellSx}>
+                  <TableCell colSpan={4} align="center" sx={adminDashboardWidgetTrackingCellSx}>
                     No tracking data available
                   </TableCell>
                 </TableRow>

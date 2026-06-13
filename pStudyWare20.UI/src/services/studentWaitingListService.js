@@ -1,4 +1,5 @@
 import api from "./api";
+import { postExcelExport } from "../utils/excelExport";
 
 const BASE = "/StudentWaitingList";
 
@@ -52,12 +53,17 @@ const studentWaitingListService = {
   },
 
   /**
-   * Export waiting list to Excel. Returns JSON with FileContent (base64), FileName, ContentType.
+   * Export waiting list to Excel (.xlsx).
    * @param {object} request - { Username: string, Mode?: string }
    */
   exportToExcel: async (request) => {
-    const response = await api.post(`${BASE}/ExportToExcel`, request);
-    return response.data;
+    const fileName = await postExcelExport(
+      api,
+      `${BASE}/ExportToExcel`,
+      request,
+      "StudentWaitingList.xlsx"
+    );
+    return { isSuccess: true, fileName };
   },
 };
 

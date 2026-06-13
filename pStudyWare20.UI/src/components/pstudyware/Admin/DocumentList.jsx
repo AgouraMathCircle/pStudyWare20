@@ -27,6 +27,49 @@ import {
   VideoLibrary as VideoIcon,
   Search as SearchIcon,
 } from "@mui/icons-material";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
+import SortableHeader from "../Common/SortableHeader";
+import {
+  sortRows,
+  toSortableDate,
+  toSortableNumber,
+} from "../../../utils/tableSort";
+
+const documentHeadCellSx = {
+  fontWeight: 600,
+  borderRight: "1px solid #4caf50",
+  fontSize: "0.875rem",
+  padding: "8px 12px",
+};
+
+const documentHeadCellSxLast = {
+  fontWeight: 600,
+  fontSize: "0.875rem",
+  padding: "8px 12px",
+};
+
+const getDocumentFieldValue = (doc, field) => {
+  switch (field) {
+    case "docID":
+      return toSortableNumber(doc.docID);
+    case "class":
+      return doc.class ?? "";
+    case "topics":
+      return doc.topics ?? "";
+    case "description":
+      return doc.description ?? "";
+    case "docName":
+      return doc.docName ?? "";
+    case "session":
+      return doc.session ?? "";
+    case "uploadedDate":
+      return toSortableDate(doc.uploadedDate);
+    case "publish":
+      return doc.publish ?? "";
+    default:
+      return "";
+  }
+};
 
 const DocumentList = ({
   documents,
@@ -44,6 +87,15 @@ const DocumentList = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortField, setSortField] = useState("uploadedDate");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    type: null,
+    docID: null,
+    docName: "",
+  });
+  const [alertDialog, setAlertDialog] = useState({ open: false, message: "" });
 
   // Filter documents based on search term
   const filteredDocuments = useMemo(() => {
@@ -77,31 +129,78 @@ const DocumentList = ({
     setPage(0);
   };
 
-  // Handle delete with confirmation
-  const handleDeleteClick = (docID, docName) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete this document?\n\nDocument: ${docName}`
-      )
-    ) {
-      onDelete(docID, docName);
-    }
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
+    setPage(0);
   };
 
-  // Handle publish with confirmation
+  const handleDeleteClick = (docID, docName) => {
+    setConfirmDialog({ open: true, type: "delete", docID, docName });
+  };
+
   const handlePublishClick = (docID, status, docName) => {
     if (status?.toUpperCase() === "Y") {
-      alert("This document is already published.");
+      setAlertDialog({
+        open: true,
+        message: "This document is already published.",
+      });
       return;
     }
 
-    if (
-      window.confirm(
-        `Are you sure you want to publish this document?\n\nDocument: ${docName}`
-      )
-    ) {
+    setConfirmDialog({ open: true, type: "publish", docID, docName });
+  };
+
+  const handleConfirmDialogClose = () => {
+    setConfirmDialog({ open: false, type: null, docID: null, docName: "" });
+  };
+
+  const handleConfirmDialogAction = () => {
+    const { type, docID, docName } = confirmDialog;
+    handleConfirmDialogClose();
+    if (type === "delete") {
+      onDelete(docID, docName);
+    } else if (type === "publish") {
       onPublish(docID);
     }
+  };
+
+  const getConfirmDialogContent = () => {
+    const { type, docName } = confirmDialog;
+    if (type === "delete") {
+      return {
+        title: "Delete Document",
+        message: (
+          <>
+            Are you sure you want to delete this document?
+            <br />
+            <br />
+            Document: {docName}
+          </>
+        ),
+        confirmLabel: "Delete",
+        confirmColor: "error",
+        icon: <DeleteIcon sx={{ fontSize: 20 }} />,
+      };
+    }
+    if (type === "publish") {
+      return {
+        title: "Publish Document",
+        message: (
+          <>
+            Are you sure you want to publish this document?
+            <br />
+            <br />
+            Document: {docName}
+          </>
+        ),
+        confirmLabel: "Publish",
+        confirmColor: "primary",
+        icon: <PublishIcon sx={{ fontSize: 20 }} />,
+      };
+    }
+    return null;
   };
 
   // Format date
@@ -156,12 +255,17 @@ const DocumentList = ({
     return classMap[classCode] || classCode;
   };
 
+  const sortedDocuments = useMemo(
+    () => sortRows(filteredDocuments, sortField, sortOrder, getDocumentFieldValue),
+    [filteredDocuments, sortField, sortOrder],
+  );
+
   // Paginated documents
   const paginatedDocuments = useMemo(() => {
     const startIndex = page * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
-    return filteredDocuments.slice(startIndex, endIndex);
-  }, [filteredDocuments, page, rowsPerPage]);
+    return sortedDocuments.slice(startIndex, endIndex);
+  }, [sortedDocuments, page, rowsPerPage]);
 
   return (
     <Box>
@@ -250,95 +354,71 @@ const DocumentList = ({
         <Table sx={{ tableLayout: "auto" }}>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  fontSize: "0.875rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Actions
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  fontSize: "0.875rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Doc #
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  fontSize: "0.875rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Class
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  fontSize: "0.875rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Topics
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  fontSize: "0.875rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Description
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  fontSize: "0.875rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Document Name
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  fontSize: "0.875rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Session
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  borderRight: "1px solid #4caf50",
-                  fontSize: "0.875rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Posted Date
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  padding: "8px 12px",
-                }}
-              >
-                Status
-              </TableCell>
+              <TableCell sx={documentHeadCellSx}>Actions</TableCell>
+              <SortableHeader
+                label="Doc #"
+                field="docID"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={documentHeadCellSx}
+              />
+              <SortableHeader
+                label="Class"
+                field="class"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={documentHeadCellSx}
+              />
+              <SortableHeader
+                label="Topics"
+                field="topics"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={documentHeadCellSx}
+              />
+              <SortableHeader
+                label="Description"
+                field="description"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={documentHeadCellSx}
+              />
+              <SortableHeader
+                label="Document Name"
+                field="docName"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={documentHeadCellSx}
+              />
+              <SortableHeader
+                label="Session"
+                field="session"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={documentHeadCellSx}
+              />
+              <SortableHeader
+                label="Posted Date"
+                field="uploadedDate"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={documentHeadCellSx}
+              />
+              <SortableHeader
+                label="Status"
+                field="publish"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={documentHeadCellSxLast}
+              />
             </TableRow>
           </TableHead>
           <TableBody>
@@ -548,6 +628,26 @@ const DocumentList = ({
           {searchTerm && ` (filtered from ${documents.length})`}
         </Typography>
       </Box>
+
+      {getConfirmDialogContent() && (
+        <AppConfirmDialog
+          open={confirmDialog.open}
+          onClose={handleConfirmDialogClose}
+          onConfirm={handleConfirmDialogAction}
+          title={getConfirmDialogContent().title}
+          message={getConfirmDialogContent().message}
+          confirmLabel={getConfirmDialogContent().confirmLabel}
+          confirmColor={getConfirmDialogContent().confirmColor}
+          icon={getConfirmDialogContent().icon}
+        />
+      )}
+
+      <AppConfirmDialog
+        open={alertDialog.open}
+        onClose={() => setAlertDialog({ open: false, message: "" })}
+        title="Notice"
+        message={alertDialog.message}
+      />
     </Box>
   );
 };

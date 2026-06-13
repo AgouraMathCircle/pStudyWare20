@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -44,10 +44,50 @@ import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "../Admin/AdminHeader";
 import documentService from "../../../services/documentService";
 import PdfViewer from "../../common/PdfViewer";
+import SortableHeader from "./SortableHeader";
+import {
+  sortRows,
+  toSortableDate,
+  toSortableNumber,
+} from "../../../utils/tableSort";
 import {
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
-} from "../../../styles/applicationSurfaces";
+} from "../styles/applicationSurfaces";
+
+const repositoryHeadCellSx = {
+  fontWeight: 400,
+  borderRight: "1px solid #4caf50",
+  fontSize: "0.75rem",
+  padding: "0 8px",
+};
+
+const repositoryHeadCellSxLast = {
+  fontWeight: 400,
+  fontSize: "0.75rem",
+  padding: "0 8px",
+};
+
+const getRepositoryFieldValue = (doc, field) => {
+  switch (field) {
+    case "docID":
+      return toSortableNumber(doc.docID || doc.mDocID);
+    case "class":
+      return doc.class ?? "";
+    case "topics":
+      return doc.topics ?? "";
+    case "description":
+      return doc.description ?? "";
+    case "docName":
+      return doc.docName || doc.mDocName || "";
+    case "session":
+      return doc.session || doc.mSession || "";
+    case "postedDate":
+      return toSortableDate(doc.uploadedDate || doc.insertDate);
+    default:
+      return "";
+  }
+};
 
 const DocumentsRepository = () => {
   const { user, isAuthenticated } = useAuth();
@@ -61,6 +101,8 @@ const DocumentsRepository = () => {
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("contains");
   const [searchText, setSearchText] = useState("");
+  const [sortField, setSortField] = useState("postedDate");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState(null);
 
@@ -162,6 +204,14 @@ const DocumentsRepository = () => {
     }
 
     setFilteredDocuments(filtered);
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
+
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
     setCurrentPage(1);
     setGoToPageInput("1");
   };
@@ -337,11 +387,16 @@ const DocumentsRepository = () => {
   };
 
   // Calculate pagination
-  const totalRecords = filteredDocuments.length;
+  const sortedDocuments = useMemo(
+    () => sortRows(filteredDocuments, sortField, sortOrder, getRepositoryFieldValue),
+    [filteredDocuments, sortField, sortOrder],
+  );
+
+  const totalRecords = sortedDocuments.length;
   const totalPages = Math.ceil(totalRecords / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
-  const displayedData = filteredDocuments.slice(startIndex, endIndex);
+  const displayedData = sortedDocuments.slice(startIndex, endIndex);
 
   const cellPadding = "0 8px";
 
@@ -575,102 +630,76 @@ const DocumentsRepository = () => {
                       <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
                         <TableCell
                           sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
+                            ...repositoryHeadCellSx,
                             width: "5%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
                           }}
                         >
                           View
                         </TableCell>
                         <TableCell
                           sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
+                            ...repositoryHeadCellSx,
                             width: "5%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
                           }}
                         >
                           Delete
                         </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "6%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Doc #
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "8%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Class
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "12%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Topics
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "10%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Description
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "18%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Name
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            borderRight: "1px solid #4caf50",
-                            width: "12%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Session
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 400,
-                            width: "8%",
-                            fontSize: "0.75rem",
-                            padding: cellPadding,
-                          }}
-                        >
-                          Posted Date
-                        </TableCell>
+                        <SortableHeader
+                          label="Doc #"
+                          field="docID"
+                          sortField={sortField}
+                          sortOrder={sortOrder}
+                          onSort={handleSort}
+                          headCellSx={{ ...repositoryHeadCellSx, width: "6%" }}
+                        />
+                        <SortableHeader
+                          label="Class"
+                          field="class"
+                          sortField={sortField}
+                          sortOrder={sortOrder}
+                          onSort={handleSort}
+                          headCellSx={{ ...repositoryHeadCellSx, width: "8%" }}
+                        />
+                        <SortableHeader
+                          label="Topics"
+                          field="topics"
+                          sortField={sortField}
+                          sortOrder={sortOrder}
+                          onSort={handleSort}
+                          headCellSx={{ ...repositoryHeadCellSx, width: "12%" }}
+                        />
+                        <SortableHeader
+                          label="Description"
+                          field="description"
+                          sortField={sortField}
+                          sortOrder={sortOrder}
+                          onSort={handleSort}
+                          headCellSx={{ ...repositoryHeadCellSx, width: "10%" }}
+                        />
+                        <SortableHeader
+                          label="Name"
+                          field="docName"
+                          sortField={sortField}
+                          sortOrder={sortOrder}
+                          onSort={handleSort}
+                          headCellSx={{ ...repositoryHeadCellSx, width: "18%" }}
+                        />
+                        <SortableHeader
+                          label="Session"
+                          field="session"
+                          sortField={sortField}
+                          sortOrder={sortOrder}
+                          onSort={handleSort}
+                          headCellSx={{ ...repositoryHeadCellSx, width: "12%" }}
+                        />
+                        <SortableHeader
+                          label="Posted Date"
+                          field="postedDate"
+                          sortField={sortField}
+                          sortOrder={sortOrder}
+                          onSort={handleSort}
+                          headCellSx={{ ...repositoryHeadCellSxLast, width: "8%" }}
+                        />
                       </TableRow>
                     </TableHead>
                     <TableBody>

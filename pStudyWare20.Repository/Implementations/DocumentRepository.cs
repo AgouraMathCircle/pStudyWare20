@@ -292,11 +292,9 @@ namespace pStudyWare20.Repository.Implementations
                 command.Parameters.Add(new SqlParameter("@Description", request.Session ?? ""));
                 command.Parameters.Add(new SqlParameter("@Type", request.Type ?? ""));
 
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
+                await command.ExecuteNonQueryAsync();
 
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                return "[]";
             }
             catch (Exception ex)
             {
@@ -311,6 +309,11 @@ namespace pStudyWare20.Repository.Implementations
         {
             try
             {
+                if (!int.TryParse(request.DocumentID?.Trim(), out var docId) || docId <= 0)
+                {
+                    throw new ArgumentException("Invalid document ID.");
+                }
+
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
@@ -320,13 +323,11 @@ namespace pStudyWare20.Repository.Implementations
                 };
 
                 command.Parameters.Add(new SqlParameter("@Type", "S"));
-                command.Parameters.Add(new SqlParameter("@DocID", request.DocumentID ?? ""));
+                command.Parameters.Add(new SqlParameter("@DocID", SqlDbType.Int) { Value = docId });
 
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
+                await command.ExecuteNonQueryAsync();
 
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                return "[]";
             }
             catch (Exception ex)
             {

@@ -1,10 +1,14 @@
 import React from "react";
-import { Box, Container, Typography } from "@mui/material";
 import {
-  AdminPanelSettings as AdminIcon,
+  Box,
+  Container,
+  Typography,
+} from "@mui/material";
+import {
   CalendarToday as CalendarIcon,
+  Dashboard as DashboardIcon,
 } from "@mui/icons-material";
-import { applicationRoleHeaderBarSx } from "../../../styles/applicationSurfaces";
+import { applicationRoleHeaderBarSx } from "../styles/applicationSurfaces";
 
 const AdminHeader = ({ user }) => {
   return (
@@ -14,76 +18,124 @@ const AdminHeader = ({ user }) => {
         pt: 2,
         pb: 0.5,
         position: "fixed",
-        top: "64px", // Position directly below Navbar
+        top: "64px",
         left: 0,
         right: 0,
         zIndex: 1000,
         width: "100%",
       }}
     >
-      <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
+      <Container maxWidth="xl">
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: { xs: "center", sm: "flex-end" },
-            flexWrap: "wrap",
-            gap: { xs: 1, sm: 2 },
-            py: { xs: 0.5, sm: 0 },
+            justifyContent: "space-between",
+            gap: 2,
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              backgroundColor: "#fce4ec",
-              px: { xs: 1.25, sm: 2 },
-              py: { xs: 0.5, sm: 0.75 },
-              borderRadius: 2,
-              boxShadow: "0 2px 4px rgba(211, 47, 47, 0.1)",
-            }}
-          >
-            <AdminIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: "#c62828" }} />
-            <Typography
-              variant="body2"
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            <Box
               sx={{
-                color: "#b71c1c",
-                fontWeight: 600,
-                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                width: 34,
+                height: 34,
+                borderRadius: "11px",
+                backgroundColor: "#2e7d32",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 4px 10px rgba(46, 125, 50, 0.32)",
               }}
             >
-              Welcome, {user?.firstName || "Administrator"}
+              <DashboardIcon sx={{ fontSize: 19 }} />
+            </Box>
+            <Typography
+              sx={{
+                fontWeight: 700,
+                fontSize: "1.05rem",
+                color: "#1b5e20",
+                letterSpacing: "-0.01em",
+                display: { xs: "none", sm: "block" },
+              }}
+            >
+              Admin
             </Typography>
           </Box>
 
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              backgroundColor: "#fff3e0",
-              px: { xs: 1.25, sm: 2 },
-              py: { xs: 0.5, sm: 0.75 },
-              borderRadius: 2,
-              boxShadow: "0 2px 4px rgba(255, 152, 0, 0.1)",
-            }}
-          >
-            <CalendarIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: "#f57c00" }} />
-            <Typography
-              variant="body2"
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            <Box
               sx={{
-                color: "#e65100",
-                fontWeight: 600,
-                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                backgroundColor: "#ffffff",
+                pl: 0.5,
+                pr: { xs: 0.5, sm: 1.75 },
+                py: 0.5,
+                borderRadius: "999px",
+                border: "2px solid #4caf50",
+                boxShadow: "0 2px 6px rgba(46, 125, 50, 0.15)",
               }}
             >
-              {new Date().toLocaleDateString(undefined, {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </Typography>
+              <Box
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  background:
+                    "linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 700,
+                  fontSize: "0.8rem",
+                  flexShrink: 0,
+                }}
+              >
+                {(user?.firstName || "A").charAt(0).toUpperCase()}
+              </Box>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#1b5e20",
+                  fontWeight: 700,
+                  display: { xs: "none", sm: "block" },
+                }}
+              >
+                Welcome, {user?.firstName || "Administrator"}
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.75,
+                backgroundColor: "#e8f5e9",
+                px: { xs: 1.25, sm: 1.75 },
+                py: 0.85,
+                borderRadius: "999px",
+                border: "1px solid #c8e6c9",
+              }}
+            >
+              <CalendarIcon sx={{ fontSize: 18, color: "#2e7d32" }} />
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#1b5e20",
+                  fontWeight: 600,
+                  display: { xs: "none", sm: "block" },
+                }}
+              >
+                {new Date().toLocaleDateString("en-US", {
+                  month: "numeric",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </Typography>
+            </Box>
           </Box>
         </Box>
       </Container>

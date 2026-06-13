@@ -19,6 +19,10 @@ import AdminDocumentList from "./AdminDocumentList";
 import DocumentUploadForm from "./DocumentUploadForm";
 import InstructorClassMaterialList from "../Instructor/InstructorClassMaterialList";
 import { instructorPageShellSx } from "../Instructor/instructorPortalTableStyles";
+import {
+  adminSessionListPanelCardSx,
+  adminSessionListPanelContentSx,
+} from "../styles/applicationSurfaces";
 
 const Documents = () => {
   const location = useLocation();
@@ -327,17 +331,9 @@ const Documents = () => {
       )}
       <Container
         maxWidth="xl"
-        sx={
-          hideRoleHeader
-            ? { mb: 4, px: { xs: 1, sm: 2 } }
-            : {
-                mb: 4,
-                px: { xs: 1, sm: 2 },
-                maxWidth: "100% !important",
-              }
-        }
+        sx={hideRoleHeader ? { mb: 4, px: { xs: 1, sm: 2 } } : { mb: 4 }}
       >
-        <Grid container spacing={2}>
+        <Grid container spacing={hideRoleHeader ? 2 : 3}>
           <Grid item xs={12}>
             {hideRoleHeader ? (
               <Box sx={{ width: "100%", minWidth: 0 }}>
@@ -358,15 +354,8 @@ const Documents = () => {
                 />
               </Box>
             ) : (
-              <Card
-                sx={{
-                  backgroundColor: "white",
-                  borderRadius: 2,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  overflow: "hidden",
-                }}
-              >
-                <CardContent sx={{ p: 3 }}>
+              <Card sx={adminSessionListPanelCardSx}>
+                <CardContent sx={adminSessionListPanelContentSx}>
                   <AdminDocumentList
                     documents={documents}
                     onRefresh={handleRefresh}

@@ -45,7 +45,7 @@ namespace pStudyWare20.Services.Implementations
                                 PostedDate = row.PostedDate,
                                 AlertDate = row.AlertDate,
                                 Description = row.Description,
-                                Message = row.Message,
+                                Message = string.IsNullOrWhiteSpace(row.Message) ? row.Description : row.Message,
                                 Active = row.Active
                             });
                         }
