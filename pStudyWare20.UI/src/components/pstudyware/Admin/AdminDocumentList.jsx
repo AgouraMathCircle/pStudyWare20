@@ -49,29 +49,19 @@ import {
   adminSessionListToolbarButtonSx,
 } from "../styles/applicationSurfaces";
 
-const documentListColWidthsPx = [
-  210, // View — horizontal View / Download / Video links
-  58, // Publish
-  58, // Delete
-  64, // Doc #
-  140, // Class — full labels e.g. Artificial Intelligence
-  null, // Topics
-  null, // Description
-  null, // Document Name
-  76, // Session
-  96, // Posted Date
-  104, // Status
-];
-
-const documentListBodyCellSx = (options = {}) => ({
-  ...adminSessionListTableBodyCellSx(options),
-  verticalAlign: "middle",
-});
-
-const documentListHeadCellSx = (isLast = false) => ({
-  ...adminSessionListTableHeadCellSx(undefined, isLast),
-  verticalAlign: "middle",
-});
+const documentListColumnWidths = {
+  view: "12%",
+  publish: "5%",
+  delete: "5%",
+  docId: "5%",
+  class: "9%",
+  topics: "11%",
+  description: "11%",
+  docName: "11%",
+  session: "6%",
+  postedDate: "8%",
+  status: "7%",
+};
 
 const YOUTUBE_URL =
   "https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/videos";
@@ -135,7 +125,7 @@ const AdminDocumentList = ({
   const [orderBy, setOrderBy] = useState("uploadedDate");
   const [order, setOrder] = useState("desc");
   const [searchBy, setSearchBy] = useState("ALL");
-  const [searchCriteria, setSearchCriteria] = useState("contains");
+  const [searchCriteria, setSearchCriteria] = useState("");
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
@@ -145,57 +135,56 @@ const AdminDocumentList = ({
     doc: null,
   });
   const [alertDialog, setAlertDialog] = useState({ open: false, message: "" });
-  const pageSize = 10;
-
-  const matchesCriteria = (value, search, criteria) => {
-    const v = String(value ?? "").toLowerCase();
-    const s = search.toLowerCase();
-    if (criteria === "equals") return v === s;
-    if (criteria === "starts_with") return v.startsWith(s);
-    return v.includes(s);
-  };
+  const pageSize = 25;
 
   const filteredDocuments = useMemo(() => {
-    if (!searchText.trim()) return safeDocuments;
-    const search = searchText.trim();
-    return safeDocuments.filter((doc) => {
-      if (searchBy === "ALL") {
-        return (
-          matchesCriteria(doc.topics, search, searchCriteria) ||
-          matchesCriteria(doc.docName, search, searchCriteria) ||
-          matchesCriteria(doc.description, search, searchCriteria) ||
-          matchesCriteria(doc.class, search, searchCriteria) ||
-          matchesCriteria(doc.session, search, searchCriteria) ||
-          matchesCriteria(doc.docID, search, searchCriteria)
-        );
-      }
+    if (!safeDocuments.length) return [];
 
-      let fieldValue = "";
-      switch (searchBy) {
-        case "DOC_ID":
-          fieldValue = doc.docID;
-          break;
-        case "CLASS":
-          fieldValue = doc.class;
-          break;
-        case "TOPICS":
-          fieldValue = doc.topics;
-          break;
-        case "DESCRIPTION":
-          fieldValue = doc.description;
-          break;
-        case "DOC_NAME":
-          fieldValue = doc.docName;
-          break;
-        case "SESSION":
-          fieldValue = doc.session;
-          break;
-        default:
-          fieldValue = "";
-      }
-      return matchesCriteria(fieldValue, search, searchCriteria);
-    });
-  }, [safeDocuments, searchText, searchBy, searchCriteria]);
+    let filtered = safeDocuments;
+    if (searchBy !== "ALL" && searchText.trim()) {
+      filtered = safeDocuments.filter((doc) => {
+        let fieldValue = "";
+        switch (searchBy) {
+          case "DOC_ID":
+            fieldValue = doc.docID?.toString() || "";
+            break;
+          case "CLASS":
+            fieldValue = doc.class || "";
+            break;
+          case "TOPICS":
+            fieldValue = doc.topics || "";
+            break;
+          case "DESCRIPTION":
+            fieldValue = doc.description || "";
+            break;
+          case "DOC_NAME":
+            fieldValue = doc.docName || "";
+            break;
+          case "SESSION":
+            fieldValue = doc.session || "";
+            break;
+          default:
+            return true;
+        }
+
+        fieldValue = fieldValue.toString().toLowerCase();
+        const search = searchText.toLowerCase();
+
+        switch (searchCriteria) {
+          case "equals":
+            return fieldValue === search;
+          case "contains":
+            return fieldValue.includes(search);
+          case "starts_with":
+            return fieldValue.startsWith(search);
+          default:
+            return fieldValue.includes(search);
+        }
+      });
+    }
+
+    return filtered;
+  }, [safeDocuments, searchBy, searchCriteria, searchText]);
 
   const sortedDocuments = useMemo(
     () => sortRows(filteredDocuments, orderBy, order, getAdminDocumentFieldValue),
@@ -224,20 +213,18 @@ const AdminDocumentList = ({
   };
 
   const handlePageChange = (page) => {
-    if (totalPages === 0) return;
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      setGoToPageInput(String(page));
+      setGoToPageInput(page.toString());
     }
   };
 
   const handleGoToPage = () => {
     const page = parseInt(goToPageInput, 10);
-    if (totalPages === 0) return;
     if (!Number.isNaN(page) && page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     } else {
-      setGoToPageInput(String(currentPage));
+      setGoToPageInput(currentPage.toString());
     }
   };
 
@@ -297,7 +284,7 @@ const AdminDocumentList = ({
   };
 
   const formatDate = (date) => {
-    if (!date) return "-";
+    if (!date) return "—";
     return new Date(date).toLocaleDateString();
   };
 
@@ -366,7 +353,7 @@ const AdminDocumentList = ({
     <Box>
       <Box sx={adminSessionListHeaderBarSx}>
         <Box>
-          <Typography variant="subtitle1" sx={adminSessionListTitleSx}>
+          <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
             Class Material List
           </Typography>
           <Typography variant="caption" color="error" display="block">
@@ -447,11 +434,14 @@ const AdminDocumentList = ({
             onChange={(e) => setSearchCriteria(e.target.value)}
             sx={adminSessionListSearchSelectSx}
           >
-            <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
-              Contains
+            <MenuItem value="" sx={adminSessionListMenuItemSx}>
+              Select Criteria
             </MenuItem>
             <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
               Equals
+            </MenuItem>
+            <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
+              Contains
             </MenuItem>
             <MenuItem value="starts_with" sx={adminSessionListMenuItemSx}>
               Starts With
@@ -463,7 +453,6 @@ const AdminDocumentList = ({
           placeholder="Search Text"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && handleSearch()}
           sx={adminSessionListSearchFieldSx}
         />
         <Button
@@ -476,25 +465,26 @@ const AdminDocumentList = ({
         </Button>
       </Box>
 
-      <TableContainer component={Paper} sx={{ width: "100%", overflowX: "auto" }}>
-        <Table sx={{ ...adminSessionListGridTableSx, minWidth: 1040 }} size="small">
-          <colgroup>
-            {documentListColWidthsPx.map((w, i) => (
-              <col key={i} style={w == null ? undefined : { width: w }} />
-            ))}
-          </colgroup>
+      <TableContainer component={Paper} sx={{ width: "100%" }}>
+        <Table sx={adminSessionListGridTableSx} size="small">
           <TableHead>
             <TableRow sx={adminSessionListTableHeadRowSx}>
-              <TableCell sx={documentListHeadCellSx()}>View</TableCell>
-              <TableCell sx={documentListHeadCellSx()}>Publish</TableCell>
-              <TableCell sx={documentListHeadCellSx()}>Delete</TableCell>
+              <TableCell sx={adminSessionListTableHeadCellSx(documentListColumnWidths.view)}>
+                View
+              </TableCell>
+              <TableCell sx={adminSessionListTableHeadCellSx(documentListColumnWidths.publish)}>
+                Publish
+              </TableCell>
+              <TableCell sx={adminSessionListTableHeadCellSx(documentListColumnWidths.delete)}>
+                Delete
+              </TableCell>
               <SortableHeader
                 label="Doc #"
                 field="docID"
                 sortField={orderBy}
                 sortOrder={order}
                 onSort={handleSort}
-                headCellSx={documentListHeadCellSx()}
+                headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.docId)}
               />
               <SortableHeader
                 label="Class"
@@ -502,7 +492,7 @@ const AdminDocumentList = ({
                 sortField={orderBy}
                 sortOrder={order}
                 onSort={handleSort}
-                headCellSx={documentListHeadCellSx()}
+                headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.class)}
               />
               <SortableHeader
                 label="Topics"
@@ -510,7 +500,7 @@ const AdminDocumentList = ({
                 sortField={orderBy}
                 sortOrder={order}
                 onSort={handleSort}
-                headCellSx={documentListHeadCellSx()}
+                headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.topics)}
               />
               <SortableHeader
                 label="Description"
@@ -518,7 +508,7 @@ const AdminDocumentList = ({
                 sortField={orderBy}
                 sortOrder={order}
                 onSort={handleSort}
-                headCellSx={documentListHeadCellSx()}
+                headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.description)}
               />
               <SortableHeader
                 label="Document Name"
@@ -526,7 +516,7 @@ const AdminDocumentList = ({
                 sortField={orderBy}
                 sortOrder={order}
                 onSort={handleSort}
-                headCellSx={documentListHeadCellSx()}
+                headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.docName)}
               />
               <SortableHeader
                 label="Session"
@@ -534,7 +524,7 @@ const AdminDocumentList = ({
                 sortField={orderBy}
                 sortOrder={order}
                 onSort={handleSort}
-                headCellSx={documentListHeadCellSx()}
+                headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.session)}
               />
               <SortableHeader
                 label="Posted Date"
@@ -542,7 +532,7 @@ const AdminDocumentList = ({
                 sortField={orderBy}
                 sortOrder={order}
                 onSort={handleSort}
-                headCellSx={documentListHeadCellSx()}
+                headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.postedDate)}
               />
               <SortableHeader
                 label="Status"
@@ -550,7 +540,7 @@ const AdminDocumentList = ({
                 sortField={orderBy}
                 sortOrder={order}
                 onSort={handleSort}
-                headCellSx={documentListHeadCellSx(true)}
+                headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.status, true)}
               />
             </TableRow>
           </TableHead>
@@ -572,10 +562,10 @@ const AdminDocumentList = ({
                         : {}),
                     }}
                   >
-                    <TableCell sx={documentListBodyCellSx({ action: true })}>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
                       {renderDocumentActions(doc)}
                     </TableCell>
-                    <TableCell sx={documentListBodyCellSx({ action: true })}>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
                       {canPublishDocument && !isPublished ? (
                         <Box
                           onClick={() => handlePublishClick(doc)}
@@ -587,7 +577,7 @@ const AdminDocumentList = ({
                         "—"
                       )}
                     </TableCell>
-                    <TableCell sx={documentListBodyCellSx({ action: true })}>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
                       {canDeleteDocument ? (
                         <Box
                           onClick={() => handleDeleteClick(doc)}
@@ -599,34 +589,36 @@ const AdminDocumentList = ({
                         "—"
                       )}
                     </TableCell>
-                    <TableCell sx={documentListBodyCellSx()}>{doc.docID || "-"}</TableCell>
-                    <TableCell sx={documentListBodyCellSx()}>
+                    <TableCell sx={adminSessionListTableBodyCellSx()}>
+                      {doc.docID || "—"}
+                    </TableCell>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
                       <Tooltip title={getClassLabel(doc.class)}>
                         <span>{getClassLabel(doc.class)}</span>
                       </Tooltip>
                     </TableCell>
-                    <TableCell sx={documentListBodyCellSx({ ellipsis: true })}>
-                      <Tooltip title={doc.topics || "-"}>
-                        <span>{doc.topics || "-"}</span>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                      <Tooltip title={doc.topics || "—"}>
+                        <span>{doc.topics || "—"}</span>
                       </Tooltip>
                     </TableCell>
-                    <TableCell sx={documentListBodyCellSx({ ellipsis: true })}>
-                      <Tooltip title={doc.description || "-"}>
-                        <span>{doc.description || "-"}</span>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                      <Tooltip title={doc.description || "—"}>
+                        <span>{doc.description || "—"}</span>
                       </Tooltip>
                     </TableCell>
-                    <TableCell sx={documentListBodyCellSx({ ellipsis: true })}>
-                      <Tooltip title={doc.docName || "-"}>
-                        <span>{doc.docName || "-"}</span>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                      <Tooltip title={doc.docName || "—"}>
+                        <span>{doc.docName || "—"}</span>
                       </Tooltip>
                     </TableCell>
-                    <TableCell sx={documentListBodyCellSx({ ellipsis: true })}>
-                      <Tooltip title={doc.session || "-"}>
-                        <span>{doc.session || "-"}</span>
-                      </Tooltip>
+                    <TableCell sx={adminSessionListTableBodyCellSx()}>
+                      {doc.session || "—"}
                     </TableCell>
-                    <TableCell sx={documentListBodyCellSx()}>{formatDate(doc.uploadedDate)}</TableCell>
-                    <TableCell sx={documentListBodyCellSx({ isLast: true })}>
+                    <TableCell sx={adminSessionListTableBodyCellSx()}>
+                      {formatDate(doc.uploadedDate)}
+                    </TableCell>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
                       {getPublishStatus(doc)}
                     </TableCell>
                   </TableRow>
@@ -637,8 +629,8 @@ const AdminDocumentList = ({
                 <TableCell colSpan={11} align="center" sx={adminSessionListEmptyCellSx}>
                   <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
                     {searchText
-                      ? "No documents found matching your search."
-                      : "No documents available."}
+                      ? "No documents found matching your search criteria."
+                      : "No document data available."}
                   </Typography>
                 </TableCell>
               </TableRow>

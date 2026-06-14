@@ -15,10 +15,6 @@ import {
   Tooltip,
   Paper,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   FormControl,
   InputLabel,
   Alert,
@@ -40,6 +36,12 @@ import {
   KeyboardArrowRight as NextPageIcon,
   LastPage as LastPageIcon,
 } from "@mui/icons-material";
+import PortalDialog from "./PortalDialog";
+import AppConfirmDialog from "./AppConfirmDialog";
+import {
+  portalModalFieldSx,
+  portalModalSendButtonSx,
+} from "./portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "../Admin/AdminHeader";
 import documentService from "../../../services/documentService";
@@ -1004,175 +1006,167 @@ const DocumentsRepository = () => {
         </Container>
       )}
 
-      {/* Upload Form Dialog */}
-      <Dialog
+      <PortalDialog
         open={showUploadForm}
         onClose={() => setShowUploadForm(false)}
         maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          Upload Class Material (Only Word/Excel Documents)
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-            <TextField
-              label="Topics"
-              value={uploadForm.topics}
-              onChange={(e) => handleUploadFormChange("topics", e.target.value)}
-              fullWidth
-              inputProps={{ maxLength: 100 }}
-            />
-
-            <FormControl fullWidth>
-              <InputLabel>Select File</InputLabel>
-              <input
-                type="file"
-                accept=".doc,.docx,.xls,.xlsx,.ppt"
-                onChange={handleFileChange}
-                style={{ marginTop: "8px" }}
-              />
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel>Description</InputLabel>
-              <Select
-                value={uploadForm.description}
-                onChange={(e) =>
-                  handleUploadFormChange("description", e.target.value)
-                }
-              >
-                <MenuItem value="Quiz">Quiz</MenuItem>
-                <MenuItem value="Quiz Solution">Quiz Solution</MenuItem>
-                <MenuItem value="Lecture Notes">Lecture Notes</MenuItem>
-                <MenuItem value="Class Work">Class Work</MenuItem>
-                <MenuItem value="Class Work Solution">
-                  Class Work Solution
-                </MenuItem>
-                <MenuItem value="Home Work">Home Work</MenuItem>
-                <MenuItem value="Home Work Solution">
-                  Home Work Solution
-                </MenuItem>
-                <MenuItem value="Answer Key">Answer Key</MenuItem>
-                <MenuItem value="Placement Test">Placement Test</MenuItem>
-                <MenuItem value="AMC 8 PreTest">AMC 8 PreTest</MenuItem>
-                <MenuItem value="Math Kangaroo PreTest">
-                  Math Kangaroo PreTest
-                </MenuItem>
-                <MenuItem value="Math Count PreTest">
-                  Math Count PreTest
-                </MenuItem>
-                <MenuItem value="Miscellaneous">Miscellaneous</MenuItem>
-                <MenuItem value="Final Exam">Final Exam</MenuItem>
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel>Session</InputLabel>
-              <Select
-                value={uploadForm.session}
-                onChange={(e) =>
-                  handleUploadFormChange("session", e.target.value)
-                }
-              >
-                {[
-                  "Fall Session 1",
-                  "Fall Session 2",
-                  "Fall Session 3",
-                  "Fall Session 4",
-                  "Fall Session 5",
-                  "Fall Session 6",
-                  "Fall Session 7",
-                  "Fall Session 8",
-                  "Fall Session 9",
-                  "Spring Session 1",
-                  "Spring Session 2",
-                  "Spring Session 3",
-                  "Spring Session 4",
-                  "Spring Session 5",
-                  "Spring Session 6",
-                  "Spring Session 7",
-                  "Spring Session 8",
-                  "Spring Session 9",
-                  "Spring Session 10",
-                  "Miscellanous",
-                ].map((session) => (
-                  <MenuItem key={session} value={session}>
-                    {session}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel>Class</InputLabel>
-              <Select
-                value={uploadForm.class}
-                onChange={(e) =>
-                  handleUploadFormChange("class", e.target.value)
-                }
-              >
-                <MenuItem value="Junior Beginner">Junior Beginner</MenuItem>
-                <MenuItem value="Junior Intermediate">
-                  Junior Intermediate
-                </MenuItem>
-                <MenuItem value="Junior Advanced">Junior Advanced</MenuItem>
-                <MenuItem value="Senior Beginner">Senior Beginner</MenuItem>
-                <MenuItem value="Senior Intermediate">
-                  Senior Intermediate
-                </MenuItem>
-                <MenuItem value="Senior Advanced">Senior Advanced</MenuItem>
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel>Publish</InputLabel>
-              <Select
-                value={uploadForm.publish}
-                onChange={(e) =>
-                  handleUploadFormChange("publish", e.target.value)
-                }
-              >
-                <MenuItem value="0">No</MenuItem>
-                <MenuItem value="1">Yes</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowUploadForm(false)}>Cancel</Button>
+        title="Upload Class Material (Only Word/Excel Documents)"
+        icon={<UploadIcon sx={{ fontSize: 20 }} />}
+        actions={
           <Button
             onClick={handleUploadSubmit}
             variant="contained"
-            sx={{ backgroundColor: "#4caf50" }}
+            sx={portalModalSendButtonSx}
           >
             Submit
           </Button>
-        </DialogActions>
-      </Dialog>
+        }
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <TextField
+            label="Topics"
+            value={uploadForm.topics}
+            onChange={(e) => handleUploadFormChange("topics", e.target.value)}
+            fullWidth
+            size="small"
+            inputProps={{ maxLength: 100 }}
+            sx={portalModalFieldSx}
+          />
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
+          <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+            <InputLabel>Select File</InputLabel>
+            <input
+              type="file"
+              accept=".doc,.docx,.xls,.xlsx,.ppt"
+              onChange={handleFileChange}
+              style={{ marginTop: "8px" }}
+            />
+          </FormControl>
+
+          <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+            <InputLabel>Description</InputLabel>
+            <Select
+              value={uploadForm.description}
+              label="Description"
+              onChange={(e) =>
+                handleUploadFormChange("description", e.target.value)
+              }
+            >
+              <MenuItem value="Quiz">Quiz</MenuItem>
+              <MenuItem value="Quiz Solution">Quiz Solution</MenuItem>
+              <MenuItem value="Lecture Notes">Lecture Notes</MenuItem>
+              <MenuItem value="Class Work">Class Work</MenuItem>
+              <MenuItem value="Class Work Solution">
+                Class Work Solution
+              </MenuItem>
+              <MenuItem value="Home Work">Home Work</MenuItem>
+              <MenuItem value="Home Work Solution">
+                Home Work Solution
+              </MenuItem>
+              <MenuItem value="Answer Key">Answer Key</MenuItem>
+              <MenuItem value="Placement Test">Placement Test</MenuItem>
+              <MenuItem value="AMC 8 PreTest">AMC 8 PreTest</MenuItem>
+              <MenuItem value="Math Kangaroo PreTest">
+                Math Kangaroo PreTest
+              </MenuItem>
+              <MenuItem value="Math Count PreTest">
+                Math Count PreTest
+              </MenuItem>
+              <MenuItem value="Miscellaneous">Miscellaneous</MenuItem>
+              <MenuItem value="Final Exam">Final Exam</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+            <InputLabel>Session</InputLabel>
+            <Select
+              value={uploadForm.session}
+              label="Session"
+              onChange={(e) =>
+                handleUploadFormChange("session", e.target.value)
+              }
+            >
+              {[
+                "Fall Session 1",
+                "Fall Session 2",
+                "Fall Session 3",
+                "Fall Session 4",
+                "Fall Session 5",
+                "Fall Session 6",
+                "Fall Session 7",
+                "Fall Session 8",
+                "Fall Session 9",
+                "Spring Session 1",
+                "Spring Session 2",
+                "Spring Session 3",
+                "Spring Session 4",
+                "Spring Session 5",
+                "Spring Session 6",
+                "Spring Session 7",
+                "Spring Session 8",
+                "Spring Session 9",
+                "Spring Session 10",
+                "Miscellanous",
+              ].map((session) => (
+                <MenuItem key={session} value={session}>
+                  {session}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+            <InputLabel>Class</InputLabel>
+            <Select
+              value={uploadForm.class}
+              label="Class"
+              onChange={(e) =>
+                handleUploadFormChange("class", e.target.value)
+              }
+            >
+              <MenuItem value="Junior Beginner">Junior Beginner</MenuItem>
+              <MenuItem value="Junior Intermediate">
+                Junior Intermediate
+              </MenuItem>
+              <MenuItem value="Junior Advanced">Junior Advanced</MenuItem>
+              <MenuItem value="Senior Beginner">Senior Beginner</MenuItem>
+              <MenuItem value="Senior Intermediate">
+                Senior Intermediate
+              </MenuItem>
+              <MenuItem value="Senior Advanced">Senior Advanced</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+            <InputLabel>Publish</InputLabel>
+            <Select
+              value={uploadForm.publish}
+              label="Publish"
+              onChange={(e) =>
+                handleUploadFormChange("publish", e.target.value)
+              }
+            >
+              <MenuItem value="0">No</MenuItem>
+              <MenuItem value="1">Yes</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+      </PortalDialog>
+
+      <AppConfirmDialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-      >
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          <Typography>
+        onConfirm={handleDeleteConfirm}
+        title="Confirm Delete"
+        message={
+          <>
             Do you want to delete this document? ({documentToDelete?.docName})
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            variant="contained"
-            color="error"
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </>
+        }
+        confirmLabel="Delete"
+        confirmColor="error"
+        icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+      />
 
       {/* Snackbar for messages */}
       <Snackbar

@@ -11,10 +11,6 @@ import {
   TableHead,
   TableRow,
   Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   FormControl,
   InputLabel,
@@ -31,7 +27,15 @@ import {
 import {
   Download as DownloadIcon,
   Refresh as RefreshIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
 } from "@mui/icons-material";
+import PortalDialog from "../Common/PortalDialog";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
+import {
+  portalModalFieldSx,
+  portalModalSendButtonSx,
+} from "../Common/portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
 import {
   ADMIN_SESSION_LIST_CELL_PADDING,
@@ -770,188 +774,188 @@ const StudentWaitingList = () => {
         </Grid>
       </Container>
 
-      {/* Review Application dialog */}
-      <Dialog
+      <PortalDialog
         open={reviewOpen}
         onClose={() => setReviewOpen(false)}
         maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Review Application</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ pt: 1 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="First Name"
-                value={form.firstName}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, firstName: e.target.value }))
-                }
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Last Name"
-                value={form.lastName}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, lastName: e.target.value }))
-                }
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Chapter</InputLabel>
-                <Select
-                  value={form.chapterID}
-                  label="Chapter"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, chapterID: e.target.value }))
-                  }
-                >
-                  {chapterLocations.map((ch) => {
-                    const id = ch.chapterID ?? ch.ChapterID ?? "";
-                    const name = ch.chapterName ?? ch.ChapterName ?? "";
-                    const loc = ch.location ?? ch.Location ?? "";
-                    return (
-                      <MenuItem key={id} value={id}>
-                        {name} - {loc}
-                      </MenuItem>
-                    );
-                  })}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Location</InputLabel>
-                <Select
-                  value={form.location}
-                  label="Location"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, location: e.target.value }))
-                  }
-                >
-                  {LOCATION_OPTIONS.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Session"
-                value={form.session}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, session: e.target.value }))
-                }
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Class</InputLabel>
-                <Select
-                  value={form.class}
-                  label="Class"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, class: e.target.value }))
-                  }
-                >
-                  {CLASS_OPTIONS.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Section</InputLabel>
-                <Select
-                  value={form.section}
-                  label="Section"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, section: e.target.value }))
-                  }
-                >
-                  <MenuItem value="A">A</MenuItem>
-                  <MenuItem value="B">B</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Application Status</InputLabel>
-                <Select
-                  value={form.applicationStatus}
-                  label="Application Status"
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      applicationStatus: e.target.value,
-                    }))
-                  }
-                >
-                  {STATUS_OPTIONS.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Reason"
-                multiline
-                rows={3}
-                value={form.reason}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, reason: e.target.value }))
-                }
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setReviewOpen(false)}>Cancel</Button>
+        disableClose={submitting}
+        title="Review Application"
+        icon={<EditIcon sx={{ fontSize: 20 }} />}
+        actions={
           <Button
             variant="contained"
             onClick={handleReviewSubmit}
             disabled={submitting}
+            sx={portalModalSendButtonSx}
           >
             {submitting ? "Submitting…" : "Submit"}
           </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Delete confirm */}
-      <Dialog
-        open={deleteConfirmOpen}
-        onClose={() => setDeleteConfirmOpen(false)}
+        }
       >
-        <DialogTitle>Delete student</DialogTitle>
-        <DialogContent>
-          Do you want to delete this student from the waiting list?
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
-          <Button
-            color="error"
-            variant="contained"
-            onClick={handleDeleteConfirm}
-            disabled={submitting}
-          >
-            {submitting ? "Deleting…" : "Delete"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              size="small"
+              label="First Name"
+              value={form.firstName}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, firstName: e.target.value }))
+              }
+              sx={portalModalFieldSx}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Last Name"
+              value={form.lastName}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, lastName: e.target.value }))
+              }
+              sx={portalModalFieldSx}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Chapter</InputLabel>
+              <Select
+                value={form.chapterID}
+                label="Chapter"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, chapterID: e.target.value }))
+                }
+              >
+                {chapterLocations.map((ch) => {
+                  const id = ch.chapterID ?? ch.ChapterID ?? "";
+                  const name = ch.chapterName ?? ch.ChapterName ?? "";
+                  const loc = ch.location ?? ch.Location ?? "";
+                  return (
+                    <MenuItem key={id} value={id}>
+                      {name} - {loc}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Location</InputLabel>
+              <Select
+                value={form.location}
+                label="Location"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, location: e.target.value }))
+                }
+              >
+                {LOCATION_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Session"
+              value={form.session}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, session: e.target.value }))
+              }
+              sx={portalModalFieldSx}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Class</InputLabel>
+              <Select
+                value={form.class}
+                label="Class"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, class: e.target.value }))
+                }
+              >
+                {CLASS_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Section</InputLabel>
+              <Select
+                value={form.section}
+                label="Section"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, section: e.target.value }))
+                }
+              >
+                <MenuItem value="A">A</MenuItem>
+                <MenuItem value="B">B</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Application Status</InputLabel>
+              <Select
+                value={form.applicationStatus}
+                label="Application Status"
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    applicationStatus: e.target.value,
+                  }))
+                }
+              >
+                {STATUS_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Reason"
+              multiline
+              rows={3}
+              value={form.reason}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, reason: e.target.value }))
+              }
+              sx={portalModalFieldSx}
+            />
+          </Grid>
+        </Grid>
+      </PortalDialog>
+
+      <AppConfirmDialog
+        open={deleteConfirmOpen}
+        onClose={() => {
+          if (!submitting) {
+            setDeleteConfirmOpen(false);
+          }
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Delete student"
+        message="Do you want to delete this student from the waiting list?"
+        confirmLabel="Delete"
+        confirmColor="error"
+        icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+        loading={submitting}
+      />
 
       <Snackbar
         open={snackbar.open}

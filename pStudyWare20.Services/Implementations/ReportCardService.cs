@@ -55,6 +55,15 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(request.ReportCardId))
+                {
+                    return new GetScoreDetailsResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Report Card ID is required"
+                    };
+                }
+
                 var scoreData = await _reportCardRepository.GetScoreDetailsAsync(request.ReportCardId);
 
                 DataRow row = null;
@@ -71,6 +80,7 @@ namespace pStudyWare20.Services.Implementations
                 {
                     var scoreDetails = new ScoreDetails
                     {
+                        ReportCardId = request.ReportCardId,
                         StudentId = GetString(row, "StudentID"),
                         StudentName = GetString(row, "StudentName"),
                         Group = GetString(row, "Group"),
@@ -171,6 +181,15 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(request.ReportCardId))
+                {
+                    return new DeleteScoreResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Report Card ID is required"
+                    };
+                }
+
                 await _reportCardRepository.DeleteStudentScoreAsync(request.ReportCardId);
 
                 return new DeleteScoreResponse
@@ -280,7 +299,20 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                var classListData = await _reportCardRepository.GetClassListByInstructorAsync(request.From);
+                var username = !string.IsNullOrEmpty(request.Username)
+                    ? request.Username
+                    : request.From;
+
+                if (string.IsNullOrEmpty(username))
+                {
+                    return new SendEmailResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Username is required."
+                    };
+                }
+
+                var classListData = await _reportCardRepository.GetClassListByInstructorAsync(username);
 
                 if (classListData is DataSet dataSet && dataSet.Tables[0].Rows.Count > 0)
                 {
@@ -319,25 +351,39 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                // Parse Excel file and extract data
-                var dataTable = ParseExcelFile(request.FileContent, request.FileName);
+                if (string.IsNullOrWhiteSpace(request.Group))
+                    throw new InvalidOperationException("Class is required.");
+                if (string.IsNullOrWhiteSpace(request.ExamDate))
+                    throw new InvalidOperationException("Exam Date is required.");
 
-                // Process each row and add scores
+                var dataTable = ReportCardScoreImportParser.Parse(request.FileContent, request.FileName);
+
                 foreach (DataRow row in dataTable.Rows)
                 {
+                    var studentId = ReportCardScoreImportParser.GetCellValue(row, "StudentID");
+                    if (string.IsNullOrWhiteSpace(studentId))
+                        continue;
+
                     var addScoreRequest = new AddStudentScoreRequest
                     {
-                        StudentID = row["StudentID"].ToString() ?? "",
-                        QuizTotalScore = request.TotalQuizScore,
-                        QuizReceivedScore = row["Quiz"].ToString() ?? "",
-                        QuizComments = row["Quiz Comments"].ToString() ?? "",
-                        ClassTestTotalScore = request.TotalClassTestScore,
-                        ClassTestReceivedScore = row["ClassWork"].ToString() ?? "",
-                        ClassTestComments = row["Class Work Comments"].ToString() ?? "",
-                        HomeWorkTotalScore = request.TotalHomeWorkScore,
-                        HomeWorkReceivedScore = row["HomeWork"].ToString() ?? "",
-                        HomeWorkComments = row["Home Work Comments"].ToString() ?? "",
-                        Session = "2024-2025" // Default session value
+                        StudentID = studentId,
+                        Group = request.Group,
+                        ExamDate = request.ExamDate,
+                        QuizTotalScore = request.TotalQuizScore ?? "5",
+                        QuizReceivedScore = ReportCardScoreImportParser.GetCellValue(row, "Quiz"),
+                        QuizComments = ReportCardScoreImportParser.GetCellValue(row, "Quiz Comments"),
+                        ClassTestTotalScore = request.TotalClassTestScore ?? "20",
+                        ClassTestReceivedScore = ReportCardScoreImportParser.GetCellValue(row, "ClassWork"),
+                        ClassTestComments = ReportCardScoreImportParser.GetCellValue(row, "Class Work Comments"),
+                        HomeWorkTotalScore = request.TotalHomeWorkScore ?? "10",
+                        HomeWorkReceivedScore = ReportCardScoreImportParser.GetCellValue(row, "HomeWork"),
+                        HomeWorkComments = ReportCardScoreImportParser.GetCellValue(row, "Home Work Comments"),
+                        FinalExamTotalScore = "0",
+                        FinalExamReceivedScore = "",
+                        FinalExamComments = "",
+                        PlacementTestTotalScore = "0",
+                        PlacementTestReceivedScore = "",
+                        PlacementTestComments = "",
                     };
 
                     await _reportCardRepository.AddStudentScoreAsync(addScoreRequest);
@@ -544,29 +590,7 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
-        /// Parse Excel file and return DataTable
-        /// </summary>
-        private DataTable ParseExcelFile(byte[] fileContent, string fileName)
-        {
-            // This is a simplified implementation
-            // In a real scenario, you would use a library like EPPlus or ClosedXML
-            var dataTable = new DataTable();
-
-            // Add basic columns based on the original code structure
-            dataTable.Columns.Add("StudentID");
-            dataTable.Columns.Add("Quiz");
-            dataTable.Columns.Add("Quiz Comments");
-            dataTable.Columns.Add("ClassWork");
-            dataTable.Columns.Add("Class Work Comments");
-            dataTable.Columns.Add("HomeWork");
-            dataTable.Columns.Add("Home Work Comments");
-
-            // For now, return empty table - in real implementation, parse the Excel file
-            return dataTable;
-        }
-
-        /// <summary>
-        /// Generate student report email body
+        /// Generate student report email body (matches legacy SendEmailStudentReport HTML)
         /// </summary>
         private string GenerateStudentReportEmailBody(DataRow row)
         {
@@ -598,23 +622,72 @@ namespace pStudyWare20.Services.Implementations
                 + "<td> Lecture Comments </td>"
                 + "</tr>";
 
-            // Add score details based on available data
-            if (row["QuizTotal"].ToString() != "0")
+            if (GetRowString(row, "QuizTotal") != "0")
             {
                 emailBody += "<tr>"
                     + "<td> Quiz </td>"
-                    + "<td>" + row["QuizTotal"].ToString() + "</td>"
-                    + "<td>" + row["QuizReceived"].ToString() + "</td>"
-                    + "<td>" + row["QuizComments"].ToString() + "</td>"
+                    + "<td>" + GetRowString(row, "QuizTotal") + "</td>"
+                    + "<td>" + GetRowString(row, "QuizReceived") + "</td>"
+                    + "<td>" + GetRowString(row, "QuizComments") + "</td>"
                     + "</tr>";
             }
 
-            // Add other score types similarly...
+            if (GetRowString(row, "ClassTotal") != "0")
+            {
+                emailBody += "<tr>"
+                    + "<td> Class Test </td>"
+                    + "<td>" + GetRowString(row, "ClassTotal") + " </td>"
+                    + "<td>" + GetRowString(row, "ClassReceived") + " </td>"
+                    + "<td>" + GetRowString(row, "ClassComments") + " </td>"
+                    + "</tr>";
+            }
+
+            if (GetRowString(row, "HomeWorkTotal") != "0")
+            {
+                emailBody += "<tr>"
+                    + "<td> Home Work</td>"
+                    + "<td>" + GetRowString(row, "HomeWorkTotal") + " </td>"
+                    + "<td>" + GetRowString(row, "HomeWorkReceived") + " </td>"
+                    + "<td>" + GetRowString(row, "HomeWorkComments") + " </td></tr>";
+            }
+
+            if (GetRowString(row, "FinalExamTotal") != "0")
+            {
+                emailBody += "<tr>"
+                    + "<td> Final Exam</td>"
+                    + "<td>" + GetRowString(row, "FinalExamTotal") + " </td>"
+                    + "<td>" + GetRowString(row, "FinalExamReceived") + " </td>"
+                    + "<td>" + GetRowString(row, "FinalExamComments") + " </td></tr>";
+            }
+
+            if (GetRowString(row, "PlacementTestTotal") != "0")
+            {
+                emailBody += "<tr>"
+                    + "<td> Placement Test</td>"
+                    + "<td>" + GetRowString(row, "PlacementTestTotal") + " </td>"
+                    + "<td>" + GetRowString(row, "PlacementTestReceived") + " </td>"
+                    + "<td>" + GetRowString(row, "PlacementTestComments") + " </td></tr>";
+            }
+
             emailBody += "</table>"
                 + "<br/><br/> Please login at www.agouramathcircle.org and view your score and instructor Comments. <br/><br/>"
                 + " Regards <br> Agoura Math Circle<br/> <br/>www.agouramathcircle.org";
 
             return emailBody;
+        }
+
+        private static string GetRowString(DataRow row, string columnName)
+        {
+            if (row?.Table?.Columns == null) return "";
+            foreach (DataColumn col in row.Table.Columns)
+            {
+                if (string.Equals(col.ColumnName, columnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    var val = row[col.ColumnName];
+                    return val == null || val == DBNull.Value ? "" : (val.ToString() ?? "");
+                }
+            }
+            return "";
         }
     }
 }

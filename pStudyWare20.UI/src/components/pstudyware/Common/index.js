@@ -1,4 +1,5 @@
 export { default as AppConfirmDialog } from "./AppConfirmDialog";
+export { default as PortalDialog } from "./PortalDialog";
 export { default as DocumentsRepository } from "./DocumentsRepository";
 export { default as EmailManager } from "./EmailManager";
 export { default as MeetingDetails } from "./MeetingDetails";

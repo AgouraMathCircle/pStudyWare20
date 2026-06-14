@@ -65,10 +65,16 @@ export const portalModalTitleSx = {
   color: "white",
 };
 
+export const portalModalCloseIconButtonSx = {
+  color: "white",
+  "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.15)" },
+};
+
 export const portalModalContentSx = {
   px: 3,
-  py: 2.5,
-  pt: 3.5,
+  pb: 2.5,
+  // MUI sets padding-top: 0 on DialogContent after DialogTitle — override explicitly.
+  pt: "24px !important",
   overflow: "visible",
 };
 

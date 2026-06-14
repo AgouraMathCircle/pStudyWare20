@@ -14,10 +14,6 @@ import {
   TableRow,
   Paper,
   Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Alert,
   CircularProgress,
   FormControl,
@@ -29,14 +25,16 @@ import {
 } from "@mui/material";
 import {
   Download as DownloadIcon,
-  Refresh as RefreshIcon,
   Delete as DeleteIcon,
+  Edit as EditIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import registeredStudentListService from "../../../services/registeredStudentListService";
 import AdminHeader from "./AdminHeader";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
+import PortalDialog from "../Common/PortalDialog";
+import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
 import SortableHeader from "../Common/SortableHeader";
 import {
   ADMIN_SESSION_LIST_CELL_PADDING,
@@ -492,17 +490,6 @@ const RegisteredStudentList = () => {
                         Export Excel
                       </Button>
                     )}
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      size="small"
-                      startIcon={<RefreshIcon />}
-                      onClick={fetchData}
-                      disabled={loading}
-                      sx={adminSessionListToolbarButtonSx}
-                    >
-                      Refresh
-                    </Button>
                   </Box>
                 </Box>
 
@@ -957,175 +944,167 @@ const RegisteredStudentList = () => {
                   onGoToPage={handleGoToPage}
                 />
 
-                {/* Update Class Dialog */}
-                <Dialog
+                <PortalDialog
                   open={showUpdateForm}
-                  onClose={() => setShowUpdateForm(false)}
+                  onClose={() => !loading && setShowUpdateForm(false)}
                   maxWidth="sm"
-                  fullWidth
-                >
-                  <DialogTitle
-                    sx={{ backgroundColor: "#1976d2", color: "white" }}
-                  >
-                    Update Class
-                  </DialogTitle>
-                  <DialogContent sx={{ mt: 2 }}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="First Name"
-                          value={updateFormData.firstName}
-                          onChange={(e) =>
-                            setUpdateFormData({
-                              ...updateFormData,
-                              firstName: e.target.value,
-                            })
-                          }
-                          size="small"
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Last Name"
-                          value={updateFormData.lastName}
-                          onChange={(e) =>
-                            setUpdateFormData({
-                              ...updateFormData,
-                              lastName: e.target.value,
-                            })
-                          }
-                          size="small"
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <FormControl fullWidth size="small">
-                          <InputLabel>Chapter</InputLabel>
-                          <Select
-                            value={updateFormData.chapterId}
-                            label="Chapter"
-                            onChange={(e) =>
-                              setUpdateFormData({
-                                ...updateFormData,
-                                chapterId: e.target.value,
-                              })
-                            }
-                          >
-                            {chapterLocations.map((chapter) => (
-                              <MenuItem
-                                key={chapter.chapterID}
-                                value={chapter.chapterID}
-                              >
-                                {chapter.chapterName}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth size="small">
-                          <InputLabel>Location</InputLabel>
-                          <Select
-                            value={updateFormData.location}
-                            label="Location"
-                            onChange={(e) =>
-                              setUpdateFormData({
-                                ...updateFormData,
-                                location: e.target.value,
-                              })
-                            }
-                          >
-                            {locationOptions.map((option) => (
-                              <MenuItem key={option.value} value={option.value}>
-                                {option.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth size="small">
-                          <InputLabel>Session</InputLabel>
-                          <Select
-                            value={updateFormData.session}
-                            label="Session"
-                            onChange={(e) =>
-                              setUpdateFormData({
-                                ...updateFormData,
-                                session: e.target.value,
-                              })
-                            }
-                          >
-                            {sessionOptions.map((option) => (
-                              <MenuItem key={option.value} value={option.value}>
-                                {option.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} sm={8}>
-                        <FormControl fullWidth size="small">
-                          <InputLabel>Class</InputLabel>
-                          <Select
-                            value={updateFormData.class}
-                            label="Class"
-                            onChange={(e) =>
-                              setUpdateFormData({
-                                ...updateFormData,
-                                class: e.target.value,
-                              })
-                            }
-                          >
-                            {classOptions.map((option) => (
-                              <MenuItem key={option.value} value={option.value}>
-                                {option.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <FormControl fullWidth size="small">
-                          <InputLabel>Section</InputLabel>
-                          <Select
-                            value={updateFormData.section}
-                            label="Section"
-                            onChange={(e) =>
-                              setUpdateFormData({
-                                ...updateFormData,
-                                section: e.target.value,
-                              })
-                            }
-                          >
-                            {sectionOptions.map((option) => (
-                              <MenuItem key={option.value} value={option.value}>
-                                {option.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    </Grid>
-                  </DialogContent>
-                  <DialogActions sx={{ p: 2 }}>
-                    <Button
-                      onClick={() => setShowUpdateForm(false)}
-                      color="inherit"
-                    >
-                      Cancel
-                    </Button>
+                  disableClose={loading}
+                  ariaLabelledby="update-class-dialog-title"
+                  title="Update Class"
+                  icon={<EditIcon sx={{ fontSize: 20 }} />}
+                  actions={
                     <Button
                       onClick={handleUpdateSubmit}
                       variant="contained"
-                      color="primary"
                       disabled={loading}
+                      startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
+                      sx={portalModalSendButtonSx}
                     >
-                      {loading ? <CircularProgress size={20} /> : "Submit"}
+                      {loading ? "Saving…" : "Submit"}
                     </Button>
-                  </DialogActions>
-                </Dialog>
+                  }
+                >
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="First Name"
+                        value={updateFormData.firstName}
+                        onChange={(e) =>
+                          setUpdateFormData({
+                            ...updateFormData,
+                            firstName: e.target.value,
+                          })
+                        }
+                        size="small"
+                        sx={portalModalFieldSx}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Last Name"
+                        value={updateFormData.lastName}
+                        onChange={(e) =>
+                          setUpdateFormData({
+                            ...updateFormData,
+                            lastName: e.target.value,
+                          })
+                        }
+                        size="small"
+                        sx={portalModalFieldSx}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+                        <InputLabel>Chapter</InputLabel>
+                        <Select
+                          value={updateFormData.chapterId}
+                          label="Chapter"
+                          onChange={(e) =>
+                            setUpdateFormData({
+                              ...updateFormData,
+                              chapterId: e.target.value,
+                            })
+                          }
+                        >
+                          {chapterLocations.map((chapter) => (
+                            <MenuItem
+                              key={chapter.chapterID}
+                              value={chapter.chapterID}
+                            >
+                              {chapter.chapterName}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+                        <InputLabel>Location</InputLabel>
+                        <Select
+                          value={updateFormData.location}
+                          label="Location"
+                          onChange={(e) =>
+                            setUpdateFormData({
+                              ...updateFormData,
+                              location: e.target.value,
+                            })
+                          }
+                        >
+                          {locationOptions.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+                        <InputLabel>Session</InputLabel>
+                        <Select
+                          value={updateFormData.session}
+                          label="Session"
+                          onChange={(e) =>
+                            setUpdateFormData({
+                              ...updateFormData,
+                              session: e.target.value,
+                            })
+                          }
+                        >
+                          {sessionOptions.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={8}>
+                      <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+                        <InputLabel>Class</InputLabel>
+                        <Select
+                          value={updateFormData.class}
+                          label="Class"
+                          onChange={(e) =>
+                            setUpdateFormData({
+                              ...updateFormData,
+                              class: e.target.value,
+                            })
+                          }
+                        >
+                          {classOptions.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+                        <InputLabel>Section</InputLabel>
+                        <Select
+                          value={updateFormData.section}
+                          label="Section"
+                          onChange={(e) =>
+                            setUpdateFormData({
+                              ...updateFormData,
+                              section: e.target.value,
+                            })
+                          }
+                        >
+                          {sectionOptions.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  </Grid>
+                </PortalDialog>
               </CardContent>
             </Card>
           </Grid>

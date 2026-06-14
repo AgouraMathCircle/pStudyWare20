@@ -18,10 +18,6 @@ import {
   Card,
   CardContent,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   MenuItem,
   FormControl,
   InputLabel,
@@ -33,11 +29,18 @@ import {
   Refresh as RefreshIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Add as AddIcon,
   FirstPage as FirstPageIcon,
   KeyboardArrowLeft as PrevPageIcon,
   KeyboardArrowRight as NextPageIcon,
   LastPage as LastPageIcon,
 } from "@mui/icons-material";
+import PortalDialog from "../Common/PortalDialog";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
+import {
+  portalModalFieldSx,
+  portalModalSendButtonSx,
+} from "../Common/portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
 import SortableHeader from "../Common/SortableHeader";
@@ -1082,194 +1085,190 @@ const TimeSheetTracking = () => {
         </Grid>
       </Container>
 
-      <Dialog
+      <PortalDialog
         open={formOpen}
         onClose={closeForm}
         maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: 2 } }}
-      >
-        <DialogTitle sx={{ fontWeight: 600, fontSize: "1rem" }}>
-          {editingLogId ? "Update Time Sheet" : "Add Time Sheet"}
-        </DialogTitle>
-        <DialogContent>
-          {formLoading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <CircularProgress />
-            </Box>
+        disableClose={saving}
+        title={editingLogId ? "Update Time Sheet" : "Add Time Sheet"}
+        icon={
+          editingLogId ? (
+            <EditIcon sx={{ fontSize: 20 }} />
           ) : (
-            <Grid container spacing={2} sx={{ pt: 1 }}>
-              <Grid item xs={12}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Task Name</InputLabel>
+            <AddIcon sx={{ fontSize: 20 }} />
+          )
+        }
+        actions={
+          <Button
+            variant="contained"
+            onClick={handleSubmitForm}
+            disabled={saving || formLoading}
+            sx={portalModalSendButtonSx}
+          >
+            {saving ? "Submitting…" : "Submit"}
+          </Button>
+        }
+      >
+        {formLoading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+                <InputLabel>Task Name</InputLabel>
+                <Select
+                  label="Task Name"
+                  value={taskName}
+                  onChange={(e) => setTaskName(e.target.value)}
+                >
+                  {TASK_OPTIONS.map((t) => (
+                    <MenuItem key={t} value={t}>
+                      {t}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Volunteer Date"
+                type="date"
+                value={volunteerDate}
+                onChange={(e) => setVolunteerDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={portalModalFieldSx}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="caption" color="text.secondary">
+                Start Time
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
+                <FormControl size="small" sx={{ minWidth: 100, ...portalModalFieldSx }}>
+                  <InputLabel>Hour</InputLabel>
                   <Select
-                    label="Task Name"
-                    value={taskName}
-                    onChange={(e) => setTaskName(e.target.value)}
+                    label="Hour"
+                    value={startHour}
+                    onChange={(e) => setStartHour(e.target.value)}
                   >
-                    {TASK_OPTIONS.map((t) => (
-                      <MenuItem key={t} value={t}>
-                        {t}
+                    {HOUR_OPTIONS.map((o, i) => (
+                      <MenuItem key={`sh-${i}-${o.label}`} value={o.value}>
+                        {o.label}
                       </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Volunteer Date"
-                  type="date"
-                  value={volunteerDate}
-                  onChange={(e) => setVolunteerDate(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="caption" color="text.secondary">
-                  Start Time
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
-                  <FormControl size="small" sx={{ minWidth: 100 }}>
-                    <InputLabel>Hour</InputLabel>
-                    <Select
-                      label="Hour"
-                      value={startHour}
-                      onChange={(e) => setStartHour(e.target.value)}
-                    >
-                      {HOUR_OPTIONS.map((o, i) => (
-                        <MenuItem key={`sh-${i}-${o.label}`} value={o.value}>
-                          {o.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" sx={{ minWidth: 100 }}>
-                    <InputLabel>Min</InputLabel>
-                    <Select
-                      label="Min"
-                      value={startMin}
-                      onChange={(e) => setStartMin(e.target.value)}
-                    >
-                      {MIN_OPTIONS.map((o, i) => (
-                        <MenuItem key={`sm-${i}`} value={o.value}>
-                          {o.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" sx={{ minWidth: 80 }}>
-                    <InputLabel />
-                    <Select
-                      value={startType}
-                      onChange={(e) => setStartType(e.target.value)}
-                      displayEmpty
-                    >
-                      {AMPM_OPTIONS.map((a) => (
-                        <MenuItem key={a} value={a}>
-                          {a}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="caption" color="text.secondary">
-                  End Time
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
-                  <FormControl size="small" sx={{ minWidth: 100 }}>
-                    <InputLabel>Hour</InputLabel>
-                    <Select
-                      label="Hour"
-                      value={endHour}
-                      onChange={(e) => setEndHour(e.target.value)}
-                    >
-                      {HOUR_OPTIONS.map((o, i) => (
-                        <MenuItem key={`eh-${i}-${o.label}`} value={o.value}>
-                          {o.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" sx={{ minWidth: 100 }}>
-                    <InputLabel>Min</InputLabel>
-                    <Select
-                      label="Min"
-                      value={endMin}
-                      onChange={(e) => setEndMin(e.target.value)}
-                    >
-                      {MIN_OPTIONS.map((o, i) => (
-                        <MenuItem key={`em-${i}`} value={o.value}>
-                          {o.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" sx={{ minWidth: 80 }}>
-                    <Select
-                      value={endType}
-                      onChange={(e) => setEndType(e.target.value)}
-                      displayEmpty
-                    >
-                      {AMPM_OPTIONS.map((a) => (
-                        <MenuItem key={a} value={a}>
-                          {a}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Task Details"
-                  multiline
-                  minRows={3}
-                  value={taskDescription}
-                  onChange={(e) => setTaskDescription(e.target.value)}
-                />
-              </Grid>
+                <FormControl size="small" sx={{ minWidth: 100, ...portalModalFieldSx }}>
+                  <InputLabel>Min</InputLabel>
+                  <Select
+                    label="Min"
+                    value={startMin}
+                    onChange={(e) => setStartMin(e.target.value)}
+                  >
+                    {MIN_OPTIONS.map((o, i) => (
+                      <MenuItem key={`sm-${i}`} value={o.value}>
+                        {o.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ minWidth: 80, ...portalModalFieldSx }}>
+                  <InputLabel />
+                  <Select
+                    value={startType}
+                    onChange={(e) => setStartType(e.target.value)}
+                    displayEmpty
+                  >
+                    {AMPM_OPTIONS.map((a) => (
+                      <MenuItem key={a} value={a}>
+                        {a}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
             </Grid>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={closeForm} disabled={saving}>
-            Close
-          </Button>
-          <Button variant="contained" onClick={handleSubmitForm} disabled={saving || formLoading}>
-            {saving ? "Submitting…" : "Submit"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <Grid item xs={12}>
+              <Typography variant="caption" color="text.secondary">
+                End Time
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
+                <FormControl size="small" sx={{ minWidth: 100, ...portalModalFieldSx }}>
+                  <InputLabel>Hour</InputLabel>
+                  <Select
+                    label="Hour"
+                    value={endHour}
+                    onChange={(e) => setEndHour(e.target.value)}
+                  >
+                    {HOUR_OPTIONS.map((o, i) => (
+                      <MenuItem key={`eh-${i}-${o.label}`} value={o.value}>
+                        {o.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ minWidth: 100, ...portalModalFieldSx }}>
+                  <InputLabel>Min</InputLabel>
+                  <Select
+                    label="Min"
+                    value={endMin}
+                    onChange={(e) => setEndMin(e.target.value)}
+                  >
+                    {MIN_OPTIONS.map((o, i) => (
+                      <MenuItem key={`em-${i}`} value={o.value}>
+                        {o.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ minWidth: 80, ...portalModalFieldSx }}>
+                  <Select
+                    value={endType}
+                    onChange={(e) => setEndType(e.target.value)}
+                    displayEmpty
+                  >
+                    {AMPM_OPTIONS.map((a) => (
+                      <MenuItem key={a} value={a}>
+                        {a}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Task Details"
+                multiline
+                minRows={3}
+                value={taskDescription}
+                onChange={(e) => setTaskDescription(e.target.value)}
+                sx={portalModalFieldSx}
+              />
+            </Grid>
+          </Grid>
+        )}
+      </PortalDialog>
 
-      <Dialog
+      <AppConfirmDialog
         open={deleteOpen}
         onClose={() => {
           setDeleteOpen(false);
           setDeleteLogId(null);
         }}
-      >
-        <DialogTitle>Delete entry</DialogTitle>
-        <DialogContent>Do you want to delete this entry?</DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setDeleteOpen(false);
-              setDeleteLogId(null);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button color="error" variant="contained" onClick={handleDelete}>
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleDelete}
+        title="Delete entry"
+        message="Do you want to delete this entry?"
+        confirmLabel="Delete"
+        confirmColor="error"
+        icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+      />
 
       <Snackbar
         open={snackbar.open}
