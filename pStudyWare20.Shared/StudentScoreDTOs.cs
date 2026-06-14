@@ -73,7 +73,7 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Quiz Total Score")]
         [Required(ErrorMessage = "Quiz Total Score is required")]
-        public string QuizTotalScore { get; set; } = "5";
+        public string QuizTotalScore { get; set; } = "10";
 
         [Display(Name = "Quiz Received Score")]
         public string QuizReceivedScore { get; set; } = string.Empty;
@@ -83,7 +83,7 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Class Test Total Score")]
         [Required(ErrorMessage = "Class Test Total Score is required")]
-        public string ClassTestTotalScore { get; set; } = "20";
+        public string ClassTestTotalScore { get; set; } = "10";
 
         [Display(Name = "Class Test Received Score")]
         public string ClassTestReceivedScore { get; set; } = string.Empty;
@@ -120,7 +120,6 @@ namespace pStudyWare20.Shared
         public string PlacementTestComments { get; set; } = string.Empty;
 
         [Display(Name = "Session")]
-        [Required(ErrorMessage = "Session is required")]
         public string Session { get; set; } = string.Empty;
     }
 

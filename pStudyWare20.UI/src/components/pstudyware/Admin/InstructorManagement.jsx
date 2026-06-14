@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
 import instructorService from "../../../services/instructorService";
+import studentWaitingListService from "../../../services/studentWaitingListService";
 import AdminHeader from "./AdminHeader";
 import InstructorList from "./InstructorList";
 import InstructorForm from "./InstructorForm";
@@ -27,6 +28,48 @@ const instructorManagementPageSx = {
   display: "flex",
   flexDirection: "column",
 };
+
+const parseChapterFromInstructorInfo = (info) => {
+  if (!info || typeof info !== "string") return "";
+  const parts = info.split("~#");
+  return (parts[7] || "").trim();
+};
+
+const normalizeInstructorRow = (row) => {
+  if (!row || typeof row !== "object") return row;
+
+  const instructorInfo = row.instructorInfo ?? row.InstructorInfo ?? "";
+
+  return {
+    instructorID: row.instructorID ?? row.InstructorID,
+    firstName: row.firstName ?? row.FirstName ?? "",
+    lastName: row.lastName ?? row.LastName ?? "",
+    emailID: row.emailID ?? row.EmailID ?? "",
+    contactPhone: row.contactPhone ?? row.ContactPhone ?? "",
+    chapterName: row.chapterName ?? row.ChapterName ?? "",
+    chapterID:
+      row.chapterID ??
+      row.ChapterID ??
+      parseChapterFromInstructorInfo(instructorInfo) ??
+      "",
+    instructorType: row.instructorType ?? row.InstructorType ?? "",
+    class: row["class"] ?? row.Class ?? "",
+    section: row.section ?? row.Section ?? "",
+    userName: row.userName ?? row.UserName ?? "",
+    memberStatus: row.memberStatus ?? row.MemberStatus ?? "",
+    instructorInfo,
+    lastLogin: row.lastLogin ?? row.LastLogin,
+  };
+};
+
+const mapChapterOptions = (chapterRows) =>
+  (chapterRows || []).map((chapter) => ({
+    value: String(chapter.chapterID ?? chapter.ChapterID ?? ""),
+    label: chapter.chapterName ?? chapter.ChapterName ?? "",
+    chapterID: chapter.chapterID ?? chapter.ChapterID ?? "",
+    chapterName: chapter.chapterName ?? chapter.ChapterName ?? "",
+    location: chapter.location ?? chapter.Location ?? "",
+  }));
 
 const InstructorManagement = () => {
   const { user, isAuthenticated } = useAuth();
@@ -51,6 +94,30 @@ const InstructorManagement = () => {
     message: "",
     severity: "info",
   });
+
+  // Load chapter dropdown data
+  useEffect(() => {
+    const loadChapters = async () => {
+      try {
+        const chapterResponse =
+          await studentWaitingListService.getChapterLocation({ Mode: "N" });
+        const chapterRows =
+          chapterResponse?.chapterLocations ??
+          chapterResponse?.ChapterLocations ??
+          [];
+        if (chapterResponse?.isSuccess && Array.isArray(chapterRows)) {
+          setChapters(mapChapterOptions(chapterRows));
+        } else {
+          setChapters([]);
+        }
+      } catch (err) {
+        console.error("Error loading chapter locations:", err);
+        setChapters([]);
+      }
+    };
+
+    loadChapters();
+  }, []);
 
   // Load instructor data
   useEffect(() => {
@@ -84,21 +151,15 @@ const InstructorManagement = () => {
         console.log("InstructorManagement: Instructor data response", response);
 
         if (response.isSuccess) {
-          setInstructors(response.instructorList || []);
+          setInstructors(
+            (response.instructorList || []).map(normalizeInstructorRow),
+          );
         } else {
           showMessage(
             response.errorMessage || "Failed to load instructor list",
             "error"
           );
         }
-
-        // Load chapters for dropdown (you may need to add a chapter service)
-        // For now, using hardcoded chapters
-        setChapters([
-          { value: "1", label: "Agoura Hills" },
-          { value: "2", label: "Charlotte" },
-          { value: "3", label: "Other Chapter" },
-        ]);
       } catch (err) {
         console.error("Error fetching instructor data:", err);
         showMessage(
@@ -139,7 +200,7 @@ const InstructorManagement = () => {
 
   // Handle edit instructor
   const handleEdit = (instructor) => {
-    setSelectedInstructor(instructor);
+    setSelectedInstructor(normalizeInstructorRow(instructor));
     setIsEdit(true);
     setFormOpen(true);
   };
@@ -223,12 +284,6 @@ const InstructorManagement = () => {
     }
   };
 
-  // Handle refresh data
-  const handleRefresh = async () => {
-    await refreshInstructors();
-    showMessage("Instructor list refreshed!", "success");
-  };
-
   // Refresh instructor list
   const refreshInstructors = async () => {
     try {
@@ -237,7 +292,9 @@ const InstructorManagement = () => {
       );
 
       if (response.isSuccess) {
-        setInstructors(response.instructorList || []);
+        setInstructors(
+          (response.instructorList || []).map(normalizeInstructorRow),
+        );
       } else {
         showMessage(
           response.errorMessage || "Failed to refresh instructor list",
@@ -302,7 +359,6 @@ const InstructorManagement = () => {
                   instructors={instructors}
                   onExportToExcel={handleExportToExcel}
                   canExportData={adminPrivileges.canExportData}
-                  onRefresh={handleRefresh}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onAdd={handleAdd}
@@ -315,8 +371,17 @@ const InstructorManagement = () => {
       </Container>
 
       <InstructorForm
+        key={
+          isEdit
+            ? `edit-${selectedInstructor?.instructorID ?? "unknown"}`
+            : "add"
+        }
         open={formOpen}
-        onClose={() => setFormOpen(false)}
+        onClose={() => {
+          setFormOpen(false);
+          setSelectedInstructor(null);
+          setIsEdit(false);
+        }}
         onSubmit={handleFormSubmit}
         instructor={selectedInstructor}
         chapters={chapters}

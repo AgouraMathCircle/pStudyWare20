@@ -14,12 +14,12 @@ import CloseIcon from "@mui/icons-material/Close";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import {
   portalModalActionsSx,
-  portalModalClearButtonSx,
   portalModalConfirmButtonSx,
   portalModalContentSx,
   portalModalMessageSx,
   portalModalPaperSx,
   portalModalTitleSx,
+  portalModalCloseIconButtonSx,
 } from "./portalModalStyles";
 
 const AppConfirmDialog = ({
@@ -29,7 +29,6 @@ const AppConfirmDialog = ({
   title,
   message,
   confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
   confirmColor = "primary",
   icon,
   loading = false,
@@ -84,10 +83,7 @@ const AppConfirmDialog = ({
           onClick={handleClose}
           disabled={loading}
           size="small"
-          sx={{
-            color: "white",
-            "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.15)" },
-          }}
+          sx={portalModalCloseIconButtonSx}
         >
           <CloseIcon fontSize="small" />
         </IconButton>
@@ -99,30 +95,22 @@ const AppConfirmDialog = ({
           message
         )}
       </DialogContent>
-      <DialogActions sx={portalModalActionsSx}>
-        {!isAlertOnly && (
+      {!isAlertOnly && (
+        <DialogActions sx={portalModalActionsSx}>
+          <Box sx={{ flex: 1 }} />
           <Button
-            variant="outlined"
-            onClick={handleClose}
+            variant="contained"
+            onClick={handleConfirm}
             disabled={loading}
-            sx={portalModalClearButtonSx}
+            startIcon={
+              loading ? <CircularProgress size={16} color="inherit" /> : null
+            }
+            sx={portalModalConfirmButtonSx(confirmColor)}
           >
-            {cancelLabel}
+            {loading ? "Please wait…" : confirmLabel}
           </Button>
-        )}
-        <Box sx={{ flex: 1 }} />
-        <Button
-          variant="contained"
-          onClick={isAlertOnly ? handleClose : handleConfirm}
-          disabled={loading}
-          startIcon={
-            loading ? <CircularProgress size={16} color="inherit" /> : null
-          }
-          sx={portalModalConfirmButtonSx(confirmColor)}
-        >
-          {loading ? "Please wait…" : isAlertOnly ? "OK" : confirmLabel}
-        </Button>
-      </DialogActions>
+        </DialogActions>
+      )}
     </Dialog>
   );
 };

@@ -14,16 +14,13 @@ import {
   Paper,
   Select,
   MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
 import {
   Download as DownloadIcon,
-  Refresh as RefreshIcon,
   Add as AddIcon,
+  Delete as DeleteIcon,
 } from "@mui/icons-material";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
 import {
   adminSessionListEmptyCellSx,
   adminSessionListEmptyTextSx,
@@ -62,11 +59,24 @@ const instructorListColumnWidths = {
   status: "7%",
 };
 
+const instructorAddButtonSx = {
+  ...adminSessionListToolbarButtonSx,
+  backgroundColor: "#4caf50",
+  color: "#fff",
+  "&:hover": { backgroundColor: "#45a049" },
+};
+
+const instructorDeleteLinkSx = {
+  ...adminSessionListTableActionLinkSx,
+  color: "#c62828",
+  "&:visited": { color: "#c62828" },
+  "&:hover": { color: "#b71c1c" },
+};
+
 const InstructorList = ({
   instructors,
   onExportToExcel,
   canExportData,
-  onRefresh,
   onEdit,
   onDelete,
   onAdd,
@@ -205,7 +215,7 @@ const InstructorList = ({
             fieldValue = instructor.chapterName || "";
             break;
           case "CLASS":
-            fieldValue = instructor.class || "";
+            fieldValue = instructor.class ?? instructor.Class ?? "";
             break;
           case "TYPE":
             fieldValue = instructor.instructorType || "";
@@ -275,11 +285,10 @@ const InstructorList = ({
           {canAddInstructor && (
             <Button
               variant="contained"
-              color="primary"
               size="small"
               startIcon={<AddIcon />}
               onClick={onAdd}
-              sx={adminSessionListToolbarButtonSx}
+              sx={instructorAddButtonSx}
             >
               Add Instructor
             </Button>
@@ -296,16 +305,6 @@ const InstructorList = ({
               Export Excel
             </Button>
           )}
-          <Button
-            variant="outlined"
-            color="primary"
-            size="small"
-            startIcon={<RefreshIcon />}
-            onClick={onRefresh}
-            sx={adminSessionListToolbarButtonSx}
-          >
-            Refresh
-          </Button>
         </Box>
       </Box>
 
@@ -493,7 +492,7 @@ const InstructorList = ({
                   <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
                     <Box
                       onClick={() => handleDeleteClick(instructor)}
-                      sx={adminSessionListTableActionLinkSx}
+                      sx={instructorDeleteLinkSx}
                     >
                       Delete
                     </Box>
@@ -520,8 +519,14 @@ const InstructorList = ({
                     {getInstructorTypeText(instructor.instructorType) || "—"}
                   </TableCell>
                   <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-                    <Tooltip title={getClassText(instructor.class) || "—"}>
-                      <span>{getClassText(instructor.class) || "—"}</span>
+                    <Tooltip
+                      title={
+                        getClassText(instructor.class ?? instructor.Class) || "—"
+                      }
+                    >
+                      <span>
+                        {getClassText(instructor.class ?? instructor.Class) || "—"}
+                      </span>
                     </Tooltip>
                   </TableCell>
                   <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
@@ -568,31 +573,24 @@ const InstructorList = ({
         onGoToPage={handleGoToPage}
       />
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          <Typography>
+      <AppConfirmDialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Instructor"
+        message={
+          <>
             Are you sure you want to delete instructor{" "}
             <strong>
               {selectedInstructor?.firstName} {selectedInstructor?.lastName}
             </strong>
             ?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancel} color="primary">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            color="error"
-            variant="contained"
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </>
+        }
+        confirmLabel="Delete"
+        confirmColor="error"
+        icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+      />
     </Box>
   );
 };

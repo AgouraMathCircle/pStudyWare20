@@ -1770,8 +1770,8 @@ useSessionListTableUi
                 />
               </Box>
             </DialogContent>
-            <DialogActions sx={portalModalActionsSx}>
-              {formMode !== "view" && (
+            {formMode !== "view" && (
+              <DialogActions sx={portalModalActionsSx}>
                 <Button
                   variant="outlined"
                   onClick={clearMessageFields}
@@ -1780,17 +1780,7 @@ useSessionListTableUi
                 >
                   Clear
                 </Button>
-              )}
-              <Box sx={{ flex: 1 }} />
-              <Button
-                onClick={closeMessageModal}
-                color="inherit"
-                disabled={sendingMessage}
-                sx={{ textTransform: "none", fontSize: "0.875rem" }}
-              >
-                Close
-              </Button>
-              {formMode !== "view" && (
+                <Box sx={{ flex: 1 }} />
                 <Button
                   variant="contained"
                   onClick={handleSendMessage}
@@ -1798,16 +1788,14 @@ useSessionListTableUi
                   startIcon={
                     sendingMessage ? (
                       <CircularProgress size={16} color="inherit" />
-                    ) : (
-                      <SendIcon />
-                    )
+                    ) : null
                   }
                   sx={portalModalSendButtonSx}
                 >
                   {sendingMessage ? "Sending..." : "Send"}
                 </Button>
-              )}
-            </DialogActions>
+              </DialogActions>
+            )}
           </Dialog>
         </Paper>
 

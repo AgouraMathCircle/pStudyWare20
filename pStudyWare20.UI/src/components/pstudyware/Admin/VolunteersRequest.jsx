@@ -13,10 +13,6 @@ import {
   TableHead,
   TableRow,
   Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   FormControl,
   InputLabel,
@@ -31,7 +27,15 @@ import {
 import {
   Download as DownloadIcon,
   Refresh as RefreshIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
 } from "@mui/icons-material";
+import PortalDialog from "../Common/PortalDialog";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
+import {
+  portalModalFieldSx,
+  portalModalSendButtonSx,
+} from "../Common/portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
 import volunteersRequestService from "../../../services/volunteersRequestService";
@@ -652,216 +656,141 @@ const VolunteersRequest = () => {
         </Grid>
       </Container>
 
-      <Dialog
+      <PortalDialog
         open={showUpdateForm && !!selectedRow}
         onClose={handleCloseUpdateForm}
         maxWidth="md"
-        fullWidth
-        PaperProps={{
-          sx: {
-            backgroundColor: "#4CAF50",
-            color: "white",
-            borderRadius: 2,
-          },
-        }}
-      >
-        <DialogTitle
-          sx={{
-            color: "white",
-            fontWeight: 600,
-            fontSize: "1rem",
-            pb: 1,
-          }}
-        >
-          Update Volunteer Request Status
-        </DialogTitle>
-        <DialogContent sx={{ pt: 0 }}>
-          <Grid container spacing={2} sx={{ pt: 1 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="First Name"
-                value={form.firstName}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, firstName: e.target.value }))
-                }
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
-                  },
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Last Name"
-                value={form.lastName}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, lastName: e.target.value }))
-                }
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
-                  },
-                }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
-                  },
-                }}
-              >
-                <InputLabel>Chapter</InputLabel>
-                <Select
-                  value={form.chapterID}
-                  label="Chapter"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, chapterID: e.target.value }))
-                  }
-                >
-                  {chapterLocations.map((ch) => {
-                    const id = ch.chapterID ?? ch.ChapterID ?? "";
-                    const name = ch.chapterName ?? ch.ChapterName ?? "";
-                    const loc = ch.location ?? ch.Location ?? "";
-                    return (
-                      <MenuItem key={id} value={id}>
-                        {name} - {loc}
-                      </MenuItem>
-                    );
-                  })}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
-                  },
-                }}
-              >
-                <InputLabel>Type</InputLabel>
-                <Select
-                  value={form.type}
-                  label="Type"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, type: e.target.value }))
-                  }
-                >
-                  {TYPE_OPTIONS.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
-                  },
-                }}
-              >
-                <InputLabel>Class</InputLabel>
-                <Select
-                  value={form.class}
-                  label="Class"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, class: e.target.value }))
-                  }
-                >
-                  {CLASS_OPTIONS.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
-                  },
-                }}
-              >
-                <InputLabel>Section</InputLabel>
-                <Select
-                  value={form.section}
-                  label="Section"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, section: e.target.value }))
-                  }
-                >
-                  <MenuItem value="A">A</MenuItem>
-                  <MenuItem value="B">B</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            px: 3,
-            pb: 2,
-            pt: 0,
-            justifyContent: "center",
-            gap: 2,
-          }}
-        >
-          <Button
-            variant="outlined"
-            onClick={handleCloseUpdateForm}
-            disabled={submitting}
-            sx={{
-              borderColor: "white",
-              color: "white",
-              px: 4,
-              py: 1,
-              "&:hover": {
-                borderColor: "white",
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-              },
-            }}
-          >
-            Close
-          </Button>
+        disableClose={submitting}
+        title="Update Volunteer Request Status"
+        icon={<EditIcon sx={{ fontSize: 20 }} />}
+        actions={
           <Button
             variant="contained"
             onClick={handleUpdateSubmit}
             disabled={submitting}
-            sx={{
-              backgroundColor: "#2E7D32",
-              color: "white",
-              px: 4,
-              py: 1,
-              "&:hover": { backgroundColor: "#1B5E20" },
-            }}
+            sx={portalModalSendButtonSx}
           >
             {submitting ? "Submitting…" : "Submit"}
           </Button>
-        </DialogActions>
-      </Dialog>
+        }
+      >
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              size="small"
+              label="First Name"
+              value={form.firstName}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, firstName: e.target.value }))
+              }
+              sx={portalModalFieldSx}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Last Name"
+              value={form.lastName}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, lastName: e.target.value }))
+              }
+              sx={portalModalFieldSx}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Chapter</InputLabel>
+              <Select
+                value={form.chapterID}
+                label="Chapter"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, chapterID: e.target.value }))
+                }
+              >
+                {chapterLocations.map((ch) => {
+                  const id = ch.chapterID ?? ch.ChapterID ?? "";
+                  const name = ch.chapterName ?? ch.ChapterName ?? "";
+                  const loc = ch.location ?? ch.Location ?? "";
+                  return (
+                    <MenuItem key={id} value={id}>
+                      {name} - {loc}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Type</InputLabel>
+              <Select
+                value={form.type}
+                label="Type"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, type: e.target.value }))
+                }
+              >
+                {TYPE_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Class</InputLabel>
+              <Select
+                value={form.class}
+                label="Class"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, class: e.target.value }))
+                }
+              >
+                {CLASS_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Section</InputLabel>
+              <Select
+                value={form.section}
+                label="Section"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, section: e.target.value }))
+                }
+              >
+                <MenuItem value="A">A</MenuItem>
+                <MenuItem value="B">B</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </PortalDialog>
 
-      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
-        <DialogTitle>Delete volunteer request</DialogTitle>
-        <DialogContent>Do you want to delete this volunteer request?</DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
-          <Button color="error" variant="contained" onClick={handleDeleteConfirm} disabled={submitting}>{submitting ? "Deleting…" : "Delete"}</Button>
-        </DialogActions>
-      </Dialog>
+      <AppConfirmDialog
+        open={deleteConfirmOpen}
+        onClose={() => {
+          if (!submitting) {
+            setDeleteConfirmOpen(false);
+          }
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Delete volunteer request"
+        message="Do you want to delete this volunteer request?"
+        confirmLabel="Delete"
+        confirmColor="error"
+        icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+        loading={submitting}
+      />
 
       <Snackbar
         open={snackbar.open}

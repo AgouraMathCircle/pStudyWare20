@@ -59,11 +59,16 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Get score details request</param>
         /// <returns>Get score details response</returns>
         [HttpPost("GetScoreDetails")]
-        [Authorize(Roles = "Admin,SystemAdmin,Instructor")] // Only admins and instructors can edit scores
+        [Authorize]
         public async Task<IActionResult> GetScoreDetails([FromBody] GetScoreDetailsRequest request)
         {
             try
             {
+                if (!CanModifyScores())
+                {
+                    return Forbid();
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
@@ -85,11 +90,16 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Delete score request</param>
         /// <returns>Delete score response</returns>
         [HttpPost("DeleteStudentScore")]
-        [Authorize(Roles = "Admin,SystemAdmin,Instructor")] // Only admins and instructors can delete scores
+        [Authorize]
         public async Task<IActionResult> DeleteStudentScore([FromBody] DeleteScoreRequest request)
         {
             try
             {
+                if (!CanModifyScores())
+                {
+                    return Forbid();
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
@@ -137,11 +147,16 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Update student score request</param>
         /// <returns>Student score response</returns>
         [HttpPost("UpdateStudentScore")]
-        [Authorize(Roles = "Admin,SystemAdmin,Instructor")] // Only admins and instructors can update scores
+        [Authorize]
         public async Task<IActionResult> UpdateStudentScore([FromBody] UpdateStudentScoreRequest request)
         {
             try
             {
+                if (!CanModifyScores())
+                {
+                    return Forbid();
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
@@ -205,9 +220,14 @@ namespace pStudyWare20.API.Controllers
                 }
 
                 // Get username from JWT token if not provided in request
+                if (string.IsNullOrEmpty(request.Username))
+                {
+                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                }
+
                 if (string.IsNullOrEmpty(request.From))
                 {
-                    request.From = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.From = request.Username;
                 }
 
                 var response = await _reportCardService.SendEmailAsync(request);
@@ -390,11 +410,16 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Score action request</param>
         /// <returns>Score action response</returns>
         [HttpPost("HandleScoreAction")]
-        [Authorize(Roles = "Admin,SystemAdmin,Instructor")] // Only admins and instructors can perform score actions
+        [Authorize]
         public async Task<IActionResult> HandleScoreAction([FromBody] ScoreActionRequest request)
         {
             try
             {
+                if (!CanModifyScores())
+                {
+                    return Forbid();
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
@@ -448,11 +473,16 @@ namespace pStudyWare20.API.Controllers
         /// <param name="scoreId">Score ID</param>
         /// <returns>Delete score response</returns>
         [HttpDelete("DeleteScore/{scoreId}")]
-        [Authorize(Roles = "Admin,SystemAdmin,Instructor")] // Only admins and instructors can delete scores
+        [Authorize]
         public async Task<IActionResult> DeleteScore(string scoreId)
         {
             try
             {
+                if (!CanModifyScores())
+                {
+                    return Forbid();
+                }
+
                 var request = new DeleteScoreRequest
                 {
                     ReportCardId = scoreId
@@ -474,11 +504,16 @@ namespace pStudyWare20.API.Controllers
         /// <param name="scoreId">Score ID</param>
         /// <returns>Get score details response</returns>
         [HttpGet("GetScoreDetails/{scoreId}")]
-        [Authorize(Roles = "Admin,SystemAdmin,Instructor")] // Only admins and instructors can view score details
-        public async Task<IActionResult> GetScoreDetails(string scoreId)
+        [Authorize]
+        public async Task<IActionResult> GetScoreDetailsById(string scoreId)
         {
             try
             {
+                if (!CanModifyScores())
+                {
+                    return Forbid();
+                }
+
                 var request = new GetScoreDetailsRequest
                 {
                     ReportCardId = scoreId
@@ -492,6 +527,24 @@ namespace pStudyWare20.API.Controllers
                 _logger.LogError(ex, "GetScoreDetails by id error: {Message}", ex.Message);
                 return StatusCode(500, new { message = "An error occurred while getting score details", error = ex.Message });
             }
+        }
+
+        private bool CanModifyScores()
+        {
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value
+                ?? User.FindFirst("role")?.Value
+                ?? "";
+            var memberType = User.FindFirst("MemberType")?.Value ?? "";
+
+            if (string.Equals(memberType, "S", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return string.Equals(userRole, "Admin", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(userRole, "Instructor", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(memberType, "A", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(memberType, "I", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

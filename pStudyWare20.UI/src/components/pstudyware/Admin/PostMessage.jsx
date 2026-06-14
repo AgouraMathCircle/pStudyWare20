@@ -19,10 +19,6 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   IconButton,
   Tooltip,
   Grid,
@@ -34,6 +30,9 @@ import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
+import PortalDialog from "../Common/PortalDialog";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
+import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
 import postMessageService from "../../../services/postMessageService";
 import {
   sortRows,
@@ -537,59 +536,80 @@ const PostMessage = () => {
         </Grid>
       </Container>
 
-        <Dialog open={formOpen} onClose={closeForm} maxWidth="sm" fullWidth>
-          <DialogTitle>{editingId ? "Update Post Message" : "Add Post Message"}</DialogTitle>
-          <DialogContent>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-              <TextField
-                label="Post Date (MM/DD/YYYY)"
-                type="date"
-                value={form.postDate}
-                onChange={(e) => setForm((f) => ({ ...f, postDate: e.target.value }))}
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-              />
-              <TextField
-                label="Message"
-                multiline
-                rows={6}
-                value={form.message}
-                onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
-                fullWidth
-                required
-              />
-              <FormControl fullWidth>
-                <InputLabel>Active</InputLabel>
-                <Select
-                  value={form.active}
-                  label="Active"
-                  onChange={(e) => setForm((f) => ({ ...f, active: e.target.value }))}
-                >
-                  <MenuItem value="0">No</MenuItem>
-                  <MenuItem value="1">Yes</MenuItem>
-                </Select>
-              </FormControl>
-              <Typography variant="caption" color="text.secondary">* Required fields</Typography>
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button onClick={closeForm}>Cancel</Button>
-            <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSubmit} disabled={saving}>
-              Submit
+        <PortalDialog
+          open={formOpen}
+          onClose={closeForm}
+          maxWidth="sm"
+          disableClose={saving}
+          ariaLabelledby="post-message-form-dialog-title"
+          title={editingId ? "Update Post Message" : "Add Post Message"}
+          icon={
+            editingId ? (
+              <EditIcon sx={{ fontSize: 20 }} />
+            ) : (
+              <AddIcon sx={{ fontSize: 20 }} />
+            )
+          }
+          actions={
+            <Button
+              variant="contained"
+              startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+              onClick={handleSubmit}
+              disabled={saving}
+              sx={portalModalSendButtonSx}
+            >
+              {saving ? "Saving…" : "Submit"}
             </Button>
-          </DialogActions>
-        </Dialog>
+          }
+        >
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 0.5 }}>
+            <TextField
+              label="Post Date (MM/DD/YYYY)"
+              type="date"
+              value={form.postDate}
+              onChange={(e) => setForm((f) => ({ ...f, postDate: e.target.value }))}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              size="small"
+              sx={portalModalFieldSx}
+            />
+            <TextField
+              label="Message"
+              multiline
+              rows={6}
+              value={form.message}
+              onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))}
+              fullWidth
+              required
+              size="small"
+              sx={portalModalFieldSx}
+            />
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Active</InputLabel>
+              <Select
+                value={form.active}
+                label="Active"
+                onChange={(e) => setForm((f) => ({ ...f, active: e.target.value }))}
+              >
+                <MenuItem value="0">No</MenuItem>
+                <MenuItem value="1">Yes</MenuItem>
+              </Select>
+            </FormControl>
+            <Typography variant="caption" color="text.secondary">* Required fields</Typography>
+          </Box>
+        </PortalDialog>
 
-        <Dialog open={deleteConfirm.open} onClose={() => setDeleteConfirm({ open: false, messageID: null })}>
-          <DialogTitle>Delete Post Message</DialogTitle>
-          <DialogContent>
-            <Typography>Do you want to delete this Post Message?</Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDeleteConfirm({ open: false, messageID: null })}>Cancel</Button>
-            <Button variant="contained" color="error" onClick={handleDeleteConfirm}>Delete</Button>
-          </DialogActions>
-        </Dialog>
+        <AppConfirmDialog
+          open={deleteConfirm.open}
+          onClose={() => setDeleteConfirm({ open: false, messageID: null })}
+          onConfirm={handleDeleteConfirm}
+          title="Delete Post Message"
+          message="Do you want to delete this Post Message?"
+          confirmLabel="Delete"
+          confirmColor="error"
+          icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+          loading={saving}
+        />
 
         <Snackbar
           open={snackbar.open}

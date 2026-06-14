@@ -57,7 +57,9 @@ namespace pStudyWare20.Services.Implementations
                     user.EmailID ?? user.UserName,
                     role,
                     user.systemAdmin,
-                    user.ChapterID?.ToString());
+                    user.ChapterID?.ToString(),
+                    user.UserName,
+                    user.MemberType);
 
                 return new LoginResponse
                 {

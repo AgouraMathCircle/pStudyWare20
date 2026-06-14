@@ -18,10 +18,6 @@ import {
   IconButton,
   Tooltip,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   Select,
   MenuItem,
@@ -35,7 +31,6 @@ import {
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
   CloudUpload as UploadIcon,
-  Close as CloseIcon,
   Download as DownloadIcon,
   FirstPage as FirstPageIcon,
   KeyboardArrowLeft as PrevPageIcon,
@@ -95,6 +90,13 @@ import {
 } from "../styles/applicationSurfaces";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
+import PortalDialog from "../Common/PortalDialog";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
+import {
+  PORTAL_MODAL_FG,
+  portalModalFieldSx,
+  portalModalSendButtonSx,
+} from "../Common/portalModalStyles";
 import {
   sortRows,
   toSortableDate,
@@ -126,32 +128,6 @@ const adminStudentDocsPageSx = {
   flexDirection: "column",
 };
 
-const UPLOAD_MODAL_PRIMARY = "#4caf50";
-const UPLOAD_MODAL_PRIMARY_HOVER = "#45a049";
-const UPLOAD_MODAL_FG = "#2e7d32";
-
-const uploadModalPaperSx = {
-  borderRadius: 2,
-  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
-  overflow: "hidden",
-};
-
-const uploadModalFieldSx = {
-  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: UPLOAD_MODAL_PRIMARY,
-  },
-  "& .MuiInputLabel-root.Mui-focused": {
-    color: UPLOAD_MODAL_FG,
-  },
-};
-
-const uploadModalSubmitButtonSx = {
-  backgroundColor: UPLOAD_MODAL_PRIMARY,
-  textTransform: "none",
-  fontSize: "0.875rem",
-  "&:hover": { backgroundColor: UPLOAD_MODAL_PRIMARY_HOVER },
-};
-
 const uploadModalFormRowSx = {
   display: "flex",
   alignItems: { xs: "stretch", sm: "center" },
@@ -163,7 +139,7 @@ const uploadModalFormLabelSx = {
   minWidth: { sm: 120 },
   fontWeight: 700,
   fontSize: "0.875rem",
-  color: UPLOAD_MODAL_FG,
+  color: PORTAL_MODAL_FG,
   flexShrink: 0,
 };
 
@@ -1327,214 +1303,15 @@ const StudentDocuments = () => {
         </Box>
       )}
 
-      {/* Upload Dialog — students only (legacy hides upload for Instructor/Admin). */}
       {allowDocumentUpload && (
-      <Dialog
+      <PortalDialog
         open={uploadDialogOpen}
-        onClose={(_, reason) => {
-          if (uploadSubmitting && reason === "backdropClick") {
-            return;
-          }
-          handleUploadDialogClose();
-        }}
+        onClose={handleUploadDialogClose}
         maxWidth="md"
-        fullWidth
-        scroll="paper"
-        aria-labelledby="upload-document-dialog-title"
-        PaperProps={{ sx: uploadModalPaperSx }}
-      >
-        <DialogTitle
-          id="upload-document-dialog-title"
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 1,
-            pr: 1,
-            py: 1.25,
-            px: 2,
-            m: 0,
-            bgcolor: UPLOAD_MODAL_PRIMARY,
-            color: "white",
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <UploadIcon fontSize="small" />
-            <Typography
-              component="span"
-              sx={{ fontWeight: 600, fontSize: "1rem" }}
-            >
-              Upload Documents (Only PDF &lt; 2 MB)
-            </Typography>
-          </Box>
-          <IconButton
-            aria-label="close"
-            onClick={handleUploadDialogClose}
-            disabled={uploadSubmitting}
-            size="small"
-            sx={{
-              color: "white",
-              "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.15)" },
-            }}
-          >
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ px: 3, py: 2.5 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Box
-              sx={{
-                bgcolor: APPLICATION_SURFACE_BG,
-                border: `1px solid ${APPLICATION_SURFACE_BORDER}`,
-                borderRadius: 1,
-                px: 1.5,
-                py: 1,
-              }}
-            >
-              <Typography variant="body2" sx={{ color: "error.main" }}>
-                File Name must be student First Name (Example: David.PDF). Please
-                upload SINGLE PDF file (less than 2 MB). File Upload only for AI
-                and Data Science Class. All Math Circle, ACT and PSAT Class need
-                to use the{" "}
-                <Link
-                  component={RouterLink}
-                  to="/pstudyware/student/update-score"
-                  onClick={handleUploadDialogClose}
-                  sx={{
-                    color: "error.main",
-                    fontWeight: 600,
-                    textDecorationColor: "error.main",
-                  }}
-                >
-                  Update Score
-                </Link>
-                .
-              </Typography>
-            </Box>
-
-            <Box sx={uploadModalFormRowSx}>
-              <Typography sx={uploadModalFormLabelSx}>Student Name</Typography>
-              <FormControl
-                fullWidth
-                size="small"
-                sx={uploadModalFieldSx}
-                disabled={students.length === 0 || uploadSubmitting}
-              >
-                <InputLabel id="upload-student-name-label">Student Name</InputLabel>
-                <Select
-                  labelId="upload-student-name-label"
-                  value={selectedStudent}
-                  onChange={handleUploadStudentChange}
-                  label="Student Name"
-                >
-                  {students.length === 0 ? (
-                    <MenuItem value="" disabled>
-                      No students found
-                    </MenuItem>
-                  ) : (
-                    students.map((student, index) => (
-                      <MenuItem
-                        key={`${student.value ?? student.Value}-${index}`}
-                        value={student.value ?? student.Value ?? ""}
-                      >
-                        {student.text ?? student.Text}
-                      </MenuItem>
-                    ))
-                  )}
-                </Select>
-              </FormControl>
-            </Box>
-
-            <Box sx={uploadModalFormRowSx}>
-              <Typography sx={uploadModalFormLabelSx}>Session</Typography>
-              <FormControl fullWidth size="small" sx={uploadModalFieldSx}>
-                <InputLabel id="upload-session-label">Session</InputLabel>
-                <Select
-                  labelId="upload-session-label"
-                  value={uploadForm.session}
-                  label="Session"
-                  disabled={
-                    uploadSubmitting ||
-                    sessions.length === 0 ||
-                    sessions.length === 1
-                  }
-                >
-                  {sessions.length === 0 ? (
-                    <MenuItem value="" disabled>
-                      No current session
-                    </MenuItem>
-                  ) : (
-                    sessions.map((session, index) => (
-                      <MenuItem
-                        key={index}
-                        value={session.session ?? session.Session ?? ""}
-                      >
-                        {session.session ?? session.Session}
-                      </MenuItem>
-                    ))
-                  )}
-                </Select>
-              </FormControl>
-            </Box>
-
-            <Box sx={uploadModalFormRowSx}>
-              <Typography sx={uploadModalFormLabelSx}>Class</Typography>
-              <FormControl fullWidth size="small" sx={uploadModalFieldSx}>
-                <InputLabel id="upload-class-label">Class</InputLabel>
-                <Select
-                  labelId="upload-class-label"
-                  value={uploadForm.type}
-                  onChange={(e) =>
-                    setUploadForm({ ...uploadForm, type: e.target.value })
-                  }
-                  label="Class"
-                  disabled={uploadSubmitting}
-                >
-                  <MenuItem value="Home Work">Home Work</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-
-            <Box sx={uploadModalFormRowSx}>
-              <Typography sx={uploadModalFormLabelSx}>Select File</Typography>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  type="file"
-                  inputProps={{ accept: ".pdf" }}
-                  onChange={handleFileChange}
-                  disabled={uploadSubmitting}
-                  sx={uploadModalFieldSx}
-                />
-                {uploadForm.fileName && (
-                  <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, display: "block" }}>
-                    Selected file: {uploadForm.fileName}
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-          </Box>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            px: 3,
-            py: 1.5,
-            gap: 1,
-            bgcolor: APPLICATION_SURFACE_BG,
-            borderTop: `1px solid ${APPLICATION_SURFACE_BORDER}`,
-          }}
-        >
-          <Box sx={{ flex: 1 }} />
-          <Button
-            onClick={handleUploadDialogClose}
-            color="inherit"
-            disabled={uploadSubmitting}
-            sx={{ textTransform: "none", fontSize: "0.875rem" }}
-          >
-            Close
-          </Button>
+        disableClose={uploadSubmitting}
+        title="Upload Documents (Only PDF < 2 MB)"
+        icon={<UploadIcon sx={{ fontSize: 20 }} />}
+        actions={
           <Button
             onClick={handleUploadSubmit}
             variant="contained"
@@ -1552,114 +1329,175 @@ const StudentDocuments = () => {
                 <UploadIcon />
               )
             }
-            sx={uploadModalSubmitButtonSx}
+            sx={portalModalSendButtonSx}
           >
             {uploadSubmitting ? "Uploading..." : "Submit"}
           </Button>
-        </DialogActions>
-      </Dialog>
-      )}
-
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={(_, reason) => {
-          if (deletingDocument && reason === "backdropClick") {
-            return;
-          }
-          handleDeleteDialogClose();
-        }}
-        maxWidth="sm"
-        fullWidth
-        scroll="paper"
-        aria-labelledby="delete-document-dialog-title"
-        PaperProps={{ sx: uploadModalPaperSx }}
+        }
       >
-        <DialogTitle
-          id="delete-document-dialog-title"
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 1,
-            pr: 1,
-            py: 1.25,
-            px: 2,
-            m: 0,
-            bgcolor: UPLOAD_MODAL_PRIMARY,
-            color: "white",
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <DeleteIcon fontSize="small" />
-            <Typography
-              component="span"
-              sx={{ fontWeight: 600, fontSize: "1rem" }}
-            >
-              Delete Document
-            </Typography>
-          </Box>
-          <IconButton
-            aria-label="close"
-            onClick={handleDeleteDialogClose}
-            disabled={deletingDocument}
-            size="small"
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box
             sx={{
-              color: "white",
-              "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.15)" },
+              bgcolor: APPLICATION_SURFACE_BG,
+              border: `1px solid ${APPLICATION_SURFACE_BORDER}`,
+              borderRadius: 1,
+              px: 1.5,
+              py: 1,
             }}
           >
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ px: 3, py: 2.5 }}>
-          <Typography variant="body2" sx={{ color: UPLOAD_MODAL_FG }}>
-            Do you want to delete this document?
-          </Typography>
-          {documentToDelete?.documentName && (
-            <Typography
-              variant="body2"
-              sx={{ mt: 1, fontWeight: 600, color: "text.primary" }}
-            >
-              {documentToDelete.documentName}
+            <Typography variant="body2" sx={{ color: "error.main" }}>
+              File Name must be student First Name (Example: David.PDF). Please
+              upload SINGLE PDF file (less than 2 MB). File Upload only for AI
+              and Data Science Class. All Math Circle, ACT and PSAT Class need
+              to use the{" "}
+              <Link
+                component={RouterLink}
+                to="/pstudyware/student/update-score"
+                onClick={handleUploadDialogClose}
+                sx={{
+                  color: "error.main",
+                  fontWeight: 600,
+                  textDecorationColor: "error.main",
+                }}
+              >
+                Update Score
+              </Link>
+              .
             </Typography>
-          )}
-        </DialogContent>
-        <DialogActions
-          sx={{
-            px: 3,
-            py: 1.5,
-            gap: 1,
-            bgcolor: APPLICATION_SURFACE_BG,
-            borderTop: `1px solid ${APPLICATION_SURFACE_BORDER}`,
-          }}
-        >
-          <Box sx={{ flex: 1 }} />
-          <Button
-            onClick={handleDeleteDialogClose}
-            color="inherit"
-            disabled={deletingDocument}
-            sx={{ textTransform: "none", fontSize: "0.875rem" }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            variant="contained"
-            color="error"
-            disabled={deletingDocument}
-            startIcon={
-              deletingDocument ? (
-                <CircularProgress size={16} color="inherit" />
-              ) : (
-                <DeleteIcon />
-              )
-            }
-            sx={{ textTransform: "none", fontSize: "0.875rem" }}
-          >
-            {deletingDocument ? "Deleting..." : "Delete"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </Box>
+
+          <Box sx={uploadModalFormRowSx}>
+            <Typography sx={uploadModalFormLabelSx}>Student Name</Typography>
+            <FormControl
+              fullWidth
+              size="small"
+              sx={portalModalFieldSx}
+              disabled={students.length === 0 || uploadSubmitting}
+            >
+              <InputLabel id="upload-student-name-label">Student Name</InputLabel>
+              <Select
+                labelId="upload-student-name-label"
+                value={selectedStudent}
+                onChange={handleUploadStudentChange}
+                label="Student Name"
+              >
+                {students.length === 0 ? (
+                  <MenuItem value="" disabled>
+                    No students found
+                  </MenuItem>
+                ) : (
+                  students.map((student, index) => (
+                    <MenuItem
+                      key={`${student.value ?? student.Value}-${index}`}
+                      value={student.value ?? student.Value ?? ""}
+                    >
+                      {student.text ?? student.Text}
+                    </MenuItem>
+                  ))
+                )}
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box sx={uploadModalFormRowSx}>
+            <Typography sx={uploadModalFormLabelSx}>Session</Typography>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel id="upload-session-label">Session</InputLabel>
+              <Select
+                labelId="upload-session-label"
+                value={uploadForm.session}
+                label="Session"
+                disabled={
+                  uploadSubmitting ||
+                  sessions.length === 0 ||
+                  sessions.length === 1
+                }
+              >
+                {sessions.length === 0 ? (
+                  <MenuItem value="" disabled>
+                    No current session
+                  </MenuItem>
+                ) : (
+                  sessions.map((session, index) => (
+                    <MenuItem
+                      key={index}
+                      value={session.session ?? session.Session ?? ""}
+                    >
+                      {session.session ?? session.Session}
+                    </MenuItem>
+                  ))
+                )}
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box sx={uploadModalFormRowSx}>
+            <Typography sx={uploadModalFormLabelSx}>Class</Typography>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel id="upload-class-label">Class</InputLabel>
+              <Select
+                labelId="upload-class-label"
+                value={uploadForm.type}
+                onChange={(e) =>
+                  setUploadForm({ ...uploadForm, type: e.target.value })
+                }
+                label="Class"
+                disabled={uploadSubmitting}
+              >
+                <MenuItem value="Home Work">Home Work</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box sx={uploadModalFormRowSx}>
+            <Typography sx={uploadModalFormLabelSx}>Select File</Typography>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                size="small"
+                type="file"
+                inputProps={{ accept: ".pdf" }}
+                onChange={handleFileChange}
+                disabled={uploadSubmitting}
+                sx={portalModalFieldSx}
+              />
+              {uploadForm.fileName && (
+                <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, display: "block" }}>
+                  Selected file: {uploadForm.fileName}
+                </Typography>
+              )}
+            </Box>
+          </Box>
+        </Box>
+      </PortalDialog>
+      )}
+
+      <AppConfirmDialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteDialogClose}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Document"
+        message={
+          <>
+            <Typography component="span" variant="body2">
+              Do you want to delete this document?
+            </Typography>
+            {documentToDelete?.documentName && (
+              <Typography
+                variant="body2"
+                sx={{ mt: 1, fontWeight: 600, color: "text.primary" }}
+              >
+                {documentToDelete.documentName}
+              </Typography>
+            )}
+          </>
+        }
+        confirmLabel="Delete"
+        confirmColor="error"
+        icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+        loading={deletingDocument}
+      />
 
       {/* Snackbar for messages */}
       <Snackbar

@@ -208,30 +208,40 @@ namespace pStudyWare20.Repository.Implementations
                 return archivedIds;
             }
 
+            // SQL Server supports at most 2100 parameters per request.
+            const int maxParametersPerBatch = 2000;
+
             try
             {
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand { Connection = connection };
-                var parameterNames = new List<string>(ids.Count);
-
-                for (var i = 0; i < ids.Count; i++)
+                for (var batchStart = 0; batchStart < ids.Count; batchStart += maxParametersPerBatch)
                 {
-                    var parameterName = $"@id{i}";
-                    parameterNames.Add(parameterName);
-                    command.Parameters.Add(new SqlParameter(parameterName, SqlDbType.Int) { Value = ids[i] });
-                }
+                    var batchSize = Math.Min(maxParametersPerBatch, ids.Count - batchStart);
+                    using var command = new SqlCommand { Connection = connection };
+                    var parameterNames = new List<string>(batchSize);
 
-                command.CommandText =
-                    $"SELECT ID FROM [dbo].[AMC_tblEmailTracking] WITH (NOLOCK) WHERE [Status] = 'A' AND ID IN ({string.Join(", ", parameterNames)})";
-
-                using var reader = await command.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    if (reader[0] != DBNull.Value && int.TryParse(reader[0].ToString(), out var archivedId))
+                    for (var i = 0; i < batchSize; i++)
                     {
-                        archivedIds.Add(archivedId);
+                        var parameterName = $"@id{i}";
+                        parameterNames.Add(parameterName);
+                        command.Parameters.Add(new SqlParameter(parameterName, SqlDbType.Int)
+                        {
+                            Value = ids[batchStart + i]
+                        });
+                    }
+
+                    command.CommandText =
+                        $"SELECT ID FROM [dbo].[AMC_tblEmailTracking] WITH (NOLOCK) WHERE [Status] = 'A' AND ID IN ({string.Join(", ", parameterNames)})";
+
+                    using var reader = await command.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                    {
+                        if (reader[0] != DBNull.Value && int.TryParse(reader[0].ToString(), out var archivedId))
+                        {
+                            archivedIds.Add(archivedId);
+                        }
                     }
                 }
             }

@@ -7,19 +7,18 @@ namespace pStudyWare20.Shared
     /// </summary>
     public class SendEmailRequest
     {
-        [Required]
+        [Display(Name = "Username")]
+        public string Username { get; set; } = string.Empty;
+
         [Display(Name = "To")]
         public string To { get; set; } = string.Empty;
 
-        [Required]
         [Display(Name = "From")]
         public string From { get; set; } = string.Empty;
 
-        [Required]
         [Display(Name = "Subject")]
         public string Subject { get; set; } = string.Empty;
 
-        [Required]
         [Display(Name = "Body")]
         public string Body { get; set; } = string.Empty;
     }
@@ -70,6 +69,7 @@ namespace pStudyWare20.Shared
     public class GetScoreDetailsRequest
     {
         [Display(Name = "Report Card ID")]
+        [Required(ErrorMessage = "Report Card ID is required")]
         public string ReportCardId { get; set; } = string.Empty;
     }
 
@@ -93,6 +93,9 @@ namespace pStudyWare20.Shared
     /// </summary>
     public class ScoreDetails
     {
+        [Display(Name = "Report Card ID")]
+        public string ReportCardId { get; set; } = string.Empty;
+
         [Display(Name = "Student ID")]
         public string StudentId { get; set; } = string.Empty;
 
@@ -124,6 +127,7 @@ namespace pStudyWare20.Shared
     public class DeleteScoreRequest
     {
         [Display(Name = "Report Card ID")]
+        [Required(ErrorMessage = "Report Card ID is required")]
         public string ReportCardId { get; set; } = string.Empty;
     }
 

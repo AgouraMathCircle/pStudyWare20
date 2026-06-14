@@ -22,11 +22,9 @@ import {
   RadioGroup,
   FormControlLabel,
   Link,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
+import { Send as SendIcon } from "@mui/icons-material";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import finalExamService from "../../../services/finalExamService";
@@ -204,48 +202,6 @@ const legacyGetAnswerSheetButtonSx = {
   flexShrink: 0,
   alignSelf: "stretch",
   mt: { xs: 1, lg: 0 },
-};
-
-const submitConfirmDialogPaperSx = {
-  borderRadius: 2,
-  boxShadow: PORTAL_CARD_BOX_SHADOW,
-  border: `1px solid ${APPLICATION_SURFACE_BORDER}`,
-  overflow: "hidden",
-};
-
-const submitConfirmDialogTitleSx = {
-  backgroundColor: APPLICATION_SURFACE_BG,
-  color: APPLICATION_ADMIN_TITLE_COLOR,
-  fontWeight: 600,
-  fontSize: "1rem",
-  borderBottom: `1px solid ${APPLICATION_SURFACE_BORDER}`,
-  py: 1.25,
-};
-
-const submitConfirmDialogContentSx = {
-  pt: 2,
-  pb: 1,
-  color: "#334155",
-  fontSize: "0.875rem",
-};
-
-const submitConfirmCancelButtonSx = {
-  textTransform: "none",
-  fontWeight: 500,
-  borderColor: APPLICATION_ADMIN_TITLE_COLOR,
-  color: APPLICATION_ADMIN_TITLE_COLOR,
-  "&:hover": {
-    borderColor: "#388e3c",
-    backgroundColor: "rgba(76, 175, 80, 0.08)",
-  },
-};
-
-const submitConfirmSubmitButtonSx = {
-  backgroundColor: APPLICATION_ADMIN_TITLE_COLOR,
-  textTransform: "none",
-  fontWeight: 600,
-  px: 2.5,
-  "&:hover": { backgroundColor: "#388e3c" },
 };
 
 const compactRadioLabelSx = {
@@ -1084,36 +1040,16 @@ const FinalExam = () => {
         )}
       </Container>
 
-      <Dialog
+      <AppConfirmDialog
         open={submitConfirmOpen}
         onClose={handleSubmitConfirmClose}
-        maxWidth="xs"
-        fullWidth
-        PaperProps={{ sx: submitConfirmDialogPaperSx }}
-      >
-        <DialogTitle sx={submitConfirmDialogTitleSx}>Confirm Submit</DialogTitle>
-        <DialogContent sx={submitConfirmDialogContentSx}>
-          Are you sure you want to submit your answers?
-        </DialogContent>
-        <DialogActions sx={{ px: 2, pb: 2, pt: 0.5, gap: 1 }}>
-          <Button
-            variant="outlined"
-            onClick={handleSubmitConfirmClose}
-            disabled={submitting}
-            sx={submitConfirmCancelButtonSx}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmitConfirm}
-            disabled={submitting}
-            sx={submitConfirmSubmitButtonSx}
-          >
-            Submit
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleSubmitConfirm}
+        title="Confirm Submit"
+        message="Are you sure you want to submit your answers?"
+        confirmLabel="Submit"
+        icon={<SendIcon sx={{ fontSize: 20 }} />}
+        loading={submitting}
+      />
 
       {/* Snackbar for messages */}
       <Snackbar

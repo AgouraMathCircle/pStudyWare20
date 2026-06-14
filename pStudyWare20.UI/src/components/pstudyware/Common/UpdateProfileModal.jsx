@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
-  Typography,
   TextField,
   Button,
   Select,
@@ -11,12 +10,10 @@ import {
   Grid,
   Alert,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
+import PortalDialog from "./PortalDialog";
+import { portalModalFieldSx, portalModalSendButtonSx } from "./portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
 import studentDashboardService from "../../../services/studentDashboardService";
 import { countries } from "../../../constants/countries";
@@ -222,176 +219,170 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
   };
 
   return (
-    <Dialog
+    <PortalDialog
       open={open}
       onClose={handleClose}
       maxWidth="md"
-      fullWidth
-      scroll="paper"
-      aria-labelledby="update-profile-dialog-title"
-    >
-      <DialogTitle
-        id="update-profile-dialog-title"
-        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-      >
-        <PersonIcon sx={{ color: "#1976d2" }} />
-        <Typography component="span" variant="h6" sx={{ fontWeight: 700 }}>
-          Update Profile
-        </Typography>
-      </DialogTitle>
-
-      <DialogContent dividers>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        )}
-
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Box component="form" id="update-profile-form" onSubmit={handleSubmit}>
-            <Grid container spacing={2} sx={{ pt: 0.5 }}>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  label="Student First Name"
-                  name="studentFName"
-                  value={formData.studentFName}
-                  onChange={handleInputChange}
-                  required
-                  size="small"
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  label="Student Last Name"
-                  name="studentLName"
-                  value={formData.studentLName}
-                  onChange={handleInputChange}
-                  required
-                  size="small"
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  label="Student Email Address"
-                  name="studentEmail"
-                  type="email"
-                  value={formData.studentEmail}
-                  onChange={handleInputChange}
-                  required
-                  size="small"
-                  error={Boolean(validationErrors.studentEmail)}
-                  helperText={validationErrors.studentEmail}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  label="School"
-                  name="school"
-                  value={formData.school}
-                  onChange={handleInputChange}
-                  size="small"
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Grade</InputLabel>
-                  <Select
-                    name="grade"
-                    value={formData.grade}
-                    onChange={handleInputChange}
-                    label="Grade"
-                  >
-                    {GRADES.map((g) => (
-                      <MenuItem key={g} value={String(g)}>
-                        {g}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <TextField
-                  fullWidth
-                  label="Parent Contact Phone"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange}
-                  size="small"
-                  error={Boolean(validationErrors.phoneNumber)}
-                  helperText={
-                    validationErrors.phoneNumber || "Use 10 digits, e.g. 9999999999."
-                  }
-                  inputProps={{
-                    inputMode: "numeric",
-                    maxLength: 10,
-                    pattern: "[0-9]*",
-                  }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <TextField
-                  fullWidth
-                  label="City"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  size="small"
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <TextField
-                  fullWidth
-                  label="State"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleInputChange}
-                  size="small"
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Country</InputLabel>
-                  <Select
-                    name="country"
-                    value={formData.country}
-                    onChange={handleInputChange}
-                    label="Country"
-                  >
-                    {countries.map((c) => (
-                      <MenuItem key={c.value} value={c.value}>
-                        {c.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Box>
-        )}
-      </DialogContent>
-
-      <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={handleClose} disabled={submitting}>
-          Cancel
-        </Button>
+      disableClose={submitting}
+      ariaLabelledby="update-profile-dialog-title"
+      title="Update Profile"
+      icon={<PersonIcon sx={{ fontSize: 20 }} />}
+      actions={
         <Button
           type="submit"
           form="update-profile-form"
           variant="contained"
           disabled={loading || submitting}
+          startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
+          sx={portalModalSendButtonSx}
         >
-          {submitting ? <CircularProgress size={22} /> : "Submit"}
+          {submitting ? "Saving…" : "Save"}
         </Button>
-      </DialogActions>
-    </Dialog>
+      }
+    >
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Box component="form" id="update-profile-form" onSubmit={handleSubmit}>
+          <Grid container spacing={2} sx={{ pt: 0.5 }}>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <TextField
+                fullWidth
+                label="Student First Name"
+                name="studentFName"
+                value={formData.studentFName}
+                onChange={handleInputChange}
+                required
+                size="small"
+                sx={portalModalFieldSx}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <TextField
+                fullWidth
+                label="Student Last Name"
+                name="studentLName"
+                value={formData.studentLName}
+                onChange={handleInputChange}
+                required
+                size="small"
+                sx={portalModalFieldSx}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <TextField
+                fullWidth
+                label="Student Email Address"
+                name="studentEmail"
+                type="email"
+                value={formData.studentEmail}
+                onChange={handleInputChange}
+                required
+                size="small"
+                error={Boolean(validationErrors.studentEmail)}
+                helperText={validationErrors.studentEmail}
+                sx={portalModalFieldSx}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <TextField
+                fullWidth
+                label="School"
+                name="school"
+                value={formData.school}
+                onChange={handleInputChange}
+                size="small"
+                sx={portalModalFieldSx}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+              <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+                <InputLabel>Grade</InputLabel>
+                <Select
+                  name="grade"
+                  value={formData.grade}
+                  onChange={handleInputChange}
+                  label="Grade"
+                >
+                  {GRADES.map((g) => (
+                    <MenuItem key={g} value={String(g)}>
+                      {g}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <TextField
+                fullWidth
+                label="Parent Contact Phone"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleInputChange}
+                size="small"
+                error={Boolean(validationErrors.phoneNumber)}
+                helperText={
+                  validationErrors.phoneNumber || "Use 10 digits, e.g. 9999999999."
+                }
+                inputProps={{
+                  inputMode: "numeric",
+                  maxLength: 10,
+                  pattern: "[0-9]*",
+                }}
+                sx={portalModalFieldSx}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <TextField
+                fullWidth
+                label="City"
+                name="city"
+                value={formData.city}
+                onChange={handleInputChange}
+                size="small"
+                sx={portalModalFieldSx}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+              <TextField
+                fullWidth
+                label="State"
+                name="state"
+                value={formData.state}
+                onChange={handleInputChange}
+                size="small"
+                sx={portalModalFieldSx}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+                <InputLabel>Country</InputLabel>
+                <Select
+                  name="country"
+                  value={formData.country}
+                  onChange={handleInputChange}
+                  label="Country"
+                >
+                  {countries.map((c) => (
+                    <MenuItem key={c.value} value={c.value}>
+                      {c.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </Box>
+      )}
+    </PortalDialog>
   );
 };
 

@@ -3,6 +3,20 @@ import { postExcelExport } from "../utils/excelExport";
 
 const BASE = "/ReportCard";
 
+const toReportCardId = (value) => {
+  if (value == null || value === "") return "";
+  if (typeof value === "object") {
+    return String(
+      value.reportCardId ??
+        value.ReportCardId ??
+        value.reportCardID ??
+        value.ReportCardID ??
+        ""
+    );
+  }
+  return String(value);
+};
+
 const reportCardService = {
   getReportCardList: async (request) => {
     const response = await api.post(`${BASE}/GetReportCardList`, request);
@@ -15,15 +29,19 @@ const reportCardService = {
     return response.data;
   },
   getScoreDetails: async (request) => {
-    const response = await api.post(`${BASE}/GetScoreDetails`, request);
+    const reportCardId = toReportCardId(request);
+    const response = await api.post(`${BASE}/GetScoreDetails`, { reportCardId });
     return response.data;
   },
   getScoreDetailsById: async (scoreId) => {
-    const response = await api.get(`${BASE}/GetScoreDetails/${scoreId}`);
+    const response = await api.get(
+      `${BASE}/GetScoreDetails/${encodeURIComponent(toReportCardId(scoreId))}`
+    );
     return response.data;
   },
   deleteStudentScore: async (request) => {
-    const response = await api.post(`${BASE}/DeleteStudentScore`, request);
+    const reportCardId = toReportCardId(request);
+    const response = await api.post(`${BASE}/DeleteStudentScore`, { reportCardId });
     return response.data;
   },
   deleteScore: async (scoreId) => {
@@ -35,7 +53,15 @@ const reportCardService = {
     return response.data;
   },
   updateStudentScore: async (request) => {
-    const response = await api.post(`${BASE}/UpdateStudentScore`, request);
+    const response = await api.post(`${BASE}/UpdateStudentScore`, {
+      reportID: String(request.reportID ?? request.ReportID ?? ""),
+      group: request.group ?? request.Group ?? "",
+      examDate: request.examDate ?? request.ExamDate ?? "",
+      type: request.type ?? request.Type ?? "",
+      totalScore: String(request.totalScore ?? request.TotalScore ?? ""),
+      receivedScore: String(request.receivedScore ?? request.ReceivedScore ?? ""),
+      comments: request.comments ?? request.Comments ?? "",
+    });
     return response.data;
   },
   viewReport: async (request) => {
@@ -53,6 +79,23 @@ const reportCardService = {
   importScoresFromExcel: async (request) => {
     const response = await api.post(`${BASE}/ImportScoresFromExcel`, request);
     return response.data;
+  },
+  uploadScoresFromFile: async ({ file, examDate, group, totalQuizScore, totalClassTestScore, totalHomeWorkScore }) => {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    return reportCardService.importScoresFromExcel({
+      ExamDate: examDate,
+      Group: group,
+      TotalQuizScore: totalQuizScore,
+      TotalClassTestScore: totalClassTestScore,
+      TotalHomeWorkScore: totalHomeWorkScore,
+      FileContent: base64,
+      FileName: file.name,
+    });
   },
   exportToExcel: async (request) => {
     const fileName = await postExcelExport(

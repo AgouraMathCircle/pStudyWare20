@@ -19,10 +19,6 @@ import {
   Snackbar,
   CircularProgress,
   Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
 import {
   Inbox as InboxIcon,
@@ -37,6 +33,7 @@ import {
   sortRows,
 } from "../../../utils/tableSort";
 import SortableHeader from "./SortableHeader";
+import PortalDialog from "./PortalDialog";
 import StudentHeader from "../Student/StudentHeader";
 import AdminHeader from "../Admin/AdminHeader";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
@@ -65,13 +62,7 @@ import {
   adminSessionListTitleSx,
   adminSessionListToolbarButtonSx,
 } from "../styles/applicationSurfaces";
-import {
-  portalModalActionsSx,
-  portalModalContentSx,
-  portalModalFieldSx,
-  portalModalPaperSx,
-  portalModalTitleSx,
-} from "./portalModalStyles";
+import { portalModalFieldSx } from "./portalModalStyles";
 
 const sentListColumnWidths = {
   actions: "10%",
@@ -635,83 +626,60 @@ const SentEmail = () => {
           </Box>
         </Paper>
 
-        <Dialog
+        <PortalDialog
           open={viewModalOpen}
           onClose={closeViewModal}
           maxWidth="md"
-          fullWidth
-          scroll="paper"
-          aria-labelledby="view-sent-message-dialog-title"
-          PaperProps={{ sx: portalModalPaperSx }}
+          hideActions
+          ariaLabelledby="view-sent-message-dialog-title"
+          title="View Sent Message"
+          icon={<VisibilityIcon sx={{ fontSize: 20 }} />}
         >
-          <DialogTitle
-            id="view-sent-message-dialog-title"
-            sx={{ ...portalModalTitleSx, justifyContent: "flex-start" }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <VisibilityIcon sx={{ fontSize: 20 }} />
-              <Typography component="span" sx={{ fontWeight: 600, fontSize: "1rem" }}>
-                View Sent Message
-              </Typography>
-            </Box>
-          </DialogTitle>
-          <DialogContent sx={portalModalContentSx}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 0.5 }}>
-              <TextField
-                fullWidth
-                variant="outlined"
-                size="small"
-                label="From"
-                value={sendFrom}
-                disabled
-                InputLabelProps={{ shrink: true }}
-                sx={portalModalFieldSx}
-              />
-              <TextField
-                fullWidth
-                variant="outlined"
-                size="small"
-                label="To"
-                value={sendTo}
-                disabled
-                InputLabelProps={{ shrink: true }}
-                sx={portalModalFieldSx}
-              />
-              <TextField
-                fullWidth
-                variant="outlined"
-                size="small"
-                label="Subject"
-                value={subject}
-                disabled
-                InputLabelProps={{ shrink: true }}
-                sx={portalModalFieldSx}
-              />
-              <TextField
-                fullWidth
-                variant="outlined"
-                multiline
-                rows={8}
-                size="small"
-                label="Message"
-                value={messageBodyLoading ? "Loading message..." : messageBody}
-                disabled
-                InputLabelProps={{ shrink: true }}
-                sx={portalModalFieldSx}
-              />
-            </Box>
-          </DialogContent>
-          <DialogActions sx={portalModalActionsSx}>
-            <Box sx={{ flex: 1 }} />
-            <Button
-              onClick={closeViewModal}
-              color="inherit"
-              sx={{ textTransform: "none", fontSize: "0.875rem" }}
-            >
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 0.5 }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              size="small"
+              label="From"
+              value={sendFrom}
+              disabled
+              InputLabelProps={{ shrink: true }}
+              sx={portalModalFieldSx}
+            />
+            <TextField
+              fullWidth
+              variant="outlined"
+              size="small"
+              label="To"
+              value={sendTo}
+              disabled
+              InputLabelProps={{ shrink: true }}
+              sx={portalModalFieldSx}
+            />
+            <TextField
+              fullWidth
+              variant="outlined"
+              size="small"
+              label="Subject"
+              value={subject}
+              disabled
+              InputLabelProps={{ shrink: true }}
+              sx={portalModalFieldSx}
+            />
+            <TextField
+              fullWidth
+              variant="outlined"
+              multiline
+              rows={8}
+              size="small"
+              label="Message"
+              value={messageBodyLoading ? "Loading message..." : messageBody}
+              disabled
+              InputLabelProps={{ shrink: true }}
+              sx={portalModalFieldSx}
+            />
+          </Box>
+        </PortalDialog>
 
         <Snackbar
           open={snackbar.open}
