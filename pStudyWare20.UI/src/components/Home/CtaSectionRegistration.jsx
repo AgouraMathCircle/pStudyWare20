@@ -87,7 +87,7 @@ const CtaSection = () => {
             >
               <Typography className="cta-badge">Agoura Math Circle</Typography>
               <Typography variant="h2" className="cta-title">
-                AMC&apos;s Spring Semester 2026 starts on Saturday, January 24,
+                AMC&apos;s Fall Semester 2026 starts on Saturday, August 29,
                 2026.
               </Typography>
               <Button

@@ -119,7 +119,6 @@
 
 .MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
   background-color: white;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
 }
 
 .MuiFormControl-root .MuiOutlinedInput-root {
@@ -134,7 +133,6 @@
 
 .MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
   background-color: white;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
 }
 
 /* Labels */
@@ -252,16 +250,7 @@
   background: #a8a8a8;
 }
 
-/* Focus States for Accessibility */
-.MuiTextField-root .MuiOutlinedInput-root:focus-within {
-  outline: 2px solid #1976d2;
-  outline-offset: 2px;
-}
 
-.MuiFormControl-root .MuiOutlinedInput-root:focus-within {
-  outline: 2px solid #1976d2;
-  outline-offset: 2px;
-}
 
 /* Animation for form submission */
 @keyframes fadeIn {

@@ -10,6 +10,10 @@
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
 }
+/* Gallery images */
+.gallery-img{
+  min-height: 0 !important;
+}
 
 /* Gallery cards */
 .gallery-container .MuiCard-root {

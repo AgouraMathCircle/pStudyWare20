@@ -163,7 +163,7 @@ const Topbar = () => {
     }
   };
 
-  // Hide topbar on portal routes for authenticated students, admins, and instructors
+  // Hide topbar on portal routes for authenticated students, admins, instructors, and volunteers
   const onPortalRoute = isPortalRoute(location.pathname);
   if (user && onPortalRoute) {
     const isStudent =
@@ -174,8 +174,10 @@ const Topbar = () => {
       user.memberType?.toUpperCase() === "A";
     const isInstructor =
       user.role === "Instructor" || user.memberType?.toUpperCase() === "I";
+    const isVolunteer =
+      user.role === "Volunteer" || user.memberType?.toUpperCase() === "V";
 
-    if (isStudent || isAdmin || isInstructor) {
+    if (isStudent || isAdmin || isInstructor || isVolunteer) {
       return null;
     }
   }

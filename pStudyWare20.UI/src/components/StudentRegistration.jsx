@@ -325,34 +325,32 @@ const StudentRegistration = () => {
             className="important-notice"
             style={{ marginBottom: "0px", paddingBottom: "10px" }}
           >
-            <h6
-              style={{
-                color: "#d32f2f",
-                fontWeight: "bold",
-              }}
-            >
-              <strong>Important:</strong>
-            </h6>
             <p style={{ marginBottom: "15px" }}>
-              Registration for the Fall 2025 Semester is closed now. We invite
-              you to register for our upcoming Spring 2026 Semester. Thank you
-              for your interest in Agoura Math Circle! Existing students, please
-              do not use this page to register for ONLINE or ONSITE Math Circle
-              classes. Instead, follow the separate registration instructions
-              provided for returning students. This page is for new students
-              only. .
+              <span style={{ color: "#d32f2f", fontWeight: "bold" }}>Important:</span>{" "}
+              Registration for the Spring 2026 Semester is closed now. We invite
+              you to register for our upcoming Fall 2026 Semester. Thank you for
+              your interest in Agoura Math Circle!{" "}
+              <span style={{ color: "#d32f2f", fontWeight: "bold" }}>
+                Existing students, please do not use this page to register for
+                ONLINE or ONSITE Math Circle classes. Instead, follow the separate
+                registration instructions provided for returning students. This page
+                is for new students only. .
+              </span>
             </p>
-            <p style={{ marginBottom: "15px", color: "#d32f2f" }}>
-              <strong>
-                Register Now:Use this page to register for any type of program
-                (Test Preparation- SAT/PSAT and ACT and Engineering circle -
-                Data Science, Mobile App Development and Artificial
-                Intelligence, ), with the exception of existing students
-                registering for a new semester at math circle. Please carefully
-                choose the course and location. After you submit your
-                application, we will review and decide based on the availability
-                of space and eligibility.
-              </strong>
+            <p style={{ marginBottom: "15px" }}>
+              <span style={{ color: "#2e7d32", fontWeight: "bold", fontStyle: "italic" }}>
+                Register Now.
+              </span>{" "}
+              Use this page to register for any course/program (
+              <span style={{ color: "#1976d2", fontStyle: "italic" }}>Test Preparation</span>{" "}
+              - SAT/PSAT and ACT,{" "}
+              <span style={{ color: "#1976d2", fontStyle: "italic" }}>Engineering circle</span>{" "}
+              - Foundations of Data Science, Introduction to AI, and Engineering
+              Design & 3D Modeling), with the exception of existing students
+              registering for a new semester at math circle. Please carefully
+              choose the course and location. After you submit your
+              application, we will review and decide based on the availability
+              of space and eligibility.
             </p>
             <p style={{ marginBottom: "0px", color: "#2e7d32" }}>
               Engineering Circle:Before you apply for Agoura Engineering Circle,
@@ -507,11 +505,17 @@ const StudentRegistration = () => {
                         render={({ field }) => (
                           <FormControl
                             fullWidth
+                            variant="outlined"
                             error={!!errors.country}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel>Country *</InputLabel>
-                            <Select {...field} label="Country *">
+                            <InputLabel id="country-label">Country *</InputLabel>
+                            <Select
+                              {...field}
+                              labelId="country-label"
+                              id="country-select"
+                              label="Country *"
+                            >
                               {countries.map((country) => (
                                 <MenuItem
                                   key={country.value}
@@ -687,11 +691,17 @@ const StudentRegistration = () => {
                         render={({ field }) => (
                           <FormControl
                             fullWidth
+                            variant="outlined"
                             error={!!errors.studentGrade}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel>Grade *</InputLabel>
-                            <Select {...field} label="Grade *">
+                            <InputLabel id="student-grade-label">Grade *</InputLabel>
+                            <Select
+                              {...field}
+                              labelId="student-grade-label"
+                              id="student-grade-select"
+                              label="Grade *"
+                            >
                               <MenuItem value="0">
                                 <em>--Select--</em>
                               </MenuItem>
@@ -716,11 +726,17 @@ const StudentRegistration = () => {
                         render={({ field }) => (
                           <FormControl
                             fullWidth
+                            variant="outlined"
                             error={!!errors.sessionId}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel>Register For *</InputLabel>
-                            <Select {...field} label="Register For *">
+                            <InputLabel id="session-label">Register For *</InputLabel>
+                            <Select
+                              {...field}
+                              labelId="session-label"
+                              id="session-select"
+                              label="Register For *"
+                            >
                               <MenuItem value="0">
                                 <em>--Select--</em>
                               </MenuItem>
@@ -745,11 +761,17 @@ const StudentRegistration = () => {
                         render={({ field }) => (
                           <FormControl
                             fullWidth
+                            variant="outlined"
                             error={!!errors.locationId}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel>Course/Location *</InputLabel>
-                            <Select {...field} label="Course/Location *">
+                            <InputLabel id="location-label">Course/Location *</InputLabel>
+                            <Select
+                              {...field}
+                              labelId="location-label"
+                              id="location-select"
+                              label="Course/Location *"
+                            >
                               <MenuItem value={0}>
                                 <em>--Select--</em>
                               </MenuItem>
