@@ -3,7 +3,7 @@ import { Container, Box, Card, CardContent, Typography } from "@mui/material";
 import { Settings as SettingsIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../styles/applicationSurfaces";
+import { APPLICATION_ADMIN_TITLE_COLOR, portalRoleSubheaderSpacerPx} from "../styles/applicationSurfaces";
 
 const AdminSettings = () => {
   const { user } = useAuth();
@@ -11,7 +11,7 @@ const AdminSettings = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: "48px" }} />
+      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Card elevation={3}>
           <CardContent sx={{ textAlign: "center", py: 8 }}>

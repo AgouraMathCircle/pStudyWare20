@@ -13,6 +13,7 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
 import AdminHeader from "./AdminHeader";
+import { portalRoleSubheaderSpacerPx } from "../styles/applicationSurfaces";
 import DocumentList from "./DocumentList";
 import DocumentForm from "./DocumentForm";
 
@@ -313,7 +314,7 @@ const DocumentManagement = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: "48px" }} />
+      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

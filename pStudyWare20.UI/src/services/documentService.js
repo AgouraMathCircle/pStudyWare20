@@ -52,6 +52,12 @@ const documentService = {
     }
   },
 
+  /** Clear cached in-flight list request (call after upload/delete/publish). */
+  clearDocumentsListCache: (username) => {
+    const normalizedUsername = (username || "").trim();
+    inFlightRequests.delete(`GetDocumentsList:${normalizedUsername}`);
+  },
+
   /**
    * Get documents repository (using AMC_spDocumentsRepository stored procedure)
    * @param {string} username - Username for authorization
@@ -97,6 +103,27 @@ const documentService = {
   },
 
   /**
+   * Upload Docs Repository file (Word/Excel/PowerPoint)
+   * @param {Object} documentData - Repository upload payload
+   * @returns {Promise<Object>} Upload response
+   */
+  uploadRepositoryDocument: async (documentData) => {
+    try {
+      const response = await api.post(
+        "/Document/UploadRepositoryDocument",
+        documentData,
+        {
+          timeout: 60000,
+        },
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error uploading repository document:", error);
+      throw error;
+    }
+  },
+
+  /**
    * Delete document
    * @param {string} docID - Document ID
    * @param {string} docName - Document name
@@ -107,8 +134,8 @@ const documentService = {
       const response = await api.post(
         "/Document/DeleteDocument",
         {
-          DocID: docID,
-          DocName: docName,
+          DocID: String(docID ?? ""),
+          DocName: docName ?? "",
         },
         {
           timeout: 30000, // 30 seconds for delete operations
@@ -548,6 +575,26 @@ const documentService = {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
   },
+};
+
+/** Normalize API success flag (camelCase or PascalCase). */
+export const isDocumentApiSuccess = (response) =>
+  response?.isSuccess === true || response?.IsSuccess === true;
+
+/** Normalize documents array from list/repository API responses. */
+export const getDocumentApiList = (response) => {
+  const docs = response?.documents ?? response?.Documents ?? [];
+  return Array.isArray(docs) ? docs : [];
+};
+
+export const getRepositoryDocumentName = (doc) =>
+  doc?.docName ?? doc?.mDocName ?? doc?.DocName ?? "";
+
+/** AMC_spDeleteDocuments @DocID = DocumentID (table key), not display row mDocID. */
+export const getClassMaterialDeleteId = (doc) => {
+  const id = doc?.documentID ?? doc?.DocumentID;
+  const parsed = Number(id);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 };
 
 /** AMC_spDeleteDocuments @DocID = API documentID (table mDocID), not display row docID. */

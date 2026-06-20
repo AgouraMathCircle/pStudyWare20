@@ -78,11 +78,27 @@ const messageCardHeaderSx = {
   mb: 0.75,
 };
 
+const compactMessageCardContentSx = {
+  px: 1.5,
+  pt: 0.75,
+  pb: 0,
+  "&:last-child": { pb: 0 },
+  display: "flex",
+  flexDirection: "column",
+  width: "100%",
+};
+
+const compactMessageCardHeaderSx = {
+  ...messageCardHeaderSx,
+  mb: 0.25,
+};
+
 const DashboardMessages = ({
   username,
   chapterId,
   dashboardMessages: propsDashboardMessages,
   loading: propsLoading,
+  compact = false,
 }) => {
   const isControlled = propsDashboardMessages != null;
   const [internalMessages, setInternalMessages] = useState({
@@ -140,6 +156,9 @@ const DashboardMessages = ({
     };
   }, [isControlled, username, chapterId]);
 
+  const cardContentSx = compact ? compactMessageCardContentSx : messageCardContentSx;
+  const cardHeaderSx = compact ? compactMessageCardHeaderSx : messageCardHeaderSx;
+
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
@@ -160,8 +179,13 @@ const DashboardMessages = ({
     <Box sx={{ width: "100%" }}>
       <Grid
         container
-        spacing={1}
-        sx={{ display: "flex", justifyContent: "space-between", mb: 0 }}
+        spacing={compact ? 0 : 1}
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          mb: 0,
+          ...(compact && { m: 0, width: "100%" }),
+        }}
       >
         {(dashboardMessages.importantNotice || IMPORTANT_NOTICE_LINKS.length > 0) && (
           <Grid item xs={12} sm={6} md={3} sx={messageCardGridSx}>
@@ -174,8 +198,8 @@ const DashboardMessages = ({
                 overflow: "hidden",
               }}
             >
-              <CardContent sx={messageCardContentSx}>
-                <Box sx={messageCardHeaderSx}>
+              <CardContent sx={cardContentSx}>
+                <Box sx={cardHeaderSx}>
                   <Typography
                     variant="h6"
                     sx={{ fontWeight: 600, color: "#f44336", fontSize: "1rem" }}
@@ -236,8 +260,8 @@ const DashboardMessages = ({
                 overflow: "hidden",
               }}
             >
-              <CardContent sx={messageCardContentSx}>
-                <Box sx={messageCardHeaderSx}>
+              <CardContent sx={cardContentSx}>
+                <Box sx={cardHeaderSx}>
                   <Typography
                     variant="h6"
                     sx={{ fontWeight: 600, color: "#2196f3", fontSize: "1rem" }}
@@ -265,8 +289,8 @@ const DashboardMessages = ({
                 overflow: "hidden",
               }}
             >
-              <CardContent sx={messageCardContentSx}>
-                <Box sx={messageCardHeaderSx}>
+              <CardContent sx={cardContentSx}>
+                <Box sx={cardHeaderSx}>
                   <Typography
                     variant="h6"
                     sx={{ fontWeight: 600, color: "#4caf50", fontSize: "1rem" }}
@@ -294,8 +318,8 @@ const DashboardMessages = ({
                 overflow: "hidden",
               }}
             >
-              <CardContent sx={messageCardContentSx}>
-                <Box sx={messageCardHeaderSx}>
+              <CardContent sx={cardContentSx}>
+                <Box sx={cardHeaderSx}>
                   <Typography
                     variant="h6"
                     sx={{ fontWeight: 600, color: "#9c27b0", fontSize: "1rem" }}

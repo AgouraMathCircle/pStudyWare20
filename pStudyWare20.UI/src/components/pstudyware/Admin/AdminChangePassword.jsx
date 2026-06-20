@@ -7,6 +7,7 @@ import {
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
   adminSessionListTitleSx,
+  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 
 const AdminChangePassword = () => {
@@ -15,7 +16,7 @@ const AdminChangePassword = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: "48px" }} />
+      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
       <Container maxWidth="md" sx={{ mb: 4 }}>
         <Card
           sx={{

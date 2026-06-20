@@ -16,7 +16,6 @@ import {
   MenuItem,
 } from "@mui/material";
 import {
-  Refresh as RefreshIcon,
   Add as AddIcon,
   Delete as DeleteIcon,
   Publish as PublishIcon,
@@ -29,6 +28,7 @@ import {
   toSortableDate,
   toSortableNumber,
 } from "../../../utils/tableSort";
+import { getClassMaterialDeleteId } from "../../../services/documentService";
 import {
   adminSessionListEmptyCellSx,
   adminSessionListEmptyTextSx,
@@ -47,20 +47,27 @@ import {
   adminSessionListGridTableSx,
   adminSessionListTitleSx,
   adminSessionListToolbarButtonSx,
+  studentPortalIntroTextSx,
+  studentPortalLinkSx,
 } from "../styles/applicationSurfaces";
 
+/** Column layout aligned with legacy pStudayWare/Documents.aspx kGrid. */
 const documentListColumnWidths = {
-  view: "12%",
-  publish: "5%",
-  delete: "5%",
+  actions: "14%",
   docId: "5%",
   class: "9%",
-  topics: "11%",
-  description: "11%",
-  docName: "11%",
-  session: "6%",
-  postedDate: "8%",
-  status: "7%",
+  topics: "10%",
+  description: "10%",
+  name: "11%",
+  session: "12%",
+  postedDate: "9%",
+  posted: "5%",
+};
+
+const actionDividerSx = {
+  color: "text.secondary",
+  fontSize: "0.75rem",
+  userSelect: "none",
 };
 
 const YOUTUBE_URL =
@@ -110,7 +117,6 @@ const getAdminDocumentFieldValue = (doc, field) => {
 
 const AdminDocumentList = ({
   documents,
-  onRefresh,
   onView,
   onDownload,
   onDelete,
@@ -135,7 +141,7 @@ const AdminDocumentList = ({
     doc: null,
   });
   const [alertDialog, setAlertDialog] = useState({ open: false, message: "" });
-  const pageSize = 25;
+  const pageSize = 10;
 
   const filteredDocuments = useMemo(() => {
     if (!safeDocuments.length) return [];
@@ -229,6 +235,21 @@ const AdminDocumentList = ({
   };
 
   const handleDeleteClick = (doc) => {
+    if (!canDeleteDocument) {
+      setAlertDialog({
+        open: true,
+        message: "You cannot delete this document.",
+      });
+      return;
+    }
+    if (!getClassMaterialDeleteId(doc)) {
+      setAlertDialog({
+        open: true,
+        message:
+          "You cannot delete this document. Document has posted already.",
+      });
+      return;
+    }
     setConfirmDialog({ open: true, type: "delete", doc });
   };
 
@@ -236,7 +257,8 @@ const AdminDocumentList = ({
     if (doc.publish?.toUpperCase() === "Y") {
       setAlertDialog({
         open: true,
-        message: "This document is already published.",
+        message:
+          "You cannot publish this document. Document has published already.",
       });
       return;
     }
@@ -254,9 +276,9 @@ const AdminDocumentList = ({
       return;
     }
     if (type === "delete") {
-      onDelete(doc.docID, doc.docName);
+      onDelete(getClassMaterialDeleteId(doc), doc.docName);
     } else if (type === "publish") {
-      onPublish(doc.docID);
+      onPublish(getClassMaterialDeleteId(doc));
     }
   };
 
@@ -285,113 +307,123 @@ const AdminDocumentList = ({
 
   const formatDate = (date) => {
     if (!date) return "—";
-    return new Date(date).toLocaleDateString();
+    try {
+      const parsed = new Date(date);
+      if (Number.isNaN(parsed.getTime())) return "—";
+      return parsed.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return "—";
+    }
   };
 
-  const getPublishStatus = (doc) => {
-    const isPublished = doc.publish?.toUpperCase() === "Y";
+  const renderActionLink = (label, onClick, disabled = false, linkSx = {}) => (
+    <Box
+      onClick={disabled ? undefined : onClick}
+      sx={{
+        ...adminSessionListTableActionLinkSx,
+        ...linkSx,
+        ...(disabled
+          ? { color: "text.disabled", cursor: "not-allowed", pointerEvents: "none" }
+          : {}),
+      }}
+    >
+      {label}
+    </Box>
+  );
+
+  const renderDocumentActions = (doc) => {
+    const canDeleteRow = canDeleteDocument && Boolean(getClassMaterialDeleteId(doc));
     return (
       <Box
-        component="span"
         sx={{
-          display: "inline-block",
-          px: 1,
-          py: 0.35,
-          borderRadius: 0.5,
-          fontSize: "0.7rem",
-          fontWeight: 600,
-          lineHeight: 1.2,
-          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          flexWrap: "nowrap",
+          gap: 0.5,
           whiteSpace: "nowrap",
-          backgroundColor: isPublished ? "#2e7d32" : "#424242",
         }}
       >
-        {isPublished ? "Published" : "Unpublished"}
+        {renderActionLink("View", () => onView(doc.docName))}
+        <Typography component="span" sx={actionDividerSx}>
+          /
+        </Typography>
+        {renderActionLink("Download", () => onDownload(doc.docName))}
+        {canDeleteDocument ? (
+          <>
+            <Typography component="span" sx={actionDividerSx}>
+              /
+            </Typography>
+            {renderActionLink(
+              "Delete",
+              () => handleDeleteClick(doc),
+              !canDeleteRow,
+              {
+                color: "error.main",
+                "&:visited": { color: "error.main" },
+                "&:hover": { color: "error.dark" },
+              },
+            )}
+          </>
+        ) : null}
+        {doc.videoURL ? (
+          <>
+            <Typography component="span" sx={actionDividerSx}>
+              /
+            </Typography>
+            {renderActionLink("Video", () => onOpenVideo(doc.videoURL))}
+          </>
+        ) : null}
       </Box>
     );
   };
 
-  const renderDocumentActions = (doc) => (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        flexWrap: "nowrap",
-        gap: 0.5,
-        whiteSpace: "nowrap",
-      }}
-    >
-      <Box onClick={() => onView(doc.docName)} sx={adminSessionListTableActionLinkSx}>
-        View
-      </Box>
-      <Typography
-        component="span"
-        sx={{ fontSize: "0.75rem", color: "text.disabled", userSelect: "none", lineHeight: 1 }}
-      >
-        /
-      </Typography>
-      <Box onClick={() => onDownload(doc.docName)} sx={adminSessionListTableActionLinkSx}>
-        Download
-      </Box>
-      {doc.videoURL ? (
-        <>
-          <Typography
-            component="span"
-            sx={{ fontSize: "0.75rem", color: "text.disabled", userSelect: "none", lineHeight: 1 }}
-          >
-            /
-          </Typography>
-          <Box onClick={() => onOpenVideo(doc.videoURL)} sx={adminSessionListTableActionLinkSx}>
-            Video
-          </Box>
-        </>
-      ) : null}
-    </Box>
-  );
-
   return (
     <Box>
       <Box sx={adminSessionListHeaderBarSx}>
-        <Box>
-          <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
-            Class Material List
-          </Typography>
-          <Typography variant="caption" color="error" display="block">
-            Watch Lecture Notes Video -{" "}
-            <a
-              href={YOUTUBE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "#d32f2f" }}
-            >
-              Agoura Math Circle YouTube Channel
-            </a>
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <Button
-            variant="outlined"
-            color="primary"
-            size="small"
-            startIcon={<RefreshIcon />}
-            onClick={onRefresh}
-            sx={adminSessionListToolbarButtonSx}
+        <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
+          Class Material List
+        </Typography>
+      </Box>
+
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 2,
+          mb: 1,
+        }}
+      >
+        <Typography component="div" sx={{ ...studentPortalIntroTextSx, mb: 0, flex: 1, minWidth: 0 }}>
+          {" Lecture Notes Video "}
+          <a
+            href={YOUTUBE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={studentPortalLinkSx}
           >
-            Refresh
+            Agoura Math Circle YouTube Channel
+          </a>
+          {
+            " Note: Subscription is required for all students. Please subscribe, it will help us to upload more videos."
+          }
+        </Typography>
+        {canAddDocument && (
+          <Button
+            variant="contained"
+            color="success"
+            size="small"
+            startIcon={<AddIcon />}
+            onClick={onAdd}
+            sx={{ ...adminSessionListToolbarButtonSx, flexShrink: 0 }}
+          >
+            Upload Documents
           </Button>
-          {canAddDocument && (
-            <Button
-              variant="contained"
-              color="success"
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={onAdd}
-              sx={adminSessionListToolbarButtonSx}
-            >
-              Upload Document
-            </Button>
-          )}
-        </Box>
+        )}
       </Box>
 
       <Box sx={adminSessionListSearchBarSx}>
@@ -469,14 +501,8 @@ const AdminDocumentList = ({
         <Table sx={adminSessionListGridTableSx} size="small">
           <TableHead>
             <TableRow sx={adminSessionListTableHeadRowSx}>
-              <TableCell sx={adminSessionListTableHeadCellSx(documentListColumnWidths.view)}>
-                View
-              </TableCell>
-              <TableCell sx={adminSessionListTableHeadCellSx(documentListColumnWidths.publish)}>
-                Publish
-              </TableCell>
-              <TableCell sx={adminSessionListTableHeadCellSx(documentListColumnWidths.delete)}>
-                Delete
+              <TableCell sx={adminSessionListTableHeadCellSx(documentListColumnWidths.actions)}>
+                Actions
               </TableCell>
               <SortableHeader
                 label="Doc #"
@@ -511,12 +537,12 @@ const AdminDocumentList = ({
                 headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.description)}
               />
               <SortableHeader
-                label="Document Name"
+                label="Name"
                 field="docName"
                 sortField={orderBy}
                 sortOrder={order}
                 onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.docName)}
+                headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.name)}
               />
               <SortableHeader
                 label="Session"
@@ -534,14 +560,16 @@ const AdminDocumentList = ({
                 onSort={handleSort}
                 headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.postedDate)}
               />
-              <SortableHeader
-                label="Status"
-                field="publish"
-                sortField={orderBy}
-                sortOrder={order}
-                onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.status, true)}
-              />
+              <TableCell
+                sx={{
+                  ...adminSessionListTableHeadCellSx(documentListColumnWidths.posted, true),
+                  whiteSpace: "nowrap",
+                  textAlign: "center",
+                  px: 0.5,
+                }}
+              >
+                Posted
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -564,30 +592,6 @@ const AdminDocumentList = ({
                   >
                     <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
                       {renderDocumentActions(doc)}
-                    </TableCell>
-                    <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
-                      {canPublishDocument && !isPublished ? (
-                        <Box
-                          onClick={() => handlePublishClick(doc)}
-                          sx={adminSessionListTableActionLinkSx}
-                        >
-                          Publish
-                        </Box>
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                    <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
-                      {canDeleteDocument ? (
-                        <Box
-                          onClick={() => handleDeleteClick(doc)}
-                          sx={adminSessionListTableActionLinkSx}
-                        >
-                          Delete
-                        </Box>
-                      ) : (
-                        "—"
-                      )}
                     </TableCell>
                     <TableCell sx={adminSessionListTableBodyCellSx()}>
                       {doc.docID || "—"}
@@ -612,21 +616,46 @@ const AdminDocumentList = ({
                         <span>{doc.docName || "—"}</span>
                       </Tooltip>
                     </TableCell>
-                    <TableCell sx={adminSessionListTableBodyCellSx()}>
-                      {doc.session || "—"}
+                    <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                      <Tooltip title={doc.session || "—"}>
+                        <span>{doc.session || "—"}</span>
+                      </Tooltip>
                     </TableCell>
                     <TableCell sx={adminSessionListTableBodyCellSx()}>
                       {formatDate(doc.uploadedDate)}
                     </TableCell>
-                    <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
-                      {getPublishStatus(doc)}
+                    <TableCell
+                      sx={{
+                        ...adminSessionListTableBodyCellSx({ action: true, isLast: true }),
+                        whiteSpace: "nowrap",
+                        textAlign: "center",
+                        px: 0.5,
+                      }}
+                    >
+                      {isPublished ? (
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          sx={{
+                            fontSize: "0.75rem",
+                            fontWeight: 700,
+                            color: "#2e7d32",
+                          }}
+                        >
+                          Published
+                        </Typography>
+                      ) : canPublishDocument ? (
+                        renderActionLink("Publish", () => handlePublishClick(doc))
+                      ) : (
+                        "—"
+                      )}
                     </TableCell>
                   </TableRow>
                 );
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={11} align="center" sx={adminSessionListEmptyCellSx}>
+                <TableCell colSpan={9} align="center" sx={adminSessionListEmptyCellSx}>
                   <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
                     {searchText
                       ? "No documents found matching your search criteria."

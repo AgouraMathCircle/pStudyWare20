@@ -43,7 +43,7 @@ namespace pStudyWare20.Repository.Implementations
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                return SerializeDataTable(dataTable);
             }
             catch (Exception ex)
             {
@@ -72,7 +72,7 @@ namespace pStudyWare20.Repository.Implementations
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                return SerializeDataTable(dataTable);
             }
             catch (Exception ex)
             {
@@ -185,18 +185,48 @@ namespace pStudyWare20.Repository.Implementations
                 command.Parameters.Add(new SqlParameter("@mDescription", request.Description ?? ""));
                 command.Parameters.Add(new SqlParameter("@mClass", request.Class ?? ""));
                 command.Parameters.Add(new SqlParameter("@mSession", request.Session ?? ""));
-                command.Parameters.Add(new SqlParameter("@mPublish", request.Publish ?? ""));
+                command.Parameters.Add(new SqlParameter("@mDocType", NormalizeClassMaterialDocType(request.DocType)));
+                command.Parameters.Add(new SqlParameter("@mPublish", SqlDbType.Int) { Value = ParsePublishFlag(request.Publish) });
 
                 var dataTable = new DataTable();
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                return SerializeDataTable(dataTable);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error adding document: {ex.Message}", ex);
             }
+        }
+
+        /// <summary>
+        /// Class material list (AMC_spDocuments) only returns mDocType = 'P'.
+        /// Docs repository (AMC_spDocumentsRepository) uses mDocType = 'W'.
+        /// </summary>
+        private static string NormalizeClassMaterialDocType(string? docType) =>
+            string.Equals(docType?.Trim(), "W", StringComparison.OrdinalIgnoreCase) ? "W" : "P";
+
+        /// <summary>
+        /// AMC_spAddDocument expects @mPublish as int (0/1); legacy UI used dropdown values "0"/"1".
+        /// </summary>
+        private static int ParsePublishFlag(string? publish)
+        {
+            if (string.IsNullOrWhiteSpace(publish))
+                return 0;
+
+            var normalized = publish.Trim();
+            if (normalized == "1" ||
+                normalized.Equals("Y", StringComparison.OrdinalIgnoreCase) ||
+                normalized.Equals("true", StringComparison.OrdinalIgnoreCase))
+            {
+                return 1;
+            }
+
+            if (int.TryParse(normalized, out var parsed))
+                return parsed != 0 ? 1 : 0;
+
+            return 0;
         }
 
         /// <summary>
@@ -221,7 +251,7 @@ namespace pStudyWare20.Repository.Implementations
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                return SerializeDataTable(dataTable);
             }
             catch (Exception ex)
             {
@@ -442,12 +472,31 @@ namespace pStudyWare20.Repository.Implementations
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                return SerializeDataTable(dataTable);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error updating message center: {ex.Message}", ex);
             }
+        }
+
+        /// <summary>
+        /// DataTable cannot be serialized directly with System.Text.Json (Locale/CultureInfo cycles).
+        /// </summary>
+        private static string SerializeDataTable(DataTable dataTable)
+        {
+            var rows = new List<Dictionary<string, object?>>();
+            foreach (DataRow row in dataTable.Rows)
+            {
+                var dict = new Dictionary<string, object?>();
+                foreach (DataColumn col in dataTable.Columns)
+                {
+                    dict[col.ColumnName] = row[col] == DBNull.Value ? null : row[col];
+                }
+                rows.Add(dict);
+            }
+
+            return System.Text.Json.JsonSerializer.Serialize(rows);
         }
     }
 }

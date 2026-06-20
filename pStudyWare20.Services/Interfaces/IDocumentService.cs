@@ -43,6 +43,11 @@ namespace pStudyWare20.Services.Interfaces
         Task<DocumentUploadResponse> UploadDocumentAsync(DocumentUploadRequest request);
 
         /// <summary>
+        /// Upload Word/Excel/PowerPoint to Docs Repository (legacy DocumentsRepository.aspx).
+        /// </summary>
+        Task<DocumentUploadResponse> UploadRepositoryDocumentAsync(DocumentRepositoryUploadRequest request);
+
+        /// <summary>
         /// Delete document from repository
         /// </summary>
         /// <param name="request">Document delete request</param>

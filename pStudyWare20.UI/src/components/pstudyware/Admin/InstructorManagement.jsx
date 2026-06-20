@@ -19,6 +19,7 @@ import InstructorForm from "./InstructorForm";
 import {
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
+  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 
 const instructorManagementPageSx = {
@@ -349,7 +350,7 @@ const InstructorManagement = () => {
   return (
     <Box sx={instructorManagementPageSx}>
       <AdminHeader user={user} />
-      <Box sx={{ height: "48px" }} />
+      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

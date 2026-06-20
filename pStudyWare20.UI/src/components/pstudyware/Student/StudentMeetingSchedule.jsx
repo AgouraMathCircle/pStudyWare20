@@ -100,15 +100,19 @@ const getActiveMeetings = (response) => {
   );
 };
 
-const renderSectionHeader = () => (
+const renderSectionHeader = (sectionTitleSx) => (
   <Box sx={adminSessionListHeaderBarSx}>
-    <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
+    <Typography variant="subtitle1" component="div" sx={sectionTitleSx}>
       {sectionTitle}
     </Typography>
   </Box>
 );
 
-const StudentMeetingSchedule = ({ username, panelCardSx = defaultPanelCardSx }) => {
+const StudentMeetingSchedule = ({
+  username,
+  panelCardSx = defaultPanelCardSx,
+  sectionTitleSx = adminSessionListTitleSx,
+}) => {
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -184,7 +188,7 @@ const StudentMeetingSchedule = ({ username, panelCardSx = defaultPanelCardSx }) 
     return (
       <Card sx={panelCardSx}>
         <CardContent sx={panelContentSx}>
-          {renderSectionHeader()}
+          {renderSectionHeader(sectionTitleSx)}
           <Box display="flex" justifyContent="center" alignItems="center" p={2}>
             <CircularProgress size={32} />
           </Box>
@@ -197,7 +201,7 @@ const StudentMeetingSchedule = ({ username, panelCardSx = defaultPanelCardSx }) 
     return (
       <Card sx={panelCardSx}>
         <CardContent sx={panelContentSx}>
-          {renderSectionHeader()}
+          {renderSectionHeader(sectionTitleSx)}
           <Alert severity="warning">{error}</Alert>
         </CardContent>
       </Card>
@@ -211,7 +215,7 @@ const StudentMeetingSchedule = ({ username, panelCardSx = defaultPanelCardSx }) 
   return (
     <Card sx={panelCardSx} className="meeting-schedule-card">
       <CardContent sx={panelContentSx}>
-        {renderSectionHeader()}
+        {renderSectionHeader(sectionTitleSx)}
         <Box className="meeting-grid">
           {meetings.map((meeting, index) => {
             // Extract properties with fallback for camelCase/PascalCase

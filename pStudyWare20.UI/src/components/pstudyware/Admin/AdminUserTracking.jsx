@@ -34,6 +34,7 @@ import {
   APPLICATION_ADMIN_TITLE_COLOR,
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
+  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 
 const SEARCH_FIELDS = [
@@ -185,7 +186,7 @@ const AdminUserTracking = () => {
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f5f5" }}>
       <AdminHeader user={user} />
-      <Box sx={{ height: "48px" }} />
+      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

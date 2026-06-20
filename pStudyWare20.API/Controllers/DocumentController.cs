@@ -195,6 +195,39 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
+        /// Upload Docs Repository file (Word/Excel/PowerPoint).
+        /// Legacy: <c>DocumentsRepository.aspx.cs</c> <c>btnSubmit_Click1</c> → save under <c>~/pStudyWare/AMC_Docs/</c>,
+        /// <c>AMC_spAddDocument</c> with <c>@mDocType</c> = <c>W</c>.
+        /// </summary>
+        [HttpPost("UploadRepositoryDocument")]
+        [ProducesResponseType(typeof(DocumentUploadResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<DocumentUploadResponse>> UploadRepositoryDocument(
+            [FromBody] DocumentRepositoryUploadRequest request,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+
+            try
+            {
+                var response = await _documentService.UploadRepositoryDocumentAsync(request).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UploadRepositoryDocument failed.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while uploading the repository document.", ex));
+            }
+        }
+
+        /// <summary>
         /// Delete class material file + DB row (class-material type).
         /// Legacy: <c>Documents.aspx.cs</c> <c>DeleteFile()</c> → delete file under <c>~/pStudyWare/Documents/</c>,
         /// then <c>AMC_spDeleteDocuments</c> with <c>@Type</c> = <c>C</c>, <c>@DocID</c>.
@@ -349,7 +382,10 @@ namespace pStudyWare20.API.Controllers
                     return NotFound(new { message = response.ErrorMessage });
                 }
 
-                return new FileContentResult(response.FileContent, response.ContentType);
+                Response.Headers.ContentDisposition =
+                    $"inline; filename=\"{response.FileName}\"; filename*=UTF-8''{Uri.EscapeDataString(response.FileName)}";
+
+                return File(response.FileContent, response.ContentType, enableRangeProcessing: true);
             }
             catch (OperationCanceledException)
             {

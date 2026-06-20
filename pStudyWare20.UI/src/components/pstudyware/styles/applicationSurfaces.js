@@ -215,6 +215,14 @@ export const portalDashboardPageSx = {
   boxSizing: "border-box",
 };
 
+/** Instructor header + dashboard — same horizontal inset as dashboard cards. */
+export const instructorPortalContentContainerProps = {
+  maxWidth: "xl",
+};
+
+/** Spacer height below fixed instructor/admin role header bars. */
+export const portalRoleSubheaderSpacerPx = 42;
+
 /** Optional inset panel (e.g. nested cards). */
 export const applicationContentPanelSx = {
   bgcolor: APPLICATION_SURFACE_BG,

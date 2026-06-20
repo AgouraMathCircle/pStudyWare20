@@ -25,8 +25,9 @@ export function UpdateProfileModalProvider({ children }) {
 
   const handleSaved = useCallback(
     (formData) => {
-      const handler = savedHandler?.();
-      handler?.(formData);
+      if (typeof savedHandler === "function") {
+        savedHandler(formData);
+      }
     },
     [savedHandler],
   );

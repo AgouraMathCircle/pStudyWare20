@@ -86,6 +86,7 @@ namespace pStudyWare20.Services.Implementations
                         documents.Add(new DocumentRepositoryItem
                         {
                             DocID = GetIntValue(row, "mDocID") ?? GetIntValue(row, "DocID") ?? 0,
+                            DocumentID = GetIntValue(row, "DocumentID") ?? 0,
                             Topics = GetStringValue(row, "Topics"),
                             DocName = GetStringValue(row, "mDocName"),
                             Description = GetStringValue(row, "Description"),
@@ -137,6 +138,7 @@ namespace pStudyWare20.Services.Implementations
                         documents.Add(new DocumentRepositoryItem
                         {
                             DocID = GetIntValue(row, "mDocID") ?? GetIntValue(row, "DocID") ?? 0,
+                            DocumentID = GetIntValue(row, "DocumentID") ?? 0,
                             Topics = GetStringValue(row, "Topics"),
                             DocName = GetStringValue(row, "mDocName"),
                             Description = GetStringValue(row, "Description"),
@@ -168,37 +170,76 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
-        /// Upload document to repository
+        /// Upload class material (PDF) or docs repository file (Word/Excel/PowerPoint).
+        /// Legacy: Documents.aspx → ~/pStudyWare/Documents/ + mDocType P;
+        /// DocumentsRepository.aspx → ~/pStudyWare/AMC_Docs/ + mDocType W.
+        /// DB always stores the original upload file name in mDocName.
         /// </summary>
         public async Task<DocumentUploadResponse> UploadDocumentAsync(DocumentUploadRequest request)
         {
             var response = new DocumentUploadResponse();
             try
             {
-                // Save file to disk first
-                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "pStudyWare", "AMC_Docs");
+                var fileContent = NormalizeFileContent(request.FileContent, null);
+                if (fileContent.Length == 0)
+                {
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "File content is empty.";
+                    response.Message = "Failed to upload document";
+                    return response;
+                }
+
+                if (!TryGetSafeStudentDocumentFileName(request.DocName, out var displayFileName))
+                {
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "Invalid document name.";
+                    response.Message = "Failed to upload document";
+                    return response;
+                }
+
+                var isRepositoryDocument = IsRepositoryDocumentType(request.DocType);
+                if (isRepositoryDocument && !IsAllowedRepositoryExtension(displayFileName))
+                {
+                    response.IsSuccess = false;
+                    response.ErrorMessage =
+                        "Sorry, we can accept only Word, Excel and PowerPoint files.";
+                    response.Message = "Failed to upload document";
+                    return response;
+                }
+
+                request.FileContent = fileContent;
+                request.Class = NormalizeRepositoryClassCode(request.Class);
+
+                var uploadPath = isRepositoryDocument
+                    ? GetRepositoryDocsPath()
+                    : GetLegacyClassMaterialDocsPath();
                 if (!Directory.Exists(uploadPath))
                 {
                     Directory.CreateDirectory(uploadPath);
                 }
 
-                var fileName = $"{Guid.NewGuid()}_{request.DocName}";
-                var filePath = Path.Combine(uploadPath, fileName);
-
+                var diskFileName = ResolveUniqueDiskFileName(uploadPath, displayFileName);
+                var filePath = Path.Combine(uploadPath, diskFileName);
                 await File.WriteAllBytesAsync(filePath, request.FileContent);
 
-                // Update request with actual file path
-                request.DocName = fileName;
+                request.DocName = displayFileName;
+                request.DocType = isRepositoryDocument ? "W" : "P";
+                if (isRepositoryDocument)
+                {
+                    request.VideoURL = string.Empty;
+                }
 
                 // Call repository to add document metadata
                 var result = await _documentRepository.AddDocumentAsync(request);
 
-                // Parse result to get document ID if available
-                var dataTable = System.Text.Json.JsonSerializer.Deserialize<System.Data.DataTable>(result);
+                // Parse result to get document ID if available (SP may return no rows)
+                var rows = System.Text.Json.JsonSerializer.Deserialize<List<Dictionary<string, System.Text.Json.JsonElement>>>(result);
                 int documentId = 0;
-                if (dataTable != null && dataTable.Rows.Count > 0)
+                if (rows != null && rows.Count > 0)
                 {
-                    documentId = Convert.ToInt32(dataTable.Rows[0]["DocID"]);
+                    documentId = GetStaticIntValue(rows[0], "DocID")
+                        ?? GetStaticIntValue(rows[0], "mDocID")
+                        ?? 0;
                 }
 
                 response.IsSuccess = true;
@@ -217,6 +258,60 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
+        /// Upload Word/Excel/PowerPoint to Docs Repository (AMC_Docs + mDocType W).
+        /// </summary>
+        public async Task<DocumentUploadResponse> UploadRepositoryDocumentAsync(
+            DocumentRepositoryUploadRequest request)
+        {
+            var fileContent = NormalizeFileContent(request.FileContent, request.FileContentBase64);
+            if (fileContent.Length == 0)
+            {
+                return new DocumentUploadResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "File content is empty.",
+                    Message = "Failed to upload document",
+                };
+            }
+
+            if (!TryGetSafeStudentDocumentFileName(request.DocName, out var displayFileName))
+            {
+                return new DocumentUploadResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = "Invalid document name.",
+                    Message = "Failed to upload document",
+                };
+            }
+
+            if (!IsAllowedRepositoryExtension(displayFileName))
+            {
+                return new DocumentUploadResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage =
+                        "Sorry, we can accept only Word, Excel and PowerPoint files.",
+                    Message = "Failed to upload document",
+                };
+            }
+
+            var uploadRequest = new DocumentUploadRequest
+            {
+                Topics = request.Topics ?? string.Empty,
+                DocName = displayFileName,
+                Description = request.Description,
+                Class = NormalizeRepositoryClassCode(request.Class),
+                Session = request.Session,
+                Publish = string.IsNullOrWhiteSpace(request.Publish) ? "0" : request.Publish,
+                DocType = "W",
+                VideoURL = string.Empty,
+                FileContent = fileContent,
+            };
+
+            return await UploadDocumentAsync(uploadRequest);
+        }
+
+        /// <summary>
         /// Delete document from repository
         /// </summary>
         public async Task<DocumentDeleteResponse> DeleteDocumentAsync(DocumentDeleteRequest request)
@@ -224,11 +319,40 @@ namespace pStudyWare20.Services.Implementations
             var response = new DocumentDeleteResponse();
             try
             {
-                // Delete file from disk first
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "pStudyWare", "AMC_Docs", request.DocName);
-                if (File.Exists(filePath))
+                if (!TryResolveDeleteDocumentId(request.DocID, out var docId))
                 {
-                    File.Delete(filePath);
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "Invalid document ID.";
+                    response.Message = "Failed to delete document";
+                    return response;
+                }
+
+                request.DocID = docId.ToString();
+
+                if (!TryGetSafeStudentDocumentFileName(request.DocName, out var safeFileName))
+                {
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "Invalid document name.";
+                    response.Message = "Failed to delete document";
+                    return response;
+                }
+
+                foreach (var directory in GetClassMaterialSearchDirectories())
+                {
+                    if (!Directory.Exists(directory))
+                    {
+                        continue;
+                    }
+
+                    foreach (var candidateName in GetCandidateDiskFileNames(safeFileName))
+                    {
+                        var filePath = Path.Combine(directory, candidateName);
+                        if (File.Exists(filePath))
+                        {
+                            File.Delete(filePath);
+                            break;
+                        }
+                    }
                 }
 
                 // Call repository to delete document metadata
@@ -590,30 +714,138 @@ namespace pStudyWare20.Services.Implementations
         {
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            var configured = _configuration["DocumentStorage:ClassMaterialDocsPath"];
-            if (!string.IsNullOrWhiteSpace(configured))
+            foreach (var directory in new[]
             {
-                var resolved = Path.IsPathRooted(configured)
-                    ? configured
-                    : Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), configured));
-
-                if (seen.Add(resolved))
-                {
-                    yield return resolved;
-                }
-            }
-
-            foreach (var legacyPath in new[]
-            {
-                Path.Combine(Directory.GetCurrentDirectory(), "pStudyWare", "Documents"),
-                Path.Combine(Directory.GetCurrentDirectory(), "pStudyWare", "AMC_Docs"),
+                GetLegacyClassMaterialDocsPath(),
+                GetRepositoryDocsPath(),
             })
             {
-                if (seen.Add(legacyPath))
+                if (seen.Add(directory))
                 {
-                    yield return legacyPath;
+                    yield return directory;
                 }
             }
+        }
+
+        private string GetRepositoryDocsPath() =>
+            ResolveConfiguredStoragePath(
+                "DocumentStorage:RepositoryDocsPath",
+                Path.Combine("pStudyWare", "AMC_Docs"));
+
+        private string GetLegacyClassMaterialDocsPath() =>
+            ResolveConfiguredStoragePath(
+                "DocumentStorage:ClassMaterialDocsPath",
+                Path.Combine("pStudyWare", "Documents"));
+
+        private string ResolveConfiguredStoragePath(string configurationKey, string defaultRelativePath)
+        {
+            var configured = _configuration[configurationKey];
+            if (!string.IsNullOrWhiteSpace(configured))
+            {
+                return Path.IsPathRooted(configured)
+                    ? configured
+                    : Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), configured));
+            }
+
+            return Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), defaultRelativePath));
+        }
+
+        private static bool IsRepositoryDocumentType(string? docType) =>
+            string.Equals(docType?.Trim(), "W", StringComparison.OrdinalIgnoreCase);
+
+        private static readonly HashSet<string> RepositoryAllowedExtensions =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+            };
+
+        private static bool IsAllowedRepositoryExtension(string fileName)
+        {
+            var extension = Path.GetExtension(fileName);
+            return !string.IsNullOrWhiteSpace(extension)
+                && RepositoryAllowedExtensions.Contains(extension);
+        }
+
+        private static string NormalizeRepositoryClassCode(string? classValue)
+        {
+            if (string.IsNullOrWhiteSpace(classValue))
+            {
+                return string.Empty;
+            }
+
+            var trimmed = classValue.Trim();
+            var classMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Junior Beginner"] = "JB",
+                ["Junior Intermediate"] = "JI",
+                ["Junior Advanced"] = "JA",
+                ["Senior Beginner"] = "SB",
+                ["Senior Intermediate"] = "SI",
+                ["Senior Advanced"] = "SA",
+            };
+
+            return classMap.TryGetValue(trimmed, out var code) ? code : trimmed;
+        }
+
+        private static byte[] NormalizeFileContent(byte[]? fileContent, string? base64Content)
+        {
+            if (fileContent != null && fileContent.Length > 0)
+            {
+                return fileContent;
+            }
+
+            if (string.IsNullOrWhiteSpace(base64Content))
+            {
+                return Array.Empty<byte>();
+            }
+
+            try
+            {
+                var normalized = base64Content.Trim();
+                var commaIndex = normalized.IndexOf(',');
+                if (commaIndex >= 0)
+                {
+                    normalized = normalized[(commaIndex + 1)..];
+                }
+
+                return Convert.FromBase64String(normalized);
+            }
+            catch
+            {
+                return Array.Empty<byte>();
+            }
+        }
+
+        private static IEnumerable<string> GetCandidateDiskFileNames(string displayFileName)
+        {
+            yield return displayFileName;
+            for (var counter = 2; counter <= 100; counter++)
+            {
+                yield return $"{counter}{displayFileName}";
+            }
+        }
+
+        /// <summary>
+        /// Legacy Utils.UploadProductPhoto: prefix with counter when the target path already exists.
+        /// </summary>
+        private static string ResolveUniqueDiskFileName(string directory, string originalFileName)
+        {
+            var fileName = originalFileName;
+            var pathToCheck = Path.Combine(directory, fileName);
+            if (!File.Exists(pathToCheck))
+            {
+                return fileName;
+            }
+
+            var counter = 2;
+            while (File.Exists(pathToCheck))
+            {
+                fileName = $"{counter}{originalFileName}";
+                pathToCheck = Path.Combine(directory, fileName);
+                counter++;
+            }
+
+            return fileName;
         }
 
         private static bool TryGetSafeStudentDocumentFileName(string? documentName, out string safeFileName)

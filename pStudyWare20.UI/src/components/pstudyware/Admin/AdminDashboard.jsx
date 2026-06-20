@@ -18,6 +18,7 @@ import {
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
   adminDashboardWidgetColumnSx,
+  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import EnrolledStudents from "./EnrolledStudents";
 import ToDoList from "./ToDoList";
@@ -319,7 +320,7 @@ const AdminDashboard = () => {
   return (
     <Box className="admin-dashboard">
       <AdminHeader user={user} />
-      <Box sx={{ height: "48px" }} />
+      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sx={{ pb: 0 }}>

@@ -57,6 +57,7 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
   adminSessionListToolbarButtonSx,
+  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import AdminHeader from "./AdminHeader";
 import AdminSessionListPagination from "./AdminSessionListPagination";
@@ -504,7 +505,7 @@ const StudentWaitingList = () => {
   return (
     <Box sx={studentWaitingListPageSx}>
       <AdminHeader user={user} />
-      <Box sx={{ height: "48px" }} />
+      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
