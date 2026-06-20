@@ -236,7 +236,7 @@ const Leadership = () => {
                       <GoogleIcon />
                     </Box>
                     <Box className="social-icon">
-                      <X />
+                      <XIcon />
                     </Box>
                     <Box className="social-icon">
                       <LinkedInIcon />
@@ -343,7 +343,7 @@ const Leadership = () => {
                       <GoogleIcon />
                     </Box>
                     <Box className="social-icon">
-                      <X />
+                      <XIcon />
                     </Box>
                     <Box className="social-icon">
                       <LinkedInIcon />
@@ -426,7 +426,7 @@ const Leadership = () => {
                       <GoogleIcon />
                     </Box>
                     <Box className="social-icon">
-                      <X />
+                      <XIcon />
                     </Box>
                     <Box className="social-icon">
                       <LinkedInIcon />

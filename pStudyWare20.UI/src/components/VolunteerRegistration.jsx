@@ -16,7 +16,15 @@ import {
   Paper,
   Breadcrumbs,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -75,11 +83,22 @@ const validationSchema = yup.object({
   aboutyourself: yup
     .string()
     .max(500, "About yourself must be less than 500 characters"),
+  liabilitySignature: yup
+    .string()
+    .required("Liability signature is required")
+    .min(2, "Please enter your full name"),
+  ruleSignature: yup
+    .string()
+    .required("Rule signature is required")
+    .min(2, "Please enter your full name"),
+  picturePermission: yup.boolean(),
 });
 
 const VolunteerRegistration = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -113,6 +132,9 @@ const VolunteerRegistration = () => {
       locationId: 0,
       interestedFor: "0",
       aboutyourself: "",
+      liabilitySignature: "",
+      ruleSignature: "",
+      picturePermission: true,
     },
   });
 
@@ -191,6 +213,9 @@ const VolunteerRegistration = () => {
         locationId: data.locationId,
         interestedFor: data.interestedFor,
         aboutyourself: data.aboutyourself || "",
+        liabilitySignature: data.liabilitySignature,
+        ruleSignature: data.ruleSignature,
+        picturePermission: data.picturePermission,
       };
 
       const response = await volunteerService.registerVolunteer(volunteerData);
@@ -382,11 +407,17 @@ const VolunteerRegistration = () => {
                         control={control}
                         render={({ field }) => (
                           <FormControl
+                            variant="outlined"
                             error={!!errors.country}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel>Country *</InputLabel>
-                            <Select {...field} label="Country *">
+                            <InputLabel id="country-label">Country *</InputLabel>
+                            <Select
+                              {...field}
+                              labelId="country-label"
+                              id="country-select"
+                              label="Country *"
+                            >
                               {countries.map((country) => (
                                 <MenuItem
                                   key={country.value}
@@ -460,11 +491,17 @@ const VolunteerRegistration = () => {
                         control={control}
                         render={({ field }) => (
                           <FormControl
+                            variant="outlined"
                             error={!!errors.grade}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel>Grade/Degree *</InputLabel>
-                            <Select {...field} label="Grade/Degree *">
+                            <InputLabel id="grade-label">Grade/Degree *</InputLabel>
+                            <Select
+                              {...field}
+                              labelId="grade-label"
+                              id="grade-select"
+                              label="Grade/Degree *"
+                            >
                               {grades.map((grade) => (
                                 <MenuItem key={grade.value} value={grade.value}>
                                   {grade.label}
@@ -485,11 +522,17 @@ const VolunteerRegistration = () => {
                         control={control}
                         render={({ field }) => (
                           <FormControl
+                            variant="outlined"
                             error={!!errors.sessionId}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel>Register For *</InputLabel>
-                            <Select {...field} label="Register For *">
+                            <InputLabel id="session-label">Register For *</InputLabel>
+                            <Select
+                              {...field}
+                              labelId="session-label"
+                              id="session-select"
+                              label="Register For *"
+                            >
                               {sessions.map((session) => (
                                 <MenuItem key={session.id} value={session.id}>
                                   {session.name}
@@ -510,11 +553,17 @@ const VolunteerRegistration = () => {
                         control={control}
                         render={({ field }) => (
                           <FormControl
+                            variant="outlined"
                             error={!!errors.locationId}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel>Course/Location *</InputLabel>
-                            <Select {...field} label="Course/Location *">
+                            <InputLabel id="location-label">Course/Location *</InputLabel>
+                            <Select
+                              {...field}
+                              labelId="location-label"
+                              id="location-select"
+                              label="Course/Location *"
+                            >
                               <MenuItem value={0}>
                                 <em>--Select--</em>
                               </MenuItem>
@@ -538,11 +587,17 @@ const VolunteerRegistration = () => {
                         control={control}
                         render={({ field }) => (
                           <FormControl
+                            variant="outlined"
                             error={!!errors.interestedFor}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel>Interested For *</InputLabel>
-                            <Select {...field} label="Interested For *">
+                            <InputLabel id="interested-label">Interested For *</InputLabel>
+                            <Select
+                              {...field}
+                              labelId="interested-label"
+                              id="interested-select"
+                              label="Interested For *"
+                            >
                               <MenuItem value="0">
                                 <em>--Select--</em>
                               </MenuItem>
@@ -578,6 +633,137 @@ const VolunteerRegistration = () => {
                             variant="outlined"
                             placeholder="Tell us about your achievements, merits, and any additional information..."
                             sx={{ width: "100%" }}
+                          />
+                        )}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Signatures and Agreements Section */}
+                <div className="col-lg-12" style={{ marginTop: "20px" }}>
+                  <div
+                    className="form-section signature-section"
+                    style={{
+                      padding: "20px",
+                      backgroundColor: "#ffffff",
+                      borderRadius: "8px",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    <div
+                      className="form-group-container"
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "16px",
+                      }}
+                    >
+                      <p className="agreement-text" style={{ marginBottom: "5px" }}>
+                        Pressing the "Submit" button I agree the Agoura Math Circle{" "}
+                        <button
+                          type="button"
+                          onClick={() => setTermsOpen(true)}
+                          style={{
+                            backgroundColor: "#53b50a",
+                            color: "#ffffff",
+                            border: "none",
+                            padding: "4px 12px",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "0.875rem",
+                            fontWeight: "500",
+                            margin: "0 2px",
+                          }}
+                        >
+                          Terms
+                        </button>{" "}
+                        and{" "}
+                        <button
+                          type="button"
+                          onClick={() => setRulesOpen(true)}
+                          style={{
+                            backgroundColor: "#53b50a",
+                            color: "#ffffff",
+                            border: "none",
+                            padding: "4px 12px",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontSize: "0.875rem",
+                            fontWeight: "500",
+                            margin: "0 2px",
+                          }}
+                        >
+                          Rules
+                        </button>
+                      </p>
+                      
+                      <p className="signature-help-text" style={{ fontSize: "0.875rem", color: "#666", marginBottom: "0" }}>
+                        Please sign the waiver (Liability Signature)* . DO NOT SIGN WITHOUT READING. I HAVE READ THIS ASSUMPTION OF RISK, WAIVER OF LIABILITY AND INDEMNITY AGREEMENT AND AGREE TO ITS TERMS.
+                      </p>
+                      
+                      <Controller
+                        name="liabilitySignature"
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            label="Liability Signature *"
+                            error={!!errors.liabilitySignature}
+                            helperText={errors.liabilitySignature?.message}
+                            variant="outlined"
+                            placeholder="Enter your full name"
+                          />
+                        )}
+                      />
+                      
+                      <p className="signature-help-text" style={{ fontSize: "0.875rem", color: "#666", marginBottom: "0" }}>
+                        By printing your name in the box and pressing the submit button, I acknowledge that I have read and am electronically signing the Waiver of Liability, Assumption of Risk and Indemnity Agreement on behalf of myself or my dependent minor participant.
+                      </p>
+
+                      <Controller
+                        name="ruleSignature"
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            label="Signature *"
+                            error={!!errors.ruleSignature}
+                            helperText={errors.ruleSignature?.message}
+                            variant="outlined"
+                            placeholder="Enter your full name"
+                          />
+                        )}
+                      />
+                      
+                      <p className="signature-help-text" style={{ fontSize: "0.875rem", color: "#666", marginBottom: "0" }}>
+                        By printing your name in the box and pressing the submit button, I acknowledge that I have read and am electronically signing the Agoura Math Circle Rules and Expectations on behalf of myself or my dependent minor participant.
+                      </p>
+                      
+                      <p className="signature-help-text" style={{ fontSize: "0.875rem", color: "#666", marginBottom: "0" }}>
+                        Occasionally, we take pictures at AMC meetings, which may be used for publicity purposes [e.g.: posted on our web site or used in a brochure about AMC.] Do you give us permission to include you in such photographs?
+                      </p>
+                      
+                      <Controller
+                        name="picturePermission"
+                        control={control}
+                        render={({ field }) => (
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                {...field}
+                                checked={field.value}
+                                color="primary"
+                              />
+                            }
+                            label={
+                              <span style={{ fontSize: "0.875rem" }}>
+                                I give permission to use the pictures/videos.
+                              </span>
+                            }
                           />
                         )}
                       />
@@ -666,6 +852,282 @@ const VolunteerRegistration = () => {
               </button>
             </div>
           )}
+
+          {/* Rules Popup Dialog */}
+          <Dialog
+            open={rulesOpen}
+            onClose={() => setRulesOpen(false)}
+            maxWidth="md"
+            fullWidth
+            PaperProps={{
+              style: {
+                maxHeight: "90vh",
+                backgroundColor: "#f5f5f5",
+              },
+            }}
+          >
+            <DialogTitle
+              sx={{
+                backgroundColor: "#f5f5f5",
+                color: "#174a10",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "16px 24px",
+                borderBottom: "1px solid #e0e0e0",
+              }}
+            >
+              <Typography
+                variant="h6"
+                component="div"
+                sx={{ fontWeight: "bold", color: "#174a10" }}
+              >
+                Agoura Math Circle rules and expectations
+              </Typography>
+              <IconButton
+                aria-label="close"
+                onClick={() => setRulesOpen(false)}
+                sx={{
+                  color: "#174a10",
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent
+              dividers
+              sx={{
+                padding: "24px",
+                backgroundColor: "#f5f5f5",
+              }}
+            >
+              <Typography
+                variant="body1"
+                paragraph
+                sx={{ marginBottom: "20px" }}
+              >
+                By joining the Agoura Math Circle students and parents agree to
+                abide the following rules:
+              </Typography>
+              <ol style={{ fontSize: "large", paddingLeft: "20px" }}>
+                <li style={{ marginBottom: "15px" }}>
+                  Arrive on Time: All the classes start at 2 p.m. sharp. We
+                  strongly discourage late arrivals since they are very
+                  disruptive to the sessions.
+                </li>
+                <li style={{ marginBottom: "15px" }}>
+                  COME PREPARED: Bring a 3 ring binder dedicated to the Agoura
+                  Math Circle materials. You will be putting handouts and
+                  worksheets into this binder
+                  <br />
+                  Bring scratch paper.
+                  <br />
+                  Bring pencils, pens and erasers.
+                  <br />
+                  If asked by the instructor, bring additional supplies (such as
+                  compasses and rulers for geometry sessions; calculators, graph
+                  paper, etc.)
+                  <br />
+                  Make your best effort in completing problems assigned for
+                  homework.
+                  <br />
+                  If you have missed a session, be sure to download the handout
+                  from the web page and work through it at home.
+                </li>
+                <li style={{ marginBottom: "15px" }}>
+                  BEHAVIOR RULES:No food or drink in the classrooms while
+                  classes are in session (you may have a snack during the break
+                  only).
+                  <br />
+                  No cell phones or electronic games are allowed during class
+                  time. Calculators are allowed only in sessions when
+                  instructors have asked to bring them.
+                  <br />
+                  No running and playing in the classrooms, hallways, bathrooms
+                  or elevators.
+                  <br />
+                  Stay quiet in the hallways.
+                  <br />
+                  Follow the instructions of group instructors and staff.
+                  <br />
+                  Be engaged in the classroom activities (no working on outside
+                  projects or homework; no cell phones; no playing games; no
+                  reading of outside materials).
+                  <br />
+                  Maintain classroom environment conductive of learning (be
+                  respectful to the instructors, your peers; stay in your seat;
+                  do not speak out of turn).
+                  <br />
+                  Be careful with the furniture and classroom equipment, as well
+                  as when using any university facilities.
+                  <br />
+                  Clean up your work space before leaving the classroom.
+                </li>
+                <li style={{ marginBottom: "15px" }}>
+                  FOR PARENTS: Parents (except for specially designated room
+                  parents) are generally not allowed in the classrooms during
+                  the math circle sessions.
+                  <br />
+                  Room parents help the lead instructor and circle docents and
+                  divide their attention equally between the children.
+                  <br />
+                  Please stay with your children until the session starts.
+                  <br />
+                  Please sign in and sign out your child on the sign up sheets
+                  provided next to the classroom (the sign-up sheets are
+                  maintained by room parents).
+                  <br />
+                  Conversation in the hallways should be kept to a minimum.
+                  <br />
+                  All the classes end at 5 p.m. sharp. Please pick up your
+                  child(ren) promptly at the end of the math circle sessions.
+                </li>
+                <li style={{ marginBottom: "15px" }}>
+                  Home work is required for all students. Students need to bring
+                  their Student ID Card and Home Work for every session. If your
+                  kid/s will not be able to attend this session, please contact
+                  the Instructor via the message center. If students are absent
+                  for more than two classes or missing homework for 2 classes,
+                  they will be dropped.
+                </li>
+                <li style={{ marginBottom: "15px" }}>
+                  Agoura Math Circle YouTube channel subscription is required
+                  for all students. We publish the lecture videos a week before
+                  the class. All students must watch the lecture videos before
+                  coming to the class. Subscribe to{" "}
+                  <a
+                    href="https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/videos"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "#1976d2" }}
+                  >
+                    Agoura Math Circle YouTube Channel.
+                  </a>
+                </li>
+              </ol>
+              <Typography
+                variant="body2"
+                sx={{ marginTop: "20px", fontWeight: "bold" }}
+              >
+                Last revised: January 1, 2020
+              </Typography>
+            </DialogContent>
+          </Dialog>
+
+          {/* Terms Popup Dialog */}
+          <Dialog
+            open={termsOpen}
+            onClose={() => setTermsOpen(false)}
+            maxWidth="md"
+            fullWidth
+            PaperProps={{
+              style: {
+                maxHeight: "90vh",
+                backgroundColor: "#f5f5f5",
+              },
+            }}
+          >
+            <DialogTitle
+              sx={{
+                backgroundColor: "#f5f5f5",
+                color: "#174a10",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "16px 24px",
+                borderBottom: "1px solid #e0e0e0",
+              }}
+            >
+              <Typography
+                variant="h6"
+                component="div"
+                sx={{ fontWeight: "bold", color: "#174a10" }}
+              >
+                ASSUMPTION OF RISK, WAIVER OF LIABILITY AND INDEMNITY AGREEMENT
+              </Typography>
+              <IconButton
+                aria-label="close"
+                onClick={() => setTermsOpen(false)}
+                sx={{
+                  color: "#174a10",
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent
+              dividers
+              sx={{
+                padding: "24px",
+                backgroundColor: "#f5f5f5",
+              }}
+            >
+              <Typography
+                variant="body1"
+                paragraph
+                sx={{ marginBottom: "15px", textAlign: "justify" }}
+              >
+                I will not attempt to hold Agoura Math Circle, its directors,
+                officers, teachers, volunteers, shareholders, members,
+                employees, affiliates, sponsors, and/or insurers (all together,
+                "Releasees") liable for any damages, injury, and/or loss to
+                person or property one might sustain while participating in the
+                Agoura Math Circle Program. I knowingly and voluntarily release
+                Releasees from any and all liability whatsoever for any personal
+                injury (including death) or property damage arising
+                from-participation in Agoura Math Circle's program including,
+                without limitation, any incidental travel. I further knowingly
+                and voluntarily agree to defend, indemnify, and hold harmless
+                the Releasees from any and all liabilities, damages, claims,
+                demands, causes of action, loss and/or liability (including
+                attorneys' fees) arising out of my own actions or omissions
+                while participating in/and/or attending the Agoura Math Circle
+                Program or any incident thereto.
+              </Typography>
+              <Typography
+                variant="body1"
+                paragraph
+                sx={{ marginBottom: "15px", textAlign: "justify" }}
+              >
+                I fully recognize that there are dangers and risks I may be
+                exposed to by participating in the Agoura Math Circle Program
+                including, but not limited to injury, illness, substantial
+                bodily harm, death, and or property damage for which I may be
+                liable. I expressly and knowingly assume the full risk, without
+                limitation. I expressly acknowledge and agree that I am
+                voluntarily participating in the Agoura Math Circle Program and
+                that it is my sole responsibility to comply with any and all
+                applicable laws. I expressly acknowledge and agree that it is my
+                sole responsibility to participate only in those activities for
+                which I have the necessary skills, fitness, and training. I
+                expressly acknowledge and agree that Releasees do not warrant or
+                guarantee as to the condition, safety, or suitability of any
+                equipment, vehicle, roadway, sidewalk, classroom, classroom
+                furniture, property, building, parking lot, and/or location or
+                structure of any kind that may be involved, used, and/or visited
+                in connection with the Agoura Math Circle Program.
+              </Typography>
+              <Typography
+                variant="body1"
+                paragraph
+                sx={{
+                  marginBottom: "15px",
+                  fontWeight: "bold",
+                  textAlign: "center",
+                }}
+              >
+                DO NOT SIGN WITHOUT READING. I HAVE READ THIS ASSUMPTION OF
+                RISK, WAIVER OF LIABILITY AND INDEMNITY AGREEMENT AND AGREE TO
+                ITS TERMS.
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ marginTop: "20px", fontStyle: "italic" }}
+              >
+                <strong>Last revised: January 1, 2020</strong>
+              </Typography>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

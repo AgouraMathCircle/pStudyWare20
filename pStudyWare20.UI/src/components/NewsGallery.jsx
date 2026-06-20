@@ -57,7 +57,7 @@ const NewsGallery = () => {
                   <div key={index} className="col-lg-4">
                     <div className="team-inner-item">
                       <div className="team-wrap team-wrap1">
-                        <div className="team-img">
+                        <div className="team-img gallery-img">
                           <a
                             className="image-link"
                             href={article.url}

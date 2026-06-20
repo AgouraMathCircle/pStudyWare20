@@ -37,6 +37,21 @@ const REASON_OPTIONS = [
   "Miscellaneous Work",
 ];
 
+const formatSemesterForDb = (sem) => {
+  if (!sem) return "";
+  const trimmed = sem.trim();
+  if (/^[FSfs]\d{4}$/.test(trimmed)) {
+    return trimmed.toUpperCase();
+  }
+  const match = trimmed.match(/^(Fall|Spring|Summer|Winter)?\s*(\d{4})/i);
+  if (match) {
+    const term = match[1] ? match[1].charAt(0).toUpperCase() : "S";
+    const year = match[2];
+    return `${term}${year}`;
+  }
+  return trimmed.substring(0, 5);
+};
+
 const VolunteerAvailability = ({ embedded = false }) => {
   const { user } = useAuth();
   const username = useMemo(
@@ -87,9 +102,9 @@ const VolunteerAvailability = ({ embedded = false }) => {
         const sessionNum = parseSessionNumberFromString(currentSession);
 
         const getRequest = {
-          userID: userId,
+          userID: String(userId ?? ""),
           session: `Session ${sessionNum}`,
-          semester,
+          semester: formatSemesterForDb(semester),
         };
 
         const response = await volunteerAvailabilityService.getAvailability(
@@ -162,9 +177,9 @@ const VolunteerAvailability = ({ embedded = false }) => {
     setSaving(true);
     try {
       const request = {
-        userID: user?.userId ?? user?.userID ?? null,
+        userID: String(user?.userId ?? user?.userID ?? ""),
         session: `Session ${sessionNumber}`,
-        semester,
+        semester: formatSemesterForDb(semester),
         response: isAvailable === "true" ? "Y" : "N",
         comment: reason,
       };

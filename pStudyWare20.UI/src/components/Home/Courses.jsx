@@ -266,7 +266,7 @@ const Courses = () => {
               <CardMedia
                 component="img"
                 image={scheduleImage}
-                alt="Fall Semester 2024 Schedule"
+                alt="Fall Semester 2026 Schedule"
                 sx={{
                   height: "200px",
                   objectFit: "cover",
@@ -286,12 +286,12 @@ const Courses = () => {
                     lineHeight: 1.3,
                   }}
                 >
-                  Fall Semester 2024
+                  Fall Semester 2026
                 </Typography>
                 <List sx={{ padding: 0 }}>
                   <ListItem sx={{ padding: "4px 0" }}>
                     <ListItemText
-                      primary="08/24/2024: 2.00 - 5 PM (SATURDAY)"
+                      primary="08/29/2026 : 1.30 - 5.30 PM (SATURDAY)"
                       sx={{
                         "& .MuiListItemText-primary": {
                           fontSize: "14px",
@@ -303,7 +303,7 @@ const Courses = () => {
                   </ListItem>
                   <ListItem sx={{ padding: "4px 0" }}>
                     <ListItemText
-                      primary="09/07/2024: 2.00 - 5 PM (SATURDAY)"
+                      primary="09/12/2026 : 1.30 - 5.30 PM (SATURDAY)"
                       sx={{
                         "& .MuiListItemText-primary": {
                           fontSize: "14px",
@@ -315,7 +315,7 @@ const Courses = () => {
                   </ListItem>
                   <ListItem sx={{ padding: "4px 0" }}>
                     <ListItemText
-                      primary="09/21/2024: 2.00 - 5 PM (SATURDAY)"
+                      primary="09/26/2026 : 1.30 - 5.30 PM (SATURDAY)"
                       sx={{
                         "& .MuiListItemText-primary": {
                           fontSize: "14px",
@@ -327,7 +327,7 @@ const Courses = () => {
                   </ListItem>
                   <ListItem sx={{ padding: "4px 0" }}>
                     <ListItemText
-                      primary="10/05/2024: 2.00 - 5 PM (SATURDAY)"
+                      primary="10/10/2026 : 1.30 - 5.30 PM (SATURDAY)"
                       sx={{
                         "& .MuiListItemText-primary": {
                           fontSize: "14px",
@@ -339,7 +339,7 @@ const Courses = () => {
                   </ListItem>
                   <ListItem sx={{ padding: "4px 0" }}>
                     <ListItemText
-                      primary="10/19/2024: 2.00 - 5 PM (SATURDAY)"
+                      primary="10/24/2026 : 1.30 - 5.30 PM (SATURDAY)"
                       sx={{
                         "& .MuiListItemText-primary": {
                           fontSize: "14px",
@@ -351,7 +351,7 @@ const Courses = () => {
                   </ListItem>
                   <ListItem sx={{ padding: "4px 0" }}>
                     <ListItemText
-                      primary="11/02/2024: 2.00 - 5 PM (SATURDAY)"
+                      primary="11/07/2026 : 1.30 - 5.30 PM (SATURDAY)"
                       sx={{
                         "& .MuiListItemText-primary": {
                           fontSize: "14px",
@@ -363,7 +363,7 @@ const Courses = () => {
                   </ListItem>
                   <ListItem sx={{ padding: "4px 0" }}>
                     <ListItemText
-                      primary="11/16/2024: 2.00 - 5 PM (SATURDAY)"
+                      primary="11/21/2026 : 1.30 - 5.30 PM (SATURDAY)"
                       sx={{
                         "& .MuiListItemText-primary": {
                           fontSize: "14px",
@@ -375,7 +375,7 @@ const Courses = () => {
                   </ListItem>
                   <ListItem sx={{ padding: "4px 0" }}>
                     <ListItemText
-                      primary="12/07/2024: 2.00 - 5 PM (SATURDAY)"
+                      primary="12/05/2026 : 1.30 - 5.30 PM (SATURDAY)"
                       sx={{
                         "& .MuiListItemText-primary": {
                           fontSize: "14px",
@@ -387,7 +387,7 @@ const Courses = () => {
                   </ListItem>
                   <ListItem sx={{ padding: "4px 0" }}>
                     <ListItemText
-                      primary="12/21/2024: 2.00 - 4 PM FINAL EXAM"
+                      primary="12/19/2026 : 12.00 - 5.00 PM FINAL EXAM"
                       sx={{
                         "& .MuiListItemText-primary": {
                           fontSize: "14px",

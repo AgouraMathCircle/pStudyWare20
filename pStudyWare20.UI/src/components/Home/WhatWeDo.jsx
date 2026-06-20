@@ -79,9 +79,9 @@ const WhatWeDo = () => {
                 <br />
                 Triangular Talks - Every Month
                 <br />
-                Satellite Program -
+                Satellite Program -{" "}
                 <a href="/studentregistration">
-                  <button className="active">Register</button>
+                  Register
                 </a>
                 <br />
                 Math Kangraoo -{" "}
@@ -92,12 +92,12 @@ const WhatWeDo = () => {
             </Box>
           </Box>
 
-          {/* Fall Semester 2024 Card */}
+          {/* Fall Semester 2026 Card */}
           <Box className="what-we-do-card">
             <Box className="img-p">
               <Box className="img-part position-relative">
                 <a href="#">
-                  <img src={scheduleImage} alt="Fall Semester 2024" />
+                  <img src={scheduleImage} alt="Fall Semester 2026" />
                 </a>
               </Box>
             </Box>
@@ -107,26 +107,26 @@ const WhatWeDo = () => {
                 className="what-we-do-card-title what-we-do-card-title--small"
                 component="h5"
               >
-                <a href="#">Spring Semester 2026</a>
+                <a href="#">Fall Semester 2026</a>
               </Typography>
               <Box className="what-we-do-des" component="div">
-                01/24/2026 : 2.00 - 5.00 PM (SATURDAY)
+                08/29/2026 : 1.30 - 5.30 PM (SATURDAY)
                 <br />
-                02/07/2026 : 2.00 - 5.00 PM (SATURDAY)
+                09/12/2026 : 1.30 - 5.30 PM (SATURDAY)
                 <br />
-                02/21/2026 : 2.00 - 5.00 PM (SATURDAY)
+                09/26/2026 : 1.30 - 5.30 PM (SATURDAY)
                 <br />
-                03/07/2026 : 2.00 - 5.00 PM (SATURDAY)
+                10/10/2026 : 1.30 - 5.30 PM (SATURDAY)
                 <br />
-                03/21/2026 : 2.00 - 5.00 PM (SATURDAY)
+                10/24/2026 : 1.30 - 5.30 PM (SATURDAY)
                 <br />
-                04/04/2026 : 2.00 - 5.00 PM (SATURDAY)
+                11/07/2026 : 1.30 - 5.30 PM (SATURDAY)
                 <br />
-                04/18/2026 : 2.00 - 5.00 PM (SATURDAY)
+                11/21/2026 : 1.30 - 5.30 PM (SATURDAY)
                 <br />
-                05/02/2026 : 2.00 - 5.00 PM (SATURDAY)
+                12/05/2026 : 1.30 - 5.30 PM (SATURDAY)
                 <br />
-                05/16/2026 : 2.00 - 5.00 PM FINAL EXAM
+                12/19/2026 : 12.00 - 5.00 PM FINAL EXAM
               </Box>
             </Box>
           </Box>
@@ -134,9 +134,17 @@ const WhatWeDo = () => {
           {/* Media/News Card */}
           <Box className="what-we-do-card">
             <Box className="img-p">
-              <Box className="img-part position-relative">
+              <Box className="img-part position-relative what-we-do-media-iframe-container">
                 <a href="#">
-                  <img src={mediaImage} alt="Media and News" />
+                  <iframe
+                    className="what-we-do-media-iframe"
+                    src="https://www.youtube.com/embed/CBYiGhtXrWM?si=T8QAW0AhGt-TLDbu"
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  ></iframe>
                 </a>
               </Box>
             </Box>
@@ -155,7 +163,7 @@ const WhatWeDo = () => {
                   {" "}
                   <li>
                     <a
-                      href="https://www.youtube.com/embed/CBYiGhtXrWM"
+                      href="https://www.youtube.com/watch?v=CBYiGhtXrWM"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -189,22 +197,14 @@ const WhatWeDo = () => {
                       Juniority TV
                     </a>
                   </li>
+                  
                   <li>
                     <a
-                      href="https://www.indiawest.com/news/global_indian/agoura-math-circle-founded-by-teen-pranav-kalyan-helping-students/article_cd3fd3f0-4b1d-11e7-9794-17deed101e75.html"
+                      href="https://x.com/agouramath"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      India West
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="https://twitter.com/Agouramathcirle"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Join AMC Twitter
+                      Join AMC X
                     </a>
                   </li>
                   <li>
@@ -222,7 +222,7 @@ const WhatWeDo = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Connect in Linkedin
+                      Connect on Linkedin
                     </a>
                   </li>
                   <li>
@@ -231,7 +231,7 @@ const WhatWeDo = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Follow Instagram
+                      Follow us on Instagram
                     </a>
                   </li>
                   <li>

@@ -143,6 +143,20 @@ img {
   outline-offset: 2px;
 }
 
+/* Disable default focus outline and box-shadow for Material-UI components to prevent overlapping borders/labels */
+.MuiOutlinedInput-root,
+.MuiOutlinedInput-root *,
+.MuiButtonBase-root,
+.MuiSelect-select,
+.MuiInputBase-input,
+.MuiOutlinedInput-root input:focus,
+.MuiOutlinedInput-root textarea:focus,
+.MuiInputBase-input:focus,
+.MuiSelect-select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 /* Skip to main content link */
 .skip-link {
   position: absolute;

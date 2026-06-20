@@ -324,10 +324,10 @@ const Footer = () => {
                     <li>
                       <Email />
                       <Link
-                        href="mailto:info@agouramathcircle.org"
+                        href="mailto:support@agouramathcircle.org"
                         underline="none"
                       >
-                        info@agouramathcircle.org
+                        support@agouramathcircle.org
                       </Link>
                     </li>
                   </AddressWidget>

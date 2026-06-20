@@ -76,15 +76,24 @@ const SatelliteProgram = () => {
                   For further information about the Satellite Program, please
                   contact :{" "}
                   <a
-                    href="mailto:info@agouramathcircle.org"
+                    href="mailto:support@agouramathcircle.org"
                     style={{
                       color: "#53b50a",
                       textDecoration: "none",
                       fontWeight: 600,
                     }}
                   >
-                    info@agouramathcircle.org
+                    support@agouramathcircle.org
                   </a>
+                </div>
+                <div
+                  className="des-sec about-cont"
+                  style={{ fontSize: "17px", paddingLeft: 0 }}
+                >
+                  Agoura Chapter<br />
+                  El Camino Real High School<br />
+                  5440 Valley Cir Blvd, Woodland Hills<br />
+                  CA 91367
                 </div>
                 <div
                   className="des-sec about-cont"
