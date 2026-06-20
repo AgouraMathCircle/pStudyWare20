@@ -52,6 +52,7 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
   adminSessionListToolbarButtonSx,
+  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 
 // Normalize API response to array of items (handles PostMessageListResponse or legacy shapes)
@@ -333,7 +334,7 @@ const PostMessage = () => {
   return (
     <Box sx={{ minHeight: "100vh" }}>
       <AdminHeader />
-      <Box sx={{ height: "48px" }} />
+      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12}>

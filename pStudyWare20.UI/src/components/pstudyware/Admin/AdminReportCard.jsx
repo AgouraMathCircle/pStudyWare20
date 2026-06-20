@@ -85,6 +85,7 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
   adminSessionListToolbarButtonSx,
+  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import SortableHeader from "../Common/SortableHeader";
 import {
@@ -1236,7 +1237,7 @@ const AdminReportCard = () => {
   return (
     <Box sx={isAdminView ? { minHeight: "100vh" } : instructorPageShellSx}>
       {!hideRoleHeader && <AdminHeader user={user} />}
-      {!hideRoleHeader && <Box sx={{ height: "48px" }} aria-hidden />}
+      {!hideRoleHeader && <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />}
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={isAdminView ? 3 : 2}>
           <Grid item xs={12}>

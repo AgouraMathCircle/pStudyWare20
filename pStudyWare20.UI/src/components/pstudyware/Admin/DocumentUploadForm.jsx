@@ -134,8 +134,8 @@ const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
           Description: formData.description,
           Class: formData.class,
           Session: formData.session,
-          Publish: formData.publish === "1" ? "Y" : "N",
-          DocType: "W",
+          Publish: formData.publish,
+          DocType: "P",
           FileContent: base64,
           ContentType: selectedFile.type,
         };

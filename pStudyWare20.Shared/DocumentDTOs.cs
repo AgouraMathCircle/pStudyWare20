@@ -97,6 +97,41 @@ namespace pStudyWare20.Shared
     }
 
     /// <summary>
+    /// Upload request for Docs Repository (Word/Excel/PowerPoint) — legacy DocumentsRepository.aspx.
+    /// </summary>
+    public class DocumentRepositoryUploadRequest
+    {
+        [Display(Name = "Topics")]
+        public string Topics { get; set; } = string.Empty;
+
+        [Display(Name = "Document Name")]
+        [Required(ErrorMessage = "Document name is required")]
+        public string DocName { get; set; } = string.Empty;
+
+        [Display(Name = "Description")]
+        [Required(ErrorMessage = "Description is required")]
+        public string Description { get; set; } = string.Empty;
+
+        [Display(Name = "Class")]
+        [Required(ErrorMessage = "Class is required")]
+        public string Class { get; set; } = string.Empty;
+
+        [Display(Name = "Session")]
+        [Required(ErrorMessage = "Session is required")]
+        public string Session { get; set; } = string.Empty;
+
+        [Display(Name = "Publish")]
+        public string Publish { get; set; } = "0";
+
+        [Display(Name = "File Content")]
+        public byte[] FileContent { get; set; } = Array.Empty<byte>();
+
+        /// <summary>Fallback when JSON sends base64 as a string property.</summary>
+        [Display(Name = "File Content Base64")]
+        public string? FileContentBase64 { get; set; }
+    }
+
+    /// <summary>
     /// Model for document delete request
     /// </summary>
     public class DocumentDeleteRequest
@@ -117,6 +152,13 @@ namespace pStudyWare20.Shared
     {
         [Display(Name = "Document ID")]
         public int DocID { get; set; }
+
+        /// <summary>
+        /// Real table key for AMC_spDeleteDocuments / AMC_spPublishDocuments (0 when published).
+        /// Legacy grid column DocumentID; display row number is <see cref="DocID"/> (mDocID).
+        /// </summary>
+        [Display(Name = "Repository Document ID")]
+        public int DocumentID { get; set; }
 
         [Display(Name = "Topics")]
         public string Topics { get; set; } = string.Empty;

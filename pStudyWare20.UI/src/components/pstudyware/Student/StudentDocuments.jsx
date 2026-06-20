@@ -87,6 +87,7 @@ import {
   adminSessionListEmptyTextSx,
   APPLICATION_SURFACE_BG,
   APPLICATION_SURFACE_BORDER,
+  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
@@ -1078,7 +1079,7 @@ const StudentDocuments = () => {
           {isAdminStudentDocsRoute ? (
             <Box sx={adminStudentDocsPageSx}>
               <AdminHeader user={user} />
-              <Box sx={{ height: "48px" }} aria-hidden />
+              <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />
               <Container maxWidth="xl" sx={{ mb: 4 }}>
                 <Grid container spacing={3}>
                   <Grid item xs={12}>

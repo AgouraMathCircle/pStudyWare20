@@ -61,6 +61,7 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
   adminSessionListToolbarButtonSx,
+  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import { portalModalFieldSx } from "./portalModalStyles";
 
@@ -364,7 +365,7 @@ const SentEmail = () => {
   return (
     <Box>
       {isAdmin && <AdminHeader user={user} />}
-      {isAdmin && <Box sx={{ height: "48px" }} aria-hidden />}
+      {isAdmin && <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />}
       {shouldShowStudentHeader && <StudentHeader user={user} />}
       {shouldShowStudentHeader && <Box sx={{ height: "48px" }} />}
 

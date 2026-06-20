@@ -195,7 +195,7 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
         memberType: user?.memberType ?? "",
       });
 
-      if (res?.isSuccess) {
+      if (res?.isSuccess === true || res?.IsSuccess === true) {
         onSaved?.(formData);
         onClose?.();
       } else {

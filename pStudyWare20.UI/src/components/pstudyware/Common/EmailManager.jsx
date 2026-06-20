@@ -77,6 +77,7 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
   adminSessionListToolbarButtonSx,
+  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import {
   PORTAL_MODAL_FG,
@@ -801,7 +802,7 @@ const EmailManager = () => {
   return (
     <Box>
       {isAdminMessageCenter && <AdminHeader user={user} />}
-      {isAdminMessageCenter && <Box sx={{ height: "48px" }} aria-hidden />}
+      {isAdminMessageCenter && <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />}
       {shouldShowStudentHeader && <StudentHeader user={user} />}
       {/* Spacer to account for fixed StudentHeader */}
       {shouldShowStudentHeader && <Box sx={{ height: "48px" }} />}

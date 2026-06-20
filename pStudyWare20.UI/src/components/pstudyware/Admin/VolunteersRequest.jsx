@@ -60,6 +60,7 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
   adminSessionListToolbarButtonSx,
+  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
@@ -420,7 +421,7 @@ const VolunteersRequest = () => {
   return (
     <Box sx={volunteersRequestPageSx}>
       <AdminHeader user={user} />
-      <Box sx={{ height: "48px" }} />
+      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
