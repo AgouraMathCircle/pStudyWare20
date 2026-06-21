@@ -88,6 +88,7 @@ import {
   APPLICATION_SURFACE_BG,
   APPLICATION_SURFACE_BORDER,
   portalRoleSubheaderSpacerPx,
+  portalHeaderActionButtonSx,
 } from "../styles/applicationSurfaces";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
@@ -861,9 +862,9 @@ const StudentDocuments = () => {
                           variant="contained"
                           color="success"
                           size="small"
-                          startIcon={<UploadIcon />}
+                          startIcon={<UploadIcon fontSize="inherit" />}
                           onClick={handleUploadDialogOpen}
-                          sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                          sx={portalHeaderActionButtonSx}
                         >
                           Upload Documents
                         </Button>
@@ -1087,9 +1088,6 @@ const StudentDocuments = () => {
                       <CardContent sx={adminSessionListPanelContentSx}>
                         <AdminStudentDocumentList
                           documents={documents}
-                          onRefresh={() =>
-                            handleRefresh({ skipLoading: true, quiet: true })
-                          }
                           onView={handleView}
                           onDownload={handleDownload}
                           onDelete={handleDeleteClick}
@@ -1135,9 +1133,9 @@ const StudentDocuments = () => {
                             variant="contained"
                             color="success"
                             size="small"
-                            startIcon={<UploadIcon />}
+                            startIcon={<UploadIcon fontSize="inherit" />}
                             onClick={handleUploadDialogOpen}
-                            sx={{ fontSize: "0.75rem", textTransform: "none" }}
+                            sx={portalHeaderActionButtonSx}
                           >
                             Upload Documents
                           </Button>

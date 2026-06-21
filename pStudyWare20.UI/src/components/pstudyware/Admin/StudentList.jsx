@@ -15,10 +15,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import {
-  Download as DownloadIcon,
-  Refresh as RefreshIcon,
-} from "@mui/icons-material";
+import { Download as DownloadIcon } from "@mui/icons-material";
 import { useUpdateProfileModal } from "../../../contexts/UpdateProfileModalContext";
 import {
   adminSessionListFindButtonSx,
@@ -30,7 +27,6 @@ import {
   adminSessionListSearchLabelSx,
   adminSessionListSearchSelectSx,
   adminSessionListTitleSx,
-  adminSessionListToolbarButtonSx,
 } from "../styles/applicationSurfaces";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
@@ -64,7 +60,6 @@ const StudentList = ({
   students,
   onExportToExcel,
   canExportData,
-  onRefresh,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchBy, setSearchBy] = useState("ALL");
@@ -215,21 +210,18 @@ const StudentList = ({
               size="small"
               startIcon={<DownloadIcon />}
               onClick={onExportToExcel}
-              sx={adminSessionListToolbarButtonSx}
+              sx={{
+                ...adminSessionListFindButtonSx,
+                backgroundColor: "#4caf50",
+                color: "white",
+                flexShrink: 0,
+                px: 1.5,
+                "&:hover": { backgroundColor: "#43a047" },
+              }}
             >
               Export Excel
             </Button>
           )}
-          <Button
-            variant="outlined"
-            color="primary"
-            size="small"
-            startIcon={<RefreshIcon />}
-            onClick={onRefresh}
-            sx={adminSessionListToolbarButtonSx}
-          >
-            Refresh
-          </Button>
         </Box>
       </Box>
 

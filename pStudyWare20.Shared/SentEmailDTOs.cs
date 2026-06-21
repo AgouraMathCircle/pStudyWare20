@@ -56,6 +56,12 @@ namespace pStudyWare20.Shared
         [Display(Name = "Name")]
         public string Name { get; set; } = string.Empty;
 
+        [Display(Name = "Student Name")]
+        public string StudentName { get; set; } = string.Empty;
+
+        [Display(Name = "Message To")]
+        public string MessageTo { get; set; } = string.Empty;
+
         [Display(Name = "Send By")]
         public string SendBy { get; set; } = string.Empty;
     }

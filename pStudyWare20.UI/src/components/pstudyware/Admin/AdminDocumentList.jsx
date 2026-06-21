@@ -16,7 +16,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import {
-  Add as AddIcon,
+  CloudUpload as UploadIcon,
   Delete as DeleteIcon,
   Publish as PublishIcon,
 } from "@mui/icons-material";
@@ -46,7 +46,6 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListGridTableSx,
   adminSessionListTitleSx,
-  adminSessionListToolbarButtonSx,
   studentPortalIntroTextSx,
   studentPortalLinkSx,
 } from "../styles/applicationSurfaces";
@@ -392,22 +391,39 @@ const AdminDocumentList = ({
       <Box
         sx={{
           display: "flex",
-          alignItems: "flex-start",
+          alignItems: "center",
           justifyContent: "space-between",
           gap: 2,
           mb: 1,
+          flexWrap: "nowrap",
         }}
       >
-        <Typography component="div" sx={{ ...studentPortalIntroTextSx, mb: 0, flex: 1, minWidth: 0 }}>
+        <Typography
+          component="div"
+          sx={{
+            ...studentPortalIntroTextSx,
+            mb: 0,
+            flex: 1,
+            whiteSpace: "nowrap",
+            fontSize: "calc(1rem - 1pt)",
+            lineHeight: 1.25,
+            overflow: "hidden",
+          }}
+        >
           {" Lecture Notes Video "}
-          <a
+          <Box
+            component="a"
             href={YOUTUBE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            style={studentPortalLinkSx}
+            sx={{
+              ...studentPortalLinkSx,
+              fontSize: "inherit",
+              display: "inline",
+            }}
           >
             Agoura Math Circle YouTube Channel
-          </a>
+          </Box>
           {
             " Note: Subscription is required for all students. Please subscribe, it will help us to upload more videos."
           }
@@ -417,9 +433,20 @@ const AdminDocumentList = ({
             variant="contained"
             color="success"
             size="small"
-            startIcon={<AddIcon />}
+            startIcon={<UploadIcon fontSize="inherit" />}
             onClick={onAdd}
-            sx={{ ...adminSessionListToolbarButtonSx, flexShrink: 0 }}
+            sx={{
+              ...adminSessionListFindButtonSx,
+              backgroundColor: "#4caf50",
+              color: "white",
+              flexShrink: 0,
+              px: 1.5,
+              "&:hover": { backgroundColor: "#43a047" },
+              "& .MuiButton-startIcon": {
+                mr: 0.5,
+                "& > *:first-of-type": { fontSize: "0.875rem" },
+              },
+            }}
           >
             Upload Documents
           </Button>

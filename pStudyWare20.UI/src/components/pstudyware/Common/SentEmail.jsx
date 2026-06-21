@@ -60,7 +60,7 @@ import {
   adminSessionListTableHeadCellSx,
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
-  adminSessionListToolbarButtonSx,
+  portalHeaderActionButtonSx,
   portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import { portalModalFieldSx } from "./portalModalStyles";
@@ -80,6 +80,36 @@ const getMessageCenterPath = (user) => {
   if (memberType === "V") return "/pstudyware/volunteer/message-center";
   if (memberType === "A") return "/pstudyware/admin/message-center";
   return "/pstudyware/emailmanager";
+};
+
+/** Legacy sent grid [SendFrom]: student name (S), class-section (I), student details (A). */
+const getSentGridFromDisplay = (message) =>
+  message?.sendFrom ||
+  message?.SendFrom ||
+  message?.studentName ||
+  message?.StudentName ||
+  "";
+
+/** Legacy sent grid [SendTo]: class-section (S), student name (I), email group (A). */
+const getSentGridToDisplay = (message) =>
+  message?.sendTo || message?.SendTo || "";
+
+/**
+ * Legacy sentemail.aspx View dialog — uses Emailinfo Name, not the grid SendFrom.
+ * Student: parent first name. Instructor: student first name.
+ */
+const getSentViewFromDisplay = (message, memberType) => {
+  if (memberType === "S") {
+    return message?.name || message?.Name || "";
+  }
+  return getSentGridFromDisplay(message);
+};
+
+const getSentViewToDisplay = (message, memberType) => {
+  if (memberType === "I") {
+    return message?.name || message?.Name || "";
+  }
+  return getSentGridToDisplay(message);
 };
 
 const SentEmail = () => {
@@ -117,7 +147,9 @@ const SentEmail = () => {
 
   const isStudent =
     user?.role === "Student" || user?.memberType?.toUpperCase() === "S";
-  const isAdmin = user?.memberType?.toUpperCase() === "A";
+  const isInstructor = user?.memberType?.toUpperCase() === "I";
+  const memberType = user?.memberType?.toUpperCase() || "";
+  const isAdmin = memberType === "A";
   const isStudentMessageCenter =
     location.pathname === "/pstudyware/student/message-center";
   const isRoleDashboardShell =
@@ -153,7 +185,7 @@ const SentEmail = () => {
     try {
       setLoading(true);
       setLoadError(null);
-      const portalUsername = getPortalUsername(user);
+      const portalUsername = getPortalUsername(user) || user?.email || "";
       const response = await sentEmailService.getSentMessages(
         portalUsername || null
       );
@@ -195,10 +227,10 @@ const SentEmail = () => {
 
         switch (searchBy) {
           case "FROM":
-            fieldValue = message.sendFrom || message.SendFrom || "";
+            fieldValue = getSentGridFromDisplay(message);
             break;
           case "TO":
-            fieldValue = message.sendTo || message.SendTo || "";
+            fieldValue = getSentGridToDisplay(message);
             break;
           case "SUBJECT":
             fieldValue = message.subject || message.Subject || "";
@@ -303,8 +335,8 @@ const SentEmail = () => {
       message?.MessageID;
     const rowBody = getMessagePreview(message);
 
-    setSendTo(message?.sendTo || message?.SendTo || "");
-    setSendFrom(message?.sendFrom || message?.SendFrom || "");
+    setSendTo(getSentViewToDisplay(message, memberType));
+    setSendFrom(getSentViewFromDisplay(message, memberType));
     setSubject(message?.subject || message?.Subject || "");
     setMessageBody(rowBody);
     setViewModalOpen(true);
@@ -345,7 +377,7 @@ const SentEmail = () => {
           {
             emailID: parseInt(emailId, 10),
             sendTo: searchParams.get("SendTo") || "",
-            sendFrom: searchParams.get("SendFrom") || "",
+            name: searchParams.get("Name") || "",
             subject: searchParams.get("Subject") || "",
             message: "",
           },
@@ -384,9 +416,9 @@ const SentEmail = () => {
                   variant="contained"
                   color="success"
                   size="small"
-                  startIcon={<InboxIcon />}
+                  startIcon={<InboxIcon fontSize="inherit" />}
                   onClick={handleViewNewMessages}
-                  sx={adminSessionListToolbarButtonSx}
+                  sx={portalHeaderActionButtonSx}
                 >
                   View New Messages
                 </Button>
@@ -579,15 +611,15 @@ const SentEmail = () => {
                         <TableCell
                           sx={adminSessionListTableBodyCellSx({ ellipsis: true })}
                         >
-                          <Tooltip title={message.sendFrom || message.SendFrom || "—"}>
-                            <span>{message.sendFrom || message.SendFrom || "—"}</span>
+                          <Tooltip title={getSentGridFromDisplay(message) || "—"}>
+                            <span>{getSentGridFromDisplay(message) || "—"}</span>
                           </Tooltip>
                         </TableCell>
                         <TableCell
                           sx={adminSessionListTableBodyCellSx({ ellipsis: true })}
                         >
-                          <Tooltip title={message.sendTo || message.SendTo || "—"}>
-                            <span>{message.sendTo || message.SendTo || "—"}</span>
+                          <Tooltip title={getSentGridToDisplay(message) || "—"}>
+                            <span>{getSentGridToDisplay(message) || "—"}</span>
                           </Tooltip>
                         </TableCell>
                         <TableCell
@@ -637,26 +669,30 @@ const SentEmail = () => {
           icon={<VisibilityIcon sx={{ fontSize: 20 }} />}
         >
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 0.5 }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              size="small"
-              label="From"
-              value={sendFrom}
-              disabled
-              InputLabelProps={{ shrink: true }}
-              sx={portalModalFieldSx}
-            />
-            <TextField
-              fullWidth
-              variant="outlined"
-              size="small"
-              label="To"
-              value={sendTo}
-              disabled
-              InputLabelProps={{ shrink: true }}
-              sx={portalModalFieldSx}
-            />
+            {(isStudent || (!isInstructor && !isStudent)) && (
+              <TextField
+                fullWidth
+                variant="outlined"
+                size="small"
+                label="From"
+                value={sendFrom}
+                disabled
+                InputLabelProps={{ shrink: true }}
+                sx={portalModalFieldSx}
+              />
+            )}
+            {(isInstructor || (!isInstructor && !isStudent)) && (
+              <TextField
+                fullWidth
+                variant="outlined"
+                size="small"
+                label="To"
+                value={sendTo}
+                disabled
+                InputLabelProps={{ shrink: true }}
+                sx={portalModalFieldSx}
+              />
+            )}
             <TextField
               fullWidth
               variant="outlined"

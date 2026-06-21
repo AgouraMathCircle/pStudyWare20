@@ -56,7 +56,6 @@ import {
   adminSessionListTableHeadCellSx,
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
-  adminSessionListToolbarButtonSx,
   portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 
@@ -486,7 +485,14 @@ const RegisteredStudentList = () => {
                         startIcon={<DownloadIcon />}
                         onClick={handleExportToExcel}
                         disabled={loading}
-                        sx={adminSessionListToolbarButtonSx}
+                        sx={{
+                          ...adminSessionListFindButtonSx,
+                          backgroundColor: "#4caf50",
+                          color: "white",
+                          flexShrink: 0,
+                          px: 1.5,
+                          "&:hover": { backgroundColor: "#43a047" },
+                        }}
                       >
                         Export Excel
                       </Button>
