@@ -1,7 +1,10 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
+using System.Text.RegularExpressions;
 
 namespace pStudyWare20.Services.Implementations
 {
@@ -12,11 +15,27 @@ namespace pStudyWare20.Services.Implementations
     {
         private readonly IDocumentRepository _documentRepository;
         private readonly IConfiguration _configuration;
+        private readonly IHostEnvironment _hostEnvironment;
+        private readonly ILogger<DocumentService> _logger;
+        private bool _storageConfigurationLogged;
 
-        public DocumentService(IDocumentRepository documentRepository, IConfiguration configuration)
+        /// <summary>
+        /// Legacy uploads sometimes prefixed disk/DB names with a GUID. Strip before save/display.
+        /// </summary>
+        private static readonly Regex GuidPrefixFileNameRegex = new(
+            @"^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|[0-9a-fA-F]{32})_(.+)$",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        public DocumentService(
+            IDocumentRepository documentRepository,
+            IConfiguration configuration,
+            IHostEnvironment hostEnvironment,
+            ILogger<DocumentService> logger)
         {
             _documentRepository = documentRepository;
             _configuration = configuration;
+            _hostEnvironment = hostEnvironment;
+            _logger = logger;
         }
 
         /// <summary>
@@ -88,7 +107,7 @@ namespace pStudyWare20.Services.Implementations
                             DocID = GetIntValue(row, "mDocID") ?? GetIntValue(row, "DocID") ?? 0,
                             DocumentID = GetIntValue(row, "DocumentID") ?? 0,
                             Topics = GetStringValue(row, "Topics"),
-                            DocName = GetStringValue(row, "mDocName"),
+                            DocName = StripGuidPrefixFromFileName(GetStringValue(row, "mDocName")),
                             Description = GetStringValue(row, "Description"),
                             Class = GetStringValue(row, "Class"),
                             Session = GetStringValue(row, "mSession"),
@@ -140,7 +159,7 @@ namespace pStudyWare20.Services.Implementations
                             DocID = GetIntValue(row, "mDocID") ?? GetIntValue(row, "DocID") ?? 0,
                             DocumentID = GetIntValue(row, "DocumentID") ?? 0,
                             Topics = GetStringValue(row, "Topics"),
-                            DocName = GetStringValue(row, "mDocName"),
+                            DocName = StripGuidPrefixFromFileName(GetStringValue(row, "mDocName")),
                             Description = GetStringValue(row, "Description"),
                             Class = GetStringValue(row, "Class"),
                             Session = GetStringValue(row, "mSession"),
@@ -213,15 +232,29 @@ namespace pStudyWare20.Services.Implementations
                 var uploadPath = isRepositoryDocument
                     ? GetRepositoryDocsPath()
                     : GetLegacyClassMaterialDocsPath();
+                LogDocumentStorageConfiguration("UploadDocument");
                 if (!Directory.Exists(uploadPath))
                 {
                     Directory.CreateDirectory(uploadPath);
+                    _logger.LogInformation(
+                        "Created document upload directory at {UploadPath}",
+                        uploadPath);
                 }
 
                 var diskFileName = ResolveUniqueDiskFileName(uploadPath, displayFileName);
                 var filePath = Path.Combine(uploadPath, diskFileName);
                 await File.WriteAllBytesAsync(filePath, request.FileContent);
 
+                _logger.LogInformation(
+                    "Class material file saved. Environment={Environment} DocName={DocName} DiskFileName={DiskFileName} FullPath={FullPath} SizeBytes={SizeBytes} FileExists={FileExists}",
+                    _hostEnvironment.EnvironmentName,
+                    displayFileName,
+                    diskFileName,
+                    filePath,
+                    fileContent.Length,
+                    File.Exists(filePath));
+
+                // Legacy Documents.aspx stores the original upload file name in mDocName (no GUID prefix).
                 request.DocName = displayFileName;
                 request.DocType = isRepositoryDocument ? "W" : "P";
                 if (isRepositoryDocument)
@@ -344,14 +377,11 @@ namespace pStudyWare20.Services.Implementations
                         continue;
                     }
 
-                    foreach (var candidateName in GetCandidateDiskFileNames(safeFileName))
+                    var foundPath = FindClassMaterialFileOnDisk(directory, safeFileName);
+                    if (foundPath != null && File.Exists(foundPath))
                     {
-                        var filePath = Path.Combine(directory, candidateName);
-                        if (File.Exists(filePath))
-                        {
-                            File.Delete(filePath);
-                            break;
-                        }
+                        File.Delete(foundPath);
+                        break;
                     }
                 }
 
@@ -671,31 +701,53 @@ namespace pStudyWare20.Services.Implementations
             {
                 if (!TryGetSafeStudentDocumentFileName(documentName, out var safeFileName))
                 {
+                    _logger.LogWarning(
+                        "Class material lookup rejected invalid file name. RequestedName={DocumentName}",
+                        documentName);
                     response.ErrorMessage = "Invalid document name.";
                     return response;
                 }
 
+                LogDocumentStorageConfiguration("GetClassMaterialFile");
+                var searchDirectories = GetClassMaterialSearchDirectories().ToList();
+                _logger.LogInformation(
+                    "Class material lookup started. Environment={Environment} RequestedName={DocumentName} SafeFileName={SafeFileName} SearchPaths={SearchPaths}",
+                    _hostEnvironment.EnvironmentName,
+                    documentName,
+                    safeFileName,
+                    string.Join(" | ", searchDirectories));
+
                 string? foundPath = null;
-                foreach (var directory in GetClassMaterialSearchDirectories())
+                foreach (var directory in searchDirectories)
                 {
                     if (!Directory.Exists(directory))
                     {
+                        _logger.LogDebug(
+                            "Class material search skipped missing directory {Directory}",
+                            directory);
                         continue;
                     }
 
-                    var candidate = Path.Combine(directory, safeFileName);
-                    if (File.Exists(candidate))
+                    foundPath = FindClassMaterialFileOnDisk(directory, safeFileName);
+                    if (foundPath != null)
                     {
-                        foundPath = candidate;
                         break;
                     }
                 }
 
                 if (foundPath == null)
                 {
+                    _logger.LogWarning(
+                        "Class material file not found. SafeFileName={SafeFileName} SearchPaths={SearchPaths}",
+                        safeFileName,
+                        string.Join(" | ", searchDirectories));
                     response.ErrorMessage = "Document file was not found.";
                     return response;
                 }
+
+                _logger.LogInformation(
+                    "Class material file found at {FoundPath}",
+                    foundPath);
 
                 response.FileContent = await File.ReadAllBytesAsync(foundPath);
                 response.FileName = safeFileName;
@@ -718,6 +770,8 @@ namespace pStudyWare20.Services.Implementations
             {
                 GetLegacyClassMaterialDocsPath(),
                 GetRepositoryDocsPath(),
+                ResolvePathFromContentRoot(Path.Combine("..", "pStudayWare", "Documents")),
+                ResolvePathFromContentRoot(Path.Combine("..", "pStudyWare20.UI", "public", "pstudyware", "Documents")),
             })
             {
                 if (seen.Add(directory))
@@ -740,14 +794,43 @@ namespace pStudyWare20.Services.Implementations
         private string ResolveConfiguredStoragePath(string configurationKey, string defaultRelativePath)
         {
             var configured = _configuration[configurationKey];
-            if (!string.IsNullOrWhiteSpace(configured))
+            var relativePath = !string.IsNullOrWhiteSpace(configured)
+                ? configured
+                : defaultRelativePath;
+
+            if (Path.IsPathRooted(relativePath))
             {
-                return Path.IsPathRooted(configured)
-                    ? configured
-                    : Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), configured));
+                return relativePath;
             }
 
-            return Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), defaultRelativePath));
+            return ResolvePathFromContentRoot(relativePath);
+        }
+
+        private string ResolvePathFromContentRoot(string relativePath)
+        {
+            return Path.GetFullPath(Path.Combine(_hostEnvironment.ContentRootPath, relativePath));
+        }
+
+        private void LogDocumentStorageConfiguration(string operation)
+        {
+            if (_storageConfigurationLogged)
+            {
+                return;
+            }
+
+            _storageConfigurationLogged = true;
+            var searchPaths = GetClassMaterialSearchDirectories().ToList();
+            _logger.LogInformation(
+                "Document storage configuration [{Operation}] Environment={Environment} IsDevelopment={IsDevelopment} ContentRoot={ContentRoot} WorkingDirectory={WorkingDirectory} ClassMaterialUploadPath={ClassMaterialUploadPath} RepositoryUploadPath={RepositoryUploadPath} StudentDocsPath={StudentDocsPath} SearchPaths={SearchPaths}",
+                operation,
+                _hostEnvironment.EnvironmentName,
+                _hostEnvironment.IsDevelopment(),
+                _hostEnvironment.ContentRootPath,
+                Directory.GetCurrentDirectory(),
+                GetLegacyClassMaterialDocsPath(),
+                GetRepositoryDocsPath(),
+                GetStudentDocsUploadPath(),
+                string.Join(" | ", searchPaths));
         }
 
         private static bool IsRepositoryDocumentType(string? docType) =>
@@ -818,10 +901,21 @@ namespace pStudyWare20.Services.Implementations
 
         private static IEnumerable<string> GetCandidateDiskFileNames(string displayFileName)
         {
+            var strippedName = StripGuidPrefixFromFileName(displayFileName);
+
             yield return displayFileName;
+            if (!string.Equals(strippedName, displayFileName, StringComparison.OrdinalIgnoreCase))
+            {
+                yield return strippedName;
+            }
+
             for (var counter = 2; counter <= 100; counter++)
             {
                 yield return $"{counter}{displayFileName}";
+                if (!string.Equals(strippedName, displayFileName, StringComparison.OrdinalIgnoreCase))
+                {
+                    yield return $"{counter}{strippedName}";
+                }
             }
         }
 
@@ -874,8 +968,50 @@ namespace pStudyWare20.Services.Implementations
                 return false;
             }
 
-            safeFileName = fileName;
+            safeFileName = StripGuidPrefixFromFileName(fileName);
             return true;
+        }
+
+        private static string StripGuidPrefixFromFileName(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return fileName;
+            }
+
+            var match = GuidPrefixFileNameRegex.Match(fileName.Trim());
+            return match.Success ? match.Groups[1].Value : fileName.Trim();
+        }
+
+        private static string? FindClassMaterialFileOnDisk(string directory, string safeFileName)
+        {
+            foreach (var candidateName in GetCandidateDiskFileNames(safeFileName))
+            {
+                var candidatePath = Path.Combine(directory, candidateName);
+                if (File.Exists(candidatePath))
+                {
+                    return candidatePath;
+                }
+            }
+
+            if (!Directory.Exists(directory))
+            {
+                return null;
+            }
+
+            var strippedName = StripGuidPrefixFromFileName(safeFileName);
+            foreach (var filePath in Directory.EnumerateFiles(directory))
+            {
+                var fileName = Path.GetFileName(filePath);
+                if (string.Equals(fileName, safeFileName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(fileName, strippedName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(StripGuidPrefixFromFileName(fileName), strippedName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return filePath;
+                }
+            }
+
+            return null;
         }
 
         private static string GetStudentDocumentContentType(string fileName)

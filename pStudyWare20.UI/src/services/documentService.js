@@ -505,6 +505,12 @@ const documentService = {
         ? blob
         : new Blob([blob], { type: "application/pdf" });
     } catch (error) {
+      if (error.response?.status === 401) {
+        console.error(
+          `[documentService] Unauthorized (401) fetching ${endpoint} for "${docName}". ` +
+            "Ensure you are logged in and the API JWT settings match the login server.",
+        );
+      }
       if (error.response?.data instanceof Blob) {
         throw new Error(await parseBlobError(error.response.data));
       }

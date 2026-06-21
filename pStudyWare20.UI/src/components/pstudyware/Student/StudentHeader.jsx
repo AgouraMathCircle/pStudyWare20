@@ -9,8 +9,10 @@ import {
   Dashboard as DashboardIcon,
 } from "@mui/icons-material";
 import { applicationRoleHeaderBarSx } from "../styles/applicationSurfaces";
+import { useRoleHeaderDateTime } from "../../../hooks/useRoleHeaderDateTime";
 
 const StudentHeader = ({ user }) => {
+  const dateTime = useRoleHeaderDateTime();
   return (
     <Box
       sx={{
@@ -127,13 +129,10 @@ const StudentHeader = ({ user }) => {
                   color: "#1b5e20",
                   fontWeight: 600,
                   display: { xs: "none", sm: "block" },
+                  whiteSpace: "nowrap",
                 }}
               >
-                {new Date().toLocaleDateString("en-US", {
-                  month: "numeric",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                {dateTime}
               </Typography>
             </Box>
           </Box>
