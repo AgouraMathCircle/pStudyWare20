@@ -1,6 +1,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using pStudyWare20.Data.Models;
+using pStudyWare20.Repository.Helpers;
 using pStudyWare20.Repository.Interfaces;
 using System.Data;
 
@@ -27,12 +28,15 @@ namespace pStudyWare20.Repository.Implementations
         {
             try
             {
+                username = await PortalUsernameResolver.ResolveAsync(_context, username);
+
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
                 using var command = new SqlCommand("AMC_spGetMessageCenter", connection)
                 {
-                    CommandType = CommandType.StoredProcedure
+                    CommandType = CommandType.StoredProcedure,
+                    CommandTimeout = 60,
                 };
 
                 command.Parameters.Add(new SqlParameter("@Username", username));
@@ -43,8 +47,10 @@ namespace pStudyWare20.Repository.Implementations
                 }
 
                 var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    dataTable.Load(reader);
+                }
 
                 return dataTable;
             }
@@ -66,15 +72,20 @@ namespace pStudyWare20.Repository.Implementations
 
                 using var command = new SqlCommand("AMC_spGetMessageCenter_Message", connection)
                 {
-                    CommandType = CommandType.StoredProcedure
+                    CommandType = CommandType.StoredProcedure,
+                    CommandTimeout = 30,
                 };
 
-                command.Parameters.Add(new SqlParameter("@EmailID", emailId));
+                command.Parameters.Add(new SqlParameter("@EmailID", SqlDbType.Int) { Value = emailId });
+
+                var dataTable = new DataTable();
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    dataTable.Load(reader);
+                }
 
                 var dataSet = new DataSet();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataSet);
-
+                dataSet.Tables.Add(dataTable);
                 return dataSet;
             }
             catch (Exception ex)
@@ -91,6 +102,8 @@ namespace pStudyWare20.Repository.Implementations
         {
             try
             {
+                sendFrom = await PortalUsernameResolver.ResolveAsync(_context, sendFrom);
+
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
@@ -99,6 +112,11 @@ namespace pStudyWare20.Repository.Implementations
                     CommandType = CommandType.StoredProcedure
                 };
 
+                if (!int.TryParse(chapterId, out var chapterIdValue))
+                {
+                    chapterIdValue = 1;
+                }
+
                 command.Parameters.Add(new SqlParameter("@SendTo", sendTo));
                 command.Parameters.Add(new SqlParameter("@SendFrom", sendFrom));
                 command.Parameters.Add(new SqlParameter("@Subject", subject));
@@ -106,7 +124,7 @@ namespace pStudyWare20.Repository.Implementations
                 command.Parameters.Add(new SqlParameter("@SendBy", sendBy));
                 command.Parameters.Add(new SqlParameter("@ID", id));
                 command.Parameters.Add(new SqlParameter("@Mode", mode));
-                command.Parameters.Add(new SqlParameter("@ChapterID", chapterId));
+                command.Parameters.Add(new SqlParameter("@ChapterID", chapterIdValue));
 
                 var dataSet = new DataSet();
                 using var adapter = new SqlDataAdapter(command);
@@ -127,8 +145,34 @@ namespace pStudyWare20.Repository.Implementations
         {
             try
             {
+                sendTo = await PortalUsernameResolver.ResolveAsync(_context, sendTo);
+
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
+
+                // Legacy AMC_spUpdateAddEmailTracking mode "T" incorrectly sets Status='V'.
+                // Inbox lists exclude Status='A', so soft-delete must archive as 'A'.
+                if (string.Equals(mode, "T", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!int.TryParse(trackingId, out var id) || id <= 0)
+                    {
+                        throw new Exception("A valid tracking ID is required to delete a message.");
+                    }
+
+                    using var deleteCommand = new SqlCommand(
+                        "UPDATE [dbo].[AMC_tblEmailTracking] SET [Status] = 'A' WHERE [ID] = @TrackingID",
+                        connection);
+
+                    deleteCommand.Parameters.Add(new SqlParameter("@TrackingID", SqlDbType.Int) { Value = id });
+
+                    var rowsAffected = await deleteCommand.ExecuteNonQueryAsync();
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception("Message not found or could not be deleted.");
+                    }
+
+                    return new DataSet();
+                }
 
                 using var command = new SqlCommand("AMC_spUpdateAddEmailTracking", connection)
                 {
@@ -136,7 +180,10 @@ namespace pStudyWare20.Repository.Implementations
                 };
 
                 command.Parameters.Add(new SqlParameter("@Mode", mode));
-                command.Parameters.Add(new SqlParameter("@TrackingID", trackingId));
+                command.Parameters.Add(new SqlParameter("@TrackingID", SqlDbType.Int)
+                {
+                    Value = int.TryParse(trackingId, out var trackingIdValue) ? trackingIdValue : 0
+                });
                 command.Parameters.Add(new SqlParameter("@SendTo", sendTo));
 
                 var dataSet = new DataSet();
@@ -151,6 +198,61 @@ namespace pStudyWare20.Repository.Implementations
             }
         }
 
+        /// <inheritdoc />
+        public async Task<HashSet<int>> GetArchivedTrackingIdsAsync(IReadOnlyCollection<int> trackingIds)
+        {
+            var archivedIds = new HashSet<int>();
+            var ids = trackingIds.Where(id => id > 0).Distinct().ToList();
+            if (ids.Count == 0)
+            {
+                return archivedIds;
+            }
+
+            // SQL Server supports at most 2100 parameters per request.
+            const int maxParametersPerBatch = 2000;
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                for (var batchStart = 0; batchStart < ids.Count; batchStart += maxParametersPerBatch)
+                {
+                    var batchSize = Math.Min(maxParametersPerBatch, ids.Count - batchStart);
+                    using var command = new SqlCommand { Connection = connection };
+                    var parameterNames = new List<string>(batchSize);
+
+                    for (var i = 0; i < batchSize; i++)
+                    {
+                        var parameterName = $"@id{i}";
+                        parameterNames.Add(parameterName);
+                        command.Parameters.Add(new SqlParameter(parameterName, SqlDbType.Int)
+                        {
+                            Value = ids[batchStart + i]
+                        });
+                    }
+
+                    command.CommandText =
+                        $"SELECT ID FROM [dbo].[AMC_tblEmailTracking] WITH (NOLOCK) WHERE [Status] = 'A' AND ID IN ({string.Join(", ", parameterNames)})";
+
+                    using var reader = await command.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                    {
+                        if (reader[0] != DBNull.Value && int.TryParse(reader[0].ToString(), out var archivedId))
+                        {
+                            archivedIds.Add(archivedId);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error loading archived message IDs: {ex.Message}", ex);
+            }
+
+            return archivedIds;
+        }
+
         /// <summary>
         /// Get instructor email groups using AMC_spSelectEmailGroupbyUserName
         /// </summary>
@@ -158,6 +260,8 @@ namespace pStudyWare20.Repository.Implementations
         {
             try
             {
+                username = await PortalUsernameResolver.ResolveAsync(_context, username);
+
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
@@ -187,6 +291,8 @@ namespace pStudyWare20.Repository.Implementations
         {
             try
             {
+                username = await PortalUsernameResolver.ResolveAsync(_context, username);
+
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
@@ -209,6 +315,7 @@ namespace pStudyWare20.Repository.Implementations
                 throw new Exception($"Error getting student list for email: {ex.Message}", ex);
             }
         }
+
     }
 }
 

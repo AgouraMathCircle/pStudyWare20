@@ -26,7 +26,7 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Gets dashboard messages (Important Notice, Announcement, etc.).
+        /// Gets dashboard messages and report card (parallel DB calls, single HTTP response).
         /// </summary>
         [HttpGet("GetDashboardData/{username}/{chapterId}")]
         public async Task<ActionResult<GetDashboardMessageResponse>> GetDashboardData(string username, int chapterId)
@@ -105,10 +105,11 @@ namespace pStudyWare20.API.Controllers
         [HttpGet("GetReportCard/{username}")]
         public async Task<ActionResult<GetReportCardResponse>> GetReportCardByUsername(string username)
         {
-            if (string.IsNullOrWhiteSpace(username))
+            var decodedUsername = Uri.UnescapeDataString(username ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(decodedUsername))
                 return BadRequest(new GetReportCardResponse { IsSuccess = false, Message = "Username is required" });
 
-            var request = new GetReportCardRequest { Username = username.Trim() };
+            var request = new GetReportCardRequest { Username = decodedUsername };
             var response = await _studentDashboardService.GetReportCardAsync(request);
             return Ok(response);
         }

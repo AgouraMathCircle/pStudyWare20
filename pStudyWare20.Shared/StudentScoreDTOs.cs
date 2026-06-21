@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace pStudyWare20.Shared
 {
@@ -39,6 +40,9 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Report ID")]
         public string ReportID { get; set; } = "0";
+
+        [Display(Name = "Submitted Date")]
+        public string SubmittedDate { get; set; } = string.Empty;
     }
 
 
@@ -61,6 +65,7 @@ namespace pStudyWare20.Shared
         public string StudentID { get; set; } = string.Empty;
 
         [Display(Name = "Group / Class")]
+        [JsonPropertyName("class")]
         public string Group { get; set; } = string.Empty;
 
         [Display(Name = "Exam Date")]
@@ -68,10 +73,9 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Quiz Total Score")]
         [Required(ErrorMessage = "Quiz Total Score is required")]
-        public string QuizTotalScore { get; set; } = "5";
+        public string QuizTotalScore { get; set; } = "10";
 
         [Display(Name = "Quiz Received Score")]
-        [Required(ErrorMessage = "Quiz Received Score is required")]
         public string QuizReceivedScore { get; set; } = string.Empty;
 
         [Display(Name = "Quiz Comments")]
@@ -79,10 +83,9 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Class Test Total Score")]
         [Required(ErrorMessage = "Class Test Total Score is required")]
-        public string ClassTestTotalScore { get; set; } = "20";
+        public string ClassTestTotalScore { get; set; } = "10";
 
         [Display(Name = "Class Test Received Score")]
-        [Required(ErrorMessage = "Class Test Received Score is required")]
         public string ClassTestReceivedScore { get; set; } = string.Empty;
 
         [Display(Name = "Class Test Comments")]
@@ -93,7 +96,6 @@ namespace pStudyWare20.Shared
         public string HomeWorkTotalScore { get; set; } = "10";
 
         [Display(Name = "Home Work Received Score")]
-        [Required(ErrorMessage = "Home Work Received Score is required")]
         public string HomeWorkReceivedScore { get; set; } = string.Empty;
 
         [Display(Name = "Home Work Comments")]
@@ -118,7 +120,6 @@ namespace pStudyWare20.Shared
         public string PlacementTestComments { get; set; } = string.Empty;
 
         [Display(Name = "Session")]
-        [Required(ErrorMessage = "Session is required")]
         public string Session { get; set; } = string.Empty;
     }
 
@@ -179,6 +180,7 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Class")]
         [Required(ErrorMessage = "Class is required")]
+        [JsonPropertyName("class")]
         public string Class { get; set; } = string.Empty;
 
         [Display(Name = "Exam Type")]

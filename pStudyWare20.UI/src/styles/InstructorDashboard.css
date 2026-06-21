@@ -1,0 +1,338 @@
+/* Instructor Dashboard — same layout patterns as Student Dashboard, blue accent theme */
+
+.instructor-dashboard {
+  min-height: 100%;
+  width: 100%;
+  background-color: transparent;
+  box-sizing: border-box;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.instructor-dashboard > .MuiContainer-root {
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.instructor-dashboard .MuiCard-root {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.instructor-dashboard .MuiCard-root:hover {
+  box-shadow: 0 4px 16px rgba(21, 101, 192, 0.18);
+}
+
+.instructor-dashboard .MuiCardHeader-root {
+  padding: 4px 8px 0;
+  min-height: 0;
+}
+
+.instructor-dashboard .MuiCardHeader-title {
+  font-weight: 400;
+  font-size: 0.9375rem;
+}
+
+.instructor-dashboard .MuiTableCell-root {
+  padding: 8px 12px;
+}
+
+.instructor-dashboard .MuiTableCell-head {
+  font-weight: 600;
+  background-color: #e3f2fd;
+  border-bottom: 2px solid #90caf9;
+}
+
+.instructor-dashboard .MuiTableRow-root:hover {
+  background-color: rgba(21, 101, 192, 0.06);
+  cursor: pointer;
+}
+
+.instructor-dashboard .MuiButton-root {
+  text-transform: none;
+  font-weight: 500;
+}
+
+.instructor-dashboard .MuiAlert-root {
+  border-radius: 8px;
+}
+
+.instructor-dashboard .MuiTableContainer-root::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.instructor-dashboard .MuiTableContainer-root::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.instructor-dashboard .MuiTableContainer-root::-webkit-scrollbar-thumb {
+  background: #64b5f6;
+  border-radius: 4px;
+}
+
+.instructor-dashboard .MuiTableContainer-root::-webkit-scrollbar-thumb:hover {
+  background: #1565c0;
+}
+
+.instructor-dashboard .dashboard-messages-panel > .MuiCardContent-root {
+  padding-bottom: 6px !important;
+}
+
+.instructor-dashboard .dashboard-messages-panel .MuiGrid-root {
+  margin-bottom: 0 !important;
+}
+
+.instructor-dashboard .dashboard-messages-panel .MuiGrid-root > .MuiGrid-item {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.instructor-dashboard .dashboard-messages-panel .MuiGrid-item .MuiCardContent-root {
+  padding-bottom: 0 !important;
+}
+
+.instructor-dashboard .MuiCardContent-root {
+  padding: 8px 8px 0;
+}
+
+.instructor-dashboard h1,
+.instructor-dashboard h2,
+.instructor-dashboard h3,
+.instructor-dashboard h4,
+.instructor-dashboard h5,
+.instructor-dashboard h6 {
+  color: #333;
+  font-weight: 600;
+}
+
+.instructor-dashboard .MuiGrid-container {
+  margin-top: 0;
+}
+
+.instructor-dashboard .MuiTablePagination-root {
+  border-top: 1px solid rgba(144, 202, 249, 1);
+}
+
+.instructor-dashboard .MuiChip-root {
+  font-weight: 500;
+  border-radius: 16px;
+}
+
+.instructor-dashboard .MuiIconButton-root {
+  transition: all 0.2s ease-in-out;
+}
+
+.instructor-dashboard .MuiIconButton-root:hover {
+  transform: scale(1.1);
+}
+
+.instructor-dashboard a {
+  color: #1565c0;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+.instructor-dashboard a:hover {
+  color: #0d47a1;
+  text-decoration: underline;
+}
+
+.instructor-dashboard .primary-color {
+  color: #1565c0;
+}
+
+.instructor-dashboard .secondary-color {
+  color: #1976d2;
+}
+
+@keyframes instructorDashboardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.instructor-dashboard .MuiCard-root {
+  animation: instructorDashboardFadeIn 0.3s ease-in-out;
+}
+
+/* Meeting schedule — instructor blue theme */
+.instructor-dashboard .meeting-schedule-card .MuiCardHeader-root {
+  background-color: #e3f2fd;
+  border-bottom: 1px solid #90caf9;
+  padding: 8px 16px;
+}
+
+.instructor-dashboard .meeting-header-title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1565c0;
+}
+
+.instructor-dashboard .meeting-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 12px;
+  overflow-x: auto;
+  width: 100%;
+  padding-bottom: 4px;
+}
+
+.instructor-dashboard .meeting-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 0;
+  min-width: 300px;
+  border: 1px solid #1565c0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.instructor-dashboard .meeting-card-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.instructor-dashboard .meeting-class {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #333;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.instructor-dashboard .meeting-section {
+  font-weight: 500;
+  font-size: 0.8125rem;
+  color: #444;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.instructor-dashboard .meeting-datetime {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.instructor-dashboard .meeting-meta {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 6px 10px;
+  background: #f5f9ff;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-top: 0;
+}
+
+.instructor-dashboard .meeting-detail-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.instructor-dashboard .meeting-detail-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.instructor-dashboard .meeting-detail-value {
+  font-weight: 600;
+  color: #1565c0;
+}
+
+.instructor-dashboard .meeting-join-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  width: auto;
+  margin-top: 0;
+  padding: 8px 14px;
+  background-color: #1976d2;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 4px;
+  text-decoration: none;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.instructor-dashboard .meeting-join-btn:hover {
+  background-color: #1565c0;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .instructor-dashboard .meeting-grid {
+    flex-direction: column;
+    overflow-x: visible;
+  }
+
+  .instructor-dashboard .meeting-card {
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .instructor-dashboard .meeting-card-main {
+    width: 100%;
+  }
+
+  .instructor-dashboard .meeting-meta {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .instructor-dashboard .meeting-join-btn {
+    width: 100%;
+  }
+}
+
+@media print {
+  .instructor-dashboard .MuiButton-root,
+  .instructor-dashboard .MuiTextField-root {
+    display: none;
+  }
+
+  .instructor-dashboard .MuiCard-root {
+    box-shadow: none;
+    border: 1px solid #90caf9;
+  }
+
+  .instructor-dashboard .MuiTableContainer-root {
+    max-height: none !important;
+  }
+}

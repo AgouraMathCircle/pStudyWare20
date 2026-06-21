@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Container,
   Box,
@@ -18,16 +18,13 @@ import {
   IconButton,
   Tooltip,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
   Paper,
+  Link,
 } from "@mui/material";
 import {
   Visibility as ViewIcon,
@@ -40,11 +37,16 @@ import {
   KeyboardArrowRight as NextPageIcon,
   LastPage as LastPageIcon,
 } from "@mui/icons-material";
-import { useLocation } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
-import documentService from "../../../services/documentService";
+import documentService, {
+  getStudentDocumentDeleteId,
+  getStudentDocumentName,
+} from "../../../services/documentService";
 import StudentHeader from "./StudentHeader";
+import { getPortalUsername } from "../../../utils/portalUsername";
 import AdminHeader from "../Admin/AdminHeader";
+import AdminStudentDocumentList from "../Admin/AdminStudentDocumentList";
 import InstructorPortalPaginationBar from "../Instructor/InstructorPortalPaginationBar";
 import {
   instructorCellBodySx,
@@ -64,18 +66,82 @@ import {
   instructorTableSx,
 } from "../Instructor/instructorPortalTableStyles";
 import {
-  APPLICATION_ADMIN_TITLE_COLOR,
-  PORTAL_CARD_BOX_SHADOW,
-  portalCardAntiLiftSx,
-} from "../../../styles/applicationSurfaces";
+  adminSessionListFindButtonSx,
+  adminSessionListGridTableSx,
+  adminSessionListHeaderBarSx,
+  adminSessionListMenuItemSx,
+  adminSessionListPanelCardSx,
+  adminSessionListPanelContentSx,
+  adminSessionListSearchBarSx,
+  adminSessionListSearchFieldSx,
+  adminSessionListSearchLabelSx,
+  adminSessionListSearchSelectSx,
+  adminSessionListTableActionLinkSx,
+  adminSessionListTableBodyCellSx,
+  adminSessionListTableBodyRowSx,
+  adminSessionListTableHeadCellSx,
+  adminSessionListTableHeadRowSx,
+  adminSessionListTableContainerSx,
+  adminSessionListTitleSx,
+  adminSessionListEmptyCellSx,
+  adminSessionListEmptyTextSx,
+  APPLICATION_SURFACE_BG,
+  APPLICATION_SURFACE_BORDER,
+  portalRoleSubheaderSpacerPx,
+} from "../styles/applicationSurfaces";
+import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
+import SortableHeader from "../Common/SortableHeader";
+import PortalDialog from "../Common/PortalDialog";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
+import {
+  PORTAL_MODAL_FG,
+  portalModalFieldSx,
+  portalModalSendButtonSx,
+} from "../Common/portalModalStyles";
+import {
+  sortRows,
+  toSortableDate,
+  toSortableNumber,
+} from "../../../utils/tableSort";
 
 /** Same outer column as <InstructorManagement /> (admin portal). */
+const studentDocColumnWidths = {
+  actions: "16%",
+  docNumber: "8%",
+  description: "22%",
+  type: "12%",
+  documentName: "28%",
+  postedDate: "14%",
+};
+
+const documentActionDividerSx = {
+  fontSize: "0.75rem",
+  color: "text.disabled",
+  userSelect: "none",
+  lineHeight: 1,
+};
+
 const adminStudentDocsPageSx = {
   flex: 1,
   minHeight: 0,
   width: "100%",
   display: "flex",
   flexDirection: "column",
+};
+
+const uploadModalFormRowSx = {
+  display: "flex",
+  alignItems: { xs: "stretch", sm: "center" },
+  flexDirection: { xs: "column", sm: "row" },
+  gap: { xs: 0.75, sm: 2 },
+};
+
+const uploadModalFormLabelSx = {
+  minWidth: { sm: 120 },
+  fontWeight: 700,
+  fontSize: "0.875rem",
+  color: PORTAL_MODAL_FG,
+  flexShrink: 0,
 };
 
 function matchStudentDocField(fieldValue, search, criteria) {
@@ -85,6 +151,44 @@ function matchStudentDocField(fieldValue, search, criteria) {
   if (criteria === "starts_with") return f.startsWith(s);
   return f.includes(s);
 }
+
+const getUploadDocumentFieldValue = (doc, field) => {
+  switch (field) {
+    case "docNumber":
+      return toSortableNumber(doc.docID);
+    case "description":
+      return doc.description ?? "";
+    case "type":
+      return doc.type ?? "";
+    case "documentName":
+      return doc.documentName ?? "";
+    case "postedDate":
+      return toSortableDate(doc.insertDate);
+    default:
+      return "";
+  }
+};
+
+/** Legacy StudentDocuments.aspx student dropdown value: instructorEmail~studentId~chapterId */
+const parseStudentListValue = (value) => {
+  const parts = String(value || "").split("~");
+  return {
+    instructorEmail: parts[0]?.trim() || "",
+    studentId: parts[1]?.trim() || "",
+    chapterId: (parts[2] || "").trim() || "3",
+  };
+};
+
+const getUploadErrorMessage = (err, fallback) => {
+  const data = err?.response?.data;
+  if (data?.errors && typeof data.errors === "object") {
+    const messages = Object.values(data.errors).flat().filter(Boolean);
+    if (messages.length > 0) {
+      return messages.join(" ");
+    }
+  }
+  return data?.errorMessage || data?.message || err?.message || fallback;
+};
 
 const StudentDocuments = () => {
   const location = useLocation();
@@ -103,7 +207,13 @@ const StudentDocuments = () => {
   const [documents, setDocuments] = useState([]);
   const [filteredDocuments, setFilteredDocuments] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState("");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploadSubmitting, setUploadSubmitting] = useState(false);
+  const [deletingDocument, setDeletingDocument] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState(null);
 
   // Upload form state
   const [uploadForm, setUploadForm] = useState({
@@ -115,13 +225,15 @@ const StudentDocuments = () => {
 
   // Search state
   const [searchBy, setSearchBy] = useState("ALL");
-  const [searchCriteria, setSearchCriteria] = useState("contains");
+  const [searchCriteria, setSearchCriteria] = useState("");
   const [searchText, setSearchText] = useState("");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
-  const pageSize = 10;
+  const [sortField, setSortField] = useState("postedDate");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const pageSize = 25;
 
   // Global message state
   const [snackbar, setSnackbar] = useState({
@@ -159,8 +271,8 @@ const StudentDocuments = () => {
           );
         }
 
-        // Load sessions
-        await loadSessions();
+        // Load student list and current session for upload
+        await loadStudentsForUpload();
       } catch (err) {
         console.error("Error fetching student documents:", err);
         let errorMessage =
@@ -187,18 +299,78 @@ const StudentDocuments = () => {
     loadStudentDocuments();
   }, [isAuthenticated, user]);
 
-  // Load sessions
-  const loadSessions = async () => {
+  // Legacy currentSession(): AMC_spSelectCurrentSession returns the active session only
+  const loadCurrentSessionForUpload = async (chapterId = "3") => {
     try {
-      const response = await documentService.getScheduleLookup(
-        user.email || user.username
-      );
+      const response = await documentService.getCurrentSession(chapterId);
       if (response.isSuccess) {
-        setSessions(response.sessions || []);
+        const sessionRows = response.sessions ?? response.Sessions ?? [];
+        const currentSession =
+          sessionRows[0]?.session ?? sessionRows[0]?.Session ?? "";
+        setSessions(currentSession ? [{ session: currentSession }] : []);
+        setUploadForm((prev) => ({
+          ...prev,
+          session: currentSession,
+        }));
+      } else {
+        setSessions([]);
+        setUploadForm((prev) => ({ ...prev, session: "" }));
       }
     } catch (err) {
-      console.error("Error loading sessions:", err);
+      console.error("Error loading current session:", err);
+      setSessions([]);
+      setUploadForm((prev) => ({ ...prev, session: "" }));
     }
+  };
+
+  const loadStudentsForUpload = async () => {
+    try {
+      const response = await documentService.getStudentListForDocuments(
+        getPortalUsername(user) || user.email || user.username
+      );
+      if (response?.isSuccess) {
+        const studentList =
+          response.studentList ?? response.StudentList ?? [];
+        setStudents(studentList);
+        if (studentList.length > 0) {
+          const initial = studentList[0];
+          const value = initial.value ?? initial.Value ?? "";
+          setSelectedStudent(value);
+          const { chapterId } = parseStudentListValue(value);
+          await loadCurrentSessionForUpload(chapterId);
+        } else {
+          setSelectedStudent("");
+          setSessions([]);
+          setUploadForm((prev) => ({ ...prev, session: "" }));
+        }
+      } else {
+        console.error(
+          "Failed to load student list for upload:",
+          response?.errorMessage
+        );
+      }
+    } catch (err) {
+      console.error("Error loading student list for upload:", err);
+    }
+  };
+
+  const handleUploadStudentChange = async (event) => {
+    const value = event.target.value;
+    setSelectedStudent(value);
+    const { chapterId } = parseStudentListValue(value);
+    await loadCurrentSessionForUpload(chapterId);
+  };
+
+  const getSelectedStudentDetails = () => {
+    const student = students.find(
+      (item) => (item.value ?? item.Value) === selectedStudent
+    );
+    const { instructorEmail, studentId } = parseStudentListValue(selectedStudent);
+    return {
+      instructorEmail,
+      studentId,
+      studentName: student?.text ?? student?.Text ?? user?.firstName ?? "",
+    };
   };
 
   // Handle search (ALL + field filters; criteria matches report-card / class-material)
@@ -267,12 +439,25 @@ const StudentDocuments = () => {
     }
   };
 
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
+
+  const sortedDocuments = useMemo(
+    () => sortRows(filteredDocuments, sortField, sortOrder, getUploadDocumentFieldValue),
+    [filteredDocuments, sortField, sortOrder]
+  );
+
   // Calculate pagination values
-  const totalRecords = filteredDocuments.length;
+  const totalRecords = sortedDocuments.length;
   const totalPages = Math.ceil(totalRecords / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
-  const displayedDocuments = filteredDocuments.slice(startIndex, endIndex);
+  const displayedDocuments = sortedDocuments.slice(startIndex, endIndex);
 
   // Show message
   const showMessage = (message, severity = "info") => {
@@ -289,29 +474,85 @@ const StudentDocuments = () => {
   };
 
   // Handle view document
-  const handleView = (documentName) => {
-    if (documentName) {
-      documentService.viewStudentDocument(documentName);
-    }
-  };
-
-  // Handle download document
-  const handleDownload = (documentName) => {
-    if (documentName) {
-      documentService.downloadStudentDocument(documentName);
-    }
-  };
-
-  // Handle delete document
-  const handleDelete = async (documentID, documentName) => {
-    if (!window.confirm("Do you want to delete this document?")) {
+  const handleView = async (documentName) => {
+    if (!documentName) {
       return;
     }
 
     try {
-      setLoading(true);
+      await documentService.viewStudentDocument(documentName);
+    } catch (err) {
+      console.error("Error opening document:", err);
+      showMessage(
+        err?.message || "Unable to open document. The file may be missing.",
+        "error"
+      );
+    }
+  };
+
+  // Handle download document
+  const handleDownload = async (documentName) => {
+    if (!documentName) {
+      return;
+    }
+
+    try {
+      await documentService.downloadStudentDocument(documentName);
+    } catch (err) {
+      console.error("Error downloading document:", err);
+      showMessage(
+        err?.message || "Unable to download document. The file may be missing.",
+        "error"
+      );
+    }
+  };
+
+  // Open delete confirmation modal
+  const handleDeleteClick = (doc) => {
+    const documentID = getStudentDocumentDeleteId(doc);
+
+    if (!documentID) {
+      showMessage(
+        "Unable to delete this document: invalid document ID.",
+        "error"
+      );
+      return;
+    }
+
+    setDocumentToDelete(doc);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteDialogClose = () => {
+    if (deletingDocument) {
+      return;
+    }
+    setDeleteDialogOpen(false);
+    setDocumentToDelete(null);
+  };
+
+  // Confirm delete document
+  const handleDeleteConfirm = async () => {
+    if (!documentToDelete) {
+      return;
+    }
+
+    const documentID = getStudentDocumentDeleteId(documentToDelete);
+    const documentName = getStudentDocumentName(documentToDelete);
+
+    if (!documentID) {
+      showMessage(
+        "Unable to delete this document: invalid document ID.",
+        "error"
+      );
+      handleDeleteDialogClose();
+      return;
+    }
+
+    try {
+      setDeletingDocument(true);
       const response = await documentService.deleteStudentDocument(
-        documentID.toString(),
+        documentID,
         documentName
       );
 
@@ -320,15 +561,9 @@ const StudentDocuments = () => {
           response.message || "Document deleted successfully",
           "success"
         );
-        // Reload documents
-        const documentsResponse = await documentService.getStudentDocuments(
-          user.email || user.username
-        );
-        if (documentsResponse.isSuccess) {
-          const docs = documentsResponse.studentDocuments || [];
-          setDocuments(docs);
-          setFilteredDocuments(docs);
-        }
+        setDeleteDialogOpen(false);
+        setDocumentToDelete(null);
+        await handleRefresh({ skipLoading: true, quiet: true });
       } else {
         showMessage(
           response.errorMessage || "Failed to delete document",
@@ -337,29 +572,48 @@ const StudentDocuments = () => {
       }
     } catch (err) {
       console.error("Error deleting document:", err);
-      showMessage(
-        err.response?.data?.message || "Error deleting document",
-        "error"
-      );
+      showMessage(getUploadErrorMessage(err, "Error deleting document"), "error");
     } finally {
-      setLoading(false);
+      setDeletingDocument(false);
     }
   };
 
   // Handle upload dialog open
-  const handleUploadDialogOpen = () => {
+  const handleUploadDialogOpen = async () => {
+    if (students.length > 0) {
+      const initial =
+        students.find((item) => (item.value ?? item.Value) === selectedStudent) ??
+        students[0];
+      const value = initial.value ?? initial.Value ?? "";
+      if (value !== selectedStudent) {
+        setSelectedStudent(value);
+      }
+      const { chapterId } = parseStudentListValue(value);
+      await loadCurrentSessionForUpload(chapterId);
+    }
     setUploadDialogOpen(true);
   };
 
   // Handle upload dialog close
   const handleUploadDialogClose = () => {
     setUploadDialogOpen(false);
-    setUploadForm({
-      session: "",
+    setUploadForm((prev) => ({
+      ...prev,
       type: "Home Work",
       file: null,
       fileName: "",
-    });
+    }));
+    if (students.length > 0) {
+      const initial = students[0];
+      const value = initial.value ?? initial.Value ?? "";
+      setSelectedStudent(value);
+      const { chapterId } = parseStudentListValue(value);
+      loadCurrentSessionForUpload(chapterId);
+    } else {
+      setSelectedStudent("");
+      setSessions([]);
+      setUploadForm((prev) => ({ ...prev, session: "" }));
+    }
   };
 
   // Handle file change
@@ -399,22 +653,30 @@ const StudentDocuments = () => {
         return;
       }
 
-      setLoading(true);
+      const { studentId, studentName, instructorEmail } =
+        getSelectedStudentDetails();
+      if (!studentId) {
+        showMessage(
+          "Unable to determine your student ID. Please refresh the page or contact support.",
+          "error"
+        );
+        return;
+      }
 
-      // Convert file to byte array
-      const byteArray = await documentService.fileToByteArray(uploadForm.file);
+      setUploadSubmitting(true);
 
-      // Get student ID from user object
-      const studentID = user.studentID || user.memberId || "";
+      // Base64 matches API JSON binding for byte[] (same as admin document uploads)
+      const fileContent = await documentService.fileToBase64(uploadForm.file);
 
-      // Prepare request
+      // Prepare request (matches UploadDocumentRequest / legacy AMC_spAddStudentDocument)
       const request = {
-        StudentID: studentID,
+        StudentID: studentId,
+        StudentName: studentName,
         Session: uploadForm.session,
         Type: uploadForm.type,
         FileName: uploadForm.fileName,
-        FileContent: byteArray,
-        Username: user.email || user.username,
+        FileContent: fileContent,
+        Username: getPortalUsername(user) || user.email || user.username,
       };
 
       // Upload document
@@ -428,11 +690,11 @@ const StudentDocuments = () => {
 
         // Send message to instructor
         const messageData = {
-          SendTo: user.instructorEmail || "",
+          SendTo: instructorEmail || user.instructorEmail || "",
           SendFrom: user.email || user.username,
           Subject: `You have received the new Documents from ${user.firstName} ${user.lastName}`,
-          Message: `Hello Professor,<br/>I have uploaded my ${uploadForm.type} Answer Sheet.<br/>Name: ${user.firstName} ${user.lastName}<br/>Type: ${uploadForm.type}<br/>Document Name: ${uploadForm.fileName}<br/>Description: ${uploadForm.session}<br/><br/>Regards<br/><b>${user.firstName} ${user.lastName}</b>`,
-          SendBy: studentID,
+          Message: `Hello Professor,<br/>I have uploaded my ${uploadForm.type} Answer Sheet.<br/>Name: ${studentName || `${user.firstName} ${user.lastName}`}<br/>Type: ${uploadForm.type}<br/>Document Name: ${uploadForm.fileName}<br/>Description: ${uploadForm.session}<br/><br/>Regards<br/><b>${user.firstName} ${user.lastName}</b>`,
+          SendBy: studentId,
         };
 
         try {
@@ -443,15 +705,7 @@ const StudentDocuments = () => {
 
         handleUploadDialogClose();
 
-        // Reload documents
-        const documentsResponse = await documentService.getStudentDocuments(
-          user.email || user.username
-        );
-        if (documentsResponse.isSuccess) {
-          const docs = documentsResponse.studentDocuments || [];
-          setDocuments(docs);
-          setFilteredDocuments(docs);
-        }
+        await handleRefresh({ skipLoading: true, quiet: true });
       } else {
         showMessage(
           response.errorMessage || "Failed to upload document",
@@ -460,12 +714,9 @@ const StudentDocuments = () => {
       }
     } catch (err) {
       console.error("Error uploading document:", err);
-      showMessage(
-        err.response?.data?.message || "Error uploading document",
-        "error"
-      );
+      showMessage(getUploadErrorMessage(err, "Error uploading document"), "error");
     } finally {
-      setLoading(false);
+      setUploadSubmitting(false);
     }
   };
 
@@ -501,7 +752,7 @@ const StudentDocuments = () => {
 
   // Format date
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) return "—";
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString("en-US", {
@@ -513,6 +764,38 @@ const StudentDocuments = () => {
       return dateString;
     }
   };
+
+  const renderUploadedDocumentActions = (doc) => (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        flexWrap: "nowrap",
+        gap: 0.5,
+        whiteSpace: "nowrap",
+      }}
+    >
+      <Box
+        onClick={() => handleView(doc.documentName)}
+        sx={adminSessionListTableActionLinkSx}
+      >
+        View/Print
+      </Box>
+      <Typography component="span" sx={documentActionDividerSx}>
+        |
+      </Typography>
+      <Box
+        onClick={() => !deletingDocument && handleDeleteClick(doc)}
+        sx={{
+          ...adminSessionListTableActionLinkSx,
+          opacity: deletingDocument ? 0.5 : 1,
+          pointerEvents: deletingDocument ? "none" : "auto",
+        }}
+      >
+        Delete
+      </Box>
+    </Box>
+  );
 
   // Show loading while fetching data
   if (loading) {
@@ -548,17 +831,7 @@ const StudentDocuments = () => {
                     }}
                   >
                     <Box>
-                      <Typography
-                        variant="subtitle1"
-                        sx={{
-                          ...instructorPageTitleSx,
-                          ...(isAdminStudentDocsRoute
-                            ? {
-                                color: APPLICATION_ADMIN_TITLE_COLOR,
-                              }
-                            : {}),
-                        }}
-                      >
+                      <Typography variant="subtitle1" sx={instructorPageTitleSx}>
                         Student Documents List
                       </Typography>
                       <Typography
@@ -683,17 +956,11 @@ const StudentDocuments = () => {
                       </colgroup>
                       <TableHead>
                         <TableRow sx={instructorTableHeadRowSx}>
-                          <TableCell sx={instructorCellHeaderSx}>Doc #</TableCell>
-                          <TableCell sx={instructorCellHeaderSx}>
-                            Description
-                          </TableCell>
-                          <TableCell sx={instructorCellHeaderSx}>Type</TableCell>
-                          <TableCell sx={instructorCellHeaderSx}>
-                            Document Name
-                          </TableCell>
-                          <TableCell sx={instructorCellHeaderSx}>
-                            Posted Date
-                          </TableCell>
+                          <SortableHeader label="Doc #" field="docNumber" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={instructorCellHeaderSx} />
+                          <SortableHeader label="Description" field="description" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={instructorCellHeaderSx} />
+                          <SortableHeader label="Type" field="type" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={instructorCellHeaderSx} />
+                          <SortableHeader label="Document Name" field="documentName" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={instructorCellHeaderSx} />
+                          <SortableHeader label="Posted Date" field="postedDate" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={instructorCellHeaderSx} />
                           <TableCell
                             sx={instructorCellHeaderSxLast}
                             align="center"
@@ -777,12 +1044,8 @@ const StudentDocuments = () => {
                                 <Tooltip title="Delete">
                                   <IconButton
                                     size="small"
-                                    onClick={() =>
-                                      handleDelete(
-                                        doc.documentID,
-                                        doc.documentName
-                                      )
-                                    }
+                                    onClick={() => handleDeleteClick(doc)}
+                                    disabled={deletingDocument}
                                     sx={{ padding: "2px", color: "#f44336" }}
                                   >
                                     <DeleteIcon sx={{ fontSize: "1rem" }} />
@@ -816,21 +1079,21 @@ const StudentDocuments = () => {
           {isAdminStudentDocsRoute ? (
             <Box sx={adminStudentDocsPageSx}>
               <AdminHeader user={user} />
-              <Box sx={{ height: "48px" }} aria-hidden />
+              <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />
               <Container maxWidth="xl" sx={{ mb: 4 }}>
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
-                    <Card
-                      sx={{
-                        backgroundColor: "white",
-                        borderRadius: 2,
-                        boxShadow: PORTAL_CARD_BOX_SHADOW,
-                        overflow: "hidden",
-                        ...portalCardAntiLiftSx,
-                      }}
-                    >
-                      <CardContent sx={{ p: 3 }}>
-                        {staffDocumentsPanel}
+                    <Card sx={adminSessionListPanelCardSx}>
+                      <CardContent sx={adminSessionListPanelContentSx}>
+                        <AdminStudentDocumentList
+                          documents={documents}
+                          onRefresh={() =>
+                            handleRefresh({ skipLoading: true, quiet: true })
+                          }
+                          onView={handleView}
+                          onDownload={handleDownload}
+                          onDelete={handleDeleteClick}
+                        />
                       </CardContent>
                     </Card>
                   </Grid>
@@ -856,620 +1119,386 @@ const StudentDocuments = () => {
           <Container maxWidth="xl" sx={{ mb: 4 }}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Card
-                  sx={{
-                    backgroundColor: "white",
-                    borderRadius: 2,
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                    overflow: "hidden",
-                  }}
-                >
-                  <CardContent sx={{ p: 0 }}>
-                {/* Title Section with gray background */}
-                <Box sx={{ p: 2, backgroundColor: "#f5f5f5" }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      mb: 1,
-                    }}
-                  >
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 600,
-                        color: "#4caf50",
-                        fontSize: "1.1rem",
-                      }}
-                    >
-                      My Documents List
-                    </Typography>
-                    <Box>
-                      <Button
-                        variant="contained"
-                        startIcon={<UploadIcon />}
-                        onClick={handleUploadDialogOpen}
-                        sx={{
-                          mr: 1,
-                          backgroundColor: "#4caf50",
-                          fontSize: "0.875rem",
-                          textTransform: "none",
-                          px: 2,
-                          py: 0.75,
-                          "&:hover": { backgroundColor: "#45a049" },
-                        }}
-                      >
-                        Upload Documents
-                      </Button>
-                      <Tooltip title="Refresh">
-                        <IconButton
-                          onClick={handleRefresh}
-                          sx={{ color: "#4caf50", padding: "6px" }}
+                <Card sx={adminSessionListPanelCardSx}>
+                  <CardContent sx={adminSessionListPanelContentSx}>
+                    <Box sx={{ width: "100%" }}>
+                      <Box sx={adminSessionListHeaderBarSx}>
+                        <Typography
+                          variant="subtitle1"
+                          component="div"
+                          sx={adminSessionListTitleSx}
                         >
-                          <RefreshIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </Box>
-                </Box>
-
-                {/* Green Search Bar */}
-                <Box
-                  sx={{
-                    backgroundColor: "#4caf50",
-                    padding: "8px 12px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <Typography
-                      sx={{
-                        color: "white",
-                        fontSize: "0.75rem",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Search By:
-                    </Typography>
-                    <Select
-                      value={searchBy}
-                      onChange={(e) => setSearchBy(e.target.value)}
-                      size="small"
-                      sx={{
-                        color: "white",
-                        fontSize: "0.75rem",
-                        minWidth: 120,
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "white",
-                        },
-                        "& .MuiSelect-icon": { color: "white" },
-                      }}
-                    >
-                      <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
-                        -ALL-
-                      </MenuItem>
-                      <MenuItem
-                        value="DESCRIPTION"
-                        sx={{ fontSize: "0.75rem" }}
-                      >
-                        Description
-                      </MenuItem>
-                      <MenuItem value="TYPE" sx={{ fontSize: "0.75rem" }}>
-                        Type
-                      </MenuItem>
-                      <MenuItem value="DOC_NAME" sx={{ fontSize: "0.75rem" }}>
-                        Document Name
-                      </MenuItem>
-                    </Select>
-                  </Box>
-
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <Typography
-                      sx={{
-                        color: "white",
-                        fontSize: "0.75rem",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Criteria:
-                    </Typography>
-                    <Select
-                      value={searchCriteria}
-                      onChange={(e) => setSearchCriteria(e.target.value)}
-                      size="small"
-                      sx={{
-                        color: "white",
-                        fontSize: "0.75rem",
-                        minWidth: 100,
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "white",
-                        },
-                        "& .MuiSelect-icon": { color: "white" },
-                      }}
-                    >
-                      <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
-                        Equals
-                      </MenuItem>
-                      <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
-                        Contains
-                      </MenuItem>
-                      <MenuItem
-                        value="starts_with"
-                        sx={{ fontSize: "0.75rem" }}
-                      >
-                        Starts With
-                      </MenuItem>
-                    </Select>
-                  </Box>
-
-                  <TextField
-                    size="small"
-                    placeholder="Search Text"
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                    sx={{
-                      minWidth: 150,
-                      "& .MuiOutlinedInput-root": {
-                        backgroundColor: "white",
-                        fontSize: "0.75rem",
-                      },
-                    }}
-                  />
-
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={handleSearch}
-                    sx={{
-                      backgroundColor: "white",
-                      color: "#4caf50",
-                      fontSize: "0.75rem",
-                      textTransform: "none",
-                      px: 1.5,
-                      py: 0.25,
-                      "&:hover": { backgroundColor: "#f5f5f5" },
-                    }}
-                  >
-                    Find
-                  </Button>
-                </Box>
-
-                {/* Documents Table */}
-                <TableContainer sx={{ width: "100%" }}>
-                  <Table sx={{ width: "100%", tableLayout: "fixed" }}>
-                    <TableHead>
-                      <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
-                        <TableCell
-                          sx={{
-                            fontWeight: 600,
-                            borderRight: "1px solid #4caf50",
-                            width: "8%",
-                            fontSize: "0.75rem",
-                            padding: "2px 3px",
-                          }}
-                        >
-                          Doc #
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 600,
-                            borderRight: "1px solid #4caf50",
-                            width: "20%",
-                            fontSize: "0.75rem",
-                            padding: "2px 3px",
-                          }}
-                        >
-                          Description
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 600,
-                            borderRight: "1px solid #4caf50",
-                            width: "12%",
-                            fontSize: "0.75rem",
-                            padding: "2px 3px",
-                          }}
-                        >
-                          Type
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 600,
-                            borderRight: "1px solid #4caf50",
-                            width: "25%",
-                            fontSize: "0.75rem",
-                            padding: "2px 3px",
-                          }}
-                        >
-                          Document Name
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 600,
-                            borderRight: "1px solid #4caf50",
-                            width: "15%",
-                            fontSize: "0.75rem",
-                            padding: "2px 3px",
-                          }}
-                        >
-                          Posted Date
-                        </TableCell>
-                        <TableCell
-                          sx={{
-                            fontWeight: 600,
-                            width: "20%",
-                            fontSize: "0.75rem",
-                            padding: "2px 3px",
-                          }}
-                          align="center"
-                        >
-                          Actions
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {displayedDocuments.length === 0 ? (
-                        <TableRow>
-                          <TableCell
-                            colSpan={6}
-                            align="center"
-                            sx={{ padding: "20px" }}
+                          My Documents List
+                        </Typography>
+                        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                          <Button
+                            variant="contained"
+                            color="success"
+                            size="small"
+                            startIcon={<UploadIcon />}
+                            onClick={handleUploadDialogOpen}
+                            sx={{ fontSize: "0.75rem", textTransform: "none" }}
                           >
-                            <Typography variant="body1" color="textSecondary">
-                              {searchText
-                                ? "No documents found matching your search."
-                                : "No documents found"}
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        displayedDocuments.map((doc) => (
-                          <TableRow
-                            key={doc.documentID}
-                            sx={{
-                              "&:nth-of-type(odd)": {
-                                backgroundColor: "#f9f9f9",
-                              },
-                            }}
+                            Upload Documents
+                          </Button>
+                        </Box>
+                      </Box>
+
+                      <Box sx={adminSessionListSearchBarSx}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                          <Typography sx={adminSessionListSearchLabelSx}>
+                            Search By:
+                          </Typography>
+                          <Select
+                            value={searchBy}
+                            onChange={(e) => setSearchBy(e.target.value)}
+                            size="small"
+                            sx={adminSessionListSearchSelectSx}
                           >
-                            <TableCell
-                              sx={{
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: "3px 4px",
-                              }}
-                            >
-                              {doc.docID}
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: "3px 4px",
-                              }}
-                            >
-                              {doc.description || "N/A"}
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: "3px 4px",
-                              }}
-                            >
-                              {doc.type || "N/A"}
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: "3px 4px",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              <Tooltip title={doc.documentName}>
-                                <span>{doc.documentName || "N/A"}</span>
-                              </Tooltip>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: "3px 4px",
-                              }}
-                            >
-                              {formatDate(doc.insertDate)}
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: "3px 4px",
-                              }}
-                              align="center"
-                            >
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  gap: 0.5,
-                                  justifyContent: "center",
-                                }}
+                            <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
+                              -ALL-
+                            </MenuItem>
+                            <MenuItem value="DESCRIPTION" sx={adminSessionListMenuItemSx}>
+                              Description
+                            </MenuItem>
+                            <MenuItem value="TYPE" sx={adminSessionListMenuItemSx}>
+                              Type
+                            </MenuItem>
+                            <MenuItem value="DOC_NAME" sx={adminSessionListMenuItemSx}>
+                              Document Name
+                            </MenuItem>
+                          </Select>
+                        </Box>
+
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                          <Typography sx={adminSessionListSearchLabelSx}>
+                            Criteria:
+                          </Typography>
+                          <Select
+                            value={searchCriteria}
+                            onChange={(e) => setSearchCriteria(e.target.value)}
+                            size="small"
+                            sx={adminSessionListSearchSelectSx}
+                          >
+                            <MenuItem value="" sx={adminSessionListMenuItemSx}>
+                              Select Criteria
+                            </MenuItem>
+                            <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
+                              Equals
+                            </MenuItem>
+                            <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
+                              Contains
+                            </MenuItem>
+                            <MenuItem value="starts_with" sx={adminSessionListMenuItemSx}>
+                              Starts With
+                            </MenuItem>
+                          </Select>
+                        </Box>
+
+                        <TextField
+                          size="small"
+                          placeholder="Search Text"
+                          value={searchText}
+                          onChange={(e) => setSearchText(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                          sx={adminSessionListSearchFieldSx}
+                        />
+
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={handleSearch}
+                          sx={adminSessionListFindButtonSx}
+                        >
+                          Find
+                        </Button>
+                      </Box>
+
+                      <TableContainer component={Paper} sx={adminSessionListTableContainerSx}>
+                        <Table size="small" sx={adminSessionListGridTableSx}>
+                          <TableHead>
+                            <TableRow sx={adminSessionListTableHeadRowSx}>
+                              <SortableHeader label="Doc #" field="docNumber" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(studentDocColumnWidths.docNumber)} />
+                              <SortableHeader label="Description" field="description" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(studentDocColumnWidths.description)} />
+                              <SortableHeader label="Type" field="type" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(studentDocColumnWidths.type)} />
+                              <SortableHeader label="Document Name" field="documentName" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(studentDocColumnWidths.documentName)} />
+                              <SortableHeader label="Posted Date" field="postedDate" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(studentDocColumnWidths.postedDate)} />
+                              <TableCell
+                                sx={adminSessionListTableHeadCellSx(studentDocColumnWidths.actions, true)}
+                                align="center"
                               >
-                                <Tooltip title="View/Print">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleView(doc.documentName)}
-                                    sx={{ color: "#4caf50", padding: "1px" }}
+                                Actions
+                              </TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {displayedDocuments.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={6} align="center" sx={adminSessionListEmptyCellSx}>
+                                  <Typography
+                                    variant="body2"
+                                    color="textSecondary"
+                                    sx={adminSessionListEmptyTextSx}
                                   >
-                                    <ViewIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Download">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() =>
-                                      handleDownload(doc.documentName)
-                                    }
-                                    sx={{ color: "#2196f3", padding: "1px" }}
+                                    {searchText
+                                      ? "No documents found matching your search."
+                                      : "No records to display"}
+                                  </Typography>
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              displayedDocuments.map((doc) => (
+                                <TableRow
+                                  key={doc.documentID}
+                                  sx={adminSessionListTableBodyRowSx}
+                                >
+                                  <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                    {doc.docID ?? "—"}
+                                  </TableCell>
+                                  <TableCell
+                                    sx={adminSessionListTableBodyCellSx({ ellipsis: true })}
                                   >
-                                    <DownloadIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() =>
-                                      handleDelete(
-                                        doc.documentID,
-                                        doc.documentName
-                                      )
-                                    }
-                                    sx={{ color: "#f44336", padding: "1px" }}
+                                    {doc.description || "—"}
+                                  </TableCell>
+                                  <TableCell
+                                    sx={adminSessionListTableBodyCellSx({ ellipsis: true })}
                                   >
-                                    <DeleteIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </Box>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                                    {doc.type || "—"}
+                                  </TableCell>
+                                  <TableCell
+                                    sx={adminSessionListTableBodyCellSx({ ellipsis: true })}
+                                  >
+                                    {doc.documentName || "—"}
+                                  </TableCell>
+                                  <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                    {formatDate(doc.insertDate)}
+                                  </TableCell>
+                                  <TableCell
+                                    sx={adminSessionListTableBodyCellSx({ isLast: true, action: true })}
+                                  >
+                                    {renderUploadedDocumentActions(doc)}
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
 
-                {/* Green Pagination Bar */}
-                <Box
-                  sx={{
-                    backgroundColor: "#4caf50",
-                    padding: "8px 12px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 1,
-                  }}
-                >
-                  <Box
-                    sx={{ display: "flex", alignItems: "center", gap: 0.25 }}
-                  >
-                    <IconButton
-                      size="small"
-                      sx={{ color: "white", padding: "2px" }}
-                      onClick={() => handlePageChange(1)}
-                      disabled={currentPage === 1}
-                    >
-                      <FirstPageIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      sx={{ color: "white", padding: "2px" }}
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      <PrevPageIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      sx={{ color: "white", padding: "2px" }}
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      <NextPageIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      sx={{ color: "white", padding: "2px" }}
-                      onClick={() => handlePageChange(totalPages)}
-                      disabled={currentPage === totalPages}
-                    >
-                      <LastPageIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-
-                  <Box
-                    sx={{ display: "flex", alignItems: "center", gap: 0.25 }}
-                  >
-                    <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                      GoTo
-                    </Typography>
-                    <Select
-                      size="small"
-                      value={currentPage}
-                      onChange={(e) => handlePageChange(e.target.value)}
-                      sx={{
-                        color: "white",
-                        minWidth: 50,
-                        fontSize: "0.75rem",
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "white",
-                        },
-                        "& .MuiSelect-icon": { color: "white" },
-                      }}
-                    >
-                      {Array.from(
-                        { length: totalPages || 1 },
-                        (_, i) => i + 1
-                      ).map((page) => (
-                        <MenuItem
-                          key={page}
-                          value={page}
-                          sx={{ fontSize: "0.75rem" }}
-                        >
-                          {page}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </Box>
-
-                  <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                    Page(s): {currentPage} of {totalPages || 1}
-                  </Typography>
-
-                  <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                    Record(s):{" "}
-                    {totalRecords > 0
-                      ? `${startIndex + 1} - ${Math.min(
-                          endIndex,
-                          totalRecords
-                        )}`
-                      : "0"}{" "}
-                    of {totalRecords}
-                  </Typography>
-
-                  <Box
-                    sx={{ display: "flex", alignItems: "center", gap: 0.25 }}
-                  >
-                    <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                      Go to Page Number:
-                    </Typography>
-                    <TextField
-                      size="small"
-                      type="number"
-                      value={goToPageInput}
-                      onChange={(e) => setGoToPageInput(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          handleGoToPage();
-                        }
-                      }}
-                      sx={{
-                        width: 50,
-                        "& .MuiOutlinedInput-root": {
-                          backgroundColor: "white",
-                          fontSize: "0.75rem",
-                        },
-                      }}
-                      inputProps={{ min: 1, max: totalPages || 1 }}
-                    />
-                    <Button
-                      size="small"
-                      variant="contained"
-                      onClick={handleGoToPage}
-                      sx={{
-                        backgroundColor: "white",
-                        color: "#4caf50",
-                        fontSize: "0.75rem",
-                        px: 1,
-                        py: 0.25,
-                        minWidth: "auto",
-                        "&:hover": { backgroundColor: "#f5f5f5" },
-                      }}
-                    >
-                      Go
-                    </Button>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
+                      <AdminSessionListPagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalRecords={totalRecords}
+                        pageSize={pageSize}
+                        goToPageInput={goToPageInput}
+                        onGoToPageInputChange={setGoToPageInput}
+                        onPageChange={handlePageChange}
+                        onGoToPage={handleGoToPage}
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
           </Grid>
         </Grid>
       </Container>
         </Box>
       )}
 
-      {/* Upload Dialog — students only (legacy hides upload for Instructor/Admin). */}
       {allowDocumentUpload && (
-      <Dialog
+      <PortalDialog
         open={uploadDialogOpen}
         onClose={handleUploadDialogClose}
-        maxWidth="sm"
-        fullWidth
+        maxWidth="md"
+        disableClose={uploadSubmitting}
+        title="Upload Documents (Only PDF < 2 MB)"
+        icon={<UploadIcon sx={{ fontSize: 20 }} />}
+        actions={
+          <Button
+            onClick={handleUploadSubmit}
+            variant="contained"
+            disabled={
+              !uploadForm.file ||
+              !uploadForm.session ||
+              !selectedStudent ||
+              !getSelectedStudentDetails().studentId ||
+              uploadSubmitting
+            }
+            startIcon={
+              uploadSubmitting ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : (
+                <UploadIcon />
+              )
+            }
+            sx={portalModalSendButtonSx}
+          >
+            {uploadSubmitting ? "Uploading..." : "Submit"}
+          </Button>
+        }
       >
-        <DialogTitle>Upload Document</DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 2 }}>
-            <Typography variant="body2" color="error" sx={{ mb: 2 }}>
-              * File Name must be your First Name (Example: David.PDF). Please
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box
+            sx={{
+              bgcolor: APPLICATION_SURFACE_BG,
+              border: `1px solid ${APPLICATION_SURFACE_BORDER}`,
+              borderRadius: 1,
+              px: 1.5,
+              py: 1,
+            }}
+          >
+            <Typography variant="body2" sx={{ color: "error.main" }}>
+              File Name must be student First Name (Example: David.PDF). Please
               upload SINGLE PDF file (less than 2 MB). File Upload only for AI
-              and Data Science Class.
-            </Typography>
-
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Session</InputLabel>
-              <Select
-                value={uploadForm.session}
-                onChange={(e) =>
-                  setUploadForm({ ...uploadForm, session: e.target.value })
-                }
-                label="Session"
+              and Data Science Class. All Math Circle, ACT and PSAT Class need
+              to use the{" "}
+              <Link
+                component={RouterLink}
+                to="/pstudyware/student/update-score"
+                onClick={handleUploadDialogClose}
+                sx={{
+                  color: "error.main",
+                  fontWeight: 600,
+                  textDecorationColor: "error.main",
+                }}
               >
-                {sessions.map((session, index) => (
-                  <MenuItem key={index} value={session.session}>
-                    {session.session}
+                Update Score
+              </Link>
+              .
+            </Typography>
+          </Box>
+
+          <Box sx={uploadModalFormRowSx}>
+            <Typography sx={uploadModalFormLabelSx}>Student Name</Typography>
+            <FormControl
+              fullWidth
+              size="small"
+              sx={portalModalFieldSx}
+              disabled={students.length === 0 || uploadSubmitting}
+            >
+              <InputLabel id="upload-student-name-label">Student Name</InputLabel>
+              <Select
+                labelId="upload-student-name-label"
+                value={selectedStudent}
+                onChange={handleUploadStudentChange}
+                label="Student Name"
+              >
+                {students.length === 0 ? (
+                  <MenuItem value="" disabled>
+                    No students found
                   </MenuItem>
-                ))}
+                ) : (
+                  students.map((student, index) => (
+                    <MenuItem
+                      key={`${student.value ?? student.Value}-${index}`}
+                      value={student.value ?? student.Value ?? ""}
+                    >
+                      {student.text ?? student.Text}
+                    </MenuItem>
+                  ))
+                )}
               </Select>
             </FormControl>
+          </Box>
 
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Type</InputLabel>
+          <Box sx={uploadModalFormRowSx}>
+            <Typography sx={uploadModalFormLabelSx}>Session</Typography>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel id="upload-session-label">Session</InputLabel>
               <Select
+                labelId="upload-session-label"
+                value={uploadForm.session}
+                label="Session"
+                disabled={
+                  uploadSubmitting ||
+                  sessions.length === 0 ||
+                  sessions.length === 1
+                }
+              >
+                {sessions.length === 0 ? (
+                  <MenuItem value="" disabled>
+                    No current session
+                  </MenuItem>
+                ) : (
+                  sessions.map((session, index) => (
+                    <MenuItem
+                      key={index}
+                      value={session.session ?? session.Session ?? ""}
+                    >
+                      {session.session ?? session.Session}
+                    </MenuItem>
+                  ))
+                )}
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box sx={uploadModalFormRowSx}>
+            <Typography sx={uploadModalFormLabelSx}>Class</Typography>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel id="upload-class-label">Class</InputLabel>
+              <Select
+                labelId="upload-class-label"
                 value={uploadForm.type}
                 onChange={(e) =>
                   setUploadForm({ ...uploadForm, type: e.target.value })
                 }
-                label="Type"
+                label="Class"
+                disabled={uploadSubmitting}
               >
                 <MenuItem value="Home Work">Home Work</MenuItem>
               </Select>
             </FormControl>
+          </Box>
 
-            <TextField
-              fullWidth
-              type="file"
-              inputProps={{ accept: ".pdf" }}
-              onChange={handleFileChange}
-              helperText="Only PDF files less than 2MB"
-              sx={{ mb: 2 }}
-            />
+          <Box sx={uploadModalFormRowSx}>
+            <Typography sx={uploadModalFormLabelSx}>Select File</Typography>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                size="small"
+                type="file"
+                inputProps={{ accept: ".pdf" }}
+                onChange={handleFileChange}
+                disabled={uploadSubmitting}
+                sx={portalModalFieldSx}
+              />
+              {uploadForm.fileName && (
+                <Typography variant="caption" color="textSecondary" sx={{ mt: 0.5, display: "block" }}>
+                  Selected file: {uploadForm.fileName}
+                </Typography>
+              )}
+            </Box>
+          </Box>
+        </Box>
+      </PortalDialog>
+      )}
 
-            {uploadForm.fileName && (
-              <Typography variant="body2" color="textSecondary">
-                Selected file: {uploadForm.fileName}
+      <AppConfirmDialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteDialogClose}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Document"
+        message={
+          <>
+            <Typography component="span" variant="body2">
+              Do you want to delete this document?
+            </Typography>
+            {documentToDelete?.documentName && (
+              <Typography
+                variant="body2"
+                sx={{ mt: 1, fontWeight: 600, color: "text.primary" }}
+              >
+                {documentToDelete.documentName}
               </Typography>
             )}
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleUploadDialogClose}>Cancel</Button>
-          <Button
-            onClick={handleUploadSubmit}
-            variant="contained"
-            color="primary"
-            disabled={!uploadForm.file || !uploadForm.session}
-          >
-            Submit
-          </Button>
-        </DialogActions>
-      </Dialog>
-      )}
+          </>
+        }
+        confirmLabel="Delete"
+        confirmColor="error"
+        icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+        loading={deletingDocument}
+      />
 
       {/* Snackbar for messages */}
       <Snackbar

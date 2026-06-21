@@ -5,16 +5,9 @@ import {
   Alert,
   Snackbar,
   Typography,
-  CircularProgress,
   Grid,
   Card,
   CardContent,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Button,
   Select,
   MenuItem,
@@ -32,44 +25,72 @@ import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import onlineExamService from "../../../services/onlineExamService";
 import StudentHeader from "./StudentHeader";
+import FinalExamScoresGrid from "./FinalExamScoresGrid";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
+import SendIcon from "@mui/icons-material/Send";
+import {
+  PORTAL_CARD_BOX_SHADOW,
+  portalCardAntiLiftSx,
+  adminSessionListTitleSx,
+} from "../styles/applicationSurfaces";
 
-const pageSx = {
-  minHeight: "100vh",
-  pt: 9,
-  pb: 5,
-};
-
-const selectionCardSx = {
-  mb: 3,
-  borderRadius: 3,
-  border: "1px solid #dbeedc",
-  boxShadow: "0 14px 32px rgba(23, 74, 16, 0.12)",
+const portalCardSx = {
+  backgroundColor: "white",
+  borderRadius: 2,
+  boxShadow: PORTAL_CARD_BOX_SHADOW,
   overflow: "hidden",
+  ...portalCardAntiLiftSx,
 };
 
 const fieldSx = {
   "& .MuiInputBase-root": {
-    minHeight: 54,
+    fontSize: "0.75rem",
     backgroundColor: "#fff",
   },
   "& .MuiInputLabel-root": {
+    fontSize: "0.75rem",
     maxWidth: "calc(100% - 32px)",
+  },
+  "& .MuiSelect-select": {
+    fontSize: "0.75rem",
   },
 };
 
+const menuItemSx = { fontSize: "0.75rem" };
+
 const primaryButtonSx = {
   backgroundColor: "#174a10",
-  minHeight: 54,
-  px: 3,
-  borderRadius: 2,
-  fontWeight: 700,
-  letterSpacing: 0.3,
+  fontSize: "0.75rem",
+  textTransform: "none",
+  fontWeight: 600,
+  px: 2,
+  py: 0.75,
   whiteSpace: "nowrap",
-  boxShadow: "0 8px 18px rgba(23, 74, 16, 0.24)",
   "&:hover": {
     backgroundColor: "#0f3209",
-    boxShadow: "0 10px 22px rgba(23, 74, 16, 0.3)",
   },
+};
+
+const instructionTextSx = { fontSize: "0.875rem", color: "#666" };
+const alertTextSx = { fontSize: "0.875rem" };
+const sectionTitleSx = { ...adminSessionListTitleSx, mb: 1 };
+const groupHeaderSx = {
+  backgroundColor: "#174a10",
+  color: "white",
+  p: 0.75,
+  mb: 1.5,
+  fontSize: "0.875rem",
+  fontWeight: 600,
+};
+const questionBoxSx = {
+  mb: 1.5,
+  p: 1.5,
+  border: "1px solid #ddd",
+  borderRadius: 1,
+};
+const questionLegendSx = { fontSize: "0.75rem", fontWeight: 600 };
+const questionChoiceSx = {
+  "& .MuiFormControlLabel-label": { fontSize: "0.75rem" },
 };
 
 const OnlineExam = () => {
@@ -78,6 +99,7 @@ const OnlineExam = () => {
   const [loading, setLoading] = useState(true);
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitConfirmOpen, setSubmitConfirmOpen] = useState(false);
 
   // Student and exam selection state
   const [students, setStudents] = useState([]);
@@ -367,10 +389,12 @@ const OnlineExam = () => {
   };
 
   // Handle submit
-  const handleSubmit = async () => {
-    if (!window.confirm("Are you sure you want to submit your answers?")) {
-      return;
-    }
+  const handleSubmit = () => {
+    setSubmitConfirmOpen(true);
+  };
+
+  const handleSubmitConfirm = async () => {
+    setSubmitConfirmOpen(false);
 
     try {
       setSubmitting(true);
@@ -456,58 +480,34 @@ const OnlineExam = () => {
 
   const [group1, group2, group3] = splitQuestionsIntoGroups();
 
-  if (loading) {
-    return (
-      <Container>
-        <StudentHeader />
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight="400px"
-        >
-          <CircularProgress />
-        </Box>
-      </Container>
-    );
-  }
-
   return (
-    <Box sx={pageSx}>
-      <StudentHeader />
+    <Box className="student-dashboard">
+      <StudentHeader user={user} />
+      <Box sx={{ height: "48px" }} aria-hidden />
 
-      <Container maxWidth="xl">
-      <Box sx={{ mb: 3 }}>
-        <Typography
-          variant="h4"
-          gutterBottom
-          sx={{
-            color: "#174a10",
-            fontWeight: 800,
-            fontSize: { xs: "1.7rem", md: "2.2rem" },
-          }}
-        >
-          Update Score
-        </Typography>
+      <Container maxWidth="xl" sx={{ mb: 4 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card sx={portalCardSx}>
+              <CardContent sx={{ p: 0 }}>
+                <Box sx={{ p: 2, pb: 1 }}>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ ...adminSessionListTitleSx, mb: 0.5 }}
+                  >
+                    Update Score
+                  </Typography>
+                </Box>
 
+                <Box sx={{ px: 2, pb: 2 }}>
         {/* Instructions */}
         {showForm && (
-          <Card sx={selectionCardSx}>
-            <CardContent sx={{ p: { xs: 2.5, md: 3.5 } }}>
-              <Typography
-                variant="h6"
-                sx={{ color: "#174a10", mb: 2, fontWeight: 700 }}
-              >
+          <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" sx={sectionTitleSx}>
                 Instructions
               </Typography>
-              <Box
-                sx={{
-                  pl: { xs: 0, md: 1 },
-                  color: "#334155",
-                  "& p": { mb: 1.25 },
-                }}
-              >
-                <Typography variant="body2" paragraph>
+              <Box sx={{ "& p": { mb: 1 } }}>
+                <Typography variant="body2" paragraph sx={instructionTextSx}>
                   <strong>Step 1:</strong> Download the questions (Quiz,
                   Classwork, Homework, Final exam) and answer each question
                   carefully.{" "}
@@ -519,22 +519,22 @@ const OnlineExam = () => {
                     Homework, Final exam).
                   </Link>
                 </Typography>
-                <Typography variant="body2" paragraph>
+                <Typography variant="body2" paragraph sx={instructionTextSx}>
                   <strong>Step 2:</strong> Select the student from the list. (If
                   you have multiple kids enrolled, pay attention to the Student
                   Name, Session and Exam Type from the dropdown menu. You will
                   only be able to submit your answers once and they cannot be
                   changed.)
                 </Typography>
-                <Typography variant="body2" paragraph>
+                <Typography variant="body2" paragraph sx={instructionTextSx}>
                   <strong>Step 3:</strong> Select the Correct Answer. If you did
                   not know the answer, skip it so you don't waste time.
                 </Typography>
-                <Typography variant="body2" paragraph>
+                <Typography variant="body2" paragraph sx={instructionTextSx}>
                   <strong>Step 4:</strong> Click the submit button after
                   updating all answers. Do not forget this step.
                 </Typography>
-                <Typography variant="body2" paragraph>
+                <Typography variant="body2" paragraph sx={instructionTextSx}>
                   <strong>Step 5:</strong> The answer sheet update option will
                   be disabled after you submitted. You can submit only one time.
                   If you have any questions, please contact us via Message
@@ -542,11 +542,15 @@ const OnlineExam = () => {
                 </Typography>
               </Box>
 
-              <Divider sx={{ my: 3 }} />
+              <Divider sx={{ my: 2 }} />
 
               {/* Student Selection Form */}
-              {students.length === 0 ? (
-                <Alert severity="info" sx={{ mb: 3, width: "100%" }}>
+              {loading ? (
+                <Alert severity="info" sx={{ mb: 2, width: "100%", fontSize: "0.875rem" }}>
+                  Loading students...
+                </Alert>
+              ) : students.length === 0 ? (
+                <Alert severity="info" sx={{ mb: 2, width: "100%", fontSize: "0.875rem" }}>
                   No students found for your account. Please contact support if
                   you believe this is an error.
                 </Alert>
@@ -559,17 +563,18 @@ const OnlineExam = () => {
                     p: { xs: 2, md: 2.5 },
                   }}
                 >
-                <Grid container spacing={2.5} alignItems="stretch">
+                <Grid container spacing={1.5} alignItems="center">
                   <Grid size={{ xs: 12, md: 4 }}>
-                    <FormControl fullWidth sx={fieldSx}>
+                    <FormControl fullWidth size="small" sx={fieldSx}>
                       <InputLabel>Student Name</InputLabel>
                       <Select
                         value={selectedStudent}
                         onChange={handleStudentChange}
                         label="Student Name"
+                        disabled={loading}
                       >
                         {students.map((student, index) => (
-                          <MenuItem key={index} value={student.value}>
+                          <MenuItem key={index} value={student.value} sx={menuItemSx}>
                             {student.text}
                           </MenuItem>
                         ))}
@@ -578,15 +583,16 @@ const OnlineExam = () => {
                   </Grid>
 
                   <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <FormControl fullWidth sx={fieldSx}>
+                    <FormControl fullWidth size="small" sx={fieldSx}>
                       <InputLabel>Session</InputLabel>
                       <Select
                         value={selectedSession}
                         onChange={(e) => setSelectedSession(e.target.value)}
                         label="Session"
+                        disabled={loading}
                       >
                         {sessions.map((session, index) => (
-                          <MenuItem key={index} value={session.session}>
+                          <MenuItem key={index} value={session.session} sx={menuItemSx}>
                             {session.session}
                           </MenuItem>
                         ))}
@@ -595,15 +601,16 @@ const OnlineExam = () => {
                   </Grid>
 
                   <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <FormControl fullWidth sx={fieldSx}>
+                    <FormControl fullWidth size="small" sx={fieldSx}>
                       <InputLabel>Exam Type</InputLabel>
                       <Select
                         value={selectedExamType}
                         onChange={(e) => setSelectedExamType(e.target.value)}
                         label="Exam Type"
+                        disabled={loading}
                       >
                         {examTypes.map((type, index) => (
-                          <MenuItem key={index} value={type}>
+                          <MenuItem key={index} value={type} sx={menuItemSx}>
                             {type}
                           </MenuItem>
                         ))}
@@ -614,8 +621,9 @@ const OnlineExam = () => {
                   <Grid size={{ xs: 12, md: 2 }}>
                     <Button
                       variant="contained"
+                      size="small"
                       onClick={handleGetAnswerSheet}
-                      disabled={questionsLoading}
+                      disabled={loading || questionsLoading}
                       sx={{
                         ...primaryButtonSx,
                         width: "100%",
@@ -627,14 +635,13 @@ const OnlineExam = () => {
                 </Grid>
                 </Box>
               )}
-            </CardContent>
-          </Card>
+          </Box>
         )}
 
         {/* No Questions Available Message */}
         {showNoQuestions && (
-          <Alert severity="warning" sx={{ mb: 3 }}>
-            <Typography variant="body1">
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <Typography sx={alertTextSx}>
               <strong>
                 No answer sheet available for the selected options.
               </strong>
@@ -644,8 +651,8 @@ const OnlineExam = () => {
 
         {/* Already Submitted Message */}
         {showAlreadySubmitted && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            <Typography variant="body1">
+          <Alert severity="error" sx={{ mb: 2 }}>
+            <Typography sx={alertTextSx}>
               <strong>
                 You have already submitted. You can't submit more than one time.
                 Here is your score. If you have a question, please contact us
@@ -657,8 +664,8 @@ const OnlineExam = () => {
 
         {/* Exam Completed Message */}
         {showExamCompleted && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            <Typography variant="body1">
+          <Alert severity="success" sx={{ mb: 2 }}>
+            <Typography sx={alertTextSx}>
               <strong>
                 You have already taken the Exam. You can't take the Exam more
                 than one time. Here is your Exam Score. If you have a question,
@@ -670,9 +677,8 @@ const OnlineExam = () => {
 
         {/* Questions Display */}
         {showQuestions && questions.length > 0 && (
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography variant="h6" sx={{ color: "#174a10", mb: 2 }}>
+          <Box sx={{ mb: 1, pt: 2, borderTop: "1px solid #e0e0e0" }}>
+              <Typography variant="subtitle1" sx={sectionTitleSx}>
                 Answer Sheet
               </Typography>
 
@@ -680,30 +686,14 @@ const OnlineExam = () => {
                 {/* Group 1 */}
                 {group1.length > 0 && (
                   <Grid size={{ xs: 12, md: questions.length > 10 ? 4 : 12 }}>
-                    <Paper elevation={2} sx={{ p: 2 }}>
-                      <Typography
-                        variant="subtitle1"
-                        sx={{
-                          backgroundColor: "#174a10",
-                          color: "white",
-                          p: 1,
-                          mb: 2,
-                        }}
-                      >
+                    <Paper elevation={1} sx={{ p: 1.5 }}>
+                      <Typography variant="subtitle2" sx={groupHeaderSx}>
                         Group 1
                       </Typography>
                       {group1.map((question) => (
-                        <Box
-                          key={question.question}
-                          sx={{
-                            mb: 2,
-                            p: 2,
-                            border: "1px solid #ddd",
-                            borderRadius: 1,
-                          }}
-                        >
+                        <Box key={question.question} sx={questionBoxSx}>
                           <FormControl component="fieldset">
-                            <FormLabel component="legend">
+                            <FormLabel component="legend" sx={questionLegendSx}>
                               Question # {question.question}
                             </FormLabel>
                             <RadioGroup
@@ -718,23 +708,27 @@ const OnlineExam = () => {
                             >
                               <FormControlLabel
                                 value="A"
-                                control={<Radio />}
+                                control={<Radio size="small" />}
                                 label="A"
+                                sx={questionChoiceSx}
                               />
                               <FormControlLabel
                                 value="B"
-                                control={<Radio />}
+                                control={<Radio size="small" />}
                                 label="B"
+                                sx={questionChoiceSx}
                               />
                               <FormControlLabel
                                 value="C"
-                                control={<Radio />}
+                                control={<Radio size="small" />}
                                 label="C"
+                                sx={questionChoiceSx}
                               />
                               <FormControlLabel
                                 value="D"
-                                control={<Radio />}
+                                control={<Radio size="small" />}
                                 label="D"
+                                sx={questionChoiceSx}
                               />
                             </RadioGroup>
                           </FormControl>
@@ -747,30 +741,14 @@ const OnlineExam = () => {
                 {/* Group 2 */}
                 {group2.length > 0 && (
                   <Grid size={{ xs: 12, md: 4 }}>
-                    <Paper elevation={2} sx={{ p: 2 }}>
-                      <Typography
-                        variant="subtitle1"
-                        sx={{
-                          backgroundColor: "#174a10",
-                          color: "white",
-                          p: 1,
-                          mb: 2,
-                        }}
-                      >
+                    <Paper elevation={1} sx={{ p: 1.5 }}>
+                      <Typography variant="subtitle2" sx={groupHeaderSx}>
                         Group 2
                       </Typography>
                       {group2.map((question) => (
-                        <Box
-                          key={question.question}
-                          sx={{
-                            mb: 2,
-                            p: 2,
-                            border: "1px solid #ddd",
-                            borderRadius: 1,
-                          }}
-                        >
+                        <Box key={question.question} sx={questionBoxSx}>
                           <FormControl component="fieldset">
-                            <FormLabel component="legend">
+                            <FormLabel component="legend" sx={questionLegendSx}>
                               Question # {question.question}
                             </FormLabel>
                             <RadioGroup
@@ -785,23 +763,27 @@ const OnlineExam = () => {
                             >
                               <FormControlLabel
                                 value="A"
-                                control={<Radio />}
+                                control={<Radio size="small" />}
                                 label="A"
+                                sx={questionChoiceSx}
                               />
                               <FormControlLabel
                                 value="B"
-                                control={<Radio />}
+                                control={<Radio size="small" />}
                                 label="B"
+                                sx={questionChoiceSx}
                               />
                               <FormControlLabel
                                 value="C"
-                                control={<Radio />}
+                                control={<Radio size="small" />}
                                 label="C"
+                                sx={questionChoiceSx}
                               />
                               <FormControlLabel
                                 value="D"
-                                control={<Radio />}
+                                control={<Radio size="small" />}
                                 label="D"
+                                sx={questionChoiceSx}
                               />
                             </RadioGroup>
                           </FormControl>
@@ -814,30 +796,14 @@ const OnlineExam = () => {
                 {/* Group 3 */}
                 {group3.length > 0 && (
                   <Grid size={{ xs: 12, md: 4 }}>
-                    <Paper elevation={2} sx={{ p: 2 }}>
-                      <Typography
-                        variant="subtitle1"
-                        sx={{
-                          backgroundColor: "#174a10",
-                          color: "white",
-                          p: 1,
-                          mb: 2,
-                        }}
-                      >
+                    <Paper elevation={1} sx={{ p: 1.5 }}>
+                      <Typography variant="subtitle2" sx={groupHeaderSx}>
                         Group 3
                       </Typography>
                       {group3.map((question) => (
-                        <Box
-                          key={question.question}
-                          sx={{
-                            mb: 2,
-                            p: 2,
-                            border: "1px solid #ddd",
-                            borderRadius: 1,
-                          }}
-                        >
+                        <Box key={question.question} sx={questionBoxSx}>
                           <FormControl component="fieldset">
-                            <FormLabel component="legend">
+                            <FormLabel component="legend" sx={questionLegendSx}>
                               Question # {question.question}
                             </FormLabel>
                             <RadioGroup
@@ -852,23 +818,27 @@ const OnlineExam = () => {
                             >
                               <FormControlLabel
                                 value="A"
-                                control={<Radio />}
+                                control={<Radio size="small" />}
                                 label="A"
+                                sx={questionChoiceSx}
                               />
                               <FormControlLabel
                                 value="B"
-                                control={<Radio />}
+                                control={<Radio size="small" />}
                                 label="B"
+                                sx={questionChoiceSx}
                               />
                               <FormControlLabel
                                 value="C"
-                                control={<Radio />}
+                                control={<Radio size="small" />}
                                 label="C"
+                                sx={questionChoiceSx}
                               />
                               <FormControlLabel
                                 value="D"
-                                control={<Radio />}
+                                control={<Radio size="small" />}
                                 label="D"
+                                sx={questionChoiceSx}
                               />
                             </RadioGroup>
                           </FormControl>
@@ -890,76 +860,53 @@ const OnlineExam = () => {
                   )}
                   <Button
                     variant="contained"
+                    size="small"
                     onClick={handleSubmit}
                     disabled={submitting}
                     sx={{
-                      backgroundColor: "#174a10",
-                      "&:hover": { backgroundColor: "#0f3209" },
-                      minWidth: "150px",
+                      ...primaryButtonSx,
+                      minWidth: "120px",
                     }}
                   >
                     {submitting ? "Submitting..." : "Submit"}
                   </Button>
                 </Box>
               )}
-            </CardContent>
-          </Card>
+          </Box>
         )}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
 
-        {/* Student Scores Table */}
-        {studentScores.length > 0 && (
-          <Card>
-            <CardContent>
-              <Typography variant="h6" sx={{ color: "#174a10", mb: 2 }}>
-                Your Scores
-              </Typography>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow sx={{ backgroundColor: "#174a10" }}>
-                      <TableCell sx={{ color: "white" }}>
-                        Student Name
-                      </TableCell>
-                      <TableCell sx={{ color: "white" }}>Class</TableCell>
-                      <TableCell sx={{ color: "white" }}>Semester</TableCell>
-                      <TableCell sx={{ color: "white" }}>Exam Date</TableCell>
-                      <TableCell sx={{ color: "white", textAlign: "right" }}>
-                        Total Score
-                      </TableCell>
-                      <TableCell sx={{ color: "white", textAlign: "right" }}>
-                        Your Score
-                      </TableCell>
-                      <TableCell sx={{ color: "white" }}>Comments</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {studentScores.map((score, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{score.studentName}</TableCell>
-                        <TableCell>{score.group}</TableCell>
-                        <TableCell>{score.semester}</TableCell>
-                        <TableCell>
-                          {score.examDate
-                            ? new Date(score.examDate).toLocaleDateString()
-                            : ""}
-                        </TableCell>
-                        <TableCell sx={{ textAlign: "right" }}>
-                          {score.totalCredit}
-                        </TableCell>
-                        <TableCell sx={{ textAlign: "right" }}>
-                          {score.receivedCredit}
-                        </TableCell>
-                        <TableCell>{score.comments}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        )}
-      </Box>
+          <Grid item xs={12}>
+            <Card sx={portalCardSx}>
+              <CardContent sx={{ p: 0 }}>
+                <FinalExamScoresGrid
+                  scores={studentScores}
+                  embedded
+                  loading={loading}
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
       </Container>
+
+      <AppConfirmDialog
+        open={submitConfirmOpen}
+        onClose={() => {
+          if (!submitting) {
+            setSubmitConfirmOpen(false);
+          }
+        }}
+        onConfirm={handleSubmitConfirm}
+        title="Confirm Submit"
+        message="Are you sure you want to submit your answers?"
+        confirmLabel="Submit"
+        icon={<SendIcon sx={{ fontSize: 20 }} />}
+        loading={submitting}
+      />
 
       {/* Snackbar for messages */}
       <Snackbar

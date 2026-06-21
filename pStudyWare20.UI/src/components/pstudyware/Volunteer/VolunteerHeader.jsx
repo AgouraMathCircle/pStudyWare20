@@ -1,42 +1,14 @@
-import React, { useCallback, useLayoutEffect, useState } from "react";
-import { Box, Container, Typography, useTheme } from "@mui/material";
+import React from "react";
+import { Box, Container, Typography } from "@mui/material";
 import {
-  Person as PersonIcon,
   CalendarToday as CalendarIcon,
-  VolunteerActivism as VolunteerIcon,
+  Dashboard as DashboardIcon,
 } from "@mui/icons-material";
-import { applicationRoleHeaderBarSx } from "../../../styles/applicationSurfaces";
+import { applicationRoleHeaderBarSx } from "../styles/applicationSurfaces";
+import { useRoleHeaderDateTime } from "../../../hooks/useRoleHeaderDateTime";
 
 const VolunteerHeader = ({ user }) => {
-  const theme = useTheme();
-  const [topPx, setTopPx] = useState(64);
-
-  const measureTopOffset = useCallback(() => {
-    let sum = 0;
-    const topbar = document.querySelector(".topbar-container");
-    const appBar =
-      document.querySelector("header.MuiAppBar-root") ||
-      document.querySelector(".MuiAppBar-root");
-
-    if (topbar) sum += topbar.getBoundingClientRect().height;
-    if (appBar) sum += appBar.getBoundingClientRect().height;
-
-    setTopPx(Math.max(Math.ceil(sum), 56));
-  }, []);
-
-  useLayoutEffect(() => {
-    measureTopOffset();
-    window.addEventListener("resize", measureTopOffset);
-    const timeout1 = window.setTimeout(measureTopOffset, 0);
-    const timeout2 = window.setTimeout(measureTopOffset, 150);
-
-    return () => {
-      window.removeEventListener("resize", measureTopOffset);
-      window.clearTimeout(timeout1);
-      window.clearTimeout(timeout2);
-    };
-  }, [measureTopOffset]);
-
+  const dateTime = useRoleHeaderDateTime();
   return (
     <Box
       sx={{
@@ -44,10 +16,10 @@ const VolunteerHeader = ({ user }) => {
         pt: 2,
         pb: 0.5,
         position: "fixed",
-        top: `${topPx}px`,
+        top: "64px",
         left: 0,
         right: 0,
-        zIndex: theme.zIndex.appBar - 1,
+        zIndex: 1000,
         width: "100%",
       }}
     >
@@ -58,52 +30,53 @@ const VolunteerHeader = ({ user }) => {
             alignItems: "center",
             justifyContent: "space-between",
             gap: 2,
-            flexWrap: "wrap",
           }}
         >
+          {/* Volunteer Badge on the left */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
             <Box
               sx={{
                 width: 34,
                 height: 34,
                 borderRadius: "11px",
-                backgroundColor: "#6a1b9a",
+                backgroundColor: "#5e35b1", // Purple theme
                 color: "#fff",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 4px 10px rgba(81, 45, 168, 0.32)",
+                boxShadow: "0 4px 10px rgba(94, 53, 177, 0.32)",
               }}
             >
-              <VolunteerIcon sx={{ fontSize: 19 }} />
+              <DashboardIcon sx={{ fontSize: 19 }} />
             </Box>
             <Typography
               sx={{
-                fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-                fontWeight: 800,
+                fontWeight: 700,
                 fontSize: "1.05rem",
-                color: "#4a148c",
+                color: "#4527a0",
                 letterSpacing: "-0.01em",
                 display: { xs: "none", sm: "block" },
               }}
             >
-              Volunteer Dashboard
+              Volunteer
             </Typography>
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, flexWrap: "wrap" }}>
+          {/* Welcome & Date on the right */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            {/* Welcome Pill */}
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
-                backgroundColor: "#ede7f6",
+                backgroundColor: "#ffffff",
                 pl: 0.5,
                 pr: { xs: 0.5, sm: 1.75 },
                 py: 0.5,
                 borderRadius: "999px",
-                border: "2px solid #6a1b9a",
-                boxShadow: "0 2px 6px rgba(81, 45, 168, 0.15)",
+                border: "2px solid #7e57c2", // Purple theme border
+                boxShadow: "0 2px 6px rgba(94, 53, 177, 0.15)",
               }}
             >
               <Box
@@ -111,7 +84,8 @@ const VolunteerHeader = ({ user }) => {
                   width: 28,
                   height: 28,
                   borderRadius: "50%",
-                  background: "linear-gradient(135deg, #6a1b9a 0%, #8e24aa 100%)",
+                  background:
+                    "linear-gradient(135deg, #512da8 0%, #7e57c2 100%)", // Purple gradient
                   color: "#fff",
                   display: "flex",
                   alignItems: "center",
@@ -126,7 +100,7 @@ const VolunteerHeader = ({ user }) => {
               <Typography
                 variant="body2"
                 sx={{
-                  color: "#4a148c",
+                  color: "#4527a0",
                   fontWeight: 700,
                   display: { xs: "none", sm: "block" },
                 }}
@@ -135,34 +109,30 @@ const VolunteerHeader = ({ user }) => {
               </Typography>
             </Box>
 
+            {/* Date Pill */}
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 1,
-                backgroundColor: "#ede7f6",
-                pl: 0.5,
-                pr: { xs: 0.5, sm: 1.75 },
-                py: 0.5,
+                gap: 0.75,
+                backgroundColor: "#f3e5f5", // Light purple theme background
+                px: { xs: 1.25, sm: 1.75 },
+                py: 0.85,
                 borderRadius: "999px",
-                border: "2px solid #6a1b9a",
-                boxShadow: "0 2px 6px rgba(81, 45, 168, 0.15)",
+                border: "1px solid #e1bee7",
               }}
             >
-              <CalendarIcon sx={{ fontSize: 18, color: "#6a1b9a" }} />
+              <CalendarIcon sx={{ fontSize: 18, color: "#8e24aa" }} />
               <Typography
                 variant="body2"
                 sx={{
-                  color: "#4a148c",
-                  fontWeight: 700,
+                  color: "#6a1b9a",
+                  fontWeight: 600,
                   display: { xs: "none", sm: "block" },
+                  whiteSpace: "nowrap",
                 }}
               >
-                {new Date().toLocaleDateString("en-US", {
-                  month: "numeric",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                {dateTime}
               </Typography>
             </Box>
           </Box>

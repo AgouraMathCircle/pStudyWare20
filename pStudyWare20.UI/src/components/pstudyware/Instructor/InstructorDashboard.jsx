@@ -1,17 +1,32 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Container, Grid, Typography } from "@mui/material";
-import { CheckCircle as CheckCircleIcon } from "@mui/icons-material";
-import { instructorPageShellSx } from "./instructorPortalTableStyles";
+import {
+  Alert,
+  Box,
+  Card,
+  CardContent,
+  CircularProgress,
+  Container,
+  Grid,
+  Typography,
+} from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
 import DashboardMessages from "../Student/DashboardMessages";
 import StudentMeetingSchedule from "../Student/StudentMeetingSchedule";
 import instructorDashboardService from "../../../services/instructorDashboardService";
 import studentDashboardService from "../../../services/studentDashboardService";
 import InstructorStudentListGrid from "./InstructorStudentListGrid";
-import VolunteerAvailability from "../Volunteer/VolunteerAvailability";
-import InstructorVolunteerAvailabilityGrid from "./InstructorVolunteerAvailabilityGrid";
-import volunteerAvailabilityService from "../../../services/volunteerAvailabilityService";
+import {
+  instructorDashboardMeetingTitleSx,
+  instructorDashboardMessagesPanelContentSx,
+  instructorDashboardPanelCardSx,
+  instructorDashboardPanelContentSx,
+} from "./instructorPortalTableStyles";
+import {
+  instructorPortalContentContainerProps,
+  portalDashboardPageSx,
+} from "../styles/applicationSurfaces";
+import "../../../styles/InstructorDashboard.css";
 
 const InstructorDashboard = () => {
   const navigate = useNavigate();
@@ -21,9 +36,6 @@ const InstructorDashboard = () => {
   const [isValidated, setIsValidated] = useState(false);
   const [studentRows, setStudentRows] = useState([]);
   const [listLoading, setListLoading] = useState(false);
-  const [availabilityRows, setAvailabilityRows] = useState([]);
-  const [availabilityLoading, setAvailabilityLoading] = useState(false);
-  const [availabilityError, setAvailabilityError] = useState(null);
   const [listError, setListError] = useState(null);
   const [dashboardMessages, setDashboardMessages] = useState({
     importantNotice: "",
@@ -70,73 +82,47 @@ const InstructorDashboard = () => {
     setLoading(false);
   }, [authLoading, isAuthenticated, user, navigate]);
 
+  const loadStudentList = useCallback(async ({ silent = false } = {}) => {
+    if (!username) return;
+
+    if (!silent) {
+      setListError(null);
+      setListLoading(true);
+    }
+
+    try {
+      const res = await instructorDashboardService.getDashboardData(username);
+      const list = res?.studentList ?? res?.StudentList;
+      if (res?.isSuccess && Array.isArray(list)) {
+        setStudentRows(list);
+        setListError(null);
+      } else {
+        setStudentRows([]);
+        setListError(res?.errorMessage || res?.message || "Could not load student list.");
+      }
+    } catch (e) {
+      setListError(e?.message || "Failed to load student list.");
+      setStudentRows([]);
+    } finally {
+      if (!silent) setListLoading(false);
+    }
+  }, [username]);
+
   useEffect(() => {
     if (!isValidated || !username) return;
 
     let cancelled = false;
 
     const load = async () => {
-      setListError(null);
-      setListLoading(true);
-      try {
-        const res = await instructorDashboardService.getDashboardData(username);
-        if (cancelled) return;
-        const list = res?.studentList ?? res?.StudentList;
-        if (res?.isSuccess && Array.isArray(list)) {
-          setStudentRows(list);
-        } else {
-          setStudentRows([]);
-          setListError(res?.errorMessage || res?.message || "Could not load student list.");
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setListError(e?.message || "Failed to load student list.");
-          setStudentRows([]);
-        }
-      } finally {
-        if (!cancelled) setListLoading(false);
-      }
+      if (cancelled) return;
+      await loadStudentList();
     };
 
     load();
     return () => {
       cancelled = true;
     };
-  }, [isValidated, username]);
-
-  useEffect(() => {
-    if (!isValidated || !username) return;
-
-    let cancelled = false;
-
-    const loadAvailability = async () => {
-      setAvailabilityError(null);
-      setAvailabilityLoading(true);
-      try {
-        const res = await volunteerAvailabilityService.getAvailabilitySummary({ username });
-        if (cancelled) return;
-        const list = res?.summaryData ?? res?.SummaryData;
-        if (res?.isSuccess && Array.isArray(list)) {
-          setAvailabilityRows(list);
-        } else {
-          setAvailabilityRows([]);
-          setAvailabilityError(res?.errorMessage || res?.message || "Could not load volunteer availability summary.");
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setAvailabilityError(e?.message || "Failed to load volunteer availability summary.");
-          setAvailabilityRows([]);
-        }
-      } finally {
-        if (!cancelled) setAvailabilityLoading(false);
-      }
-    };
-
-    loadAvailability();
-    return () => {
-      cancelled = true;
-    };
-  }, [isValidated, username]);
+  }, [isValidated, username, loadStudentList]);
 
   useEffect(() => {
     if (!isValidated || !username) return;
@@ -171,72 +157,87 @@ const InstructorDashboard = () => {
 
   if (authLoading || loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
-        <Typography>Loading…</Typography>
+      <Box
+        className="instructor-dashboard"
+        sx={{
+          ...portalDashboardPageSx,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 2,
+          minHeight: 400,
+        }}
+      >
+        <CircularProgress size={60} sx={{ color: "#1565c0" }} />
+        <Typography variant="h6" color="textSecondary">
+          Loading Instructor Dashboard...
+        </Typography>
       </Box>
     );
   }
 
   if (!isAuthenticated || !user || !isValidated) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
-        <Typography>Access denied.</Typography>
+      <Box
+        className="instructor-dashboard"
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 400,
+        }}
+      >
+        <Alert severity="error">Access denied. Please log in as an instructor.</Alert>
       </Box>
     );
   }
 
   return (
-    <Box sx={instructorPageShellSx}>
-      <Container maxWidth="xl" sx={{ mb: 4, px: { xs: 1, sm: 2 } }}>
+    <Box className="instructor-dashboard">
+      <Container {...instructorPortalContentContainerProps} sx={{ mb: 4, pt: 0, mt: 0 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <DashboardMessages
+          <Grid item xs={12} sx={{ pb: "0 !important", mb: "-4px !important" }}>
+            <Card sx={instructorDashboardPanelCardSx} className="dashboard-messages-panel">
+              <CardContent sx={instructorDashboardMessagesPanelContentSx}>
+                <DashboardMessages
+                  username={username}
+                  chapterId={chapterId}
+                  dashboardMessages={dashboardMessages}
+                  loading={messagesLoading}
+                  compact
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid
+            item
+            xs={12}
+            sx={{
+              pt: "0 !important",
+              "&:empty": { display: "none", m: 0, p: 0, minHeight: 0 },
+            }}
+          >
+            <StudentMeetingSchedule
               username={username}
-              chapterId={chapterId}
-              dashboardMessages={dashboardMessages}
-              loading={messagesLoading}
+              panelCardSx={instructorDashboardPanelCardSx}
+              sectionTitleSx={instructorDashboardMeetingTitleSx}
             />
           </Grid>
-          <Grid item xs={12}>
-            <StudentMeetingSchedule username={username} />
-          </Grid>
-          <Grid item xs={12} lg={8}>
-            <InstructorStudentListGrid
-              rows={studentRows}
-              loading={listLoading}
-              error={listError}
-            />
-          </Grid>
-          <Grid item xs={12} lg={4}>
-            <Box sx={{ 
-              backgroundColor: "#ffffff",
-              borderRadius: 3,
-              boxShadow: "0 10px 26px rgba(46, 125, 50, 0.08)",
-              overflow: "hidden"
-            }}>
-              <Box sx={{
-                backgroundColor: "#dcedc8",
-                color: "#1b5e20",
-                p: 3,
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                borderBottom: "1px solid #c8e6c9"
-              }}>
-                <CheckCircleIcon sx={{ color: "#2e7d32" }} />
-                <Typography variant="h6" sx={{ fontWeight: 700, m: 0 }}>
-                  Volunteer Availability
-                </Typography>
-              </Box>
-              <VolunteerAvailability embedded />
-            </Box>
-          </Grid>
-          <Grid item xs={12} sx={{ mt: 2 }}>
-            <InstructorVolunteerAvailabilityGrid
-              rows={availabilityRows}
-              loading={availabilityLoading}
-              error={availabilityError}
-            />
+
+          <Grid item xs={12} sx={{ pt: "0 !important", mt: "-4px !important" }}>
+            <Card sx={instructorDashboardPanelCardSx}>
+              <CardContent sx={instructorDashboardPanelContentSx}>
+                <InstructorStudentListGrid
+                  rows={studentRows}
+                  loading={listLoading}
+                  error={listError}
+                  dashboardView
+                  onStudentSaved={() => loadStudentList({ silent: true })}
+                />
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Container>

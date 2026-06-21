@@ -18,10 +18,6 @@ import {
   Card,
   CardContent,
   TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   MenuItem,
   FormControl,
   InputLabel,
@@ -33,19 +29,33 @@ import {
   Refresh as RefreshIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Add as AddIcon,
   FirstPage as FirstPageIcon,
   KeyboardArrowLeft as PrevPageIcon,
   KeyboardArrowRight as NextPageIcon,
   LastPage as LastPageIcon,
 } from "@mui/icons-material";
+import PortalDialog from "../Common/PortalDialog";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
+import {
+  portalModalFieldSx,
+  portalModalSendButtonSx,
+} from "../Common/portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
+import SortableHeader from "../Common/SortableHeader";
 import timeSheetTrackingService from "../../../services/timeSheetTrackingService";
+import {
+  sortRows,
+  toSortableDate,
+  toSortableNumber,
+} from "../../../utils/tableSort";
 import {
   APPLICATION_ADMIN_TITLE_COLOR,
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
-} from "../../../styles/applicationSurfaces";
+  portalRoleSubheaderSpacerPx,
+} from "../styles/applicationSurfaces";
 
 const timeSheetTrackingPageSx = {
   flex: 1,
@@ -149,6 +159,42 @@ function matchesCriteria(fieldValue, searchCriteria, searchLower) {
   return fv.includes(searchLower);
 }
 
+function getTimeSheetFieldValue(row, field) {
+  switch (field) {
+    case "logID":
+      return toSortableNumber(row.logID ?? row.LogID ?? row.mLogID);
+    case "name":
+      return row.name ?? row.Name ?? "";
+    case "taskName":
+      return row.taskName ?? row.TaskName ?? "";
+    case "volunteerDate":
+      return toSortableDate(row.volunteerDate ?? row.VolunteerDate);
+    case "startTime": {
+      const { start } = displayStartEnd(row);
+      return start === "—" ? "" : start;
+    }
+    case "endTime": {
+      const { end } = displayStartEnd(row);
+      return end === "—" ? "" : end;
+    }
+    case "totalHours":
+      return toSortableNumber(row.totalHours ?? row.TotalHours);
+    case "createdDate":
+      return toSortableDate(row.createdDate ?? row.CreatedDate);
+    default:
+      return "";
+  }
+}
+
+const timeSheetHeadCellSx = (width, isLast = false) => ({
+  fontWeight: 400,
+  borderRight: isLast ? undefined : "1px solid #4caf50",
+  width,
+  fontSize: "0.75rem",
+  padding: cellPadding,
+  whiteSpace: isLast ? "nowrap" : undefined,
+});
+
 const TimeSheetTracking = () => {
   const { user } = useAuth();
   const [list, setList] = useState([]);
@@ -158,6 +204,8 @@ const TimeSheetTracking = () => {
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
+  const [sortField, setSortField] = useState("volunteerDate");
+  const [sortOrder, setSortOrder] = useState("desc");
   const pageSize = 20;
 
   const [formOpen, setFormOpen] = useState(false);
@@ -294,12 +342,25 @@ const TimeSheetTracking = () => {
     });
   }, [list, searchBy, searchCriteria, searchText]);
 
-  const totalRecords = filteredList.length;
+  const sortedList = useMemo(
+    () => sortRows(filteredList, sortField, sortOrder, getTimeSheetFieldValue),
+    [filteredList, sortField, sortOrder],
+  );
+
+  const totalRecords = sortedList.length;
   const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
   const paginatedList = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    return filteredList.slice(start, start + pageSize);
-  }, [filteredList, currentPage, pageSize]);
+    return sortedList.slice(start, start + pageSize);
+  }, [sortedList, currentPage, pageSize]);
+
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -505,7 +566,7 @@ const TimeSheetTracking = () => {
   return (
     <Box sx={timeSheetTrackingPageSx}>
       <AdminHeader user={user} />
-      <Box sx={{ height: "48px" }} />
+      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
@@ -731,94 +792,14 @@ const TimeSheetTracking = () => {
                       >
                         <TableHead>
                           <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "5%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              #
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "12%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Name
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "14%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Task Name
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "10%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Date Volunteer
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "11%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Start Time
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "11%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              End Time
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "8%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Total Hours
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "11%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Created Date
-                            </TableCell>
+                            <SortableHeader label="#" field="logID" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("5%")} />
+                            <SortableHeader label="Name" field="name" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("12%")} />
+                            <SortableHeader label="Task Name" field="taskName" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("14%")} />
+                            <SortableHeader label="Date Volunteer" field="volunteerDate" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("10%")} />
+                            <SortableHeader label="Start Time" field="startTime" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("11%")} />
+                            <SortableHeader label="End Time" field="endTime" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("11%")} />
+                            <SortableHeader label="Total Hours" field="totalHours" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("8%")} />
+                            <SortableHeader label="Created Date" field="createdDate" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("11%")} />
                             <TableCell
                               sx={{
                                 fontWeight: 400,
@@ -1105,194 +1086,190 @@ const TimeSheetTracking = () => {
         </Grid>
       </Container>
 
-      <Dialog
+      <PortalDialog
         open={formOpen}
         onClose={closeForm}
         maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: 2 } }}
-      >
-        <DialogTitle sx={{ fontWeight: 600, fontSize: "1rem" }}>
-          {editingLogId ? "Update Time Sheet" : "Add Time Sheet"}
-        </DialogTitle>
-        <DialogContent>
-          {formLoading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <CircularProgress />
-            </Box>
+        disableClose={saving}
+        title={editingLogId ? "Update Time Sheet" : "Add Time Sheet"}
+        icon={
+          editingLogId ? (
+            <EditIcon sx={{ fontSize: 20 }} />
           ) : (
-            <Grid container spacing={2} sx={{ pt: 1 }}>
-              <Grid item xs={12}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Task Name</InputLabel>
+            <AddIcon sx={{ fontSize: 20 }} />
+          )
+        }
+        actions={
+          <Button
+            variant="contained"
+            onClick={handleSubmitForm}
+            disabled={saving || formLoading}
+            sx={portalModalSendButtonSx}
+          >
+            {saving ? "Submitting…" : "Submit"}
+          </Button>
+        }
+      >
+        {formLoading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+                <InputLabel>Task Name</InputLabel>
+                <Select
+                  label="Task Name"
+                  value={taskName}
+                  onChange={(e) => setTaskName(e.target.value)}
+                >
+                  {TASK_OPTIONS.map((t) => (
+                    <MenuItem key={t} value={t}>
+                      {t}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Volunteer Date"
+                type="date"
+                value={volunteerDate}
+                onChange={(e) => setVolunteerDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={portalModalFieldSx}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="caption" color="text.secondary">
+                Start Time
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
+                <FormControl size="small" sx={{ minWidth: 100, ...portalModalFieldSx }}>
+                  <InputLabel>Hour</InputLabel>
                   <Select
-                    label="Task Name"
-                    value={taskName}
-                    onChange={(e) => setTaskName(e.target.value)}
+                    label="Hour"
+                    value={startHour}
+                    onChange={(e) => setStartHour(e.target.value)}
                   >
-                    {TASK_OPTIONS.map((t) => (
-                      <MenuItem key={t} value={t}>
-                        {t}
+                    {HOUR_OPTIONS.map((o, i) => (
+                      <MenuItem key={`sh-${i}-${o.label}`} value={o.value}>
+                        {o.label}
                       </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Volunteer Date"
-                  type="date"
-                  value={volunteerDate}
-                  onChange={(e) => setVolunteerDate(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="caption" color="text.secondary">
-                  Start Time
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
-                  <FormControl size="small" sx={{ minWidth: 100 }}>
-                    <InputLabel>Hour</InputLabel>
-                    <Select
-                      label="Hour"
-                      value={startHour}
-                      onChange={(e) => setStartHour(e.target.value)}
-                    >
-                      {HOUR_OPTIONS.map((o, i) => (
-                        <MenuItem key={`sh-${i}-${o.label}`} value={o.value}>
-                          {o.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" sx={{ minWidth: 100 }}>
-                    <InputLabel>Min</InputLabel>
-                    <Select
-                      label="Min"
-                      value={startMin}
-                      onChange={(e) => setStartMin(e.target.value)}
-                    >
-                      {MIN_OPTIONS.map((o, i) => (
-                        <MenuItem key={`sm-${i}`} value={o.value}>
-                          {o.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" sx={{ minWidth: 80 }}>
-                    <InputLabel />
-                    <Select
-                      value={startType}
-                      onChange={(e) => setStartType(e.target.value)}
-                      displayEmpty
-                    >
-                      {AMPM_OPTIONS.map((a) => (
-                        <MenuItem key={a} value={a}>
-                          {a}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="caption" color="text.secondary">
-                  End Time
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
-                  <FormControl size="small" sx={{ minWidth: 100 }}>
-                    <InputLabel>Hour</InputLabel>
-                    <Select
-                      label="Hour"
-                      value={endHour}
-                      onChange={(e) => setEndHour(e.target.value)}
-                    >
-                      {HOUR_OPTIONS.map((o, i) => (
-                        <MenuItem key={`eh-${i}-${o.label}`} value={o.value}>
-                          {o.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" sx={{ minWidth: 100 }}>
-                    <InputLabel>Min</InputLabel>
-                    <Select
-                      label="Min"
-                      value={endMin}
-                      onChange={(e) => setEndMin(e.target.value)}
-                    >
-                      {MIN_OPTIONS.map((o, i) => (
-                        <MenuItem key={`em-${i}`} value={o.value}>
-                          {o.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" sx={{ minWidth: 80 }}>
-                    <Select
-                      value={endType}
-                      onChange={(e) => setEndType(e.target.value)}
-                      displayEmpty
-                    >
-                      {AMPM_OPTIONS.map((a) => (
-                        <MenuItem key={a} value={a}>
-                          {a}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Task Details"
-                  multiline
-                  minRows={3}
-                  value={taskDescription}
-                  onChange={(e) => setTaskDescription(e.target.value)}
-                />
-              </Grid>
+                <FormControl size="small" sx={{ minWidth: 100, ...portalModalFieldSx }}>
+                  <InputLabel>Min</InputLabel>
+                  <Select
+                    label="Min"
+                    value={startMin}
+                    onChange={(e) => setStartMin(e.target.value)}
+                  >
+                    {MIN_OPTIONS.map((o, i) => (
+                      <MenuItem key={`sm-${i}`} value={o.value}>
+                        {o.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ minWidth: 80, ...portalModalFieldSx }}>
+                  <InputLabel />
+                  <Select
+                    value={startType}
+                    onChange={(e) => setStartType(e.target.value)}
+                    displayEmpty
+                  >
+                    {AMPM_OPTIONS.map((a) => (
+                      <MenuItem key={a} value={a}>
+                        {a}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
             </Grid>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={closeForm} disabled={saving}>
-            Close
-          </Button>
-          <Button variant="contained" onClick={handleSubmitForm} disabled={saving || formLoading}>
-            {saving ? "Submitting…" : "Submit"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <Grid item xs={12}>
+              <Typography variant="caption" color="text.secondary">
+                End Time
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
+                <FormControl size="small" sx={{ minWidth: 100, ...portalModalFieldSx }}>
+                  <InputLabel>Hour</InputLabel>
+                  <Select
+                    label="Hour"
+                    value={endHour}
+                    onChange={(e) => setEndHour(e.target.value)}
+                  >
+                    {HOUR_OPTIONS.map((o, i) => (
+                      <MenuItem key={`eh-${i}-${o.label}`} value={o.value}>
+                        {o.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ minWidth: 100, ...portalModalFieldSx }}>
+                  <InputLabel>Min</InputLabel>
+                  <Select
+                    label="Min"
+                    value={endMin}
+                    onChange={(e) => setEndMin(e.target.value)}
+                  >
+                    {MIN_OPTIONS.map((o, i) => (
+                      <MenuItem key={`em-${i}`} value={o.value}>
+                        {o.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ minWidth: 80, ...portalModalFieldSx }}>
+                  <Select
+                    value={endType}
+                    onChange={(e) => setEndType(e.target.value)}
+                    displayEmpty
+                  >
+                    {AMPM_OPTIONS.map((a) => (
+                      <MenuItem key={a} value={a}>
+                        {a}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Task Details"
+                multiline
+                minRows={3}
+                value={taskDescription}
+                onChange={(e) => setTaskDescription(e.target.value)}
+                sx={portalModalFieldSx}
+              />
+            </Grid>
+          </Grid>
+        )}
+      </PortalDialog>
 
-      <Dialog
+      <AppConfirmDialog
         open={deleteOpen}
         onClose={() => {
           setDeleteOpen(false);
           setDeleteLogId(null);
         }}
-      >
-        <DialogTitle>Delete entry</DialogTitle>
-        <DialogContent>Do you want to delete this entry?</DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setDeleteOpen(false);
-              setDeleteLogId(null);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button color="error" variant="contained" onClick={handleDelete}>
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleDelete}
+        title="Delete entry"
+        message="Do you want to delete this entry?"
+        confirmLabel="Delete"
+        confirmColor="error"
+        icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+      />
 
       <Snackbar
         open={snackbar.open}

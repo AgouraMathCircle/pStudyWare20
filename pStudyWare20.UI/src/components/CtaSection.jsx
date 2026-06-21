@@ -158,11 +158,11 @@ const CtaSection = () => {
                   wordBreak: "break-word",
                 }}
               >
-                AMC's Spring Semester 2026
+                AMC's Fall Semester 2026
                 <br />
                 starts on Saturday,
                 <br />
-                January 24, 2026.
+                August 29, 2026.
               </Typography>
               <Button
                 variant="contained"

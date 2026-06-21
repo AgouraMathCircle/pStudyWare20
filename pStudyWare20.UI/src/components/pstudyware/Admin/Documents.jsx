@@ -18,7 +18,14 @@ import AdminHeader from "./AdminHeader";
 import AdminDocumentList from "./AdminDocumentList";
 import DocumentUploadForm from "./DocumentUploadForm";
 import InstructorClassMaterialList from "../Instructor/InstructorClassMaterialList";
-import { instructorPageShellSx } from "../Instructor/instructorPortalTableStyles";
+import PdfViewerModal from "../../common/PdfViewerModal";
+import {
+  adminSessionListPanelCardSx,
+  adminSessionListPanelContentSx,
+  instructorPortalContentContainerProps,
+  portalRoleSubheaderSpacerPx,
+} from "../styles/applicationSurfaces";
+import "../../../styles/InstructorClassMaterial.css";
 
 const Documents = () => {
   const location = useLocation();
@@ -28,6 +35,7 @@ const Documents = () => {
   const [uploading, setUploading] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [uploadFormOpen, setUploadFormOpen] = useState(false);
+  const [selectedPdf, setSelectedPdf] = useState(null);
   const [adminPrivileges, setAdminPrivileges] = useState({
     isAdmin: false,
     isSystemAdmin: false,
@@ -101,7 +109,7 @@ const Documents = () => {
           console.log("Documents: Document data response", response);
 
           if (response.isSuccess) {
-            const docs = response.documents;
+            const docs = response.documents ?? response.Documents ?? [];
             setDocuments(Array.isArray(docs) ? docs : []);
           } else {
             showMessage(
@@ -156,14 +164,26 @@ const Documents = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Handle view document
+  // Handle view document — open PDF via API storage (legacy static /pstudyware/Documents/ is not used for uploads)
   const handleView = (docName) => {
-    documentService.viewDocument(docName);
+    setSelectedPdf(docName);
   };
 
-  // Handle download document
-  const handleDownload = (docName) => {
-    documentService.downloadDocument(docName);
+  const handleClosePdfViewer = () => {
+    setSelectedPdf(null);
+  };
+
+  // Handle download document via API blob
+  const handleDownload = async (docName) => {
+    try {
+      await documentService.downloadClassMaterial(docName);
+    } catch (err) {
+      console.error("Error downloading class material:", err);
+      showMessage(
+        err?.message || "Unable to download document. Please try again.",
+        "error",
+      );
+    }
   };
 
   // Handle delete document
@@ -174,8 +194,8 @@ const Documents = () => {
 
       if (response.isSuccess) {
         showMessage("Document deleted successfully!", "success");
-        // Refresh document list
-        await handleRefresh();
+        documentService.clearDocumentsListCache(user.email || user.username);
+        await handleRefresh({ quiet: true, skipFullPageLoading: true });
       } else {
         showMessage(
           response.errorMessage || "Failed to delete document",
@@ -184,7 +204,13 @@ const Documents = () => {
       }
     } catch (err) {
       console.error("Error deleting document:", err);
-      showMessage("Error deleting document. Please try again.", "error");
+      showMessage(
+        err?.response?.data?.message ||
+          err?.response?.data?.errorMessage ||
+          err?.message ||
+          "Error deleting document. Please try again.",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
@@ -198,8 +224,8 @@ const Documents = () => {
 
       if (response.isSuccess) {
         showMessage("Document published successfully!", "success");
-        // Refresh document list
-        await handleRefresh();
+        documentService.clearDocumentsListCache(user.email || user.username);
+        await handleRefresh({ quiet: true, skipFullPageLoading: true });
       } else {
         showMessage(
           response.errorMessage || "Failed to publish document",
@@ -237,8 +263,8 @@ const Documents = () => {
       if (response.isSuccess) {
         showMessage("Document uploaded successfully!", "success");
         setUploadFormOpen(false);
-        // Refresh document list
-        await handleRefresh();
+        documentService.clearDocumentsListCache(user.email || user.username);
+        await handleRefresh({ quiet: true, skipFullPageLoading: true });
       } else {
         showMessage(
           response.errorMessage || "Failed to upload document",
@@ -258,12 +284,12 @@ const Documents = () => {
     const { quiet = false, skipFullPageLoading = false } = options;
     try {
       if (!skipFullPageLoading) setLoading(true);
-      const response = await getDocumentsListWithRetry(
-        user.email || user.username,
-      );
+      const username = user.email || user.username;
+      documentService.clearDocumentsListCache(username);
+      const response = await getDocumentsListWithRetry(username);
 
       if (response.isSuccess) {
-        const docs = response.documents;
+        const docs = response.documents ?? response.Documents ?? [];
         setDocuments(Array.isArray(docs) ? docs : []);
         if (!quiet) showMessage("Documents refreshed!", "success");
       } else {
@@ -320,56 +346,53 @@ const Documents = () => {
   }
 
   return (
-    <Box sx={hideRoleHeader ? instructorPageShellSx : undefined}>
+    <Box className={hideRoleHeader ? "instructor-class-material" : undefined}>
       {!hideRoleHeader && <AdminHeader user={user} />}
       {!hideRoleHeader && (
-        <Box sx={{ height: "48px" }} aria-hidden />
+        <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />
       )}
       <Container
-        maxWidth="xl"
-        sx={
-          hideRoleHeader
-            ? { mb: 4, px: { xs: 1, sm: 2 } }
-            : {
-                mb: 4,
-                px: { xs: 1, sm: 2 },
-                maxWidth: "100% !important",
-              }
-        }
+        {...(hideRoleHeader ? instructorPortalContentContainerProps : { maxWidth: "xl" })}
+        sx={{ mb: 4 }}
       >
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
           <Grid item xs={12}>
             {hideRoleHeader ? (
-              <Box sx={{ width: "100%", minWidth: 0 }}>
-                <InstructorClassMaterialList
-                  documents={documents}
-                  onRefresh={() =>
-                    handleRefresh({ quiet: true, skipFullPageLoading: true })
-                  }
-                  onView={handleView}
-                  onDownload={handleDownload}
-                  onDelete={handleDelete}
-                  onPublish={handlePublish}
-                  onOpenVideo={handleOpenVideo}
-                  onAdd={handleAdd}
-                  canAddDocument={adminPrivileges.canAddDocument}
-                  canDeleteDocument={adminPrivileges.canDeleteDocument}
-                  canPublishDocument={adminPrivileges.canPublishDocument}
-                />
-              </Box>
+              <Card sx={adminSessionListPanelCardSx}>
+                <CardContent
+                  sx={{
+                    ...adminSessionListPanelContentSx,
+                    pt: 1,
+                    "&:last-child": { pb: 1.5 },
+                  }}
+                >
+                  <InstructorClassMaterialList
+                    documents={documents}
+                    onView={handleView}
+                    onDownload={handleDownload}
+                    onDelete={handleDelete}
+                    onPublish={handlePublish}
+                    onOpenVideo={handleOpenVideo}
+                    onAdd={handleAdd}
+                    canAddDocument={adminPrivileges.canAddDocument}
+                    canDeleteDocument={adminPrivileges.canDeleteDocument}
+                    canPublishDocument={adminPrivileges.canPublishDocument}
+                    selectedPdf={selectedPdf}
+                    onClosePdfViewer={handleClosePdfViewer}
+                  />
+                </CardContent>
+              </Card>
             ) : (
-              <Card
-                sx={{
-                  backgroundColor: "white",
-                  borderRadius: 2,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                  overflow: "hidden",
-                }}
-              >
-                <CardContent sx={{ p: 3 }}>
+              <Card sx={adminSessionListPanelCardSx}>
+                <CardContent
+                  sx={{
+                    ...adminSessionListPanelContentSx,
+                    pt: 1,
+                    "&:last-child": { pb: 1.5 },
+                  }}
+                >
                   <AdminDocumentList
                     documents={documents}
-                    onRefresh={handleRefresh}
                     onView={handleView}
                     onDownload={handleDownload}
                     onDelete={handleDelete}
@@ -394,6 +417,15 @@ const Documents = () => {
         onSubmit={handleUploadSubmit}
         loading={uploading}
       />
+
+      {!hideRoleHeader && (
+        <PdfViewerModal
+          open={Boolean(selectedPdf)}
+          pdfUrl={selectedPdf}
+          pdfName={selectedPdf}
+          onClose={handleClosePdfViewer}
+        />
+      )}
 
       {/* Global Snackbar for Success/Error Messages */}
       <Snackbar

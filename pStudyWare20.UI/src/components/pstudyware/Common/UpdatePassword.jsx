@@ -15,14 +15,85 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useAuth } from "../../../contexts/AuthContext";
 import authService from "../../../services/authService";
-import StudentHeader from "../Student/StudentHeader";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
-
+import {
+  adminSessionListHeaderBarSx,
+  adminSessionListTitleSx,
+} from "../styles/applicationSurfaces";
 const NEW_PASSWORD_MIN_LEN = 10;
 const NEW_PASSWORD_MAX_LEN = 16;
 const CURRENT_PASSWORD_MAX_LEN = 50;
 
-const UpdatePassword = () => {
+/** Legacy pStudyWare UpdatePassword.aspx (.control_box / .inputbox / .button) */
+const LEGACY_CONTROL_BG = "#54B50A";
+const LEGACY_CONTROL_BORDER = "#cceac4";
+const LEGACY_INPUT_BG = "#D4E6F1";
+const LEGACY_INPUT_BORDER = "#54B50A";
+const LEGACY_BUTTON_BG = "#174a10";
+const LEGACY_FIELD_WIDTH = 220;
+
+const legacyCompactFieldSx = {
+  width: LEGACY_FIELD_WIDTH,
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: LEGACY_INPUT_BG,
+    color: "#0e4354",
+    fontSize: "0.875rem",
+    "& fieldset": {
+      borderColor: LEGACY_INPUT_BORDER,
+    },
+    "&:hover fieldset": {
+      borderColor: LEGACY_INPUT_BORDER,
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: LEGACY_INPUT_BORDER,
+    },
+  },
+  "& .MuiFormHelperText-root": {
+    color: "#2980B9",
+    marginLeft: 0,
+  },
+};
+
+const legacyLabelSx = {
+  color: "whitesmoke",
+  fontSize: "0.8rem",
+  lineHeight: 1.5,
+  minWidth: 130,
+  pt: 0.75,
+  flexShrink: 0,
+};
+
+const legacyRowSx = {
+  display: "flex",
+  alignItems: "flex-start",
+  gap: 1.5,
+  mb: 1.5,
+};
+
+const legacyControlBoxSx = {
+  backgroundColor: LEGACY_CONTROL_BG,
+  border: `1px solid ${LEGACY_CONTROL_BORDER}`,
+  borderRadius: 0,
+  p: "20px 20px 15px 24px",
+  width: "fit-content",
+  maxWidth: "100%",
+};
+
+const legacyFieldSx = {
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "#E0FFFF",
+    "& fieldset": {
+      borderColor: "#B0B0B0",
+    },
+    "&:hover fieldset": {
+      borderColor: "#808080",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "#808080",
+    },
+  },
+};
+
+const UpdatePassword = ({ embedded = false }) => {
   const location = useLocation();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -51,13 +122,11 @@ const UpdatePassword = () => {
       [name]: value,
     }));
 
-    // Clear validation errors when user types
     setValidationErrors((prev) => ({
       ...prev,
       [name]: "",
     }));
 
-    // Clear general error
     setError(null);
   };
 
@@ -96,7 +165,6 @@ const UpdatePassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate form
     if (!validateForm()) {
       return;
     }
@@ -118,7 +186,6 @@ const UpdatePassword = () => {
           password: "",
           confirmPassword: "",
         });
-        // Scroll to top to show success message
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         setError(
@@ -135,303 +202,347 @@ const UpdatePassword = () => {
     }
   };
 
-  const handleClickShowCurrentPassword = () => {
-    setShowCurrentPassword(!showCurrentPassword);
-  };
-
-  const handleClickShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const handleClickShowConfirmPassword = () => {
-    setShowConfirmPassword(!showConfirmPassword);
-  };
-
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
 
-  const isStudent =
-    user?.role === "Student" || user?.memberType?.toUpperCase() === "S";
   const isDashboardShell =
     location.pathname.startsWith("/pstudyware/instructor/") ||
     location.pathname.startsWith("/pstudyware/volunteer/");
+<<<<<<< HEAD
   const isAdminPasswordPage =
     user?.role === "Admin" ||
     user?.role === "SystemAdmin" ||
     user?.memberType?.toUpperCase() === "A" ||
     location.pathname.startsWith("/pstudyware/admin/") ||
     location.pathname.startsWith("/admin/");
+=======
+  const isStudentPasswordPage =
+    location.pathname.includes("/pstudyware/student/update-password") ||
+    location.pathname.includes("/student/update-password");
+  const isPortalPasswordPage =
+    location.pathname.includes("/admin/update-password") ||
+    location.pathname.includes("/admin/change-password") ||
+    isStudentPasswordPage;
+  const useLegacyCompactLayout = embedded || isPortalPasswordPage;
+
+  const displayName =
+    user?.username || user?.Username || user?.email || user?.Email || "";
+
+  const passwordVisibilityAdornment = (show, toggle) => (
+    <InputAdornment position="end">
+      <IconButton
+        aria-label="toggle password visibility"
+        onClick={toggle}
+        onMouseDown={handleMouseDownPassword}
+        edge="end"
+        size="small"
+        sx={{ color: "#0e4354" }}
+      >
+        {show ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+      </IconButton>
+    </InputAdornment>
+  );
+
+  const legacyForm = (
+    <Box sx={legacyControlBoxSx}>
+      <form onSubmit={handleSubmit}>
+        <Box sx={legacyRowSx}>
+          <Typography sx={legacyLabelSx}>User Name:</Typography>
+          <Typography
+            sx={{
+              color: "whitesmoke",
+              fontSize: "0.8rem",
+              lineHeight: 1.5,
+              pt: 0.75,
+              wordBreak: "break-all",
+            }}
+          >
+            {displayName}
+          </Typography>
+        </Box>
+
+        <Box sx={legacyRowSx}>
+          <Typography sx={legacyLabelSx}>Current Password:</Typography>
+          <TextField
+            name="currentPassword"
+            size="small"
+            type={showCurrentPassword ? "text" : "password"}
+            value={formData.currentPassword}
+            onChange={handleInputChange}
+            error={!!validationErrors.currentPassword}
+            helperText={validationErrors.currentPassword}
+            required
+            variant="outlined"
+            autoComplete="current-password"
+            inputProps={{ maxLength: CURRENT_PASSWORD_MAX_LEN }}
+            sx={legacyCompactFieldSx}
+            InputProps={{
+              endAdornment: passwordVisibilityAdornment(
+                showCurrentPassword,
+                () => setShowCurrentPassword((v) => !v),
+              ),
+            }}
+          />
+        </Box>
+
+        <Box sx={legacyRowSx}>
+          <Typography sx={legacyLabelSx}>Password:</Typography>
+          <TextField
+            name="password"
+            size="small"
+            type={showPassword ? "text" : "password"}
+            value={formData.password}
+            onChange={handleInputChange}
+            error={!!validationErrors.password}
+            helperText={
+              validationErrors.password ||
+              `${NEW_PASSWORD_MIN_LEN}–${NEW_PASSWORD_MAX_LEN} characters`
+            }
+            required
+            variant="outlined"
+            autoComplete="new-password"
+            inputProps={{ maxLength: NEW_PASSWORD_MAX_LEN }}
+            sx={legacyCompactFieldSx}
+            InputProps={{
+              endAdornment: passwordVisibilityAdornment(showPassword, () =>
+                setShowPassword((v) => !v),
+              ),
+            }}
+          />
+        </Box>
+
+        <Box sx={legacyRowSx}>
+          <Typography sx={legacyLabelSx}>Confirm Password:</Typography>
+          <TextField
+            name="confirmPassword"
+            size="small"
+            type={showConfirmPassword ? "text" : "password"}
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            error={!!validationErrors.confirmPassword}
+            helperText={validationErrors.confirmPassword}
+            required
+            variant="outlined"
+            autoComplete="new-password"
+            inputProps={{ maxLength: NEW_PASSWORD_MAX_LEN }}
+            sx={legacyCompactFieldSx}
+            InputProps={{
+              endAdornment: passwordVisibilityAdornment(
+                showConfirmPassword,
+                () => setShowConfirmPassword((v) => !v),
+              ),
+            }}
+          />
+        </Box>
+
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={loading}
+            sx={{
+              minWidth: 100,
+              height: 25,
+              fontSize: "0.8rem",
+              lineHeight: 1,
+              backgroundColor: LEGACY_BUTTON_BG,
+              color: "#FFFFFF",
+              textTransform: "none",
+              boxShadow: "none",
+              "&:hover": {
+                backgroundColor: "#0f3209",
+                boxShadow: "none",
+              },
+              "&:disabled": {
+                backgroundColor: "#999999",
+              },
+            }}
+          >
+            {loading ? "..." : "Submit"}
+          </Button>
+        </Box>
+      </form>
+    </Box>
+  );
+
+  const wideForm = (
+    <Box
+      sx={{
+        backgroundColor: "#66CC00",
+        padding: 4,
+        borderRadius: 1,
+        width: "100%",
+      }}
+    >
+      <form onSubmit={handleSubmit}>
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant="body1"
+            sx={{
+              color: "#666666",
+              mb: 1,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <span style={{ marginRight: "8px" }}>User Name:</span>
+            <span style={{ color: "#666666" }}>{displayName}</span>
+          </Typography>
+        </Box>
+
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="body1" sx={{ color: "#666666", mb: 1 }}>
+            Current Password:
+          </Typography>
+          <TextField
+            fullWidth
+            name="currentPassword"
+            type={showCurrentPassword ? "text" : "password"}
+            value={formData.currentPassword}
+            onChange={handleInputChange}
+            error={!!validationErrors.currentPassword}
+            helperText={validationErrors.currentPassword}
+            required
+            variant="outlined"
+            autoComplete="current-password"
+            inputProps={{ maxLength: CURRENT_PASSWORD_MAX_LEN }}
+            sx={legacyFieldSx}
+            InputProps={{
+              endAdornment: passwordVisibilityAdornment(
+                showCurrentPassword,
+                () => setShowCurrentPassword((v) => !v),
+              ),
+            }}
+          />
+        </Box>
+
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="body1" sx={{ color: "#666666", mb: 1 }}>
+            New Password ({NEW_PASSWORD_MIN_LEN}–{NEW_PASSWORD_MAX_LEN} characters):
+          </Typography>
+          <TextField
+            fullWidth
+            name="password"
+            type={showPassword ? "text" : "password"}
+            value={formData.password}
+            onChange={handleInputChange}
+            error={!!validationErrors.password}
+            helperText={validationErrors.password}
+            required
+            variant="outlined"
+            autoComplete="new-password"
+            inputProps={{ maxLength: NEW_PASSWORD_MAX_LEN }}
+            sx={legacyFieldSx}
+            InputProps={{
+              endAdornment: passwordVisibilityAdornment(showPassword, () =>
+                setShowPassword((v) => !v),
+              ),
+            }}
+          />
+        </Box>
+
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="body1" sx={{ color: "#666666", mb: 1 }}>
+            Confirm New Password:
+          </Typography>
+          <TextField
+            fullWidth
+            name="confirmPassword"
+            type={showConfirmPassword ? "text" : "password"}
+            value={formData.confirmPassword}
+            onChange={handleInputChange}
+            error={!!validationErrors.confirmPassword}
+            helperText={validationErrors.confirmPassword}
+            required
+            variant="outlined"
+            autoComplete="new-password"
+            inputProps={{ maxLength: NEW_PASSWORD_MAX_LEN }}
+            sx={legacyFieldSx}
+            InputProps={{
+              endAdornment: passwordVisibilityAdornment(
+                showConfirmPassword,
+                () => setShowConfirmPassword((v) => !v),
+              ),
+            }}
+          />
+        </Box>
+
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            disabled={loading}
+            sx={{
+              minWidth: 200,
+              height: 45,
+              fontSize: "1rem",
+              backgroundColor: "#336600",
+              color: "#FFFFFF",
+              "&:hover": { backgroundColor: "#2d5a00" },
+              "&:disabled": { backgroundColor: "#999999" },
+            }}
+          >
+            {loading ? <CircularProgress size={24} color="inherit" /> : "Submit"}
+          </Button>
+        </Box>
+      </form>
+    </Box>
+  );
+
+  const alerts = (
+    <>
+      {success && (
+        <Alert severity="success" sx={{ mb: 2, maxWidth: useLegacyCompactLayout ? 420 : "100%" }}>
+          You have changed your password successfully!
+        </Alert>
+      )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2, maxWidth: useLegacyCompactLayout ? 420 : "100%" }}>
+          {error}
+        </Alert>
+      )}
+    </>
+  );
+
+  if (useLegacyCompactLayout) {
+    return (
+      <Box sx={{ width: "100%" }}>
+        {embedded && (
+          <Box sx={adminSessionListHeaderBarSx}>
+            <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
+              Update Password
+            </Typography>
+          </Box>
+        )}
+        {alerts}
+        {legacyForm}
+      </Box>
+    );
+  }
+>>>>>>> main
 
   return (
     <Box>
-      {isStudent && !isDashboardShell && <StudentHeader user={user} />}
-      {isStudent && !isDashboardShell && (
-        <Box sx={{ height: "48px" }} aria-hidden />
-      )}
-      <Container maxWidth="md" sx={{ py: isDashboardShell ? 1 : 4 }}>
-        {/* Success Message */}
-        {success && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            You have changed your password successfully!
-          </Alert>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        {/* Header - Left Aligned Title */}
+      <Container
+        maxWidth="md"
+        sx={{ py: isDashboardShell ? 1 : 4 }}
+      >
+        {alerts}
         <Box sx={{ textAlign: "left", mb: 3 }}>
           <Typography
             variant="h4"
             sx={{
               fontWeight: 600,
-              color: isAdminPasswordPage
-                ? APPLICATION_ADMIN_TITLE_COLOR
-                : "#1976d2",
+              color: "#1976d2",
               mb: 4,
             }}
           >
             Update Password
           </Typography>
         </Box>
-
-        {/* Form Container - Lime Green Background */}
-        <Box
-          sx={{
-            backgroundColor: "#66CC00",
-            padding: 4,
-            borderRadius: 1,
-            width: "100%",
-          }}
-        >
-          <form onSubmit={handleSubmit}>
-            {/* User Name Field */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: "#666666",
-                  mb: 1,
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <span style={{ marginRight: "8px" }}>User Name:</span>
-                <span style={{ color: "#666666" }}>
-                  {user?.username ||
-                    user?.Username ||
-                    user?.email ||
-                    user?.Email}
-                </span>
-              </Typography>
-            </Box>
-
-            {/* Current password */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: "#666666",
-                  mb: 1,
-                }}
-              >
-                Current Password:
-              </Typography>
-              <TextField
-                fullWidth
-                name="currentPassword"
-                type={showCurrentPassword ? "text" : "password"}
-                value={formData.currentPassword}
-                onChange={handleInputChange}
-                error={!!validationErrors.currentPassword}
-                helperText={validationErrors.currentPassword}
-                required
-                variant="outlined"
-                autoComplete="current-password"
-                inputProps={{ maxLength: CURRENT_PASSWORD_MAX_LEN }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "#E0FFFF",
-                    "& fieldset": {
-                      borderColor: "#B0B0B0",
-                    },
-                    "&:hover fieldset": {
-                      borderColor: "#808080",
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#808080",
-                    },
-                  },
-                }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle current password visibility"
-                        onClick={handleClickShowCurrentPassword}
-                        onMouseDown={handleMouseDownPassword}
-                        edge="end"
-                      >
-                        {showCurrentPassword ? (
-                          <VisibilityOff />
-                        ) : (
-                          <Visibility />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Box>
-
-            {/* New password */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: "#666666",
-                  mb: 1,
-                }}
-              >
-                New Password ({NEW_PASSWORD_MIN_LEN}–{NEW_PASSWORD_MAX_LEN}{" "}
-                characters):
-              </Typography>
-              <TextField
-                fullWidth
-                name="password"
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={handleInputChange}
-                error={!!validationErrors.password}
-                helperText={validationErrors.password}
-                required
-                variant="outlined"
-                autoComplete="new-password"
-                inputProps={{ maxLength: NEW_PASSWORD_MAX_LEN }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "#E0FFFF",
-                    "& fieldset": {
-                      borderColor: "#B0B0B0",
-                    },
-                    "&:hover fieldset": {
-                      borderColor: "#808080",
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#808080",
-                    },
-                  },
-                }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickShowPassword}
-                        onMouseDown={handleMouseDownPassword}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Box>
-
-            {/* Confirm Password Field */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: "#666666",
-                  mb: 1,
-                }}
-              >
-                Confirm New Password:
-              </Typography>
-              <TextField
-                fullWidth
-                name="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                error={!!validationErrors.confirmPassword}
-                helperText={validationErrors.confirmPassword}
-                required
-                variant="outlined"
-                autoComplete="new-password"
-                inputProps={{ maxLength: NEW_PASSWORD_MAX_LEN }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "#E0FFFF",
-                    "& fieldset": {
-                      borderColor: "#B0B0B0",
-                    },
-                    "&:hover fieldset": {
-                      borderColor: "#808080",
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: "#808080",
-                    },
-                  },
-                }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle confirm password visibility"
-                        onClick={handleClickShowConfirmPassword}
-                        onMouseDown={handleMouseDownPassword}
-                        edge="end"
-                      >
-                        {showConfirmPassword ? (
-                          <VisibilityOff />
-                        ) : (
-                          <Visibility />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Box>
-
-            {/* Submit Button */}
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                disabled={loading}
-                sx={{
-                  minWidth: 200,
-                  height: 45,
-                  fontSize: "1rem",
-                  backgroundColor: "#336600",
-                  color: "#FFFFFF",
-                  "&:hover": {
-                    backgroundColor: "#2d5a00",
-                  },
-                  "&:disabled": {
-                    backgroundColor: "#999999",
-                  },
-                }}
-              >
-                {loading ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  "Submit"
-                )}
-              </Button>
-            </Box>
-          </form>
-        </Box>
+        {wideForm}
       </Container>
     </Box>
   );

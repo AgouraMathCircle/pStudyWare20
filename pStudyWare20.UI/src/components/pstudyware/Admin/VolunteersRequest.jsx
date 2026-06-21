@@ -12,12 +12,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  IconButton,
   Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   FormControl,
   InputLabel,
@@ -30,23 +25,45 @@ import {
   Paper,
 } from "@mui/material";
 import {
-  Edit as EditIcon,
-  Delete as DeleteIcon,
   Download as DownloadIcon,
   Refresh as RefreshIcon,
-  FirstPage as FirstPageIcon,
-  KeyboardArrowLeft as PrevPageIcon,
-  KeyboardArrowRight as NextPageIcon,
-  LastPage as LastPageIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
 } from "@mui/icons-material";
+import PortalDialog from "../Common/PortalDialog";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
+import {
+  portalModalFieldSx,
+  portalModalSendButtonSx,
+} from "../Common/portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
 import volunteersRequestService from "../../../services/volunteersRequestService";
 import {
-  APPLICATION_ADMIN_TITLE_COLOR,
-  PORTAL_CARD_BOX_SHADOW,
-  portalCardAntiLiftSx,
-} from "../../../styles/applicationSurfaces";
+  adminSessionListEmptyCellSx,
+  adminSessionListEmptyTextSx,
+  adminSessionListFindButtonSx,
+  adminSessionListGridTableSx,
+  adminSessionListHeaderBarSx,
+  adminSessionListMenuItemSx,
+  adminSessionListPanelCardSx,
+  adminSessionListPanelContentSx,
+  adminSessionListSearchBarSx,
+  adminSessionListSearchFieldSx,
+  adminSessionListSearchLabelSx,
+  adminSessionListSearchSelectSx,
+  adminSessionListTableActionLinkSx,
+  adminSessionListTableBodyCellSx,
+  adminSessionListTableBodyRowSx,
+  adminSessionListTableContainerSx,
+  adminSessionListTableHeadCellSx,
+  adminSessionListTableHeadRowSx,
+  adminSessionListTitleSx,
+  adminSessionListToolbarButtonSx,
+  portalRoleSubheaderSpacerPx,
+} from "../styles/applicationSurfaces";
+import AdminSessionListPagination from "./AdminSessionListPagination";
+import SortableHeader from "../Common/SortableHeader";
 import studentWaitingListService from "../../../services/studentWaitingListService";
 
 const volunteersRequestPageSx = {
@@ -55,6 +72,24 @@ const volunteersRequestPageSx = {
   width: "100%",
   display: "flex",
   flexDirection: "column",
+};
+
+const volunteersRequestColumnWidths = {
+  edit: "4%",
+  delete: "4%",
+  id: "5%",
+  volunteerName: "10%",
+  grade: "5%",
+  location: "8%",
+  school: "8%",
+  phone: "7%",
+  email: "10%",
+  city: "6%",
+  enrolledFor: "8%",
+  interestedFor: "8%",
+  status: "6%",
+  requestedDate: "7%",
+  comments: "8%",
 };
 
 const TYPE_OPTIONS = [
@@ -192,6 +227,14 @@ const VolunteersRequest = () => {
   useEffect(() => {
     loadChapterLocations();
   }, []);
+
+  const handleSort = (property) => {
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(property);
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -358,33 +401,12 @@ const VolunteersRequest = () => {
 
   const handleExportExcel = async () => {
     try {
-      const res = await volunteersRequestService.exportToExcel({ Username: username });
-      const fileContent = res?.fileContent ?? res?.FileContent;
-      if (!res?.isSuccess || !fileContent) {
-        setSnackbar({
-          open: true,
-          message: res?.errorMessage ?? res?.ErrorMessage ?? "Export failed.",
-          severity: "error",
-        });
-        return;
-      }
-      const base64 = typeof fileContent === "string" ? fileContent : "";
-      const contentType = res?.contentType ?? res?.ContentType ?? "text/csv";
-      const blob = new Blob(
-        [Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))],
-        { type: contentType }
-      );
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = res?.fileName ?? res?.FileName ?? "VolunteersRequest.csv";
-      a.click();
-      URL.revokeObjectURL(url);
+      await volunteersRequestService.exportToExcel({ Username: username });
       setSnackbar({ open: true, message: "Export downloaded.", severity: "success" });
     } catch (err) {
       setSnackbar({
         open: true,
-        message: err?.response?.data?.errorMessage || "Export failed.",
+        message: err?.message || "Export failed.",
         severity: "error",
       });
     }
@@ -396,43 +418,17 @@ const VolunteersRequest = () => {
     return isNaN(date.getTime()) ? d : date.toLocaleDateString();
   };
 
-  const cellPadding = "0 8px";
-
   return (
     <Box sx={volunteersRequestPageSx}>
       <AdminHeader user={user} />
-      <Box sx={{ height: "48px" }} />
+      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Card
-              sx={{
-                backgroundColor: "white",
-                borderRadius: 2,
-                boxShadow: PORTAL_CARD_BOX_SHADOW,
-                overflow: "hidden",
-                ...portalCardAntiLiftSx,
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <Box
-                  sx={{
-                    mb: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 2,
-                  }}
-                >
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      fontWeight: 600,
-                      color: APPLICATION_ADMIN_TITLE_COLOR,
-                      fontSize: "1rem",
-                    }}
-                  >
+            <Card sx={adminSessionListPanelCardSx}>
+              <CardContent sx={adminSessionListPanelContentSx}>
+                <Box sx={adminSessionListHeaderBarSx}>
+                  <Typography variant="subtitle1" sx={adminSessionListTitleSx}>
                     Volunteers Request
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1 }}>
@@ -442,7 +438,7 @@ const VolunteersRequest = () => {
                       size="small"
                       startIcon={<DownloadIcon />}
                       onClick={handleExportExcel}
-                      sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                      sx={adminSessionListToolbarButtonSx}
                     >
                       Export Excel
                     </Button>
@@ -453,7 +449,7 @@ const VolunteersRequest = () => {
                       startIcon={<RefreshIcon />}
                       onClick={loadList}
                       disabled={loading}
-                      sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                      sx={adminSessionListToolbarButtonSx}
                     >
                       Refresh
                     </Button>
@@ -466,97 +462,50 @@ const VolunteersRequest = () => {
                   </Box>
                 ) : (
                   <>
-                    {/* Search Bar */}
-                    <Box
-                      sx={{
-                        backgroundColor: "#4caf50",
-                        p: 0.5,
-                        borderRadius: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                      >
-                        <Typography
-                          sx={{
-                            color: "white",
-                            fontSize: "0.75rem",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          Search By:
-                        </Typography>
+                    <Box sx={adminSessionListSearchBarSx}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                        <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
                         <Select
                           value={searchBy}
                           onChange={(e) => setSearchBy(e.target.value)}
                           size="small"
-                          sx={{
-                            color: "white",
-                            fontSize: "0.75rem",
-                            minWidth: 100,
-                            "& .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "white",
-                            },
-                            "& .MuiSelect-icon": { color: "white" },
-                          }}
+                          sx={adminSessionListSearchSelectSx}
                         >
-                          <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
+                          <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
                             -ALL-
                           </MenuItem>
-                          <MenuItem value="VOLUNTEER_ID" sx={{ fontSize: "0.75rem" }}>
+                          <MenuItem value="VOLUNTEER_ID" sx={adminSessionListMenuItemSx}>
                             #
                           </MenuItem>
-                          <MenuItem value="NAME" sx={{ fontSize: "0.75rem" }}>
+                          <MenuItem value="NAME" sx={adminSessionListMenuItemSx}>
                             Name
                           </MenuItem>
-                          <MenuItem value="EMAIL" sx={{ fontSize: "0.75rem" }}>
+                          <MenuItem value="EMAIL" sx={adminSessionListMenuItemSx}>
                             Email
                           </MenuItem>
-                          <MenuItem value="STATUS" sx={{ fontSize: "0.75rem" }}>
+                          <MenuItem value="STATUS" sx={adminSessionListMenuItemSx}>
                             Status
                           </MenuItem>
-                          <MenuItem value="SCHOOL" sx={{ fontSize: "0.75rem" }}>
+                          <MenuItem value="SCHOOL" sx={adminSessionListMenuItemSx}>
                             School
                           </MenuItem>
                         </Select>
                       </Box>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                      >
-                        <Typography
-                          sx={{
-                            color: "white",
-                            fontSize: "0.75rem",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          Criteria:
-                        </Typography>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                        <Typography sx={adminSessionListSearchLabelSx}>Criteria:</Typography>
                         <Select
                           value={searchCriteria}
                           onChange={(e) => setSearchCriteria(e.target.value)}
                           size="small"
-                          sx={{
-                            color: "white",
-                            fontSize: "0.75rem",
-                            minWidth: 100,
-                            "& .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "white",
-                            },
-                            "& .MuiSelect-icon": { color: "white" },
-                          }}
+                          sx={adminSessionListSearchSelectSx}
                         >
-                          <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
+                          <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
                             Contains
                           </MenuItem>
-                          <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
+                          <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
                             Equals
                           </MenuItem>
-                          <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>
+                          <MenuItem value="starts_with" sx={adminSessionListMenuItemSx}>
                             Starts With
                           </MenuItem>
                         </Select>
@@ -566,407 +515,119 @@ const VolunteersRequest = () => {
                         placeholder="Search Text"
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
-                        sx={{
-                          minWidth: 150,
-                          "& .MuiOutlinedInput-root": {
-                            backgroundColor: "white",
-                            fontSize: "0.75rem",
-                          },
-                        }}
+                        sx={adminSessionListSearchFieldSx}
                       />
                       <Button
                         variant="contained"
                         size="small"
                         onClick={handleSearch}
-                        sx={{
-                          backgroundColor: "white",
-                          color: "#4caf50",
-                          fontSize: "0.75rem",
-                          textTransform: "none",
-                          minHeight: 32,
-                          py: 0,
-                          px: 1,
-                          "&:hover": { backgroundColor: "#f5f5f5" },
-                        }}
+                        sx={adminSessionListFindButtonSx}
                       >
                         Find
                       </Button>
                     </Box>
 
-                    {/* Table */}
-                    <TableContainer component={Paper} sx={{ width: "100%" }}>
-                      <Table
-                        sx={{
-                          width: "100%",
-                          tableLayout: "fixed",
-                          "& .MuiTableCell-root": {
-                            paddingTop: 0,
-                            paddingBottom: 0,
-                          },
-                        }}
-                        size="small"
-                      >
+                    <TableContainer component={Paper} sx={adminSessionListTableContainerSx}>
+                      <Table sx={adminSessionListGridTableSx} size="small">
                         <TableHead>
-                          <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
+                          <TableRow sx={adminSessionListTableHeadRowSx}>
                             <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "8%",
-                                minWidth: 88,
-                                whiteSpace: "nowrap",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
+                              sx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.edit)}
                             >
-                              Actions
+                              Edit
                             </TableCell>
                             <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "5%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
+                              sx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.delete)}
                             >
-                              #
+                              Delete
                             </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "10%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Volunteer Name
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "5%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Grade
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "8%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Location
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "8%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              School
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "7%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Phone
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "10%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Email
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "6%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              City
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "8%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Enrolled For
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "8%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Interested For
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "6%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Status
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "7%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Requested Date
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              Comments
-                            </TableCell>
+                            <SortableHeader label="#" field="volunteerID" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.id)} />
+                            <SortableHeader label="Volunteer Name" field="volunteerName" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.volunteerName)} />
+                            <SortableHeader label="Grade" field="grade" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.grade)} />
+                            <SortableHeader label="Location" field="location" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.location)} />
+                            <SortableHeader label="School" field="school" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.school)} />
+                            <SortableHeader label="Phone" field="phone" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.phone)} />
+                            <SortableHeader label="Email" field="email" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.email)} />
+                            <SortableHeader label="City" field="city" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.city)} />
+                            <SortableHeader label="Enrolled For" field="enrolledSession" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.enrolledFor)} />
+                            <SortableHeader label="Interested For" field="interest" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.interestedFor)} />
+                            <SortableHeader label="Status" field="status" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.status)} />
+                            <SortableHeader label="Requested Date" field="insertDate" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.requestedDate)} />
+                            <SortableHeader label="Comments" field="comments" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.comments, true)} />
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {paginatedList.length > 0 ? (
                             paginatedList.map((row) => (
-                              <TableRow key={row.volunteerID}>
-                                <TableCell
-                                  sx={{
-                                    borderRight: "1px solid #4caf50",
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                    whiteSpace: "nowrap",
-                                    verticalAlign: "middle",
-                                  }}
-                                >
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      flexDirection: "row",
-                                      alignItems: "center",
-                                      flexWrap: "nowrap",
-                                      gap: 0,
-                                    }}
-                                  >
-                                    <Tooltip title="Update Status">
-                                      <IconButton
-                                        size="small"
-                                        onClick={() => handleEdit(row)}
-                                        sx={{ padding: "2px" }}
-                                      >
-                                        <EditIcon sx={{ fontSize: "1rem" }} />
-                                      </IconButton>
-                                    </Tooltip>
-                                    <Tooltip title="Delete">
-                                      <IconButton
-                                        size="small"
-                                        color="error"
-                                        onClick={() => handleDeleteClick(row)}
-                                        sx={{ padding: "2px" }}
-                                      >
-                                        <DeleteIcon sx={{ fontSize: "1rem" }} />
-                                      </IconButton>
-                                    </Tooltip>
+                              <TableRow key={row.volunteerID} sx={adminSessionListTableBodyRowSx}>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
+                                  <Box onClick={() => handleEdit(row)} sx={adminSessionListTableActionLinkSx}>
+                                    Edit
                                   </Box>
                                 </TableCell>
-                                <TableCell
-                                  sx={{
-                                    borderRight: "1px solid #4caf50",
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                  }}
-                                >
-                                  {row.volunteerID ?? "-"}
+                                <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
+                                  <Box
+                                    onClick={() => handleDeleteClick(row)}
+                                    sx={adminSessionListTableActionLinkSx}
+                                  >
+                                    Delete
+                                  </Box>
                                 </TableCell>
-                                <TableCell
-                                  sx={{
-                                    borderRight: "1px solid #4caf50",
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                  }}
-                                >
-                                  <Tooltip title={row.volunteerName ?? "-"}>
-                                    <span>{row.volunteerName ?? "-"}</span>
+                                <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                  {row.volunteerID ?? "—"}
+                                </TableCell>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                                  <Tooltip title={row.volunteerName ?? "—"}>
+                                    <span>{row.volunteerName ?? "—"}</span>
                                   </Tooltip>
                                 </TableCell>
-                                <TableCell
-                                  sx={{
-                                    borderRight: "1px solid #4caf50",
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                  }}
-                                >
-                                  {row.grade ?? "-"}
+                                <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                  {row.grade ?? "—"}
                                 </TableCell>
-                                <TableCell
-                                  sx={{
-                                    borderRight: "1px solid #4caf50",
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                  }}
-                                >
-                                  <Tooltip title={row.location ?? "-"}>
-                                    <span>{row.location ?? "-"}</span>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                                  <Tooltip title={row.location ?? "—"}>
+                                    <span>{row.location ?? "—"}</span>
                                   </Tooltip>
                                 </TableCell>
-                                <TableCell
-                                  sx={{
-                                    borderRight: "1px solid #4caf50",
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                  }}
-                                >
-                                  {row.school ?? "-"}
+                                <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                  {row.school ?? "—"}
                                 </TableCell>
-                                <TableCell
-                                  sx={{
-                                    borderRight: "1px solid #4caf50",
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                  }}
-                                >
-                                  {row.phone ?? "-"}
+                                <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                  {row.phone ?? "—"}
                                 </TableCell>
-                                <TableCell
-                                  sx={{
-                                    borderRight: "1px solid #4caf50",
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                    maxWidth: 120,
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                  }}
-                                >
-                                  <Tooltip title={row.email || "-"}>
-                                    <span>{row.email ?? "-"}</span>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                                  <Tooltip title={row.email ?? "—"}>
+                                    <span>{row.email ?? "—"}</span>
                                   </Tooltip>
                                 </TableCell>
-                                <TableCell
-                                  sx={{
-                                    borderRight: "1px solid #4caf50",
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                  }}
-                                >
-                                  {row.city ?? "-"}
+                                <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                  {row.city ?? "—"}
                                 </TableCell>
-                                <TableCell
-                                  sx={{
-                                    borderRight: "1px solid #4caf50",
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                  }}
-                                >
-                                  <Tooltip title={row.enrolledSession ?? "-"}>
-                                    <span>{row.enrolledSession ?? "-"}</span>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                                  <Tooltip title={row.enrolledSession ?? "—"}>
+                                    <span>{row.enrolledSession ?? "—"}</span>
                                   </Tooltip>
                                 </TableCell>
-                                <TableCell
-                                  sx={{
-                                    borderRight: "1px solid #4caf50",
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                  }}
-                                >
-                                  <Tooltip title={row.interest ?? "-"}>
-                                    <span>{row.interest ?? "-"}</span>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                                  <Tooltip title={row.interest ?? "—"}>
+                                    <span>{row.interest ?? "—"}</span>
                                   </Tooltip>
                                 </TableCell>
-                                <TableCell
-                                  sx={{
-                                    borderRight: "1px solid #4caf50",
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                  }}
-                                >
-                                  {row.status ?? "-"}
+                                <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                  {row.status ?? "—"}
                                 </TableCell>
-                                <TableCell
-                                  sx={{
-                                    borderRight: "1px solid #4caf50",
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                  }}
-                                >
-                                  {formatDate(row.insertDate) || "-"}
+                                <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                  {formatDate(row.insertDate) || "—"}
                                 </TableCell>
-                                <TableCell
-                                  sx={{
-                                    fontSize: "0.75rem",
-                                    padding: cellPadding,
-                                  }}
-                                >
-                                  {row.comments ?? "-"}
+                                <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
+                                  {row.comments ?? "—"}
                                 </TableCell>
                               </TableRow>
                             ))
                           ) : (
                             <TableRow>
-                              <TableCell
-                                colSpan={14}
-                                align="center"
-                                sx={{
-                                  fontSize: "0.75rem",
-                                  padding: cellPadding,
-                                  py: 3,
-                                }}
-                              >
-                                <Typography
-                                  variant="body2"
-                                  color="textSecondary"
-                                  sx={{ fontSize: "0.75rem" }}
-                                >
+                              <TableCell colSpan={15} align="center" sx={adminSessionListEmptyCellSx}>
+                                <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
                                   {searchText
                                     ? "No records found matching your search."
                                     : "No records found."}
@@ -978,149 +639,16 @@ const VolunteersRequest = () => {
                       </Table>
                     </TableContainer>
 
-                    {/* Pagination Bar */}
-                    <Box
-                      sx={{
-                        backgroundColor: "#4caf50",
-                        p: 0.5,
-                        borderRadius: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        flexWrap: "wrap",
-                        gap: 1,
-                      }}
-                    >
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.25 }}
-                      >
-                        <IconButton
-                          size="small"
-                          sx={{ color: "white", padding: "2px" }}
-                          onClick={() => handlePageChange(1)}
-                          disabled={currentPage === 1}
-                        >
-                          <FirstPageIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          sx={{ color: "white", padding: "2px" }}
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          disabled={currentPage === 1}
-                        >
-                          <PrevPageIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          sx={{ color: "white", padding: "2px" }}
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          disabled={currentPage === totalPages}
-                        >
-                          <NextPageIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          sx={{ color: "white", padding: "2px" }}
-                          onClick={() => handlePageChange(totalPages)}
-                          disabled={currentPage === totalPages}
-                        >
-                          <LastPageIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.25 }}
-                      >
-                        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                          GoTo
-                        </Typography>
-                        <Select
-                          size="small"
-                          value={totalPages > 0 ? currentPage : ""}
-                          onChange={(e) =>
-                            handlePageChange(Number(e.target.value))
-                          }
-                          disabled={totalPages === 0}
-                          sx={{
-                            color: "white",
-                            minWidth: 50,
-                            fontSize: "0.75rem",
-                            "& .MuiOutlinedInput-notchedOutline": {
-                              borderColor: "white",
-                            },
-                            "& .MuiSelect-icon": { color: "white" },
-                          }}
-                        >
-                          {totalPages > 0 ? (
-                            Array.from(
-                              { length: totalPages },
-                              (_, i) => i + 1,
-                            ).map((page) => (
-                              <MenuItem
-                                key={page}
-                                value={page}
-                                sx={{ fontSize: "0.75rem" }}
-                              >
-                                {page}
-                              </MenuItem>
-                            ))
-                          ) : (
-                            <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
-                              -
-                            </MenuItem>
-                          )}
-                        </Select>
-                      </Box>
-                      <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                        Page(s): {currentPage} of {totalPages}
-                      </Typography>
-                      <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                        Record(s):{" "}
-                        {totalRecords > 0
-                          ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, totalRecords)}`
-                          : "0"}{" "}
-                        of {totalRecords}
-                      </Typography>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.25 }}
-                      >
-                        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                          Go to Page Number:
-                        </Typography>
-                        <TextField
-                          size="small"
-                          type="number"
-                          value={goToPageInput}
-                          onChange={(e) => setGoToPageInput(e.target.value)}
-                          onKeyPress={(e) => {
-                            if (e.key === "Enter") handleGoToPage();
-                          }}
-                          sx={{
-                            width: 50,
-                            "& .MuiOutlinedInput-root": {
-                              backgroundColor: "white",
-                              fontSize: "0.75rem",
-                            },
-                          }}
-                          inputProps={{ min: 1, max: totalPages }}
-                        />
-                        <Button
-                          size="small"
-                          variant="contained"
-                          onClick={handleGoToPage}
-                          sx={{
-                            backgroundColor: "white",
-                            color: "#4caf50",
-                            fontSize: "0.75rem",
-                            minHeight: 32,
-                            py: 0,
-                            px: 0.75,
-                            "&:hover": { backgroundColor: "#f5f5f5" },
-                          }}
-                        >
-                          Go
-                        </Button>
-                      </Box>
-                    </Box>
+                    <AdminSessionListPagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      totalRecords={totalRecords}
+                      pageSize={pageSize}
+                      goToPageInput={goToPageInput}
+                      onGoToPageInputChange={setGoToPageInput}
+                      onPageChange={handlePageChange}
+                      onGoToPage={handleGoToPage}
+                    />
                   </>
                 )}
               </CardContent>
@@ -1129,216 +657,141 @@ const VolunteersRequest = () => {
         </Grid>
       </Container>
 
-      <Dialog
+      <PortalDialog
         open={showUpdateForm && !!selectedRow}
         onClose={handleCloseUpdateForm}
         maxWidth="md"
-        fullWidth
-        PaperProps={{
-          sx: {
-            backgroundColor: "#4CAF50",
-            color: "white",
-            borderRadius: 2,
-          },
-        }}
-      >
-        <DialogTitle
-          sx={{
-            color: "white",
-            fontWeight: 600,
-            fontSize: "1rem",
-            pb: 1,
-          }}
-        >
-          Update Volunteer Request Status
-        </DialogTitle>
-        <DialogContent sx={{ pt: 0 }}>
-          <Grid container spacing={2} sx={{ pt: 1 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="First Name"
-                value={form.firstName}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, firstName: e.target.value }))
-                }
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
-                  },
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Last Name"
-                value={form.lastName}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, lastName: e.target.value }))
-                }
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
-                  },
-                }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
-                  },
-                }}
-              >
-                <InputLabel>Chapter</InputLabel>
-                <Select
-                  value={form.chapterID}
-                  label="Chapter"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, chapterID: e.target.value }))
-                  }
-                >
-                  {chapterLocations.map((ch) => {
-                    const id = ch.chapterID ?? ch.ChapterID ?? "";
-                    const name = ch.chapterName ?? ch.ChapterName ?? "";
-                    const loc = ch.location ?? ch.Location ?? "";
-                    return (
-                      <MenuItem key={id} value={id}>
-                        {name} - {loc}
-                      </MenuItem>
-                    );
-                  })}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
-                  },
-                }}
-              >
-                <InputLabel>Type</InputLabel>
-                <Select
-                  value={form.type}
-                  label="Type"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, type: e.target.value }))
-                  }
-                >
-                  {TYPE_OPTIONS.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
-                  },
-                }}
-              >
-                <InputLabel>Class</InputLabel>
-                <Select
-                  value={form.class}
-                  label="Class"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, class: e.target.value }))
-                  }
-                >
-                  {CLASS_OPTIONS.map((opt) => (
-                    <MenuItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl
-                fullWidth
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
-                  },
-                }}
-              >
-                <InputLabel>Section</InputLabel>
-                <Select
-                  value={form.section}
-                  label="Section"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, section: e.target.value }))
-                  }
-                >
-                  <MenuItem value="A">A</MenuItem>
-                  <MenuItem value="B">B</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            px: 3,
-            pb: 2,
-            pt: 0,
-            justifyContent: "center",
-            gap: 2,
-          }}
-        >
-          <Button
-            variant="outlined"
-            onClick={handleCloseUpdateForm}
-            disabled={submitting}
-            sx={{
-              borderColor: "white",
-              color: "white",
-              px: 4,
-              py: 1,
-              "&:hover": {
-                borderColor: "white",
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-              },
-            }}
-          >
-            Close
-          </Button>
+        disableClose={submitting}
+        title="Update Volunteer Request Status"
+        icon={<EditIcon sx={{ fontSize: 20 }} />}
+        actions={
           <Button
             variant="contained"
             onClick={handleUpdateSubmit}
             disabled={submitting}
-            sx={{
-              backgroundColor: "#2E7D32",
-              color: "white",
-              px: 4,
-              py: 1,
-              "&:hover": { backgroundColor: "#1B5E20" },
-            }}
+            sx={portalModalSendButtonSx}
           >
             {submitting ? "Submitting…" : "Submit"}
           </Button>
-        </DialogActions>
-      </Dialog>
+        }
+      >
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              size="small"
+              label="First Name"
+              value={form.firstName}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, firstName: e.target.value }))
+              }
+              sx={portalModalFieldSx}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Last Name"
+              value={form.lastName}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, lastName: e.target.value }))
+              }
+              sx={portalModalFieldSx}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Chapter</InputLabel>
+              <Select
+                value={form.chapterID}
+                label="Chapter"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, chapterID: e.target.value }))
+                }
+              >
+                {chapterLocations.map((ch) => {
+                  const id = ch.chapterID ?? ch.ChapterID ?? "";
+                  const name = ch.chapterName ?? ch.ChapterName ?? "";
+                  const loc = ch.location ?? ch.Location ?? "";
+                  return (
+                    <MenuItem key={id} value={id}>
+                      {name} - {loc}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Type</InputLabel>
+              <Select
+                value={form.type}
+                label="Type"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, type: e.target.value }))
+                }
+              >
+                {TYPE_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Class</InputLabel>
+              <Select
+                value={form.class}
+                label="Class"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, class: e.target.value }))
+                }
+              >
+                {CLASS_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Section</InputLabel>
+              <Select
+                value={form.section}
+                label="Section"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, section: e.target.value }))
+                }
+              >
+                <MenuItem value="A">A</MenuItem>
+                <MenuItem value="B">B</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </PortalDialog>
 
-      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
-        <DialogTitle>Delete volunteer request</DialogTitle>
-        <DialogContent>Do you want to delete this volunteer request?</DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
-          <Button color="error" variant="contained" onClick={handleDeleteConfirm} disabled={submitting}>{submitting ? "Deleting…" : "Delete"}</Button>
-        </DialogActions>
-      </Dialog>
+      <AppConfirmDialog
+        open={deleteConfirmOpen}
+        onClose={() => {
+          if (!submitting) {
+            setDeleteConfirmOpen(false);
+          }
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Delete volunteer request"
+        message="Do you want to delete this volunteer request?"
+        confirmLabel="Delete"
+        confirmColor="error"
+        icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+        loading={submitting}
+      />
 
       <Snackbar
         open={snackbar.open}

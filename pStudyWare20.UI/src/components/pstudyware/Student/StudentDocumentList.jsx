@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -11,55 +11,83 @@ import {
   TextField,
   Select,
   MenuItem,
-  IconButton,
-  Tooltip,
-  Chip,
   Paper,
   Button,
 } from "@mui/material";
+import PdfViewerModal from "../../common/PdfViewerModal";
+import config from "../../../utils/config";
 import {
-  Visibility as ViewIcon,
-  Download as DownloadIcon,
-  VideoLibrary as VideoIcon,
-  Refresh as RefreshIcon,
-  FirstPage as FirstPageIcon,
-  KeyboardArrowLeft as PrevPageIcon,
-  KeyboardArrowRight as NextPageIcon,
-  LastPage as LastPageIcon,
-} from "@mui/icons-material";
-import PdfViewer from "../../common/PdfViewer";
+  adminSessionListFindButtonSx,
+  adminSessionListGridTableSx,
+  adminSessionListHeaderBarSx,
+  adminSessionListMenuItemSx,
+  adminSessionListSearchBarSx,
+  adminSessionListSearchFieldSx,
+  adminSessionListSearchLabelSx,
+  adminSessionListSearchSelectSx,
+  adminSessionListTableActionLinkSx,
+  adminSessionListTableBodyCellSx,
+  adminSessionListTableBodyRowSx,
+  adminSessionListTableHeadCellSx,
+  adminSessionListTableHeadRowSx,
+  adminSessionListTableContainerSx,
+  adminSessionListTitleSx,
+  adminSessionListEmptyCellSx,
+  adminSessionListEmptyTextSx,
+  studentPortalIntroTextSx,
+  studentPortalLinkSx,
+} from "../styles/applicationSurfaces";
+import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
+import SortableHeader from "../Common/SortableHeader";
+import {
+  sortRows,
+  toSortableDate,
+  toSortableNumber,
+} from "../../../utils/tableSort";
 
-const tableColumnWidths = {
-  actions: 132,
-  docNumber: 76,
-  className: 120,
-  topics: 170,
-  description: 170,
-  documentName: 260,
-  session: 160,
-  postedDate: 130,
+const documentColumnWidths = {
+  actions: "16%",
+  docNumber: "6%",
+  className: "7%",
+  topics: "12%",
+  description: "14%",
+  documentName: "16%",
+  session: "13%",
+  postedDate: "16%",
 };
 
-const headerCellSx = {
-  fontWeight: 700,
-  borderRight: "1px solid #4caf50",
-  fontSize: "0.78rem",
-  padding: "10px 12px",
-  color: "#1b5e20",
-  backgroundColor: "#e8f5e8",
-  whiteSpace: "nowrap",
-};
-
-const bodyCellSx = {
-  borderRight: "1px solid #4caf50",
+const actionDividerSx = {
   fontSize: "0.75rem",
-  padding: "8px 12px",
-  verticalAlign: "middle",
+  color: "text.disabled",
+  userSelect: "none",
+  lineHeight: 1,
+};
+
+const getClassMaterialFieldValue = (doc, field) => {
+  switch (field) {
+    case "docNumber":
+      return toSortableNumber(doc.docID);
+    case "className":
+      return doc.class ?? "";
+    case "topics":
+      return doc.topics ?? "";
+    case "description":
+      return doc.description ?? "";
+    case "documentName":
+      return doc.docName ?? "";
+    case "session":
+      return doc.session ?? "";
+    case "postedDate":
+      return toSortableDate(doc.uploadedDate);
+    default:
+      return "";
+  }
 };
 
 const StudentDocumentList = ({
   documents,
-  onRefresh,
+  loading = false,
+  onRefresh: _onRefresh,
   onView,
   onDownload,
   onOpenVideo,
@@ -67,28 +95,43 @@ const StudentDocumentList = ({
   onClosePdfViewer,
 }) => {
   const [searchBy, setSearchBy] = useState("ALL");
-  const [searchCriteria, setSearchCriteria] = useState("contains");
+  const [searchCriteria, setSearchCriteria] = useState("");
   const [searchText, setSearchText] = useState("");
   const [filteredData, setFilteredData] = useState(documents);
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
-  const pageSize = 10;
+  const [sortField, setSortField] = useState("postedDate");
+  const [sortOrder, setSortOrder] = useState("desc");
 
-  // Update filtered data when documents change
-  React.useEffect(() => {
+  const pageSize = 25;
+
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
+
+  useEffect(() => {
     setFilteredData(documents);
     setCurrentPage(1);
     setGoToPageInput("1");
   }, [documents]);
 
-  // Calculate pagination
   const totalRecords = filteredData.length;
-  const totalPages = Math.ceil(totalRecords / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const displayedData = filteredData.slice(startIndex, endIndex);
+  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
 
-  // Handle search
+  const sortedDocuments = useMemo(
+    () => sortRows(filteredData, sortField, sortOrder, getClassMaterialFieldValue),
+    [filteredData, sortField, sortOrder]
+  );
+
+  const paginatedDocuments = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return sortedDocuments.slice(start, start + pageSize);
+  }, [sortedDocuments, currentPage, pageSize]);
+
   const handleSearch = () => {
     let filtered = [...documents];
 
@@ -137,7 +180,6 @@ const StudentDocumentList = ({
     setGoToPageInput("1");
   };
 
-  // Handle page change
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -145,9 +187,8 @@ const StudentDocumentList = ({
     }
   };
 
-  // Handle go to specific page
   const handleGoToPage = () => {
-    const page = parseInt(goToPageInput);
+    const page = parseInt(goToPageInput, 10);
     if (!isNaN(page) && page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     } else {
@@ -155,9 +196,8 @@ const StudentDocumentList = ({
     }
   };
 
-  // Format date
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) return "—";
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString("en-US", {
@@ -170,129 +210,164 @@ const StudentDocumentList = ({
     }
   };
 
-  // Get class label
-  const getClassLabel = (classCode) => {
-    const classMap = {
-      JB: "Junior Beginner",
-      JI: "Junior Intermediate",
-      JA: "Junior Advanced",
-      SB: "Senior Beginner",
-      SI: "Senior Intermediate",
-      SA: "Senior Advanced",
-      DS: "Data Science",
-      AI: "Artificial Intelligence",
-      GD: "Game Development",
-      AD: "App Development",
-      DM: "Data Management",
-      ST: "PSAT/SAT",
-      AT: "ACT",
-    };
-    return classMap[classCode] || classCode;
+  const renderDocumentActions = (doc) => (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        flexWrap: "nowrap",
+        gap: 0.5,
+        whiteSpace: "nowrap",
+      }}
+    >
+      <Box onClick={() => onView(doc.docName)} sx={adminSessionListTableActionLinkSx}>
+        View
+      </Box>
+      <Typography component="span" sx={actionDividerSx}>
+        /
+      </Typography>
+      <Box onClick={() => onDownload(doc.docName)} sx={adminSessionListTableActionLinkSx}>
+        Download
+      </Box>
+      {doc.videoURL ? (
+        <>
+          <Typography component="span" sx={actionDividerSx}>
+            /
+          </Typography>
+          <Box onClick={() => onOpenVideo(doc.videoURL)} sx={adminSessionListTableActionLinkSx}>
+            Video
+          </Box>
+        </>
+      ) : null}
+    </Box>
+  );
+
+  const renderTableBody = () => {
+    if (loading) {
+      return (
+        <TableRow>
+          <TableCell colSpan={8} align="center" sx={adminSessionListEmptyCellSx}>
+            <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
+              Loading class materials...
+            </Typography>
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    if (paginatedDocuments.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={8} align="center" sx={adminSessionListEmptyCellSx}>
+            <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
+              {searchText
+                ? "No documents found matching your search."
+                : "No class materials available."}
+            </Typography>
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return paginatedDocuments.map((doc, index) => (
+      <TableRow key={doc.docID || index} sx={adminSessionListTableBodyRowSx}>
+        <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
+          {renderDocumentActions(doc)}
+        </TableCell>
+        <TableCell sx={adminSessionListTableBodyCellSx()}>{doc.docID ?? "—"}</TableCell>
+        <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+          {doc.class || "—"}
+        </TableCell>
+        <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+          {doc.topics || "—"}
+        </TableCell>
+        <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+          {doc.description || "—"}
+        </TableCell>
+        <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+          {doc.docName || "—"}
+        </TableCell>
+        <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+          {doc.session || "—"}
+        </TableCell>
+        <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
+          {formatDate(doc.uploadedDate)}
+        </TableCell>
+      </TableRow>
+    ));
   };
 
   return (
-    <Box>
-      {/* Title Section */}
-      <Box sx={{ p: 2, backgroundColor: "#f5f5f5" }}>
-        <Typography
-          variant="h6"
-          sx={{ fontWeight: 600, color: "#4caf50", mb: 1, fontSize: "1.1rem" }}
-        >
-          Class Materials
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ color: "#666", fontSize: "0.875rem" }}
-        >
-          Watch Lecture Notes Video on{" "}
-          <a
-            href="https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/videos"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#d32f2f", fontWeight: 500 }}
-          >
-            Agoura Math Circle YouTube Channel
-          </a>
-          . Note: Subscription is required for all students. Please subscribe,
-          it will help us upload more videos.
+    <Box sx={{ width: "100%" }}>
+      <Box sx={adminSessionListHeaderBarSx}>
+        <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
+          Class Material List
         </Typography>
       </Box>
 
-      {/* Green Header with Search Controls */}
-      <Box
-        sx={{
-          backgroundColor: "#4caf50",
-          padding: "12px 16px",
-          display: "flex",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 2,
-        }}
-      >
+      <Typography component="div" sx={{ ...studentPortalIntroTextSx, mb: 1 }}>
+        {" - Watch Lecture Notes Video "}
+        <a
+          href="https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/videos"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={studentPortalLinkSx}
+        >
+          Agoura Math Circle YouTube Channel
+        </a>
+        {" Note: Subscription is required for all students. Please subscribe, it will help us to upload more videos."}
+      </Typography>
+
+      <Box sx={adminSessionListSearchBarSx}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography
-            sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
-          >
-            Search By:
-          </Typography>
+          <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
           <Select
             value={searchBy}
             onChange={(e) => setSearchBy(e.target.value)}
             size="small"
-            sx={{
-              color: "white",
-              fontSize: "0.75rem",
-              minWidth: 120,
-              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
-              "& .MuiSelect-icon": { color: "white" },
-            }}
+            sx={adminSessionListSearchSelectSx}
+            disabled={loading}
           >
-            <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
-              Select Column
+            <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
+              -ALL-
             </MenuItem>
-            <MenuItem value="CLASS" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="CLASS" sx={adminSessionListMenuItemSx}>
               Class
             </MenuItem>
-            <MenuItem value="TOPICS" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="TOPICS" sx={adminSessionListMenuItemSx}>
               Topics
             </MenuItem>
-            <MenuItem value="DESCRIPTION" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="DESCRIPTION" sx={adminSessionListMenuItemSx}>
               Description
             </MenuItem>
-            <MenuItem value="SESSION" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="SESSION" sx={adminSessionListMenuItemSx}>
               Session
             </MenuItem>
-            <MenuItem value="DOC_NAME" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="DOC_NAME" sx={adminSessionListMenuItemSx}>
               Document Name
             </MenuItem>
           </Select>
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography
-            sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}
-          >
-            Criteria:
-          </Typography>
+          <Typography sx={adminSessionListSearchLabelSx}>Criteria:</Typography>
           <Select
             value={searchCriteria}
             onChange={(e) => setSearchCriteria(e.target.value)}
             size="small"
-            sx={{
-              color: "white",
-              fontSize: "0.75rem",
-              minWidth: 100,
-              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
-              "& .MuiSelect-icon": { color: "white" },
-            }}
+            sx={adminSessionListSearchSelectSx}
+            disabled={loading}
           >
-            <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="" sx={adminSessionListMenuItemSx}>
+              Select Criteria
+            </MenuItem>
+            <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
               Equals
             </MenuItem>
-            <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
               Contains
             </MenuItem>
-            <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="starts_with" sx={adminSessionListMenuItemSx}>
               Starts With
             </MenuItem>
           </Select>
@@ -303,322 +378,108 @@ const StudentDocumentList = ({
           placeholder="Search Text"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-          sx={{
-            minWidth: 150,
-            "& .MuiOutlinedInput-root": {
-              backgroundColor: "white",
-              fontSize: "0.75rem",
-            },
-          }}
+          sx={adminSessionListSearchFieldSx}
+          disabled={loading}
         />
 
         <Button
           variant="contained"
           size="small"
           onClick={handleSearch}
-          sx={{
-            backgroundColor: "white",
-            color: "#4caf50",
-            fontSize: "0.75rem",
-            textTransform: "none",
-            px: 1.5,
-            py: 0.25,
-            "&:hover": { backgroundColor: "#f5f5f5" },
-          }}
+          sx={adminSessionListFindButtonSx}
+          disabled={loading}
         >
           Find
         </Button>
-
-        <Box sx={{ flexGrow: 1 }} />
-
-        <Tooltip title="Refresh">
-          <IconButton onClick={onRefresh} sx={{ color: "white", p: 0.5 }}>
-            <RefreshIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
       </Box>
 
-      {/* Table */}
-      <TableContainer
-        component={Paper}
-        sx={{
-          width: "100%",
-          overflowX: "auto",
-          border: "1px solid #d7edd9",
-          borderRadius: 1.5,
-        }}
-      >
-        <Table
-          sx={{
-            minWidth: 1218,
-            tableLayout: "fixed",
-            "& .MuiTableCell-root": {
-              boxSizing: "border-box",
-            },
-          }}
-        >
-          <colgroup>
-            <col style={{ width: tableColumnWidths.actions }} />
-            <col style={{ width: tableColumnWidths.docNumber }} />
-            <col style={{ width: tableColumnWidths.className }} />
-            <col style={{ width: tableColumnWidths.topics }} />
-            <col style={{ width: tableColumnWidths.description }} />
-            <col style={{ width: tableColumnWidths.documentName }} />
-            <col style={{ width: tableColumnWidths.session }} />
-            <col style={{ width: tableColumnWidths.postedDate }} />
-          </colgroup>
+      <TableContainer component={Paper} sx={adminSessionListTableContainerSx}>
+        <Table size="small" sx={adminSessionListGridTableSx}>
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
-              <TableCell
-                sx={{
-                  ...headerCellSx,
-                  textAlign: "center",
-                }}
-              >
+            <TableRow sx={adminSessionListTableHeadRowSx}>
+              <TableCell sx={adminSessionListTableHeadCellSx(documentColumnWidths.actions)}>
                 Actions
               </TableCell>
-              <TableCell sx={headerCellSx}>
-                Doc #
-              </TableCell>
-              <TableCell sx={headerCellSx}>
-                Class
-              </TableCell>
-              <TableCell sx={headerCellSx}>
-                Topics
-              </TableCell>
-              <TableCell sx={headerCellSx}>
-                Description
-              </TableCell>
-              <TableCell sx={headerCellSx}>
-                Document Name
-              </TableCell>
-              <TableCell sx={headerCellSx}>
-                Session
-              </TableCell>
-              <TableCell
-                sx={{
-                  ...headerCellSx,
-                  borderRight: "none",
-                }}
-              >
-                Posted Date
-              </TableCell>
+              <SortableHeader
+                label="Doc #"
+                field="docNumber"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.docNumber)}
+              />
+              <SortableHeader
+                label="Class"
+                field="className"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.className)}
+              />
+              <SortableHeader
+                label="Topics"
+                field="topics"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.topics)}
+              />
+              <SortableHeader
+                label="Description"
+                field="description"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.description)}
+              />
+              <SortableHeader
+                label="Document Name"
+                field="documentName"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.documentName)}
+              />
+              <SortableHeader
+                label="Session"
+                field="session"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.session)}
+              />
+              <SortableHeader
+                label="Posted Date"
+                field="postedDate"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.postedDate, true)}
+              />
             </TableRow>
           </TableHead>
-          <TableBody>
-            {displayedData.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={8}
-                  align="center"
-                  sx={{ py: 4, fontSize: "0.875rem" }}
-                >
-                  <Typography variant="body1" color="textSecondary">
-                    {searchText
-                      ? "No documents found matching your search."
-                      : "No class materials available."}
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
-              displayedData.map((doc, index) => (
-                <TableRow key={doc.docID || index} hover>
-                  <TableCell
-                    sx={{
-                      ...bodyCellSx,
-                      textAlign: "center",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 0.5,
-                        minWidth: 104,
-                      }}
-                    >
-                      <Tooltip title="View">
-                        <IconButton
-                          size="small"
-                          onClick={() => onView(doc.docName)}
-                          sx={{ color: "#4caf50", p: 0.5 }}
-                        >
-                          <ViewIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Download">
-                        <IconButton
-                          size="small"
-                          onClick={() => onDownload(doc.docName)}
-                          sx={{ color: "#4caf50", p: 0.5 }}
-                        >
-                          <DownloadIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      {doc.videoURL && (
-                        <Tooltip title="Watch Video">
-                          <IconButton
-                            size="small"
-                            onClick={() => onOpenVideo(doc.videoURL)}
-                            sx={{ color: "#f44336", p: 0.5 }}
-                          >
-                            <VideoIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell
-                    sx={bodyCellSx}
-                  >
-                    {doc.docID}
-                  </TableCell>
-                  <TableCell
-                    sx={bodyCellSx}
-                  >
-                    <Tooltip title={getClassLabel(doc.class)}>
-                      <Chip
-                        label={doc.class}
-                        size="small"
-                        sx={{
-                          backgroundColor: "#4caf50",
-                          color: "white",
-                          fontSize: "0.7rem",
-                        }}
-                      />
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell
-                    sx={bodyCellSx}
-                  >
-                    {doc.topics || "N/A"}
-                  </TableCell>
-                  <TableCell
-                    sx={bodyCellSx}
-                  >
-                    {doc.description || "N/A"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      ...bodyCellSx,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <Tooltip title={doc.docName}>
-                      <span>{doc.docName || "N/A"}</span>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell
-                    sx={bodyCellSx}
-                  >
-                    {doc.session || "N/A"}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      ...bodyCellSx,
-                      fontSize: "0.75rem",
-                      borderRight: "none",
-                    }}
-                  >
-                    {formatDate(doc.uploadedDate)}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
+          <TableBody>{renderTableBody()}</TableBody>
         </Table>
       </TableContainer>
 
-      {/* Pagination Controls */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "8px 16px",
-          backgroundColor: "#f5f5f5",
-          borderTop: "1px solid #4caf50",
-        }}
-      >
-        <Typography sx={{ fontSize: "0.75rem" }}>
-          Records {startIndex + 1} to {Math.min(endIndex, totalRecords)} of{" "}
-          {totalRecords}
-        </Typography>
+      <AdminSessionListPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalRecords={totalRecords}
+        pageSize={pageSize}
+        goToPageInput={goToPageInput}
+        onGoToPageInputChange={setGoToPageInput}
+        onPageChange={handlePageChange}
+        onGoToPage={handleGoToPage}
+      />
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <IconButton
-            size="small"
-            onClick={() => handlePageChange(1)}
-            disabled={currentPage === 1}
-            sx={{ color: "#4caf50" }}
-          >
-            <FirstPageIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            sx={{ color: "#4caf50" }}
-          >
-            <PrevPageIcon fontSize="small" />
-          </IconButton>
-
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <Typography sx={{ fontSize: "0.75rem" }}>Page</Typography>
-            <TextField
-              size="small"
-              value={goToPageInput}
-              onChange={(e) => setGoToPageInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleGoToPage()}
-              onBlur={handleGoToPage}
-              sx={{
-                width: "50px",
-                "& .MuiOutlinedInput-root": {
-                  fontSize: "0.75rem",
-                  height: "28px",
-                },
-              }}
-            />
-            <Typography sx={{ fontSize: "0.75rem" }}>
-              of {totalPages}
-            </Typography>
-          </Box>
-
-          <IconButton
-            size="small"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            sx={{ color: "#4caf50" }}
-          >
-            <NextPageIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={() => handlePageChange(totalPages)}
-            disabled={currentPage === totalPages}
-            sx={{ color: "#4caf50" }}
-          >
-            <LastPageIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      </Box>
-
-      {/* PDF Viewer Section */}
-      {selectedPdf && (
-        <PdfViewer
-          pdfUrl={selectedPdf}
-          pdfName={selectedPdf}
-          showHeader={true}
-          onClose={onClosePdfViewer}
-          width="100%"
-          height="70vh"
-          basePath="/pStudyWare/Documents/"
-        />
-      )}
+      <PdfViewerModal
+        open={Boolean(selectedPdf)}
+        pdfUrl={selectedPdf}
+        pdfName={selectedPdf}
+        onClose={onClosePdfViewer}
+        basePath={config.paths.publicDocuments}
+      />
     </Box>
   );
 };

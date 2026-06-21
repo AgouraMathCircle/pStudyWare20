@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
@@ -13,14 +14,14 @@ namespace pStudyWare20.Services.Implementations
     public class EmailManagerService : IEmailManagerService
     {
         private readonly IEmailManagerRepository _emailManagerRepository;
-        private readonly IEmailUtility _emailUtility;
-        private readonly IConfiguration _configuration;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public EmailManagerService(IEmailManagerRepository emailManagerRepository, IEmailUtility emailUtility, IConfiguration configuration)
+        public EmailManagerService(
+            IEmailManagerRepository emailManagerRepository,
+            IServiceScopeFactory serviceScopeFactory)
         {
             _emailManagerRepository = emailManagerRepository;
-            _emailUtility = emailUtility;
-            _configuration = configuration;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         /// <summary>
@@ -41,16 +42,33 @@ namespace pStudyWare20.Services.Implementations
                         messages.Add(new MessageInfo
                         {
                             MessageID = GetIntValue(row, "MessageID"),
-                            TrackingID = GetIntValue(row, "TrackingID"),
-                            SendFrom = row["SendFrom"]?.ToString() ?? "",
-                            SendTo = row["SendTo"]?.ToString() ?? "",
-                            SendBy = row["SendBy"]?.ToString() ?? "",
-                            Subject = row["Subject"]?.ToString() ?? "",
-                            Message = row["Message"]?.ToString() ?? "",
-                            SendDate = row["SendDate"] != DBNull.Value ? Convert.ToDateTime(row["SendDate"]) : DateTime.MinValue,
-                            Status = row["Status"]?.ToString() ?? "",
-                            SenderName = row.Table.Columns.Contains("SenderName") ? row["SenderName"]?.ToString() ?? "" : ""
+                            TrackingID = GetIntValue(row, "TrackingID") != 0
+                                ? GetIntValue(row, "TrackingID")
+                                : GetIntValue(row, "EmailID"),
+                            SendFrom = GetStringValue(row, "SendFrom"),
+                            SendTo = GetStringValue(row, "SendTo"),
+                            SendBy = GetStringValue(row, "SendBy"),
+                            Subject = GetStringValue(row, "Subject"),
+                            Message = GetStringValue(row, "Message"),
+                            SendDate = GetDateTimeValue(row, "SendDate"),
+                            Status = GetStringValue(row, "Status"),
+                            SenderName = GetStringValue(row, "SenderName"),
                         });
+                    }
+                }
+
+                if (messages.Count > 0)
+                {
+                    var trackingIds = messages
+                        .Select(m => m.TrackingID)
+                        .Where(id => id > 0)
+                        .ToList();
+                    var archivedIds = await _emailManagerRepository.GetArchivedTrackingIdsAsync(trackingIds);
+                    if (archivedIds.Count > 0)
+                    {
+                        messages = messages
+                            .Where(m => !archivedIds.Contains(m.TrackingID))
+                            .ToList();
                     }
                 }
 
@@ -83,25 +101,20 @@ namespace pStudyWare20.Services.Implementations
                 if (messageData != null && messageData.Tables.Count > 0 && messageData.Tables[0].Rows.Count > 0)
                 {
                     var row = messageData.Tables[0].Rows[0];
+                    // AMC_spGetMessageCenter_Message only returns the Message column.
                     message = new MessageInfo
                     {
-                        MessageID = GetIntValue(row, "MessageID"),
-                        TrackingID = GetIntValue(row, "TrackingID"),
-                        SendFrom = row["SendFrom"]?.ToString() ?? "",
-                        SendTo = row["SendTo"]?.ToString() ?? "",
-                        SendBy = row["SendBy"]?.ToString() ?? "",
-                        Subject = row["Subject"]?.ToString() ?? "",
-                        Message = row["Message"]?.ToString() ?? "",
-                        SendDate = row["SendDate"] != DBNull.Value ? Convert.ToDateTime(row["SendDate"]) : DateTime.MinValue,
-                        Status = row["Status"]?.ToString() ?? "",
-                        SenderName = row.Table.Columns.Contains("SenderName") ? row["SenderName"]?.ToString() ?? "" : ""
+                        MessageID = request.EmailID,
+                        TrackingID = request.EmailID,
+                        Message = GetStringValue(row, "Message"),
                     };
                 }
 
                 return new GetMessageResponse
                 {
-                    IsSuccess = true,
-                    Message = message
+                    IsSuccess = message != null,
+                    Message = message,
+                    ErrorMessage = message == null ? "Message not found" : string.Empty,
                 };
             }
             catch (Exception ex)
@@ -121,11 +134,38 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(request.SendTo))
+                {
+                    return new SendMessageResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Recipient is required"
+                    };
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Subject))
+                {
+                    return new SendMessageResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Subject is required"
+                    };
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Message))
+                {
+                    return new SendMessageResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Message is required"
+                    };
+                }
+
                 int emailId = request.ReplyToEmailID ?? 0;
                 string mode = request.Mode ?? "N";
 
-                // Send message to database
-                var result = await _emailManagerRepository.SendMessageAsync(
+                // Save to message center first; email notification runs in the background.
+                await _emailManagerRepository.SendMessageAsync(
                     request.SendTo,
                     request.SendFrom,
                     request.Subject,
@@ -136,46 +176,7 @@ namespace pStudyWare20.Services.Implementations
                     request.ChapterID
                 );
 
-                // Send email notification
-                string emailSubject = "Agoura Math Circle - " + request.Subject;
-                string emailBody = request.Message +
-                    " <br/> <br/>Regards <br/> " + request.FromName +
-                    "<br/> Agoura Math Circle<br/>www.agouramathcircle.org";
-
-                // Determine which email method to use based on member type and mode
-                if (request.MemberType == "S") // Student
-                {
-                    await _emailUtility.SendEmailAsync(request.SendTo, request.SendFrom, emailSubject, emailBody);
-                }
-                else if (request.MemberType == "I") // Instructor
-                {
-                    if (mode == "R") // Reply
-                    {
-                        await _emailUtility.SendEmailAsync(request.SendTo, request.SendFrom, request.Subject, emailBody);
-                    }
-                    else if (request.SendTo.Contains("ALL", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var adminEmail = _configuration["AdminEmailID"] ?? "";
-                        await _emailUtility.SendEmailGroupAsync(adminEmail, request.SendFrom, emailSubject, emailBody, request.SendTo);
-                    }
-                    else
-                    {
-                        await _emailUtility.SendEmailAsync(request.SendTo, request.SendFrom,
-                            request.Subject + " - Message To [" + request.FromName + "]", emailBody);
-                    }
-                }
-                else if (request.MemberType == "A") // Admin
-                {
-                    if (mode == "R") // Reply
-                    {
-                        await _emailUtility.SendEmailAsync(request.SendTo, request.SendFrom, request.Subject, emailBody);
-                    }
-                    else
-                    {
-                        var adminEmail = _configuration["AdminEmailID"] ?? "";
-                        await _emailUtility.SendEmailGroupAsync(adminEmail, request.SendFrom, emailSubject, emailBody, request.SendTo);
-                    }
-                }
+                QueueMessageCenterEmailNotification(request, mode);
 
                 return new SendMessageResponse
                 {
@@ -193,6 +194,103 @@ namespace pStudyWare20.Services.Implementations
             }
         }
 
+        private void QueueMessageCenterEmailNotification(SendMessageRequest request, string mode)
+        {
+            var notificationRequest = new SendMessageRequest
+            {
+                SendTo = request.SendTo,
+                SendFrom = request.SendFrom,
+                Subject = request.Subject,
+                Message = request.Message,
+                SendBy = request.SendBy,
+                Mode = mode,
+                MemberType = request.MemberType,
+                FromName = request.FromName,
+            };
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var emailUtility = scope.ServiceProvider.GetRequiredService<IEmailUtility>();
+                    var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+                    await SendMessageCenterEmailNotificationAsync(
+                        emailUtility,
+                        configuration,
+                        notificationRequest,
+                        mode);
+                }
+                catch
+                {
+                    // Message is already saved; SMTP failures must not block the user.
+                }
+            });
+        }
+
+        private static async Task SendMessageCenterEmailNotificationAsync(
+            IEmailUtility emailUtility,
+            IConfiguration configuration,
+            SendMessageRequest request,
+            string mode)
+        {
+            string emailSubject = "Agoura Math Circle - " + request.Subject;
+            string emailBody = request.Message +
+                " <br/> <br/>Regards <br/> " + request.FromName +
+                "<br/> Agoura Math Circle<br/>www.agouramathcircle.org";
+
+            if (request.MemberType == "S")
+            {
+                await emailUtility.SendEmailAsync(request.SendTo, request.SendFrom, emailSubject, emailBody);
+            }
+            else if (request.MemberType == "I")
+            {
+                if (mode == "R")
+                {
+                    await emailUtility.SendEmailAsync(request.SendTo, request.SendFrom, request.Subject, emailBody);
+                }
+                else if (request.SendTo.Contains("ALL", StringComparison.OrdinalIgnoreCase))
+                {
+                    var adminEmail = configuration["AdminEmailID"] ?? "";
+                    await emailUtility.SendEmailGroupAsync(adminEmail, request.SendFrom, emailSubject, emailBody, request.SendTo);
+                }
+                else
+                {
+                    await emailUtility.SendEmailAsync(request.SendTo, request.SendFrom,
+                        request.Subject + " - Message To [" + request.FromName + "]", emailBody);
+                }
+            }
+            else if (request.MemberType == "A")
+            {
+                if (mode == "R")
+                {
+                    await emailUtility.SendEmailAsync(request.SendTo, request.SendFrom, request.Subject, emailBody);
+                }
+                else
+                {
+                    var adminEmail = configuration["AdminEmailID"] ?? "";
+                    await emailUtility.SendEmailGroupAsync(adminEmail, request.SendFrom, emailSubject, emailBody, request.SendTo);
+                }
+            }
+            else if (request.MemberType == "V")
+            {
+                if (mode == "R")
+                {
+                    await emailUtility.SendEmailAsync(request.SendTo, request.SendFrom, request.Subject, emailBody);
+                }
+                else if (request.SendTo.Contains("ALL", StringComparison.OrdinalIgnoreCase))
+                {
+                    var adminEmail = configuration["AdminEmailID"] ?? "";
+                    await emailUtility.SendEmailGroupAsync(adminEmail, request.SendFrom, emailSubject, emailBody, request.SendTo);
+                }
+                else
+                {
+                    await emailUtility.SendEmailAsync(request.SendTo, request.SendFrom,
+                        request.Subject + " - Message To [" + request.FromName + "]", emailBody);
+                }
+            }
+        }
+
         /// <summary>
         /// Update message status (mark as viewed, delete, etc.)
         /// </summary>
@@ -200,6 +298,16 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
+                if (string.Equals(request.Mode, "T", StringComparison.OrdinalIgnoreCase) &&
+                    request.TrackingID <= 0)
+                {
+                    return new UpdateMessageStatusResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "A valid tracking ID is required to delete a message."
+                    };
+                }
+
                 await _emailManagerRepository.UpdateMessageStatusAsync(
                     request.Mode,
                     request.TrackingID.ToString(),
@@ -341,13 +449,32 @@ namespace pStudyWare20.Services.Implementations
         /// </summary>
         private int GetIntValue(DataRow row, string columnName)
         {
-            if (row[columnName] == DBNull.Value)
+            if (!row.Table.Columns.Contains(columnName) || row[columnName] == DBNull.Value)
                 return 0;
 
             if (int.TryParse(row[columnName]?.ToString(), out int result))
                 return result;
 
             return 0;
+        }
+
+        private static string GetStringValue(DataRow row, string columnName)
+        {
+            if (!row.Table.Columns.Contains(columnName) || row[columnName] == DBNull.Value)
+                return string.Empty;
+
+            return row[columnName]?.ToString() ?? string.Empty;
+        }
+
+        private static DateTime GetDateTimeValue(DataRow row, string columnName)
+        {
+            if (!row.Table.Columns.Contains(columnName) || row[columnName] == DBNull.Value)
+                return DateTime.MinValue;
+
+            if (DateTime.TryParse(row[columnName]?.ToString(), out DateTime value))
+                return value;
+
+            return DateTime.MinValue;
         }
     }
 }

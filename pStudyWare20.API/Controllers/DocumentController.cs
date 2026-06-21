@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using pStudyWare20.Services.Interfaces;
@@ -12,6 +13,7 @@ namespace pStudyWare20.API.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     [EnableCors("AllowReactApp")]
     [Produces(MediaTypeNames.Application.Json)]
     public class DocumentController : ControllerBase
@@ -180,7 +182,20 @@ namespace pStudyWare20.API.Controllers
 
             try
             {
+                _logger.LogInformation(
+                    "UploadDocument request. DocName={DocName} IsAuthenticated={IsAuthenticated} User={User}",
+                    request.DocName,
+                    User.Identity?.IsAuthenticated == true,
+                    User.Identity?.Name ?? "(anonymous)");
+
                 var response = await _documentService.UploadDocumentAsync(request).ConfigureAwait(false);
+                if (response.IsSuccess)
+                {
+                    _logger.LogInformation(
+                        "UploadDocument succeeded. DocName={DocName} SavedPath={SavedPath}",
+                        request.DocName,
+                        response.FilePath);
+                }
                 return Ok(response);
             }
             catch (OperationCanceledException)
@@ -191,6 +206,39 @@ namespace pStudyWare20.API.Controllers
             {
                 _logger.LogError(ex, "UploadDocument failed.");
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while uploading the document.", ex));
+            }
+        }
+
+        /// <summary>
+        /// Upload Docs Repository file (Word/Excel/PowerPoint).
+        /// Legacy: <c>DocumentsRepository.aspx.cs</c> <c>btnSubmit_Click1</c> → save under <c>~/pStudyWare/AMC_Docs/</c>,
+        /// <c>AMC_spAddDocument</c> with <c>@mDocType</c> = <c>W</c>.
+        /// </summary>
+        [HttpPost("UploadRepositoryDocument")]
+        [ProducesResponseType(typeof(DocumentUploadResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<DocumentUploadResponse>> UploadRepositoryDocument(
+            [FromBody] DocumentRepositoryUploadRequest request,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+
+            try
+            {
+                var response = await _documentService.UploadRepositoryDocumentAsync(request).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UploadRepositoryDocument failed.");
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while uploading the repository document.", ex));
             }
         }
 
@@ -317,6 +365,204 @@ namespace pStudyWare20.API.Controllers
             {
                 _logger.LogError(ex, "DeleteStudentDocument failed.");
                 return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while deleting the student document.", ex));
+            }
+        }
+
+        /// <summary>
+        /// View class material inline (legacy Documents.aspx OpenFile).
+        /// </summary>
+        [HttpGet("ViewClassMaterial")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ViewClassMaterial(
+            [FromQuery] string fileName,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return BadRequest(new { message = "File name is required." });
+            }
+
+            try
+            {
+                _logger.LogInformation(
+                    "ViewClassMaterial request. FileName={FileName} IsAuthenticated={IsAuthenticated} User={User}",
+                    fileName,
+                    User.Identity?.IsAuthenticated == true,
+                    User.Identity?.Name ?? "(anonymous)");
+
+                var response = await _documentService
+                    .GetClassMaterialFileAsync(fileName)
+                    .ConfigureAwait(false);
+
+                if (!response.IsSuccess)
+                {
+                    _logger.LogWarning(
+                        "ViewClassMaterial not found. FileName={FileName} Error={Error}",
+                        fileName,
+                        response.ErrorMessage);
+                    return NotFound(new { message = response.ErrorMessage });
+                }
+
+                if (!string.IsNullOrWhiteSpace(response.FilePath))
+                {
+                    Response.Headers["X-Document-File-Path"] = response.FilePath;
+                    _logger.LogInformation(
+                        "ViewClassMaterial serving file. FileName={FileName} FilePath={FilePath}",
+                        fileName,
+                        response.FilePath);
+                }
+
+                Response.Headers.ContentDisposition =
+                    $"inline; filename=\"{response.FileName}\"; filename*=UTF-8''{Uri.EscapeDataString(response.FileName)}";
+
+                return File(response.FileContent, response.ContentType, enableRangeProcessing: true);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "ViewClassMaterial failed for {FileName}.", fileName);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ErrorBody("An error occurred while opening the class material.", ex));
+            }
+        }
+
+        /// <summary>
+        /// Download class material file.
+        /// </summary>
+        [HttpGet("DownloadClassMaterial")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DownloadClassMaterial(
+            [FromQuery] string fileName,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return BadRequest(new { message = "File name is required." });
+            }
+
+            try
+            {
+                var response = await _documentService
+                    .GetClassMaterialFileAsync(fileName)
+                    .ConfigureAwait(false);
+
+                if (!response.IsSuccess)
+                {
+                    return NotFound(new { message = response.ErrorMessage });
+                }
+
+                return File(response.FileContent, response.ContentType, response.FileName);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DownloadClassMaterial failed for {FileName}.", fileName);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ErrorBody("An error occurred while downloading the class material.", ex));
+            }
+        }
+
+        /// <summary>
+        /// View student document inline (legacy OpenFile).
+        /// </summary>
+        [HttpGet("ViewStudentDocument")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ViewStudentDocument(
+            [FromQuery] string fileName,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return BadRequest(new { message = "File name is required." });
+            }
+
+            try
+            {
+                var response = await _documentService
+                    .GetStudentDocumentFileAsync(fileName)
+                    .ConfigureAwait(false);
+
+                if (!response.IsSuccess)
+                {
+                    return NotFound(new { message = response.ErrorMessage });
+                }
+
+                return new FileContentResult(response.FileContent, response.ContentType);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "ViewStudentDocument failed for {FileName}.", fileName);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ErrorBody("An error occurred while opening the student document.", ex));
+            }
+        }
+
+        /// <summary>
+        /// Download student document file.
+        /// </summary>
+        [HttpGet("DownloadStudentDocument")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DownloadStudentDocument(
+            [FromQuery] string fileName,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return BadRequest(new { message = "File name is required." });
+            }
+
+            try
+            {
+                var response = await _documentService
+                    .GetStudentDocumentFileAsync(fileName)
+                    .ConfigureAwait(false);
+
+                if (!response.IsSuccess)
+                {
+                    return NotFound(new { message = response.ErrorMessage });
+                }
+
+                return File(response.FileContent, response.ContentType, response.FileName);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DownloadStudentDocument failed for {FileName}.", fileName);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    ErrorBody("An error occurred while downloading the student document.", ex));
             }
         }
 

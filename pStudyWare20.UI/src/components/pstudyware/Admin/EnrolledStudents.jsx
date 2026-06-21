@@ -10,19 +10,17 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Box,
 } from "@mui/material";
 import {
   adminPortalCardHeaderStripSx,
   adminDashboardWidgetCardSx,
   adminDashboardWidgetCardContentSx,
   adminDashboardWidgetTitleSx,
-  adminDashboardWidgetTableCellSx,
-  adminDashboardWidgetTableHeaderCellSx,
+  adminDashboardWidgetTrackingHeaderCellSx,
+  adminDashboardWidgetTrackingCellSx,
+  adminDashboardWidgetTrackingTableSx,
   adminDashboardWidgetTableRowSx,
-  adminDashboardWidgetBorderedTableSx,
-  adminDashboardWidgetTableScrollSx,
-} from "../../../styles/applicationSurfaces";
+} from "../styles/applicationSurfaces";
 import { School as SchoolIcon } from "@mui/icons-material";
 
 const EnrolledStudents = ({ studentCounts }) => {
@@ -109,26 +107,27 @@ const EnrolledStudents = ({ studentCounts }) => {
         sx={adminPortalCardHeaderStripSx}
       />
       <CardContent sx={adminDashboardWidgetCardContentSx}>
-        <TableContainer
-          sx={{
-            ...adminDashboardWidgetTableScrollSx,
-            flex: 1,
-            minHeight: 0,
-            overflowY: "auto",
-          }}
-        >
+        <TableContainer sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
           <Table
             size="small"
-            className="admin-dashboard-widget-table admin-dashboard-widget-bordered-table"
-            sx={adminDashboardWidgetBorderedTableSx}
+            className="admin-dashboard-widget-table admin-dashboard-widget-count-table"
+            sx={adminDashboardWidgetTrackingTableSx}
           >
             <TableHead>
               <TableRow>
-                <TableCell sx={adminDashboardWidgetTableHeaderCellSx}>Group</TableCell>
-                <TableCell align="center" sx={adminDashboardWidgetTableHeaderCellSx}>
+                <TableCell sx={{ ...adminDashboardWidgetTrackingHeaderCellSx, width: "52%" }}>
+                  Group
+                </TableCell>
+                <TableCell
+                  align="center"
+                  sx={{ ...adminDashboardWidgetTrackingHeaderCellSx, width: "24%" }}
+                >
                   OnSite
                 </TableCell>
-                <TableCell align="center" sx={adminDashboardWidgetTableHeaderCellSx}>
+                <TableCell
+                  align="center"
+                  sx={{ ...adminDashboardWidgetTrackingHeaderCellSx, width: "24%" }}
+                >
                   Online
                 </TableCell>
               </TableRow>
@@ -136,18 +135,17 @@ const EnrolledStudents = ({ studentCounts }) => {
             <TableBody>
               {groups.map((group) => (
                 <TableRow key={group.key} sx={adminDashboardWidgetTableRowSx}>
-                  <TableCell component="th" scope="row" sx={adminDashboardWidgetTableCellSx}>
+                  <TableCell component="th" scope="row" sx={adminDashboardWidgetTrackingCellSx}>
                     {group.label}
                   </TableCell>
-                  <TableCell align="center" sx={adminDashboardWidgetTableCellSx}>
+                  <TableCell align="center" sx={adminDashboardWidgetTrackingCellSx}>
                     {getCount(group.onsiteKey)}
                   </TableCell>
-                  <TableCell align="center" sx={adminDashboardWidgetTableCellSx}>
+                  <TableCell align="center" sx={adminDashboardWidgetTrackingCellSx}>
                     {getCount(group.onlineKey)}
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
+              ))}            </TableBody>
           </Table>
         </TableContainer>
       </CardContent>

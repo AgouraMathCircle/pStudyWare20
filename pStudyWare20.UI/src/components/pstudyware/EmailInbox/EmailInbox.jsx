@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './EmailInbox.css';
 import emailService from '../../../services/emailService';
+import AppConfirmDialog from '../Common/AppConfirmDialog';
 import {
   AccessTime,
   CheckBoxOutlineBlank,
@@ -51,6 +52,11 @@ export default function EmailInbox() {
   const [listError, setListError] = useState('');
   const [bodyError, setBodyError] = useState('');
   const [view, setView] = useState('list'); // list | read | compose
+  const [alertDialog, setAlertDialog] = useState({ open: false, title: 'Notice', message: '' });
+
+  const showAlert = (message, title = 'Notice') => {
+    setAlertDialog({ open: true, title, message });
+  };
 
   useEffect(() => {
     loadSuggestions();
@@ -164,11 +170,10 @@ export default function EmailInbox() {
       mode: form.mode || 'N'
     };
     emailService.sendOrDraftEmail(payload).then(res => {
-      const data = res && res.data ? res.data : res;
-      alert((res && res.message) || 'Done');
+      showAlert((res && res.message) || 'Done', isDraft ? 'Draft Saved' : 'Message Sent');
       loadLabel(label);
       setView('list');
-    }).catch(err => alert('Error: ' + (err && err.message)));
+    }).catch(err => showAlert('Error: ' + (err && err.message), 'Error'));
   }
 
   const primaryLabels = LABELS.filter(l => !l.category);
@@ -209,7 +214,7 @@ export default function EmailInbox() {
           </select>
           <div className="search-box">
             <Search className="search-icon" />
-            <input placeholder="Search mail" onKeyDown={e => { if(e.key === 'Enter') alert('Search not implemented'); }} />
+            <input placeholder="Search mail" onKeyDown={e => { if(e.key === 'Enter') showAlert('Search not implemented'); }} />
             <Tune className="tune-icon" />
           </div>
         </div>
@@ -287,6 +292,13 @@ export default function EmailInbox() {
       </div>
 
       <div id="toast" className="toast-msg" />
+
+      <AppConfirmDialog
+        open={alertDialog.open}
+        onClose={() => setAlertDialog({ open: false, title: 'Notice', message: '' })}
+        title={alertDialog.title}
+        message={alertDialog.message}
+      />
     </div>
   );
 }

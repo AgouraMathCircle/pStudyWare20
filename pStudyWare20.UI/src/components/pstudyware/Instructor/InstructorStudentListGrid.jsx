@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
 import {
   Box,
   Button,
@@ -13,11 +12,33 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
-  Link,
 } from "@mui/material";
-import { Edit as EditIcon } from "@mui/icons-material";
+import { useUpdateProfileModal } from "../../../contexts/UpdateProfileModalContext";
 import InstructorPortalPaginationBar from "./InstructorPortalPaginationBar";
+import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
+import SortableHeader from "../Common/SortableHeader";
+import { sortRows, toSortableNumber } from "../../../utils/tableSort";
+import {
+  adminSessionListEmptyCellSx,
+  adminSessionListEmptyTextSx,
+  adminSessionListFindButtonSx,
+  adminSessionListGridTableSx,
+  adminSessionListHeaderBarSx,
+  adminSessionListMenuItemSx,
+  adminSessionListSearchBarSx,
+  adminSessionListSearchFieldSx,
+  adminSessionListSearchLabelSx,
+  adminSessionListSearchSelectSx,
+  adminSessionListTableActionLinkSx,
+  adminSessionListTableBodyCellSx,
+  adminSessionListTableBodyRowSx,
+  adminSessionListTableContainerSx,
+  adminSessionListTableHeadCellSx,
+  adminSessionListTableHeadRowSx,
+  adminSessionListTitleSx,
+} from "../styles/applicationSurfaces";
 import {
   instructorCellBodySx,
   instructorCellBodySxLast,
@@ -25,6 +46,7 @@ import {
   instructorCellHeaderSxLast,
   instructorFindButtonSx,
   instructorGreenSearchBarSx,
+  instructorDashboardStudentListColWidthsPx,
   instructorPageTitleSx,
   instructorSearchLabelSx,
   instructorSearchTextFieldSx,
@@ -36,14 +58,14 @@ import {
 } from "./instructorPortalTableStyles";
 
 const COLS = [
-  { label: "Student #", keys: ["StudentID", "studentID"], searchBy: "STUDENT_ID" },
-  { label: "Student Name", keys: ["StudentName", "studentName"], searchBy: "STUDENT_NAME" },
-  { label: "Class", keys: ["Class", "class"], searchBy: "CLASS" },
-  { label: "Grade", keys: ["Grade", "grade"], searchBy: "GRADE" },
-  { label: "School", keys: ["School", "school"], searchBy: "SCHOOL" },
-  { label: "Parent", keys: ["ParentName", "parentName"], searchBy: "PARENT" },
-  { label: "Session", keys: ["EventSession", "eventSession"], searchBy: "SESSION" },
-  { label: "Location", keys: ["EventLocation", "eventLocation"], searchBy: "LOCATION" },
+  { label: "Student #", keys: ["StudentID", "studentID"], searchBy: "STUDENT_ID", ellipsis: false },
+  { label: "Student Name", keys: ["StudentName", "studentName"], searchBy: "STUDENT_NAME", ellipsis: true },
+  { label: "Class", keys: ["Class", "class"], searchBy: "CLASS", ellipsis: true },
+  { label: "Grade", keys: ["Grade", "grade"], searchBy: "GRADE", ellipsis: false },
+  { label: "School", keys: ["School", "school"], searchBy: "SCHOOL", ellipsis: true },
+  { label: "Parent", keys: ["ParentName", "parentName"], searchBy: "PARENT", ellipsis: true },
+  { label: "Session", keys: ["EventSession", "eventSession"], searchBy: "SESSION", ellipsis: true },
+  { label: "Location", keys: ["EventLocation", "eventLocation"], searchBy: "LOCATION", ellipsis: true },
 ];
 
 function cell(row, keys) {
@@ -84,17 +106,45 @@ function filterRows(rows, searchBy, searchCriteria, searchText) {
   });
 }
 
+const getStudentListFieldValue = (row, field) => {
+  const col = COLS.find((c) => c.searchBy === field);
+  if (!col) return "";
+  const val = cell(row, col.keys);
+  if (field === "STUDENT_ID") return toSortableNumber(val);
+  return val;
+};
+
+const DashboardEllipsisCell = ({ value, isLast = false }) => {
+  const display = value || "—";
+  return (
+    <TableCell sx={adminSessionListTableBodyCellSx({ isLast, ellipsis: true })}>
+      <Tooltip title={display}>
+        <span>{display}</span>
+      </Tooltip>
+    </TableCell>
+  );
+};
+
 /**
- * My Student List — same table/search/pagination chrome as instructor student-documents.
+ * My Student List — dashboard uses student portal table chrome; other routes use instructor green bars.
  */
-const InstructorStudentListGrid = ({ rows = [], loading = false, error = null }) => {
+const InstructorStudentListGrid = ({
+  rows = [],
+  loading = false,
+  error = null,
+  dashboardView = false,
+  onStudentSaved,
+}) => {
+  const { openUpdateProfile } = useUpdateProfileModal();
   const [searchBy, setSearchBy] = useState("ALL");
-  const [searchCriteria, setSearchCriteria] = useState("contains");
+  const [searchCriteria, setSearchCriteria] = useState(dashboardView ? "" : "contains");
   const [searchText, setSearchText] = useState("");
   const [filteredRows, setFilteredRows] = useState(rows);
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
-  const pageSize = 10;
+  const [sortField, setSortField] = useState("STUDENT_NAME");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const pageSize = dashboardView ? 25 : 10;
 
   useEffect(() => {
     setFilteredRows(rows);
@@ -109,13 +159,26 @@ const InstructorStudentListGrid = ({ rows = [], loading = false, error = null })
     setGoToPageInput("1");
   };
 
-  const totalRecords = filteredRows.length;
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
+
+  const sortedRows = useMemo(
+    () => sortRows(filteredRows, sortField, sortOrder, getStudentListFieldValue),
+    [filteredRows, sortField, sortOrder],
+  );
+
+  const totalRecords = sortedRows.length;
   const totalPages = Math.ceil(totalRecords / pageSize) || 0;
 
   const pageRows = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    return filteredRows.slice(start, start + pageSize);
-  }, [filteredRows, currentPage, pageSize]);
+    return sortedRows.slice(start, start + pageSize);
+  }, [sortedRows, currentPage, pageSize]);
 
   const handlePageChange = (page) => {
     const maxPage = Math.ceil(totalRecords / pageSize) || 1;
@@ -147,10 +210,193 @@ const InstructorStudentListGrid = ({ rows = [], loading = false, error = null })
     );
   }
 
+  const handleEditProfile = (sid) => {
+    openUpdateProfile(sid, onStudentSaved);
+  };
+
   const emptyMessage =
     rows.length > 0 && filteredRows.length === 0
       ? "No students matching your search."
       : "No students found.";
+
+  const renderDashboardTableBody = () => {
+    if (loading) {
+      return (
+        <TableRow>
+          <TableCell colSpan={9} align="center" sx={adminSessionListEmptyCellSx}>
+            <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
+              Loading students…
+            </Typography>
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    if (pageRows.length === 0) {
+      return (
+        <TableRow>
+          <TableCell colSpan={9} align="center" sx={adminSessionListEmptyCellSx}>
+            <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
+              {emptyMessage}
+            </Typography>
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return pageRows.map((row, idx) => {
+      const sid = studentId(row);
+      return (
+        <TableRow key={sid ?? `row-${idx}`} sx={adminSessionListTableBodyRowSx}>
+          <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
+            {sid ? (
+              <Box onClick={() => handleEditProfile(sid)} sx={adminSessionListTableActionLinkSx}>
+                Edit
+              </Box>
+            ) : (
+              "—"
+            )}
+          </TableCell>
+          <TableCell sx={{ ...adminSessionListTableBodyCellSx(), whiteSpace: "nowrap" }}>
+            {sid ?? "—"}
+          </TableCell>
+          <DashboardEllipsisCell value={cell(row, COLS[1].keys)} />
+          <DashboardEllipsisCell value={cell(row, COLS[2].keys)} />
+          <TableCell sx={adminSessionListTableBodyCellSx()}>
+            {cell(row, COLS[3].keys) || "—"}
+          </TableCell>
+          <DashboardEllipsisCell value={cell(row, COLS[4].keys)} />
+          <DashboardEllipsisCell value={cell(row, COLS[5].keys)} />
+          <TableCell sx={{ ...adminSessionListTableBodyCellSx(), whiteSpace: "nowrap" }}>
+            {cell(row, COLS[6].keys) || "—"}
+          </TableCell>
+          <TableCell sx={{ ...adminSessionListTableBodyCellSx({ isLast: true }), whiteSpace: "nowrap" }}>
+            {cell(row, COLS[7].keys) || "—"}
+          </TableCell>
+        </TableRow>
+      );
+    });
+  };
+
+  if (dashboardView) {
+    return (
+      <Box sx={{ width: "100%" }}>
+        <Box sx={adminSessionListHeaderBarSx}>
+          <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
+            My Student List
+          </Typography>
+        </Box>
+
+        <Box sx={adminSessionListSearchBarSx}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
+            <Select
+              value={searchBy}
+              onChange={(e) => setSearchBy(e.target.value)}
+              size="small"
+              sx={adminSessionListSearchSelectSx}
+              disabled={loading}
+            >
+              <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
+                -ALL-
+              </MenuItem>
+              {COLS.map((c) => (
+                <MenuItem key={c.searchBy} value={c.searchBy} sx={adminSessionListMenuItemSx}>
+                  {c.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <Typography sx={adminSessionListSearchLabelSx}>Criteria:</Typography>
+            <Select
+              value={searchCriteria}
+              onChange={(e) => setSearchCriteria(e.target.value)}
+              size="small"
+              sx={adminSessionListSearchSelectSx}
+              disabled={loading}
+            >
+              <MenuItem value="" sx={adminSessionListMenuItemSx}>
+                Select Criteria
+              </MenuItem>
+              <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
+                Equals
+              </MenuItem>
+              <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
+                Contains
+              </MenuItem>
+              <MenuItem value="starts_with" sx={adminSessionListMenuItemSx}>
+                Starts With
+              </MenuItem>
+            </Select>
+          </Box>
+
+          <TextField
+            size="small"
+            placeholder="Search Text"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            sx={adminSessionListSearchFieldSx}
+            disabled={loading}
+          />
+
+          <Button
+            variant="contained"
+            size="small"
+            onClick={handleSearch}
+            sx={adminSessionListFindButtonSx}
+            disabled={loading}
+          >
+            Find
+          </Button>
+        </Box>
+
+        <TableContainer component={Paper} sx={adminSessionListTableContainerSx}>
+          <Table size="small" sx={adminSessionListGridTableSx}>
+            <colgroup>
+              {instructorDashboardStudentListColWidthsPx.map((w, i) => (
+                <col key={i} style={w == null ? undefined : { width: w }} />
+              ))}
+            </colgroup>
+            <TableHead>
+              <TableRow sx={adminSessionListTableHeadRowSx}>
+                <TableCell sx={adminSessionListTableHeadCellSx()}>
+                  Actions
+                </TableCell>
+                {COLS.map((c, index) => (
+                  <SortableHeader
+                    key={c.searchBy}
+                    label={c.label}
+                    field={c.searchBy}
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    headCellSx={adminSessionListTableHeadCellSx(
+                      undefined,
+                      index === COLS.length - 1,
+                    )}
+                  />
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>{renderDashboardTableBody()}</TableBody>
+          </Table>
+        </TableContainer>
+
+        <AdminSessionListPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalRecords={totalRecords}
+          pageSize={pageSize}
+          goToPageInput={goToPageInput}
+          onGoToPageInputChange={setGoToPageInput}
+          onPageChange={handlePageChange}
+          onGoToPage={handleGoToPage}
+        />
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -186,30 +432,11 @@ const InstructorStudentListGrid = ({ rows = [], loading = false, error = null })
             <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
               -ALL-
             </MenuItem>
-            <MenuItem value="STUDENT_ID" sx={{ fontSize: "0.75rem" }}>
-              Student #
-            </MenuItem>
-            <MenuItem value="STUDENT_NAME" sx={{ fontSize: "0.75rem" }}>
-              Student Name
-            </MenuItem>
-            <MenuItem value="CLASS" sx={{ fontSize: "0.75rem" }}>
-              Class
-            </MenuItem>
-            <MenuItem value="GRADE" sx={{ fontSize: "0.75rem" }}>
-              Grade
-            </MenuItem>
-            <MenuItem value="SCHOOL" sx={{ fontSize: "0.75rem" }}>
-              School
-            </MenuItem>
-            <MenuItem value="PARENT" sx={{ fontSize: "0.75rem" }}>
-              Parent
-            </MenuItem>
-            <MenuItem value="SESSION" sx={{ fontSize: "0.75rem" }}>
-              Session
-            </MenuItem>
-            <MenuItem value="LOCATION" sx={{ fontSize: "0.75rem" }}>
-              Location
-            </MenuItem>
+            {COLS.map((c) => (
+              <MenuItem key={c.searchBy} value={c.searchBy} sx={{ fontSize: "0.75rem" }}>
+                {c.label}
+              </MenuItem>
+            ))}
           </Select>
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -261,9 +488,15 @@ const InstructorStudentListGrid = ({ rows = [], loading = false, error = null })
           <TableHead>
             <TableRow sx={instructorTableHeadRowSx}>
               {COLS.map((c) => (
-                <TableCell key={c.label} sx={instructorCellHeaderSx}>
-                  {c.label}
-                </TableCell>
+                <SortableHeader
+                  key={c.label}
+                  label={c.label}
+                  field={c.searchBy}
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  headCellSx={instructorCellHeaderSx}
+                />
               ))}
               <TableCell sx={instructorCellHeaderSxLast} align="right">
                 Profile
@@ -301,20 +534,12 @@ const InstructorStudentListGrid = ({ rows = [], loading = false, error = null })
                     ))}
                     <TableCell sx={instructorCellBodySxLast} align="right">
                       {sid ? (
-                        <Link
-                          component={RouterLink}
-                          to={`/UpdateProfile/${sid}`}
-                          underline="hover"
-                          sx={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                            fontSize: "0.75rem",
-                          }}
+                        <Box
+                          onClick={() => handleEditProfile(sid)}
+                          sx={adminSessionListTableActionLinkSx}
                         >
-                          <EditIcon sx={{ fontSize: "1rem" }} />
-                          Update
-                        </Link>
+                          Edit
+                        </Box>
                       ) : (
                         "—"
                       )}

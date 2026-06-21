@@ -575,7 +575,7 @@ const TestPreparation = () => {
                 </Box>
 
                 {[
-                  { label: "STARTING DATE:", value: "JAN 28,2024" },
+                  { label: "STARTING DATE:", value: "JAN 28, 2024" },
                   { label: "LOCATION:", value: "VIRTUAL" },
                   { label: "SCHEDULE:", value: "ALTERNATE SUNDAY" },
                   { label: "TIME:", value: "1:00 PM PST - 3:00 PM PST" },
@@ -681,12 +681,12 @@ const TestPreparation = () => {
           <Box sx={{ mt: 6 }}>
             <Typography
               variant="h3"
-              sx={{ fontWeight: 700, mb: 4, fontSize: { xs: "1.8rem", md: "2.2rem" } }}
+              sx={{ fontWeight: 700, mb: 4, fontSize: { xs: "1.8rem", md: "2.2rem" }, textAlign: "center" }}
             >
               SAT/PSAT TEAM
             </Typography>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={3} justifyContent="center">
               {[
                 { name: "ANAND", logo: "F", img: AnandImg },
                 { name: "MUGIL SHANMUGAM", logo: "G", img: MugilImg },
@@ -783,7 +783,7 @@ const TestPreparation = () => {
           <Box sx={{ mt: 8 }}>
             <Typography
               variant="h3"
-              sx={{ fontWeight: 700, mb: 4, fontSize: { xs: "1.8rem", md: "2.2rem" } }}
+              sx={{ fontWeight: 700, mb: 4, fontSize: { xs: "1.8rem", md: "2.2rem" }, textAlign: "center" }}
             >
               ACT TEAM
             </Typography>

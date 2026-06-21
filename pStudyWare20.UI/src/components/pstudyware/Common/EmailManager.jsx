@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Container,
@@ -25,15 +25,16 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Grid,
+  Tooltip,
 } from "@mui/material";
 import {
-  Delete as DeleteIcon,
-  Visibility as VisibilityIcon,
-  Reply as ReplyIcon,
   Send as SendIcon,
   Download as DownloadIcon,
   Email as EmailIcon,
+  Close as CloseIcon,
+  Delete as DeleteIcon,
+  Reply as ReplyIcon,
+  Visibility as VisibilityIcon,
   FirstPage as FirstPageIcon,
   KeyboardArrowLeft as PrevPageIcon,
   KeyboardArrowRight as NextPageIcon,
@@ -43,25 +44,134 @@ import { useAuth } from "../../../contexts/AuthContext";
 import emailManagerService from "../../../services/emailManagerService";
 import StudentHeader from "../Student/StudentHeader";
 import AdminHeader from "../Admin/AdminHeader";
+import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
+import { getPortalUsername } from "../../../utils/portalUsername";
+import {
+  getMessagePreview,
+  getMessageFieldValue,
+  sortRows,
+} from "../../../utils/tableSort";
+import SortableHeader from "./SortableHeader";
+import AppConfirmDialog from "./AppConfirmDialog";
 import {
   portalPaperAntiLiftSx,
-  APPLICATION_ADMIN_TITLE_COLOR,
-} from "../../../styles/applicationSurfaces";
+  APPLICATION_SURFACE_BG,
+  APPLICATION_SURFACE_BORDER,
+  adminSessionListEmptyCellSx,
+  adminSessionListEmptyTextSx,
+  adminSessionListFindButtonSx,
+  adminSessionListGridTableSx,
+  adminSessionListHeaderBarSx,
+  adminSessionListMenuItemSx,
+  adminSessionListPanelCardSx,
+  adminSessionListPanelContentSx,
+  adminSessionListSearchBarSx,
+  adminSessionListSearchFieldSx,
+  adminSessionListSearchLabelSx,
+  adminSessionListSearchSelectSx,
+  adminSessionListTableActionLinkSx,
+  adminSessionListTableBodyCellSx,
+  adminSessionListTableBodyRowSx,
+  adminSessionListTableContainerSx,
+  adminSessionListTableHeadCellSx,
+  adminSessionListTableHeadRowSx,
+  adminSessionListTitleSx,
+  adminSessionListToolbarButtonSx,
+  portalRoleSubheaderSpacerPx,
+} from "../styles/applicationSurfaces";
+import {
+  PORTAL_MODAL_FG,
+  portalModalActionsSx,
+  portalModalClearButtonSx,
+  portalModalContentSx,
+  portalModalFieldSx,
+  portalModalPaperSx,
+  portalModalSendButtonSx,
+  portalModalTitleSx,
+} from "./portalModalStyles";
+
+const getEmailTrackingId = (message) => {
+  const id =
+    message?.trackingID ??
+    message?.TrackingID ??
+    message?.emailID ??
+    message?.EmailID;
+  const parsed = Number(id);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
+const MESSAGE_TABLE_COLUMN_WIDTHS = {
+  actions: 128,
+  messageDate: 136,
+  status: 84,
+};
+
+const messageListColumnWidths = {
+  actions: "10%",
+  from: "16%",
+  subject: "16%",
+  messageDate: "12%",
+  status: "8%",
+};
+
+const messageTableCellBaseSx = {
+  fontSize: "0.75rem",
+  padding: "3px 5px",
+  borderRight: "1px solid #4caf50",
+};
+
+const messageTableActionsCellSx = {
+  ...messageTableCellBaseSx,
+  width: MESSAGE_TABLE_COLUMN_WIDTHS.actions,
+  minWidth: MESSAGE_TABLE_COLUMN_WIDTHS.actions,
+  maxWidth: MESSAGE_TABLE_COLUMN_WIDTHS.actions,
+  whiteSpace: "nowrap",
+};
+
+const messageTableDateCellSx = {
+  ...messageTableCellBaseSx,
+  width: MESSAGE_TABLE_COLUMN_WIDTHS.messageDate,
+  minWidth: MESSAGE_TABLE_COLUMN_WIDTHS.messageDate,
+  maxWidth: MESSAGE_TABLE_COLUMN_WIDTHS.messageDate,
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+};
+
+const messageTableStatusCellSx = {
+  ...messageTableCellBaseSx,
+  width: MESSAGE_TABLE_COLUMN_WIDTHS.status,
+  minWidth: MESSAGE_TABLE_COLUMN_WIDTHS.status,
+  maxWidth: MESSAGE_TABLE_COLUMN_WIDTHS.status,
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  borderRight: "none",
+};
 
 const EmailManager = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const [messagesLoading, setMessagesLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [messageBodyLoading, setMessageBodyLoading] = useState(false);
+  const inboxLoadRef = useRef(0);
   const [messages, setMessages] = useState([]);
   const [filteredMessages, setFilteredMessages] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("contains");
+  const [sortField, setSortField] = useState("messageDate");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [goToPageInput, setGoToPageInput] = useState("1");
 
-  // Compose/Reply form state
-  const [showComposeForm, setShowComposeForm] = useState(true);
-  const [formMode, setFormMode] = useState("compose"); // 'compose' or 'reply' or 'view'
+  const pageSize = 25;
+
+  // Compose/Reply/View modal state
+  const [messageModalOpen, setMessageModalOpen] = useState(false);
+  const [formMode, setFormMode] = useState("compose"); // 'compose' | 'reply' | 'view'
   const [selectedMessage, setSelectedMessage] = useState(null);
 
   // Form fields
@@ -70,6 +180,12 @@ const EmailManager = () => {
   const [messageBody, setMessageBody] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedStudent, setSelectedStudent] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [deletingMessage, setDeletingMessage] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [composeValidationAttempted, setComposeValidationAttempted] =
+    useState(false);
 
   // Dropdowns data
   const [emailGroups, setEmailGroups] = useState([]);
@@ -85,43 +201,180 @@ const EmailManager = () => {
 
   // Member type
   const memberType = user?.memberType?.toUpperCase() || "";
-  const username = user?.email || user?.username || "";
+  const username = getPortalUsername(user);
   const firstName = user?.firstName || "";
   const chapterId = user?.chapterID || "1";
 
-  // Load messages on mount
+  const composeRecipientError = useMemo(() => {
+    if (formMode === "view") {
+      return "";
+    }
+    if (formMode === "reply") {
+      return sendTo?.trim() ? "" : "Recipient is required";
+    }
+    if (memberType === "A") {
+      return selectedClass ? "" : "Please select a class to send to";
+    }
+    if (memberType === "I" || memberType === "V" || memberType === "S") {
+      if (selectedStudent) {
+        return "";
+      }
+      return memberType === "S"
+        ? "Please select an instructor to send to"
+        : "Please select a student to send to";
+    }
+    return "";
+  }, [
+    formMode,
+    memberType,
+    sendTo,
+    selectedClass,
+    selectedStudent,
+  ]);
+
+  const composeSubjectError =
+    composeValidationAttempted && !subject.trim()
+      ? "Subject is required"
+      : "";
+  const composeMessageError =
+    composeValidationAttempted && !messageBody.trim()
+      ? "Message is required"
+      : "";
+  const composeRecipientFieldError =
+    composeValidationAttempted ? composeRecipientError : "";
+
+  const isComposeFormValid =
+    formMode !== "view" &&
+    !composeRecipientError &&
+    subject.trim().length > 0 &&
+    messageBody.trim().length > 0;
+
+  const fetchInbox = async (portalUsername) => {
+    const loadId = ++inboxLoadRef.current;
+    setMessagesLoading(true);
+    setLoadError(null);
+
+    try {
+      const response = await emailManagerService.getMessages(portalUsername);
+      if (loadId !== inboxLoadRef.current) {
+        return;
+      }
+
+      const list = response?.messages ?? response?.Messages ?? [];
+      const explicitFailure =
+        response?.isSuccess === false || response?.IsSuccess === false;
+      const success =
+        !explicitFailure &&
+        (response?.isSuccess === true ||
+          response?.IsSuccess === true ||
+          Array.isArray(list));
+
+      if (success) {
+        setMessages(list);
+        setFilteredMessages(list);
+      } else {
+        const errorMsg =
+          response?.errorMessage ||
+          response?.ErrorMessage ||
+          "Error loading messages";
+        setLoadError(errorMsg);
+        showSnackbar(errorMsg, "error");
+      }
+    } catch (error) {
+      if (loadId !== inboxLoadRef.current) {
+        return;
+      }
+      const errorMsg = error.message || "Error loading messages";
+      setLoadError(errorMsg);
+      showSnackbar(errorMsg, "error");
+    } finally {
+      if (loadId === inboxLoadRef.current) {
+        setMessagesLoading(false);
+      }
+    }
+  };
+
+  // Load inbox when portal username is available
   useEffect(() => {
-    loadMessages();
+    if (!username) {
+      setMessagesLoading(false);
+      return;
+    }
+
+    fetchInbox(username);
+  }, [username]);
+
+  // Load compose dropdowns separately (do not block inbox reload)
+  useEffect(() => {
+    if (!username) {
+      return;
+    }
+
     if (memberType === "A") {
       loadEmailGroups();
-    } else if (memberType === "I" || memberType === "V") {
+    } else if (memberType === "I" || memberType === "V" || memberType === "S") {
       loadStudentList();
     }
-  }, []);
+  }, [username, memberType]);
 
   // Apply search when messages or search criteria change
   useEffect(() => {
     handleSearch();
   }, [messages, searchBy, searchCriteria, searchTerm]);
 
-  const loadMessages = async () => {
-    try {
-      setLoading(true);
-      const response = await emailManagerService.getMessages(username);
-      if (response.isSuccess) {
-        setMessages(response.messages || []);
-        setFilteredMessages(response.messages || []);
-      } else {
-        showSnackbar(
-          response.errorMessage || "Error loading messages",
-          "error"
-        );
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
+
+  const sortedMessages = useMemo(
+    () => sortRows(filteredMessages, sortField, sortOrder, getMessageFieldValue),
+    [filteredMessages, sortField, sortOrder]
+  );
+
+  const totalRecords = sortedMessages.length;
+  const totalPages = Math.ceil(totalRecords / pageSize) || 0;
+  const paginatedMessages = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return sortedMessages.slice(start, start + pageSize);
+  }, [sortedMessages, currentPage, pageSize]);
+
+  useEffect(() => {
+    if (totalPages === 0) {
+      if (currentPage !== 1) {
+        setCurrentPage(1);
+        setGoToPageInput("1");
       }
-    } catch (error) {
-      showSnackbar("Error loading messages: " + error.message, "error");
-    } finally {
-      setLoading(false);
+      return;
     }
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+      setGoToPageInput(String(totalPages));
+    }
+  }, [currentPage, totalPages]);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      setGoToPageInput(String(page));
+    }
+  };
+
+  const handleGoToPage = () => {
+    const page = parseInt(goToPageInput, 10);
+    if (!Number.isNaN(page) && page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    } else {
+      setGoToPageInput(String(currentPage));
+    }
+  };
+
+  const loadMessages = async () => {
+    if (!username) return;
+    await fetchInbox(username);
   };
 
   const loadEmailGroups = async () => {
@@ -152,50 +405,51 @@ const EmailManager = () => {
   };
 
   const handleViewMessage = async (message) => {
+    const trackingId = getEmailTrackingId(message);
+    const rowBody = message.message || message.Message || "";
+
+    setSubject(message.subject || message.Subject || "");
+    setSendTo(message.sendFrom || message.SendFrom || "");
+    setMessageBody(rowBody);
+    setSelectedMessage(message);
+    setFormMode("view");
+    setMessageModalOpen(true);
+
+    if (rowBody.trim()) {
+      return;
+    }
+
+    if (!trackingId) {
+      showSnackbar("Unable to load message details (missing message ID).", "error");
+      return;
+    }
+
+    setMessageBodyLoading(true);
     try {
-      // First, populate with available data from the table row (including message column data)
-      setSubject(message.subject || "");
-      setSendTo(message.sendFrom || "");
-      setMessageBody(message.message || message.Message || "");
-      setFormMode("view");
-      setShowComposeForm(true);
+      const response = await emailManagerService.getMessage(trackingId);
+      const success = response?.isSuccess ?? response?.IsSuccess;
+      const body =
+        response?.message?.message ??
+        response?.message?.Message ??
+        response?.Message?.message ??
+        response?.Message?.Message ??
+        "";
 
-      // Scroll to the form section
-      setTimeout(() => {
-        const formElement = document.getElementById("compose-form-section");
-        if (formElement) {
-          formElement.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 100);
-
-      // Fetch full message details to get complete message body (in case table has truncated version)
-      try {
-        const response = await emailManagerService.getMessage(message.messageID || message.messageid || message.MessageID);
-        if (response.isSuccess && response.message) {
-          setSelectedMessage(response.message);
-          setSubject(response.message.subject || message.subject || "");
-          // Use API response message body if available, otherwise keep table row data
-          setMessageBody(response.message.message || message.message || message.Message || "");
-          setSendTo(response.message.sendFrom || message.sendFrom || "");
-        } else if (response.message) {
-          // Handle case where response.message might be at root level
-          setSelectedMessage(response.message);
-          setSubject(response.message.subject || message.subject || "");
-          setMessageBody(response.message.message || message.message || message.Message || "");
-          setSendTo(response.message.sendFrom || message.sendFrom || "");
-        } else {
-          // If API doesn't return message body, use table row data (already set above)
-          setSelectedMessage(message);
-        }
-      } catch (apiError) {
-        // If API call fails, keep the table row data we already set
-        setSelectedMessage(message);
-        console.error("Error fetching full message details:", apiError);
+      if (success && body) {
+        setMessageBody(body);
+        setSelectedMessage({ ...message, message: body, Message: body });
+      } else if (!success) {
+        showSnackbar(
+          response?.errorMessage ||
+            response?.ErrorMessage ||
+            "Unable to load message body.",
+          "error"
+        );
       }
     } catch (error) {
-      // Even if everything fails, show what we have from the table
-      console.error("Error loading message details:", error);
-      showSnackbar("Displaying message from table. Full details may be limited.", "warning");
+      showSnackbar("Error loading message: " + error.message, "error");
+    } finally {
+      setMessageBodyLoading(false);
     }
   };
 
@@ -205,43 +459,94 @@ const EmailManager = () => {
     setMessageBody("");
     setSendTo(message.sendFrom);
     setFormMode("reply");
-    setShowComposeForm(true);
+    setMessageModalOpen(true);
   };
 
-  const handleDeleteMessage = async (message) => {
-    if (window.confirm("Do you want to delete this email?")) {
-      try {
-        const response = await emailManagerService.updateMessageStatus({
-          trackingID: message.trackingID,
-          mode: "T",
-          sendTo: username,
-        });
-        if (response.isSuccess) {
-          showSnackbar("Message deleted successfully", "success");
-          loadMessages();
-        } else {
-          showSnackbar(
-            response.errorMessage || "Error deleting message",
-            "error"
-          );
-        }
-      } catch (error) {
-        showSnackbar("Error deleting message: " + error.message, "error");
+  const handleDeleteMessage = (message) => {
+    setMessageToDelete(message);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirmClose = () => {
+    if (deletingMessage) {
+      return;
+    }
+    setDeleteConfirmOpen(false);
+    setMessageToDelete(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!messageToDelete) {
+      return;
+    }
+
+    const deletedId = getEmailTrackingId(messageToDelete);
+    if (!deletedId) {
+      showSnackbar("Unable to delete message (missing message ID).", "error");
+      return;
+    }
+
+    try {
+      setDeletingMessage(true);
+      const response = await emailManagerService.updateMessageStatus({
+        trackingID: deletedId,
+        mode: "T",
+        sendTo: username,
+      });
+
+      const success = response?.isSuccess === true || response?.IsSuccess === true;
+      if (success) {
+        const removeDeleted = (list) =>
+          list.filter((item) => getEmailTrackingId(item) !== deletedId);
+
+        setMessages(removeDeleted);
+        setFilteredMessages(removeDeleted);
+        showSnackbar(
+          response.message ||
+            response.Message ||
+            "Message deleted successfully",
+          "success"
+        );
+        setDeleteConfirmOpen(false);
+        setMessageToDelete(null);
+      } else {
+        showSnackbar(
+          response?.errorMessage ||
+            response?.ErrorMessage ||
+            "Error deleting message",
+          "error"
+        );
       }
+    } catch (error) {
+      showSnackbar(
+        error.response?.data?.message ||
+          error.response?.data?.errorMessage ||
+          error.message ||
+          "Error deleting message",
+        "error"
+      );
+    } finally {
+      setDeletingMessage(false);
     }
   };
 
   const handleSendMessage = async () => {
+    if (sendingMessage) {
+      return;
+    }
+
+    setComposeValidationAttempted(true);
+
+    if (!isComposeFormValid) {
+      showSnackbar("Please complete all required fields before sending.", "warning");
+      return;
+    }
+
+    let finalSendTo = sendTo;
+    let finalSendBy = "";
+    let finalFromName = firstName;
+
     try {
-      if (!subject || !messageBody) {
-        showSnackbar("Please fill in subject and message", "warning");
-        return;
-      }
-
-      let finalSendTo = sendTo;
-      let finalSendBy = "";
-      let finalFromName = firstName;
-
       // Determine sendTo based on member type
       if (memberType === "A") {
         if (formMode === "reply") {
@@ -250,10 +555,13 @@ const EmailManager = () => {
         } else {
           finalSendTo = selectedClass;
         }
-      } else if (memberType === "I" || memberType === "V") {
+      } else if (memberType === "I" || memberType === "V" || memberType === "S") {
         if (formMode === "reply") {
           finalSendTo = sendTo;
           finalSendBy = selectedMessage?.sendBy || "";
+          if (memberType === "S") {
+            finalFromName = selectedMessage?.senderName || finalFromName;
+          }
         } else {
           const studentInfo = selectedStudent.split("~");
           finalSendTo = studentInfo[0];
@@ -262,66 +570,57 @@ const EmailManager = () => {
             studentList.find((s) => s.value === selectedStudent)?.text ||
             firstName;
         }
-      } else if (memberType === "S") {
-        if (formMode === "reply") {
-          finalSendTo = sendTo;
-          finalSendBy = selectedMessage?.sendBy || "";
-          finalFromName = selectedMessage?.senderName || "";
-        }
       }
 
       const request = {
         sendTo: finalSendTo,
-        sendFrom: username,
-        subject: subject,
-        message: messageBody,
+        sendFrom: username || undefined,
+        subject: subject.trim(),
+        message: messageBody.trim(),
         sendBy: finalSendBy,
         replyToEmailID:
-          formMode === "reply" ? selectedMessage?.messageID : null,
+          formMode === "reply" ? getEmailTrackingId(selectedMessage) : null,
         mode: formMode === "reply" ? "R" : "N",
         chapterID: chapterId,
         memberType: memberType,
         fromName: finalFromName,
       };
 
+      setSendingMessage(true);
       const response = await emailManagerService.sendMessage(request);
-      if (response.isSuccess) {
+      if (response.isSuccess || response.IsSuccess) {
         showSnackbar(
-          response.message || "Message sent successfully",
+          response.message ||
+            response.Message ||
+            "Your message has been sent successfully",
           "success"
         );
-        resetForm();
+        closeMessageModal();
         loadMessages();
       } else {
-        showSnackbar(response.errorMessage || "Error sending message", "error");
+        showSnackbar(
+          response.errorMessage ||
+            response.ErrorMessage ||
+            "Error sending message",
+          "error"
+        );
       }
     } catch (error) {
-      showSnackbar("Error sending message: " + error.message, "error");
+      showSnackbar(
+        error.response?.data?.message ||
+          error.response?.data?.errorMessage ||
+          error.message ||
+          "Error sending message",
+        "error"
+      );
+    } finally {
+      setSendingMessage(false);
     }
   };
 
   const handleExportToExcel = async () => {
     try {
-      const blob = await emailManagerService.exportMessagesToExcel(username);
-
-      // Create a proper Excel file download
-      // Since backend returns HTML content, use .xls extension with proper MIME type
-      // Excel will open HTML files with .xls extension if MIME type is correct
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      // Use .xls extension - Excel will open HTML content with this extension
-      link.setAttribute("download", "MessageCenter.xls");
-      link.style.display = "none";
-      document.body.appendChild(link);
-      link.click();
-
-      // Clean up
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }, 100);
-
+      await emailManagerService.exportMessagesToExcel(username);
       showSnackbar("Messages exported successfully", "success", "top");
     } catch (error) {
       showSnackbar("Error exporting messages: " + error.message, "error");
@@ -336,6 +635,35 @@ const EmailManager = () => {
     setSendTo("");
     setSelectedClass("");
     setSelectedStudent("");
+    setComposeValidationAttempted(false);
+    setSendingMessage(false);
+  };
+
+  const closeMessageModal = () => {
+    if (sendingMessage) {
+      return;
+    }
+    setMessageModalOpen(false);
+    resetForm();
+  };
+
+  const handleOpenCompose = () => {
+    resetForm();
+    setFormMode("compose");
+    setMessageModalOpen(true);
+  };
+
+  const getMessageModalTitle = () => {
+    if (formMode === "view") return "View Message";
+    if (formMode === "reply") return "Reply to Message";
+    return "Compose New Message";
+  };
+
+  const getMessageModalIcon = () => {
+    const iconSx = { fontSize: 20 };
+    if (formMode === "view") return <VisibilityIcon sx={iconSx} />;
+    if (formMode === "reply") return <ReplyIcon sx={iconSx} />;
+    return <SendIcon sx={iconSx} />;
   };
 
   const clearMessageFields = () => {
@@ -396,20 +724,9 @@ const EmailManager = () => {
     }
 
     setFilteredMessages(filtered);
+    setCurrentPage(1);
+    setGoToPageInput("1");
   };
-
-  if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="400px"
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   const isStudent =
     user?.role === "Student" || user?.memberType?.toUpperCase() === "S";
@@ -428,74 +745,167 @@ const EmailManager = () => {
     (location.pathname === "/pstudyware/admin/message-center" ||
       location.pathname === "/admin/message-center");
 
+  const useSessionListTableUi =
+    isAdminMessageCenter || isStudentMessageCenter;
+
   const containerTopMargin =
     shouldShowStudentHeader ||
     isRoleDashboardShell ||
-    isAdminMessageCenter
+    useSessionListTableUi
       ? 0
       : 4;
+
+  const legacySearchBarSx = {
+    backgroundColor: "#4caf50",
+    p: 0.5,
+    borderRadius: 1,
+    mb: 2,
+    display: "flex",
+    alignItems: "center",
+    gap: 1.5,
+    flexWrap: "wrap",
+  };
+
+  const legacySearchLabelSx = {
+    color: "white",
+    fontSize: "0.75rem",
+    whiteSpace: "nowrap",
+  };
+
+  const legacySearchSelectSx = {
+    color: "white",
+    fontSize: "0.75rem",
+    minWidth: 100,
+    "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+    "& .MuiSelect-icon": { color: "white" },
+  };
+
+  const legacySearchFieldSx = {
+    minWidth: 150,
+    "& .MuiOutlinedInput-root": {
+      backgroundColor: "white",
+      fontSize: "0.75rem",
+    },
+  };
+
+  const legacyFindButtonSx = {
+    backgroundColor: "white",
+    color: "#4caf50",
+    fontSize: "0.75rem",
+    textTransform: "none",
+    px: 2,
+    "&:hover": { backgroundColor: "#f5f5f5" },
+  };
+
+  const legacyMenuItemSx = { fontSize: "0.75rem" };
 
   return (
     <Box>
       {isAdminMessageCenter && <AdminHeader user={user} />}
-      {isAdminMessageCenter && <Box sx={{ height: "48px" }} aria-hidden />}
+      {isAdminMessageCenter && <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />}
       {shouldShowStudentHeader && <StudentHeader user={user} />}
       {/* Spacer to account for fixed StudentHeader */}
       {shouldShowStudentHeader && <Box sx={{ height: "48px" }} />}
       <Container maxWidth="xl" sx={{ mt: containerTopMargin, mb: 4 }}>
         <Paper
-          elevation={3}
-          sx={{ p: 3, ...portalPaperAntiLiftSx }}
+          elevation={useSessionListTableUi ? 0 : 3}
+          sx={
+            useSessionListTableUi
+              ? adminSessionListPanelCardSx
+              : { p: 3, ...portalPaperAntiLiftSx }
+          }
         >
+          <Box sx={useSessionListTableUi ? adminSessionListPanelContentSx : undefined}>
           {/* Header */}
           <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={1}
+            sx={
+              useSessionListTableUi
+                ? adminSessionListHeaderBarSx
+                : {
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 1,
+                  }
+            }
           >
             <Typography
               variant="subtitle1"
               component="h1"
-              sx={{
-                fontSize: "1rem",
-                fontWeight: 600,
-                ...(isAdminMessageCenter
-                  ? { color: APPLICATION_ADMIN_TITLE_COLOR }
-                  : {}),
-              }}
+              sx={
+useSessionListTableUi
+            ? adminSessionListTitleSx
+                  : {
+                      fontSize: "1rem",
+                      fontWeight: 600,
+                    }
+              }
             >
-              <EmailIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+              {!useSessionListTableUi && (
+                <EmailIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+              )}
               Message Center - New Messages
             </Typography>
-            <Box>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
               <Button
                 variant="contained"
-                startIcon={<DownloadIcon />}
-                onClick={handleExportToExcel}
-                sx={{
-                  mr: 1,
-                  backgroundColor: "#4caf50",
-                  fontSize: "0.875rem",
-                  textTransform: "none",
-                  px: 2,
-                  py: 0.75,
-                  "&:hover": { backgroundColor: "#45a049" },
-                }}
+                color={useSessionListTableUi ? "success" : undefined}
+                size={useSessionListTableUi ? "small" : "medium"}
+                startIcon={<SendIcon />}
+                onClick={handleOpenCompose}
+                sx={
+                  useSessionListTableUi
+                    ? adminSessionListToolbarButtonSx
+                    : {
+                        backgroundColor: "#4caf50",
+                        fontSize: "0.875rem",
+                        textTransform: "none",
+                        px: 2,
+                        py: 0.75,
+                        "&:hover": { backgroundColor: "#45a049" },
+                      }
+                }
               >
-                Export Excel
+                Compose
               </Button>
               <Button
                 variant="contained"
+                color={useSessionListTableUi ? "success" : undefined}
+                size={useSessionListTableUi ? "small" : "medium"}
+                startIcon={<DownloadIcon />}
+                onClick={handleExportToExcel}
+                sx={
+                  useSessionListTableUi
+                    ? adminSessionListToolbarButtonSx
+                    : {
+                        backgroundColor: "#4caf50",
+                        fontSize: "0.875rem",
+                        textTransform: "none",
+                        px: 2,
+                        py: 0.75,
+                        "&:hover": { backgroundColor: "#45a049" },
+                      }
+                }
+              >
+                Export to Excel
+              </Button>
+              <Button
+                variant="contained"
+                color={useSessionListTableUi ? "success" : undefined}
+                size={useSessionListTableUi ? "small" : "medium"}
                 onClick={() => navigate("/pstudyware/sentemail")}
-                sx={{
-                  backgroundColor: "#4caf50",
-                  fontSize: "0.875rem",
-                  textTransform: "none",
-                  px: 2,
-                  py: 0.75,
-                  "&:hover": { backgroundColor: "#45a049" },
-                }}
+                sx={
+                  useSessionListTableUi
+                    ? adminSessionListToolbarButtonSx
+                    : {
+                        backgroundColor: "#4caf50",
+                        fontSize: "0.875rem",
+                        textTransform: "none",
+                        px: 2,
+                        py: 0.75,
+                        "&:hover": { backgroundColor: "#45a049" },
+                      }
+                }
               >
                 View Sent Messages
               </Button>
@@ -504,24 +914,23 @@ const EmailManager = () => {
 
           {/* Search Bar */}
           <Box
-            sx={{
-              backgroundColor: "#4caf50",
-              p: 0.5,
-              borderRadius: 1,
-              mb: 2,
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-              flexWrap: "wrap",
-            }}
+            sx={
+              useSessionListTableUi ? adminSessionListSearchBarSx : legacySearchBarSx
+            }
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: useSessionListTableUi ? 0.5 : 1,
+              }}
+            >
               <Typography
-                sx={{
-                  color: "white",
-                  fontSize: "0.75rem",
-                  whiteSpace: "nowrap",
-                }}
+                sx={
+                  useSessionListTableUi
+                    ? adminSessionListSearchLabelSx
+                    : legacySearchLabelSx
+                }
               >
                 Search By:
               </Typography>
@@ -529,38 +938,68 @@ const EmailManager = () => {
                 value={searchBy}
                 onChange={(e) => setSearchBy(e.target.value)}
                 size="small"
-                sx={{
-                  color: "white",
-                  fontSize: "0.75rem",
-                  minWidth: 100,
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "white",
-                  },
-                  "& .MuiSelect-icon": { color: "white" },
-                }}
+                sx={
+                  useSessionListTableUi
+                    ? adminSessionListSearchSelectSx
+                    : legacySearchSelectSx
+                }
               >
-                <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
+                <MenuItem
+                  value="ALL"
+                  sx={
+useSessionListTableUi
+            ? adminSessionListMenuItemSx
+                      : legacyMenuItemSx
+                  }
+                >
                   -ALL-
                 </MenuItem>
-                <MenuItem value="FROM" sx={{ fontSize: "0.75rem" }}>
+                <MenuItem
+                  value="FROM"
+                  sx={
+useSessionListTableUi
+            ? adminSessionListMenuItemSx
+                      : legacyMenuItemSx
+                  }
+                >
                   From
                 </MenuItem>
-                <MenuItem value="SUBJECT" sx={{ fontSize: "0.75rem" }}>
+                <MenuItem
+                  value="SUBJECT"
+                  sx={
+useSessionListTableUi
+            ? adminSessionListMenuItemSx
+                      : legacyMenuItemSx
+                  }
+                >
                   Subject
                 </MenuItem>
-                <MenuItem value="STATUS" sx={{ fontSize: "0.75rem" }}>
+                <MenuItem
+                  value="STATUS"
+                  sx={
+useSessionListTableUi
+            ? adminSessionListMenuItemSx
+                      : legacyMenuItemSx
+                  }
+                >
                   Status
                 </MenuItem>
               </Select>
             </Box>
 
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: useSessionListTableUi ? 0.5 : 1,
+              }}
+            >
               <Typography
-                sx={{
-                  color: "white",
-                  fontSize: "0.75rem",
-                  whiteSpace: "nowrap",
-                }}
+                sx={
+                  useSessionListTableUi
+                    ? adminSessionListSearchLabelSx
+                    : legacySearchLabelSx
+                }
               >
                 Criteria:
               </Typography>
@@ -568,23 +1007,40 @@ const EmailManager = () => {
                 value={searchCriteria}
                 onChange={(e) => setSearchCriteria(e.target.value)}
                 size="small"
-                sx={{
-                  color: "white",
-                  fontSize: "0.75rem",
-                  minWidth: 100,
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "white",
-                  },
-                  "& .MuiSelect-icon": { color: "white" },
-                }}
+                sx={
+                  useSessionListTableUi
+                    ? adminSessionListSearchSelectSx
+                    : legacySearchSelectSx
+                }
               >
-                <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
+                <MenuItem
+                  value="contains"
+                  sx={
+useSessionListTableUi
+            ? adminSessionListMenuItemSx
+                      : legacyMenuItemSx
+                  }
+                >
                   Contains
                 </MenuItem>
-                <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
+                <MenuItem
+                  value="equals"
+                  sx={
+useSessionListTableUi
+            ? adminSessionListMenuItemSx
+                      : legacyMenuItemSx
+                  }
+                >
                   Equals
                 </MenuItem>
-                <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>
+                <MenuItem
+                  value="starts_with"
+                  sx={
+useSessionListTableUi
+            ? adminSessionListMenuItemSx
+                      : legacyMenuItemSx
+                  }
+                >
                   Starts With
                 </MenuItem>
               </Select>
@@ -595,219 +1051,360 @@ const EmailManager = () => {
               placeholder="Search Text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{
-                minWidth: 150,
-                "& .MuiOutlinedInput-root": {
-                  backgroundColor: "white",
-                  fontSize: "0.75rem",
-                },
-              }}
+              sx={
+useSessionListTableUi
+            ? adminSessionListSearchFieldSx
+                  : legacySearchFieldSx
+              }
             />
 
             <Button
               variant="contained"
               size="small"
               onClick={handleSearch}
-              sx={{
-                backgroundColor: "white",
-                color: "#4caf50",
-                fontSize: "0.75rem",
-                textTransform: "none",
-                px: 2,
-                "&:hover": { backgroundColor: "#f5f5f5" },
-              }}
+              sx={
+useSessionListTableUi
+            ? adminSessionListFindButtonSx
+                  : legacyFindButtonSx
+              }
             >
               Find
             </Button>
           </Box>
 
           {/* Messages Table */}
-          <TableContainer component={Paper} sx={{ mb: 2, width: "100%" }}>
-            <Table sx={{ width: "100%", tableLayout: "fixed" }}>
-              <TableHead>
-                <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
-                  <TableCell
-                    sx={{
-                      fontWeight: 600,
-                      borderRight: "1px solid #4caf50",
-                      width: "15%",
-                      fontSize: "0.75rem",
-                      padding: "3px 5px",
+          <TableContainer
+            component={Paper}
+            sx={
+              useSessionListTableUi
+                ? { ...adminSessionListTableContainerSx, mb: 2 }
+                : { mb: 2, width: "100%" }
+            }
+          >
+            <Table
+              sx={
+useSessionListTableUi
+            ? adminSessionListGridTableSx
+                  : { width: "100%", tableLayout: "fixed" }
+              }
+              size={useSessionListTableUi ? "small" : "medium"}
+            >
+              {!useSessionListTableUi && (
+                <colgroup>
+                  <col
+                    style={{ width: `${MESSAGE_TABLE_COLUMN_WIDTHS.actions}px` }}
+                  />
+                  <col style={{ width: "16%" }} />
+                  <col style={{ width: "18%" }} />
+                  <col />
+                  <col
+                    style={{
+                      width: `${MESSAGE_TABLE_COLUMN_WIDTHS.messageDate}px`,
                     }}
+                  />
+                  <col
+                    style={{ width: `${MESSAGE_TABLE_COLUMN_WIDTHS.status}px` }}
+                  />
+                </colgroup>
+              )}
+              <TableHead>
+                <TableRow
+                  sx={
+useSessionListTableUi
+            ? adminSessionListTableHeadRowSx
+                      : { backgroundColor: "#e8f5e8" }
+                  }
+                >
+                  <TableCell
+                    sx={
+useSessionListTableUi
+            ? adminSessionListTableHeadCellSx(
+                            messageListColumnWidths.actions,
+                          )
+                        : { fontWeight: 600, ...messageTableActionsCellSx }
+                    }
                   >
                     Actions
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: 600,
-                      borderRight: "1px solid #4caf50",
-                      width: "20%",
-                      fontSize: "0.75rem",
-                      padding: "3px 5px",
-                    }}
-                  >
-                    From
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: 600,
-                      borderRight: "1px solid #4caf50",
-                      width: "20%",
-                      fontSize: "0.75rem",
-                      padding: "3px 5px",
-                    }}
-                  >
-                    Subject
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: 600,
-                      borderRight: "1px solid #4caf50",
-                      width: "25%",
-                      minWidth: "200px",
-                      maxWidth: "400px",
-                      fontSize: "0.75rem",
-                      padding: "3px 5px",
-                    }}
-                  >
-                    Message
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: 600,
-                      borderRight: "1px solid #4caf50",
-                      width: "15%",
-                      fontSize: "0.75rem",
-                      padding: "3px 5px",
-                    }}
-                  >
-                    Message Date
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: 600,
-                      width: "10%",
-                      fontSize: "0.75rem",
-                      padding: "3px 5px",
-                    }}
-                  >
-                    Status
-                  </TableCell>
+                  <SortableHeader
+                    label="From"
+                    field="from"
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    headCellSx={
+                      useSessionListTableUi
+                        ? adminSessionListTableHeadCellSx(
+                            messageListColumnWidths.from
+                          )
+                        : {
+                            fontWeight: 600,
+                            ...messageTableCellBaseSx,
+                            width: "16%",
+                          }
+                    }
+                  />
+                  <SortableHeader
+                    label="Subject"
+                    field="subject"
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    headCellSx={
+                      useSessionListTableUi
+                        ? adminSessionListTableHeadCellSx(
+                            messageListColumnWidths.subject
+                          )
+                        : {
+                            fontWeight: 600,
+                            ...messageTableCellBaseSx,
+                            width: "18%",
+                          }
+                    }
+                  />
+                  <SortableHeader
+                    label="Message"
+                    field="message"
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    headCellSx={
+                      useSessionListTableUi
+                        ? adminSessionListTableHeadCellSx()
+                        : { fontWeight: 600, ...messageTableCellBaseSx }
+                    }
+                  />
+                  <SortableHeader
+                    label="Message Date"
+                    field="messageDate"
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    headCellSx={
+                      useSessionListTableUi
+                        ? adminSessionListTableHeadCellSx(
+                            messageListColumnWidths.messageDate
+                          )
+                        : { fontWeight: 600, ...messageTableDateCellSx }
+                    }
+                  />
+                  <SortableHeader
+                    label="Status"
+                    field="status"
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                    headCellSx={
+                      useSessionListTableUi
+                        ? adminSessionListTableHeadCellSx(
+                            messageListColumnWidths.status,
+                            true
+                          )
+                        : { fontWeight: 600, ...messageTableStatusCellSx }
+                    }
+                  />
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredMessages.length === 0 ? (
+                {messagesLoading ? (
                   <TableRow>
                     <TableCell
                       colSpan={6}
                       align="center"
-                      sx={{ fontSize: "0.75rem", padding: "3px 5px" }}
+                      sx={useSessionListTableUi ? adminSessionListEmptyCellSx : { py: 4 }}
                     >
-                      No messages found
+                      <CircularProgress size={28} />
+                      <Typography
+                        variant="body2"
+                        sx={
+useSessionListTableUi
+            ? adminSessionListEmptyTextSx
+                            : { mt: 1, color: "text.secondary" }
+                        }
+                      >
+                        Loading messages...
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : loadError ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      align="center"
+                      sx={useSessionListTableUi ? adminSessionListEmptyCellSx : { py: 3 }}
+                    >
+                      <Typography variant="body2" color="error" sx={{ mb: 1 }}>
+                        {loadError}
+                      </Typography>
+                      <Button size="small" variant="outlined" onClick={loadMessages}>
+                        Retry
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredMessages.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      align="center"
+                      sx={
+                        useSessionListTableUi
+                          ? adminSessionListEmptyCellSx
+                          : { fontSize: "0.75rem", padding: "3px 5px" }
+                      }
+                    >
+                      <Typography
+                        sx={useSessionListTableUi ? adminSessionListEmptyTextSx : undefined}
+                      >
+                        No messages found
+                      </Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredMessages.map((message) => (
+                  paginatedMessages.map((message, index) => (
                     <TableRow
-                      key={message.messageID}
-                      sx={{
-                        "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" },
-                      }}
+                      key={getEmailTrackingId(message) ?? message.messageID ?? index}
+                      sx={
+                        useSessionListTableUi
+                          ? adminSessionListTableBodyRowSx
+                          : { "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }
+                      }
                     >
                       <TableCell
-                        sx={{
-                          borderRight: "1px solid #4caf50",
-                          width: "15%",
-                          fontSize: "0.75rem",
-                          padding: "3px 5px",
-                        }}
-                      >
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          onClick={() => handleViewMessage(message)}
-                          title="View"
-                        >
-                          <VisibilityIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="secondary"
-                          onClick={() => handleReplyMessage(message)}
-                          title="Reply"
-                        >
-                          <ReplyIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDeleteMessage(message)}
-                          title="Delete"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          borderRight: "1px solid #4caf50",
-                          width: "20%",
-                          fontSize: "0.75rem",
-                          padding: "3px 5px",
-                        }}
-                      >
-                        {message.sendFrom}
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          borderRight: "1px solid #4caf50",
-                          width: "20%",
-                          fontSize: "0.75rem",
-                          padding: "3px 5px",
-                        }}
-                      >
-                        {message.subject}
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          borderRight: "1px solid #4caf50",
-                          width: "25%",
-                          minWidth: "200px",
-                          maxWidth: "400px",
-                          fontSize: "0.75rem",
-                          padding: "3px 5px",
-                        }}
-                        title={message.message || message.Message || ""}
+                        sx={
+useSessionListTableUi
+            ? adminSessionListTableBodyCellSx({ action: true })
+                            : messageTableActionsCellSx
+                        }
                       >
                         <Box
+                          component="span"
                           sx={{
-                            wordBreak: "break-word",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                            width: "100%",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 0.35,
+                            flexWrap: "nowrap",
                           }}
                         >
-                          {message.message || message.Message || ""}
+                          <Box
+                            component="span"
+                            onClick={() => handleViewMessage(message)}
+                            sx={adminSessionListTableActionLinkSx}
+                          >
+                            View
+                          </Box>
+                          <Typography
+                            component="span"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.disabled",
+                              userSelect: "none",
+                              lineHeight: 1,
+                            }}
+                          >
+                            /
+                          </Typography>
+                          <Box
+                            component="span"
+                            onClick={() => handleReplyMessage(message)}
+                            sx={adminSessionListTableActionLinkSx}
+                          >
+                            Reply
+                          </Box>
+                          <Typography
+                            component="span"
+                            sx={{
+                              fontSize: "0.75rem",
+                              color: "text.disabled",
+                              userSelect: "none",
+                              lineHeight: 1,
+                            }}
+                          >
+                            /
+                          </Typography>
+                          <Box
+                            component="span"
+                            onClick={() => handleDeleteMessage(message)}
+                            sx={adminSessionListTableActionLinkSx}
+                          >
+                            Delete
+                          </Box>
                         </Box>
                       </TableCell>
                       <TableCell
-                        sx={{
-                          borderRight: "1px solid #4caf50",
-                          width: "15%",
-                          fontSize: "0.75rem",
-                          padding: "3px 5px",
-                        }}
+                        sx={
+useSessionListTableUi
+            ? adminSessionListTableBodyCellSx({ ellipsis: true })
+                            : { ...messageTableCellBaseSx, width: "16%" }
+                        }
+                      >
+                        {useSessionListTableUi ? (
+                          <Tooltip title={message.sendFrom ?? "—"}>
+                            <span>{message.sendFrom ?? "—"}</span>
+                          </Tooltip>
+                        ) : (
+                          message.sendFrom
+                        )}
+                      </TableCell>
+                      <TableCell
+                        sx={
+useSessionListTableUi
+            ? adminSessionListTableBodyCellSx({ ellipsis: true })
+                            : { ...messageTableCellBaseSx, width: "18%" }
+                        }
+                      >
+                        {useSessionListTableUi ? (
+                          <Tooltip title={message.subject ?? "—"}>
+                            <span>{message.subject ?? "—"}</span>
+                          </Tooltip>
+                        ) : (
+                          message.subject
+                        )}
+                      </TableCell>
+                      <TableCell
+                        sx={
+useSessionListTableUi
+            ? adminSessionListTableBodyCellSx({ ellipsis: true })
+                            : messageTableCellBaseSx
+                        }
+                        title={
+                          useSessionListTableUi ? undefined : getMessagePreview(message)
+                        }
+                      >
+                        {useSessionListTableUi ? (
+                          <Tooltip title={getMessagePreview(message) || "—"}>
+                            <span>{getMessagePreview(message) || "—"}</span>
+                          </Tooltip>
+                        ) : (
+                          <Box
+                            sx={{
+                              wordBreak: "break-word",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                              width: "100%",
+                            }}
+                          >
+                            {getMessagePreview(message)}
+                          </Box>
+                        )}
+                      </TableCell>
+                      <TableCell
+                        sx={
+useSessionListTableUi
+            ? adminSessionListTableBodyCellSx()
+                            : messageTableDateCellSx
+                        }
                       >
                         {formatDate(message.sendDate)}
                       </TableCell>
                       <TableCell
-                        sx={{
-                          width: "10%",
-                          fontSize: "0.75rem",
-                          padding: "3px 5px",
-                        }}
+                        sx={
+useSessionListTableUi
+            ? adminSessionListTableBodyCellSx({ isLast: true })
+                            : messageTableStatusCellSx
+                        }
                       >
                         {message.status}
                       </TableCell>
@@ -819,448 +1416,401 @@ const EmailManager = () => {
           </TableContainer>
 
           {/* Pagination Bar */}
-          <Box
-            sx={{
-              backgroundColor: "#4caf50",
-              p: 0.5,
-              borderRadius: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: 1.5,
-              mb: 3,
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <IconButton
-                size="small"
-                sx={{ color: "white", padding: "2px" }}
-                disabled={true}
-              >
-                <FirstPageIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                size="small"
-                sx={{ color: "white", padding: "2px" }}
-                disabled={true}
-              >
-                <PrevPageIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                size="small"
-                sx={{ color: "white", padding: "2px" }}
-                disabled={false}
-              >
-                <NextPageIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                size="small"
-                sx={{ color: "white", padding: "2px" }}
-                disabled={false}
-              >
-                <LastPageIcon fontSize="small" />
-              </IconButton>
-            </Box>
-
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                GoTo
-              </Typography>
-              <Select
-                size="small"
-                value={1}
-                sx={{
-                  color: "white",
-                  minWidth: 50,
-                  fontSize: "0.75rem",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "white",
-                  },
-                  "& .MuiSelect-icon": { color: "white" },
-                }}
-              >
-                <MenuItem value={1} sx={{ fontSize: "0.75rem" }}>
-                  1
-                </MenuItem>
-              </Select>
-            </Box>
-
-            <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-              Page(s): 1 of 1
-            </Typography>
-
-            <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-              Record(s): 1 - 1 of 1
-            </Typography>
-
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                Go to Page Number:
-              </Typography>
-              <TextField
-                size="small"
-                type="number"
-                value=""
-                sx={{
-                  width: 50,
-                  "& .MuiOutlinedInput-root": {
-                    backgroundColor: "white",
-                    fontSize: "0.75rem",
-                  },
-                }}
-                inputProps={{ min: 1, max: 1 }}
-              />
-              <Button
-                size="small"
-                variant="contained"
-                sx={{
-                  backgroundColor: "white",
-                  color: "#4caf50",
-                  fontSize: "0.75rem",
-                  "&:hover": { backgroundColor: "#f5f5f5" },
-                }}
-              >
-                Go
-              </Button>
-            </Box>
-          </Box>
-
-          {/* Compose/Reply Form */}
-          {showComposeForm && (
-            <Paper
-              id="compose-form-section"
-              elevation={2}
+          {useSessionListTableUi ? (
+            <AdminSessionListPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalRecords={totalRecords}
+              pageSize={pageSize}
+              goToPageInput={goToPageInput}
+              onGoToPageInputChange={setGoToPageInput}
+              onPageChange={handlePageChange}
+              onGoToPage={handleGoToPage}
+            />
+          ) : (
+            <Box
               sx={{
-                p: 2,
-                pt: 2,
-                pb: 2,
-                mt: 2,
-                backgroundColor: "#4CAF50",
-                color: "white",
+                backgroundColor: "#4caf50",
+                p: 0.5,
+                borderRadius: 1,
                 display: "flex",
-                flexDirection: "column",
                 alignItems: "center",
-                ...portalPaperAntiLiftSx,
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: 1.5,
+                mb: 3,
               }}
             >
-              <Typography
-                variant="h6"
-                gutterBottom
-                sx={{ color: "white", mb: 1.5 }}
-              >
-                {formMode === "view"
-                  ? "View Message"
-                  : formMode === "reply"
-                  ? "Reply to Message"
-                  : "Compose New Message"}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <IconButton
+                  size="small"
+                  sx={{ color: "white", padding: "2px" }}
+                  disabled={currentPage === 1 || totalRecords === 0}
+                  onClick={() => handlePageChange(1)}
+                >
+                  <FirstPageIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  sx={{ color: "white", padding: "2px" }}
+                  disabled={currentPage === 1 || totalRecords === 0}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                >
+                  <PrevPageIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  sx={{ color: "white", padding: "2px" }}
+                  disabled={currentPage === totalPages || totalRecords === 0}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                >
+                  <NextPageIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  sx={{ color: "white", padding: "2px" }}
+                  disabled={currentPage === totalPages || totalRecords === 0}
+                  onClick={() => handlePageChange(totalPages)}
+                >
+                  <LastPageIcon fontSize="small" />
+                </IconButton>
+              </Box>
+
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                  GoTo
+                </Typography>
+                <Select
+                  size="small"
+                  value={totalRecords > 0 ? currentPage : ""}
+                  onChange={(e) => handlePageChange(Number(e.target.value))}
+                  disabled={totalRecords === 0}
+                  sx={{
+                    color: "white",
+                    minWidth: 50,
+                    fontSize: "0.75rem",
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "white",
+                    },
+                    "& .MuiSelect-icon": { color: "white" },
+                  }}
+                >
+                  {totalRecords > 0 ? (
+                    Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <MenuItem
+                          key={page}
+                          value={page}
+                          sx={{ fontSize: "0.75rem" }}
+                        >
+                          {page}
+                        </MenuItem>
+                      )
+                    )
+                  ) : (
+                    <MenuItem value="" sx={{ fontSize: "0.75rem" }}>
+                      -
+                    </MenuItem>
+                  )}
+                </Select>
+              </Box>
+
+              <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                Page(s): {totalRecords > 0 ? currentPage : 0} of{" "}
+                {totalRecords > 0 ? totalPages : 0}
               </Typography>
 
-              <Box
+              <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                Record(s):{" "}
+                {totalRecords > 0
+                  ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(
+                      currentPage * pageSize,
+                      totalRecords
+                    )} of ${totalRecords}`
+                  : "0 of 0"}
+              </Typography>
+
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+                  Go to Page Number:
+                </Typography>
+                <TextField
+                  size="small"
+                  type="number"
+                  value={goToPageInput}
+                  onChange={(e) => setGoToPageInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleGoToPage();
+                    }
+                  }}
+                  sx={{
+                    width: 50,
+                    "& .MuiOutlinedInput-root": {
+                      backgroundColor: "white",
+                      fontSize: "0.75rem",
+                    },
+                  }}
+                  inputProps={{ min: 1, max: totalPages || 1 }}
+                />
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={handleGoToPage}
+                  sx={{
+                    backgroundColor: "white",
+                    color: "#4caf50",
+                    fontSize: "0.75rem",
+                    "&:hover": { backgroundColor: "#f5f5f5" },
+                  }}
+                >
+                  Go
+                </Button>
+              </Box>
+            </Box>
+          )}
+          </Box>
+
+          {/* Compose / Reply / View modal */}
+          <Dialog
+            open={messageModalOpen}
+            onClose={(_, reason) => {
+              if (sendingMessage && reason === "backdropClick") {
+                return;
+              }
+              closeMessageModal();
+            }}
+            maxWidth="md"
+            fullWidth
+            scroll="paper"
+            aria-labelledby="compose-message-dialog-title"
+            PaperProps={{ sx: portalModalPaperSx }}
+          >
+            <DialogTitle
+              id="compose-message-dialog-title"
+              sx={portalModalTitleSx}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                {getMessageModalIcon()}
+                <Typography
+                  component="span"
+                  sx={{ fontWeight: 600, fontSize: "1rem" }}
+                >
+                  {getMessageModalTitle()}
+                </Typography>
+              </Box>
+              <IconButton
+                aria-label="close"
+                onClick={closeMessageModal}
+                disabled={sendingMessage}
+                size="small"
                 sx={{
-                  width: "100%",
-                  maxWidth: "700px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2,
+                  color: "white",
+                  "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.15)" },
                 }}
               >
-                {/* From Field */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                  }}
-                >
-                  <Typography
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent sx={portalModalContentSx}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {formMode === "reply" && selectedMessage && (
+                  <Box
                     sx={{
-                      color: "#424242",
-                      fontSize: "0.95rem",
-                      fontWeight: 500,
-                      minWidth: "80px",
-                      textAlign: "right",
+                      bgcolor: APPLICATION_SURFACE_BG,
+                      border: `1px solid ${APPLICATION_SURFACE_BORDER}`,
+                      borderRadius: 1,
+                      px: 1.5,
+                      py: 0.75,
                     }}
                   >
-                    From:
-                  </Typography>
-                  {formMode === "view" || formMode === "reply" ? (
-                    <TextField
-                      fullWidth
-                      variant="outlined"
-                      value={sendTo}
-                      disabled
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          backgroundColor: "white",
-                          "& fieldset": {
-                            borderColor: "#87CEEB",
-                            borderWidth: 2,
-                          },
-                          "&:hover fieldset": {
-                            borderColor: "#87CEEB",
-                          },
-                          "&.Mui-disabled fieldset": {
-                            borderColor: "#87CEEB",
-                          },
-                        },
-                      }}
-                    />
-                  ) : memberType === "A" ? (
-                    <FormControl fullWidth variant="outlined">
-                      <Select
-                        value={selectedClass}
-                        onChange={(e) => setSelectedClass(e.target.value)}
-                        displayEmpty
-                        sx={{
-                          backgroundColor: "white",
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#87CEEB",
-                            borderWidth: 2,
-                          },
-                          "&:hover .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#87CEEB",
-                          },
-                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#87CEEB",
-                          },
-                        }}
-                      >
-                        <MenuItem value="" disabled>
-                          Select Class
-                        </MenuItem>
-                        {emailGroups.map((group) => (
-                          <MenuItem key={group.value} value={group.value}>
-                            {group.text}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  ) : memberType === "I" || memberType === "V" ? (
-                    <FormControl fullWidth variant="outlined">
-                      <Select
-                        value={selectedStudent}
-                        onChange={(e) => setSelectedStudent(e.target.value)}
-                        displayEmpty
-                        sx={{
-                          backgroundColor: "white",
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#87CEEB",
-                            borderWidth: 2,
-                          },
-                          "&:hover .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#87CEEB",
-                          },
-                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "#87CEEB",
-                          },
-                        }}
-                      >
-                        <MenuItem value="" disabled>
-                          Select Student
-                        </MenuItem>
-                        {studentList.map((student) => (
-                          <MenuItem key={student.value} value={student.value}>
-                            {student.text}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  ) : (
-                    <TextField
-                      fullWidth
-                      variant="outlined"
-                      value={
-                        user?.firstName && user?.lastName
-                          ? `${user.firstName} ${user.lastName}`
-                          : firstName
-                      }
-                      disabled
-                      sx={{
-                        "& .MuiOutlinedInput-root": {
-                          backgroundColor: "white",
-                          "& fieldset": {
-                            borderColor: "#87CEEB",
-                            borderWidth: 2,
-                          },
-                          "&:hover fieldset": {
-                            borderColor: "#87CEEB",
-                          },
-                          "&.Mui-disabled fieldset": {
-                            borderColor: "#87CEEB",
-                          },
-                        },
-                      }}
-                    />
-                  )}
-                </Box>
-
-                {/* Subject Field */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      color: "#424242",
-                      fontSize: "0.95rem",
-                      fontWeight: 500,
-                      minWidth: "80px",
-                      textAlign: "right",
-                    }}
-                  >
-                    Subject:
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    variant="outlined"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    disabled={formMode === "view"}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        backgroundColor: "white",
-                        "& fieldset": {
-                          borderColor: "#87CEEB",
-                          borderWidth: 2,
-                        },
-                        "&:hover fieldset": {
-                          borderColor: "#87CEEB",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: "#87CEEB",
-                        },
-                      },
-                    }}
-                  />
-                </Box>
-
-                {/* Message Field */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 2,
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      color: "#424242",
-                      fontSize: "0.95rem",
-                      fontWeight: 500,
-                      minWidth: "80px",
-                      textAlign: "right",
-                      pt: 1,
-                    }}
-                  >
-                    Message:
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    variant="outlined"
-                    multiline
-                    rows={6}
-                    value={messageBody}
-                    onChange={(e) => setMessageBody(e.target.value)}
-                    disabled={formMode === "view"}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        backgroundColor: "white",
-                        "& fieldset": {
-                          borderColor: "#87CEEB",
-                          borderWidth: 2,
-                        },
-                        "&:hover fieldset": {
-                          borderColor: "#87CEEB",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: "#87CEEB",
-                        },
-                      },
-                    }}
-                  />
-                </Box>
-
-                {/* Send Button */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    gap: 2,
-                    mt: 1,
-                  }}
-                >
-                  {formMode !== "view" && (
-                    <>
-                      <Button
-                        variant="outlined"
-                        onClick={clearMessageFields}
-                        size="large"
-                        sx={{
-                          borderColor: "white",
-                          color: "white",
-                          px: 4,
-                          py: 1.5,
-                          fontSize: "1rem",
-                          fontWeight: 500,
-                          borderRadius: 1,
-                          "&:hover": {
-                            borderColor: "white",
-                            backgroundColor: "rgba(255, 255, 255, 0.1)",
-                          },
-                        }}
-                      >
-                        Clear
-                      </Button>
-                      <Button
-                        variant="contained"
-                        onClick={handleSendMessage}
-                        size="large"
-                        sx={{
-                          backgroundColor: "#2E7D32",
-                          color: "white",
-                          px: 4,
-                          py: 1.5,
-                          fontSize: "1rem",
-                          fontWeight: 500,
-                          borderRadius: 1,
-                          "&:hover": {
-                            backgroundColor: "#1B5E20",
-                          },
-                        }}
-                      >
-                        Send
-                      </Button>
-                    </>
-                  )}
-                  {formMode === "view" && (
-                    <Button
-                      variant="outlined"
-                      onClick={resetForm}
-                      size="large"
-                      sx={{
-                        borderColor: "white",
-                        color: "white",
-                        px: 4,
-                        py: 1.5,
-                        fontSize: "1rem",
-                        "&:hover": {
-                          borderColor: "white",
-                          backgroundColor: "rgba(255, 255, 255, 0.1)",
-                        },
-                      }}
+                    <Typography
+                      variant="caption"
+                      sx={{ color: PORTAL_MODAL_FG, fontSize: "0.8rem" }}
                     >
-                      Close
-                    </Button>
-                  )}
-                </Box>
+                      Replying to: {sendTo}
+                      {subject ? ` — "${subject}"` : ""}
+                    </Typography>
+                  </Box>
+                )}
+
+                {formMode === "view" || formMode === "reply" ? (
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    label="From"
+                    value={sendTo}
+                    disabled
+                    sx={portalModalFieldSx}
+                  />
+                ) : memberType === "A" ? (
+                  <FormControl
+                    fullWidth
+                    size="small"
+                    sx={portalModalFieldSx}
+                    error={!!composeRecipientFieldError}
+                  >
+                    <InputLabel>Send To (Class)</InputLabel>
+                    <Select
+                      value={selectedClass}
+                      onChange={(e) => setSelectedClass(e.target.value)}
+                      label="Send To (Class)"
+                      disabled={sendingMessage}
+                    >
+                      <MenuItem value="" disabled>
+                        Select Class
+                      </MenuItem>
+                      {emailGroups.map((group) => (
+                        <MenuItem key={group.value} value={group.value}>
+                          {group.text}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {composeRecipientFieldError && (
+                      <Typography
+                        variant="caption"
+                        color="error"
+                        sx={{ mt: 0.5, ml: 1.75 }}
+                      >
+                        {composeRecipientFieldError}
+                      </Typography>
+                    )}
+                  </FormControl>
+                ) : memberType === "I" || memberType === "V" || memberType === "S" ? (
+                  <FormControl
+                    fullWidth
+                    size="small"
+                    sx={portalModalFieldSx}
+                    error={!!composeRecipientFieldError}
+                  >
+                    <InputLabel>
+                      {memberType === "S"
+                        ? "Send To (Instructor)"
+                        : "Send To (Student)"}
+                    </InputLabel>
+                    <Select
+                      value={selectedStudent}
+                      onChange={(e) => setSelectedStudent(e.target.value)}
+                      label={
+                        memberType === "S"
+                          ? "Send To (Instructor)"
+                          : "Send To (Student)"
+                      }
+                      disabled={sendingMessage}
+                    >
+                      <MenuItem value="" disabled>
+                        {memberType === "S"
+                          ? "Select Instructor"
+                          : "Select Student"}
+                      </MenuItem>
+                      {studentList.map((student) => (
+                        <MenuItem key={student.value} value={student.value}>
+                          {student.text}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {composeRecipientFieldError && (
+                      <Typography
+                        variant="caption"
+                        color="error"
+                        sx={{ mt: 0.5, ml: 1.75 }}
+                      >
+                        {composeRecipientFieldError}
+                      </Typography>
+                    )}
+                  </FormControl>
+                ) : (
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    size="small"
+                    label="Send To"
+                    value={
+                      user?.firstName && user?.lastName
+                        ? `${user.firstName} ${user.lastName}`
+                        : firstName
+                    }
+                    disabled
+                    sx={portalModalFieldSx}
+                  />
+                )}
+
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  label="Subject"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  disabled={formMode === "view" || sendingMessage}
+                  required
+                  error={!!composeSubjectError}
+                  helperText={composeSubjectError}
+                  sx={portalModalFieldSx}
+                />
+
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  multiline
+                  rows={8}
+                  size="small"
+                  label="Message"
+                  value={
+                    messageBodyLoading ? "Loading message..." : messageBody
+                  }
+                  onChange={(e) => setMessageBody(e.target.value)}
+                  disabled={
+                    formMode === "view" || messageBodyLoading || sendingMessage
+                  }
+                  required
+                  error={!!composeMessageError}
+                  helperText={composeMessageError}
+                  sx={portalModalFieldSx}
+                />
               </Box>
-            </Paper>
-          )}
+            </DialogContent>
+            {formMode !== "view" && (
+              <DialogActions sx={portalModalActionsSx}>
+                <Button
+                  variant="outlined"
+                  onClick={clearMessageFields}
+                  disabled={sendingMessage}
+                  sx={portalModalClearButtonSx}
+                >
+                  Clear
+                </Button>
+                <Box sx={{ flex: 1 }} />
+                <Button
+                  variant="contained"
+                  onClick={handleSendMessage}
+                  disabled={!isComposeFormValid || sendingMessage}
+                  startIcon={
+                    sendingMessage ? (
+                      <CircularProgress size={16} color="inherit" />
+                    ) : null
+                  }
+                  sx={portalModalSendButtonSx}
+                >
+                  {sendingMessage ? "Sending..." : "Send"}
+                </Button>
+              </DialogActions>
+            )}
+          </Dialog>
         </Paper>
+
+        <AppConfirmDialog
+          open={deleteConfirmOpen}
+          onClose={handleDeleteConfirmClose}
+          onConfirm={handleDeleteConfirm}
+          title="Delete Email"
+          message="Do you want to delete this email?"
+          confirmLabel="Delete"
+          confirmColor="error"
+          icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+          loading={deletingMessage}
+        />
 
         {/* Snackbar for notifications */}
         <Snackbar
@@ -1271,6 +1821,7 @@ const EmailManager = () => {
             vertical: snackbar.vertical || "top",
             horizontal: "center",
           }}
+          sx={{ zIndex: (theme) => theme.zIndex.modal + 1 }}
         >
           <Alert
             onClose={handleCloseSnackbar}

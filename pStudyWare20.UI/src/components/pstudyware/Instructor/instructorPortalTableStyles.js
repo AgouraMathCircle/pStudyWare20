@@ -72,6 +72,14 @@ export const instructorClassMaterialColWidthsPx = [
 export const instructorStudentDocumentsColWidthsPx = [68, null, 76, null, 118, 132];
 
 /**
+ * Instructor dashboard My Student List (Actions + 8 data cols).
+ * Fixed px for short columns; null = share remaining width.
+ */
+export const instructorDashboardStudentListColWidthsPx = [
+  62, 58, 118, 96, 52, 150, 100, 64, 64,
+];
+
+/**
  * Instructor dashboard My Student List: Student #, Name, Class, Grade, School, Parent, Session, Location, Profile
  */
 export const instructorStudentListColWidthsPx = [
@@ -186,8 +194,55 @@ export const instructorPageTitleSx = {
   fontSize: "1rem",
 };
 
+/** Dashboard section titles (My Student List, etc.) — blue instructor theme */
+export const instructorDashboardSectionTitleSx = {
+  fontWeight: 600,
+  color: "#1565c0",
+  fontSize: "1rem",
+};
+
+/** White panel cards on instructor dashboard (matches student dashboard layout) */
+export const instructorDashboardPanelCardSx = {
+  backgroundColor: "white",
+  borderRadius: 2,
+  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+  overflow: "hidden",
+  boxSizing: "border-box",
+  pl: "35px",
+  pr: "35px",
+  transition: "none !important",
+  transform: "none !important",
+  marginBottom: "0 !important",
+  "&:hover": {
+    transform: "none !important",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1) !important",
+  },
+};
+
+export const instructorDashboardPanelContentSx = {
+  px: 1.5,
+  pt: 1,
+  pb: 0,
+  "&:last-child": { pb: 1.5 },
+};
+
+/** Dashboard messages panel — slightly tighter bottom than default panel */
+export const instructorDashboardMessagesPanelContentSx = {
+  px: 1.5,
+  pt: 1,
+  pb: 0,
+  "&:last-child": { pb: 0.75 },
+};
+
+/** Meeting Schedule title on instructor dashboard */
+export const instructorDashboardMeetingTitleSx = {
+  fontWeight: 600,
+  color: "#1565c0",
+  fontSize: "1rem",
+};
+
 /** Min-height only — page background comes from AppLayout + global CSS. */
 export const instructorPageShellSx = { minHeight: "100vh" };
 
 /** Space reserved under fixed InstructorHeader so page content is not covered */
-export const instructorSubheaderSpacerPx = 48;
+export const instructorSubheaderSpacerPx = 42;

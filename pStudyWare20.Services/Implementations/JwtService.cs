@@ -17,7 +17,7 @@ namespace pStudyWare20.Services.Implementations
             _jwtSettings = jwtSettings.Value;
         }
 
-        public string GenerateToken(string userId, string email, string role, string? systemAdmin = null, string? chapterId = null)
+        public string GenerateToken(string userId, string email, string role, string? systemAdmin = null, string? chapterId = null, string? portalUsername = null, string? memberType = null)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtSettings.SecretKey);
@@ -31,6 +31,11 @@ namespace pStudyWare20.Services.Implementations
                 new Claim("role", role)
             };
 
+            if (!string.IsNullOrWhiteSpace(portalUsername))
+            {
+                claims.Add(new Claim("Username", portalUsername.Trim()));
+            }
+
             if (!string.IsNullOrWhiteSpace(systemAdmin))
             {
                 claims.Add(new Claim("SystemAdmin", systemAdmin));
@@ -39,6 +44,11 @@ namespace pStudyWare20.Services.Implementations
             if (!string.IsNullOrWhiteSpace(chapterId))
             {
                 claims.Add(new Claim("ChapterID", chapterId));
+            }
+
+            if (!string.IsNullOrWhiteSpace(memberType))
+            {
+                claims.Add(new Claim("MemberType", memberType.Trim()));
             }
             
             var tokenDescriptor = new SecurityTokenDescriptor

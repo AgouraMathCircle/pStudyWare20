@@ -17,7 +17,7 @@ import VolunteerHeader from "./VolunteerHeader";
 import {
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
-} from "../../../styles/applicationSurfaces";
+} from "../styles/applicationSurfaces";
 
 const VolunteerClassMaterial = () => {
   const { user, isAuthenticated } = useAuth();
@@ -76,8 +76,16 @@ const VolunteerClassMaterial = () => {
     setSelectedPdf(null);
   };
 
-  const handleDownload = (docName) => {
-    documentService.downloadDocument(docName);
+  const handleDownload = async (docName) => {
+    try {
+      await documentService.downloadClassMaterial(docName);
+    } catch (err) {
+      console.error("Error downloading class material:", err);
+      showMessage(
+        err?.message || "Unable to download document. Please try again.",
+        "error"
+      );
+    }
   };
 
   const handleOpenVideo = (videoURL) => {

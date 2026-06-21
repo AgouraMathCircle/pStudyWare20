@@ -23,12 +23,19 @@ import {
 import { Refresh as RefreshIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
+import SortableHeader from "../Common/SortableHeader";
 import adminDashboardService from "../../../services/adminDashboardService";
+import {
+  sortRows,
+  toSortableDate,
+  toSortableNumber,
+} from "../../../utils/tableSort";
 import {
   APPLICATION_ADMIN_TITLE_COLOR,
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
-} from "../../../styles/applicationSurfaces";
+  portalRoleSubheaderSpacerPx,
+} from "../styles/applicationSurfaces";
 
 const SEARCH_FIELDS = [
   { value: "userName", label: "User Name" },
@@ -40,6 +47,34 @@ const SEARCH_FIELDS = [
 
 const cellPadding = "0 8px";
 
+const userTrackingHeadCellSx = (isLast = false) => ({
+  fontWeight: 400,
+  borderRight: isLast ? undefined : "1px solid #4caf50",
+  fontSize: "0.75rem",
+  padding: cellPadding,
+});
+
+function getUserTrackingFieldValue(row, field) {
+  switch (field) {
+    case "rowID":
+      return toSortableNumber(row.rowID);
+    case "firstName":
+      return row.firstName ?? "";
+    case "lastName":
+      return row.lastName ?? "";
+    case "userName":
+      return row.userName ?? "";
+    case "userType":
+      return row.userType ?? "";
+    case "logindate":
+      return toSortableDate(row.logindate);
+    case "loginBy":
+      return row.loginBy ?? "";
+    default:
+      return "";
+  }
+}
+
 const AdminUserTracking = () => {
   const { user } = useAuth();
   const [rows, setRows] = useState([]);
@@ -49,6 +84,8 @@ const AdminUserTracking = () => {
   const [searchText, setSearchText] = useState("");
   const [appliedSearch, setAppliedSearch] = useState({ field: "userName", criteria: "contains", text: "" });
   const [page, setPage] = useState(0);
+  const [sortField, setSortField] = useState("logindate");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "info" });
   const pageSize = 20;
 
@@ -112,8 +149,20 @@ const AdminUserTracking = () => {
     });
   }, [normalizedRows, appliedSearch]);
 
-  const pageCount = Math.max(1, Math.ceil(filteredRows.length / pageSize));
-  const pagedRows = filteredRows.slice(page * pageSize, page * pageSize + pageSize);
+  const sortedRows = useMemo(
+    () => sortRows(filteredRows, sortField, sortOrder, getUserTrackingFieldValue),
+    [filteredRows, sortField, sortOrder],
+  );
+
+  const pageCount = Math.max(1, Math.ceil(sortedRows.length / pageSize));
+  const pagedRows = sortedRows.slice(page * pageSize, page * pageSize + pageSize);
+
+  const handleSort = (field) => {
+    const isAsc = sortField === field && sortOrder === "asc";
+    setSortOrder(isAsc ? "desc" : "asc");
+    setSortField(field);
+    setPage(0);
+  };
 
   const handleSearch = () => {
     setAppliedSearch({ field: searchField, criteria: searchCriteria, text: searchText });
@@ -137,7 +186,7 @@ const AdminUserTracking = () => {
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f5f5" }}>
       <AdminHeader user={user} />
-      <Box sx={{ height: "48px" }} />
+      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
@@ -279,21 +328,13 @@ const AdminUserTracking = () => {
                   <Table size="small" sx={{ tableLayout: "fixed" }}>
                     <TableHead>
                       <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
-                        {["#", "First Name", "Last Name", "User Name", "User Type", "Login Date", "Login From"].map(
-                          (label) => (
-                            <TableCell
-                              key={label}
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                              }}
-                            >
-                              {label}
-                            </TableCell>
-                          ),
-                        )}
+                        <SortableHeader label="#" field="rowID" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={userTrackingHeadCellSx()} />
+                        <SortableHeader label="First Name" field="firstName" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={userTrackingHeadCellSx()} />
+                        <SortableHeader label="Last Name" field="lastName" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={userTrackingHeadCellSx()} />
+                        <SortableHeader label="User Name" field="userName" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={userTrackingHeadCellSx()} />
+                        <SortableHeader label="User Type" field="userType" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={userTrackingHeadCellSx()} />
+                        <SortableHeader label="Login Date" field="logindate" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={userTrackingHeadCellSx()} />
+                        <SortableHeader label="Login From" field="loginBy" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={userTrackingHeadCellSx(true)} />
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -330,7 +371,7 @@ const AdminUserTracking = () => {
 
                 <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Typography variant="body2" sx={{ fontSize: "0.75rem" }}>
-                    {filteredRows.length} record(s)
+                    {sortedRows.length} record(s)
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1 }}>
                     <Button
@@ -341,7 +382,7 @@ const AdminUserTracking = () => {
                       Previous
                     </Button>
                     <Typography variant="body2" sx={{ alignSelf: "center", fontSize: "0.75rem" }}>
-                      Page {filteredRows.length === 0 ? 0 : page + 1} of {filteredRows.length === 0 ? 0 : pageCount}
+                      Page {sortedRows.length === 0 ? 0 : page + 1} of {sortedRows.length === 0 ? 0 : pageCount}
                     </Typography>
                     <Button
                       size="small"

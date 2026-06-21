@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   Button,
   Grid,
@@ -15,7 +11,189 @@ import {
   Box,
   Typography,
 } from "@mui/material";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
+import EditIcon from "@mui/icons-material/Edit";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
+import PortalDialog from "../Common/PortalDialog";
+
+const CLASS_OPTIONS = [
+  { value: "JB", label: "Junior Beginner" },
+  { value: "JI", label: "Junior Intermediate" },
+  { value: "JA", label: "Junior Advanced" },
+  { value: "SB", label: "Senior Beginner" },
+  { value: "SI", label: "Senior Intermediate" },
+  { value: "SA", label: "Senior Advanced" },
+  { value: "DS", label: "Data Science" },
+  { value: "AI", label: "Artificial Intelligence" },
+  { value: "GD", label: "Game Development" },
+  { value: "AD", label: "App Development" },
+  { value: "DM", label: "Data Management" },
+  { value: "ST", label: "PSAT" },
+  { value: "AT", label: "ACT" },
+];
+
+const pickField = (item, ...keys) => {
+  if (item == null || typeof item !== "object") return "";
+  for (const key of keys) {
+    const value = item[key];
+    if (value != null && String(value).trim() !== "") {
+      return String(value).trim();
+    }
+  }
+  return "";
+};
+
+// Legacy InstructorInfo: FirstName~#LastName~#Email~#Phone~#Type~#Class~#Section~#ChapterID~#Status
+const parseInstructorInfo = (info) => {
+  if (!info || typeof info !== "string") return {};
+  const parts = info.split("~#");
+  return {
+    firstName: (parts[0] || "").trim(),
+    lastName: (parts[1] || "").trim(),
+    emailID: (parts[2] || "").trim(),
+    contactPhone: (parts[3] || "").trim(),
+    instructorType: (parts[4] || "").trim(),
+    class: (parts[5] || "").trim(),
+    section: (parts[6] || "").trim(),
+    chapterID: (parts[7] || "").trim(),
+    memberStatus: (parts[8] || "").trim(),
+  };
+};
+
+const normalizeMemberStatus = (status) => {
+  if (status === null || status === undefined || status === "") return "1";
+  const value = String(status).trim().toLowerCase();
+  if (value === "1" || value === "active") return "1";
+  if (value === "0" || value === "inactive" || value === "deactive") return "0";
+  return "1";
+};
+
+const normalizeInstructorType = (type) => {
+  if (!type) return "P";
+  const value = String(type).trim();
+  const byLabel = {
+    Primary: "P",
+    Secondary: "S",
+    Coordinator: "C",
+    Volunteer: "V",
+    Volunteers: "V",
+  };
+  return byLabel[value] || (/^[PSCV]$/i.test(value) ? value.toUpperCase() : "P");
+};
+
+const normalizeClassCode = (classValue) => {
+  if (!classValue) return "JB";
+
+  let value = String(classValue).trim();
+  if (!value) return "JB";
+
+  const comboMatch = value.match(/^([A-Za-z]{2})[\s-]/);
+  if (comboMatch) {
+    value = comboMatch[1].toUpperCase();
+  }
+
+  const exactMatch = CLASS_OPTIONS.find(
+    (option) => option.value.toLowerCase() === value.toLowerCase(),
+  );
+  if (exactMatch) return exactMatch.value;
+
+  const labelMatch = CLASS_OPTIONS.find(
+    (option) => option.label.toLowerCase() === value.toLowerCase(),
+  );
+  if (labelMatch) return labelMatch.value;
+
+  if (/psat|sat/i.test(value)) return "ST";
+
+  const partialMatch = CLASS_OPTIONS.find((option) => {
+    const label = option.label.toLowerCase();
+    const normalized = value.toLowerCase();
+    return label.includes(normalized) || normalized.includes(label);
+  });
+  if (partialMatch) return partialMatch.value;
+
+  return /^[A-Za-z]{2}$/.test(value) ? value.toUpperCase() : "JB";
+};
+
+const resolveInstructorClass = (instructor, parsedInfo) => {
+  const rawClass =
+    pickField(instructor, "class", "Class", "className", "ClassName") ||
+    (parsedInfo?.class ?? "");
+
+  if (!rawClass) return "JB";
+
+  return normalizeClassCode(rawClass);
+};
+
+const getClassLabel = (classCode) => {
+  const match = CLASS_OPTIONS.find((option) => option.value === classCode);
+  return match?.label ?? classCode;
+};
+
+const ensureClassCode = (classCode) => {
+  const normalized = normalizeClassCode(classCode);
+  return CLASS_OPTIONS.some((option) => option.value === normalized)
+    ? normalized
+    : "JB";
+};
+
+const getChapterNameOnly = (chapter) =>
+  chapter.label ?? chapter.chapterName ?? chapter.ChapterName ?? "";
+
+const getChapterOptionValue = (chapter) =>
+  String(chapter.value ?? chapter.chapterID ?? chapter.ChapterID ?? "");
+
+const getChapterOptionLabel = (chapter) => {
+  const name = getChapterNameOnly(chapter);
+  const loc = chapter.location ?? chapter.Location ?? "";
+  return loc ? `${name} - ${loc}` : name;
+};
+
+const ensureChapterID = (chapterID, chapters, chapterName = "") => {
+  if (!Array.isArray(chapters) || chapters.length === 0) {
+    return chapterID ? String(chapterID) : "";
+  }
+
+  const normalizedId = chapterID ? String(chapterID) : "";
+  if (normalizedId) {
+    const byId = chapters.find(
+      (chapter) => getChapterOptionValue(chapter) === normalizedId,
+    );
+    if (byId) return getChapterOptionValue(byId);
+  }
+
+  const normalizedName = String(chapterName || "").trim().toLowerCase();
+  if (normalizedName) {
+    const byName = chapters.find((chapter) => {
+      const name = getChapterNameOnly(chapter).trim().toLowerCase();
+      return (
+        name === normalizedName ||
+        name.includes(normalizedName) ||
+        normalizedName.includes(name)
+      );
+    });
+    if (byName) return getChapterOptionValue(byName);
+  }
+
+  return normalizedId;
+};
+
+const resolveChapterID = (instructor, parsedInfo, chapters) => {
+  const chapterID =
+    pickField(instructor, "chapterID", "ChapterID") ||
+    parsedInfo.chapterID ||
+    "";
+  const chapterName = pickField(instructor, "chapterName", "ChapterName");
+
+  return ensureChapterID(chapterID, chapters, chapterName);
+};
+
+const getChapterLabel = (chapterID, chapters) => {
+  if (!chapterID || !Array.isArray(chapters)) return "";
+  const match = chapters.find(
+    (chapter) => getChapterOptionValue(chapter) === String(chapterID),
+  );
+  return match ? getChapterOptionLabel(match) : "";
+};
 
 const InstructorForm = ({
   open,
@@ -32,7 +210,7 @@ const InstructorForm = ({
     emailID: "",
     contactPhone: "",
     chapterID: "",
-    class: "JB",
+    classCode: "JB",
     section: "A",
     instructorType: "P",
     memberStatus: "1",
@@ -41,22 +219,8 @@ const InstructorForm = ({
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
 
-  // Class options
-  const classOptions = [
-    { value: "JB", label: "Junior Beginner" },
-    { value: "JI", label: "Junior Intermediate" },
-    { value: "JA", label: "Junior Advanced" },
-    { value: "SB", label: "Senior Beginner" },
-    { value: "SI", label: "Senior Intermediate" },
-    { value: "SA", label: "Senior Advanced" },
-    { value: "DS", label: "Data Science" },
-    { value: "AI", label: "Artificial Intelligence" },
-    { value: "GD", label: "Game Development" },
-    { value: "AD", label: "App Development" },
-    { value: "DM", label: "Data Management" },
-    { value: "ST", label: "PSAT" },
-    { value: "AT", label: "ACT" },
-  ];
+  // Class options (alias for dropdown rendering)
+  const classOptions = CLASS_OPTIONS;
 
   // Instructor type options
   const typeOptions = [
@@ -79,30 +243,52 @@ const InstructorForm = ({
     { value: "C", label: "C" },
   ];
 
-  // Initialize form data when instructor prop changes
+  // Initialize form data when the modal opens
   useEffect(() => {
+    if (!open) return;
+
     if (instructor && isEdit) {
-      const chapterIDRaw = instructor.chapterID ?? instructor.ChapterID ?? "";
-      const classRaw = instructor.class ?? instructor.Class ?? "JB";
-      const sectionRaw = instructor.section ?? instructor.Section ?? "A";
+      const parsedInfo = parseInstructorInfo(
+        instructor.instructorInfo ?? instructor.InstructorInfo,
+      );
+      const chapterID = resolveChapterID(instructor, parsedInfo, chapters);
+      const classCode = ensureClassCode(
+        resolveInstructorClass(instructor, parsedInfo),
+      );
+      const sectionRaw =
+        pickField(instructor, "section", "Section") ||
+        parsedInfo.section ||
+        "A";
       const typeRaw =
-        instructor.instructorType ?? instructor.InstructorType ?? "P";
+        pickField(instructor, "instructorType", "InstructorType") ||
+        parsedInfo.instructorType ||
+        "P";
       const statusRaw =
-        instructor.memberStatus ?? instructor.MemberStatus ?? "1";
+        pickField(instructor, "memberStatus", "MemberStatus") ||
+        parsedInfo.memberStatus ||
+        "1";
 
       setFormData({
         instructorID: instructor.instructorID ?? instructor.InstructorID ?? 0,
-        firstName: instructor.firstName ?? instructor.FirstName ?? "",
-        lastName: instructor.lastName ?? instructor.LastName ?? "",
-        emailID: instructor.emailID ?? instructor.EmailID ?? "",
+        firstName:
+          pickField(instructor, "firstName", "FirstName") ||
+          parsedInfo.firstName ||
+          "",
+        lastName:
+          pickField(instructor, "lastName", "LastName") ||
+          parsedInfo.lastName ||
+          "",
+        emailID:
+          pickField(instructor, "emailID", "EmailID") || parsedInfo.emailID || "",
         contactPhone:
-          instructor.contactPhone ?? instructor.ContactPhone ?? "",
-        // Force string IDs so <Select> matches MenuItem values.
-        chapterID: chapterIDRaw !== "" ? String(chapterIDRaw) : "",
-        class: classRaw || "JB",
+          pickField(instructor, "contactPhone", "ContactPhone") ||
+          parsedInfo.contactPhone ||
+          "",
+        chapterID,
+        classCode,
         section: sectionRaw || "A",
-        instructorType: typeRaw || "P",
-        memberStatus: statusRaw !== "" ? String(statusRaw) : "1",
+        instructorType: normalizeInstructorType(typeRaw),
+        memberStatus: normalizeMemberStatus(statusRaw),
       });
     } else {
       // Reset form for new instructor
@@ -113,8 +299,10 @@ const InstructorForm = ({
         emailID: "",
         contactPhone: "",
         chapterID:
-          chapters && chapters.length > 0 ? String(chapters[0].value) : "",
-        class: "JB",
+          chapters && chapters.length > 0
+            ? getChapterOptionValue(chapters[0])
+            : "",
+        classCode: "JB",
         section: "A",
         instructorType: "P",
         memberStatus: "1",
@@ -166,8 +354,8 @@ const InstructorForm = ({
       newErrors.chapterID = "Chapter is required";
     }
 
-    if (!formData.class) {
-      newErrors.class = "Class is required";
+    if (!formData.classCode) {
+      newErrors.classCode = "Class is required";
     }
 
     if (!formData.section) {
@@ -193,7 +381,10 @@ const InstructorForm = ({
     }
 
     try {
-      await onSubmit(formData);
+      await onSubmit({
+        ...formData,
+        class: formData.classCode,
+      });
       handleClose();
     } catch (error) {
       setSubmitError(
@@ -211,7 +402,7 @@ const InstructorForm = ({
       emailID: "",
       contactPhone: "",
       chapterID: "",
-      class: "JB",
+      classCode: "JB",
       section: "A",
       instructorType: "P",
       memberStatus: "1",
@@ -224,7 +415,7 @@ const InstructorForm = ({
   if (!open) return null;
 
   const formFields = (
-    <Box sx={{ mt: 2 }}>
+    <Box>
       {submitError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {submitError}
@@ -232,8 +423,8 @@ const InstructorForm = ({
       )}
 
       <Grid container spacing={2}>
-        {/* First Name */}
-        <Grid item xs={12} sm={6}>
+        {/* Contact fields — single row */}
+        <Grid item xs={3}>
           <TextField
             fullWidth
             label="First Name"
@@ -244,11 +435,11 @@ const InstructorForm = ({
             helperText={errors.firstName}
             required
             size="small"
+            sx={portalModalFieldSx}
           />
         </Grid>
 
-        {/* Last Name */}
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={3}>
           <TextField
             fullWidth
             label="Last Name"
@@ -259,11 +450,11 @@ const InstructorForm = ({
             helperText={errors.lastName}
             required
             size="small"
+            sx={portalModalFieldSx}
           />
         </Grid>
 
-        {/* Email */}
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={3}>
           <TextField
             fullWidth
             label="Email ID"
@@ -275,11 +466,11 @@ const InstructorForm = ({
             helperText={errors.emailID}
             required
             size="small"
+            sx={portalModalFieldSx}
           />
         </Grid>
 
-        {/* Contact Phone */}
-        <Grid item xs={12} sm={6}>
+        <Grid item xs={3}>
           <TextField
             fullWidth
             label="Contact Phone"
@@ -290,181 +481,196 @@ const InstructorForm = ({
             helperText={errors.contactPhone}
             required
             size="small"
+            sx={portalModalFieldSx}
           />
         </Grid>
 
-        {/* Chapter */}
-        <Grid item xs={12} sm={6}>
-          <FormControl
-            fullWidth
-            error={!!errors.chapterID}
-            required
-            size="small"
-          >
-            <InputLabel>Chapter</InputLabel>
-            <Select
-              name="chapterID"
-              value={formData.chapterID}
-              onChange={handleChange}
-              label="Chapter"
+        {/* Row 2: Chapter, Type, Class, Section, Status */}
+        <Grid item xs={12}>
+          <Box sx={{ display: "flex", gap: 1.5, flexWrap: "nowrap" }}>
+            <FormControl
+              fullWidth
+              error={!!errors.chapterID}
+              required
+              size="small"
+              sx={{ ...portalModalFieldSx, flex: 1.4, minWidth: 0 }}
             >
-              {chapters && chapters.length > 0 ? (
-                chapters.map((chapter) => (
-                  <MenuItem
-                    key={String(chapter.value)}
-                    value={String(chapter.value)}
-                  >
-                    {chapter.label}
-                  </MenuItem>
-                ))
-              ) : (
-                <MenuItem value="">No chapters available</MenuItem>
+              <InputLabel id="instructor-chapter-label">Chapter</InputLabel>
+              <Select
+                labelId="instructor-chapter-label"
+                name="chapterID"
+                value={ensureChapterID(
+                  formData.chapterID,
+                  chapters,
+                  pickField(instructor || {}, "chapterName", "ChapterName"),
+                )}
+                onChange={handleChange}
+                label="Chapter"
+                renderValue={(selected) =>
+                  getChapterLabel(selected, chapters) || selected
+                }
+              >
+                {chapters && chapters.length > 0 ? (
+                  chapters.map((chapter) => {
+                    const chapterValue = getChapterOptionValue(chapter);
+                    return (
+                      <MenuItem key={chapterValue} value={chapterValue}>
+                        {getChapterOptionLabel(chapter)}
+                      </MenuItem>
+                    );
+                  })
+                ) : (
+                  <MenuItem value="">No chapters available</MenuItem>
+                )}
+              </Select>
+              {errors.chapterID && (
+                <Typography variant="caption" color="error">
+                  {errors.chapterID}
+                </Typography>
               )}
-            </Select>
-            {errors.chapterID && (
-              <Typography variant="caption" color="error">
-                {errors.chapterID}
-              </Typography>
-            )}
-          </FormControl>
-        </Grid>
+            </FormControl>
 
-        {/* Instructor Type */}
-        <Grid item xs={12} sm={6}>
-          <FormControl
-            fullWidth
-            error={!!errors.instructorType}
-            required
-            size="small"
-          >
-            <InputLabel>Type</InputLabel>
-            <Select
-              name="instructorType"
-              value={formData.instructorType}
-              onChange={handleChange}
-              label="Type"
+            <FormControl
+              fullWidth
+              error={!!errors.instructorType}
+              required
+              size="small"
+              sx={{ ...portalModalFieldSx, flex: 1, minWidth: 0 }}
             >
-              {typeOptions.map((type) => (
-                <MenuItem key={type.value} value={type.value}>
-                  {type.label}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.instructorType && (
-              <Typography variant="caption" color="error">
-                {errors.instructorType}
-              </Typography>
-            )}
-          </FormControl>
-        </Grid>
+              <InputLabel>Type</InputLabel>
+              <Select
+                name="instructorType"
+                value={formData.instructorType}
+                onChange={handleChange}
+                label="Type"
+              >
+                {typeOptions.map((type) => (
+                  <MenuItem key={type.value} value={type.value}>
+                    {type.label}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.instructorType && (
+                <Typography variant="caption" color="error">
+                  {errors.instructorType}
+                </Typography>
+              )}
+            </FormControl>
 
-        {/* Class */}
-        <Grid item xs={12} sm={6}>
-          <FormControl
-            fullWidth
-            error={!!errors.class}
-            required
-            size="small"
-          >
-            <InputLabel>Class</InputLabel>
-            <Select
-              name="class"
-              value={formData.class}
-              onChange={handleChange}
-              label="Class"
+            <FormControl
+              fullWidth
+              error={!!errors.classCode}
+              required
+              size="small"
+              sx={{ ...portalModalFieldSx, flex: 1.4, minWidth: 0 }}
             >
-              {classOptions.map((classOption) => (
-                <MenuItem key={classOption.value} value={classOption.value}>
-                  {classOption.label}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.class && (
-              <Typography variant="caption" color="error">
-                {errors.class}
-              </Typography>
-            )}
-          </FormControl>
-        </Grid>
+              <InputLabel id="instructor-class-label">Class</InputLabel>
+              <Select
+                labelId="instructor-class-label"
+                name="classCode"
+                value={ensureClassCode(formData.classCode)}
+                onChange={handleChange}
+                label="Class"
+                renderValue={(selected) => getClassLabel(selected)}
+              >
+                {classOptions.map((classOption) => (
+                  <MenuItem key={classOption.value} value={classOption.value}>
+                    {classOption.label}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.classCode && (
+                <Typography variant="caption" color="error">
+                  {errors.classCode}
+                </Typography>
+              )}
+            </FormControl>
 
-        {/* Section */}
-        <Grid item xs={12} sm={6}>
-          <FormControl
-            fullWidth
-            error={!!errors.section}
-            required
-            size="small"
-          >
-            <InputLabel>Section</InputLabel>
-            <Select
-              name="section"
-              value={formData.section}
-              onChange={handleChange}
-              label="Section"
+            <FormControl
+              fullWidth
+              error={!!errors.section}
+              required
+              size="small"
+              sx={{ ...portalModalFieldSx, flex: 0.7, minWidth: 0 }}
             >
-              {sectionOptions.map((section) => (
-                <MenuItem key={section.value} value={section.value}>
-                  {section.label}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.section && (
-              <Typography variant="caption" color="error">
-                {errors.section}
-              </Typography>
-            )}
-          </FormControl>
-        </Grid>
+              <InputLabel>Section</InputLabel>
+              <Select
+                name="section"
+                value={formData.section || "A"}
+                onChange={handleChange}
+                label="Section"
+              >
+                {sectionOptions.map((section) => (
+                  <MenuItem key={section.value} value={section.value}>
+                    {section.label}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.section && (
+                <Typography variant="caption" color="error">
+                  {errors.section}
+                </Typography>
+              )}
+            </FormControl>
 
-        {/* Status */}
-        <Grid item xs={12} sm={6}>
-          <FormControl
-            fullWidth
-            error={!!errors.memberStatus}
-            required
-            size="small"
-          >
-            <InputLabel>Status</InputLabel>
-            <Select
-              name="memberStatus"
-              value={formData.memberStatus}
-              onChange={handleChange}
-              label="Status"
+            <FormControl
+              fullWidth
+              error={!!errors.memberStatus}
+              required
+              size="small"
+              sx={{ ...portalModalFieldSx, flex: 1, minWidth: 0 }}
             >
-              {statusOptions.map((status) => (
-                <MenuItem key={status.value} value={status.value}>
-                  {status.label}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.memberStatus && (
-              <Typography variant="caption" color="error">
-                {errors.memberStatus}
-              </Typography>
-            )}
-          </FormControl>
+              <InputLabel>Status</InputLabel>
+              <Select
+                name="memberStatus"
+                value={formData.memberStatus}
+                onChange={handleChange}
+                label="Status"
+              >
+                {statusOptions.map((status) => (
+                  <MenuItem key={status.value} value={status.value}>
+                    {status.label}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.memberStatus && (
+                <Typography variant="caption" color="error">
+                  {errors.memberStatus}
+                </Typography>
+              )}
+            </FormControl>
+          </Box>
         </Grid>
       </Grid>
     </Box>
   );
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle>
-        <Typography variant="h6" sx={{ fontWeight: 600, color: APPLICATION_ADMIN_TITLE_COLOR }}>
-          {isEdit ? "Update Instructor" : "Add Instructor"}
-        </Typography>
-      </DialogTitle>
-      <DialogContent>{formFields}</DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleClose} color="inherit">
-          Cancel
-        </Button>
-        <Button onClick={handleSubmit} variant="contained" color="primary">
+    <PortalDialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="lg"
+      ariaLabelledby="instructor-form-dialog-title"
+      title={isEdit ? "Update Instructor" : "Add Instructor"}
+      icon={
+        isEdit ? (
+          <EditIcon sx={{ fontSize: 20 }} />
+        ) : (
+          <PersonAddIcon sx={{ fontSize: 20 }} />
+        )
+      }
+      actions={
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
+          sx={portalModalSendButtonSx}
+        >
           {isEdit ? "Update" : "Add"}
         </Button>
-      </DialogActions>
-    </Dialog>
+      }
+    >
+      {formFields}
+    </PortalDialog>
   );
 };
 

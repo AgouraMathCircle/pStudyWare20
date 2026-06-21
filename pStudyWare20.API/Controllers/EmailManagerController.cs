@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Cors;
+using pStudyWare20.API.Helpers;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
-using System.Security.Claims;
 
 namespace pStudyWare20.API.Controllers
 {
@@ -35,10 +35,9 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                // Get username from JWT token if not provided in request
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.Username = PortalClaimsHelper.GetPortalUsername(User);
                 }
 
                 var response = await _emailManagerService.GetMessagesAsync(request);
@@ -65,7 +64,17 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
+                if (request.EmailID <= 0)
+                {
+                    return BadRequest(new { message = "A valid email ID is required" });
+                }
+
                 var response = await _emailManagerService.GetMessageAsync(request);
+                if (!response.IsSuccess)
+                {
+                    return BadRequest(new { message = response.ErrorMessage });
+                }
+
                 return Ok(response);
             }
             catch (Exception ex)
@@ -89,13 +98,17 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                // Get username from JWT token if not provided in request
                 if (string.IsNullOrEmpty(request.SendFrom))
                 {
-                    request.SendFrom = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.SendFrom = PortalClaimsHelper.GetPortalUsername(User);
                 }
 
                 var response = await _emailManagerService.SendMessageAsync(request);
+                if (!response.IsSuccess)
+                {
+                    return BadRequest(response);
+                }
+
                 return Ok(response);
             }
             catch (Exception ex)
@@ -119,10 +132,9 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                // Get username from JWT token if not provided in request
                 if (string.IsNullOrEmpty(request.SendTo))
                 {
-                    request.SendTo = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.SendTo = PortalClaimsHelper.GetPortalUsername(User);
                 }
 
                 var response = await _emailManagerService.UpdateMessageStatusAsync(request);
@@ -149,10 +161,9 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                // Get username from JWT token if not provided in request
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.Username = PortalClaimsHelper.GetPortalUsername(User);
                 }
 
                 var response = await _emailManagerService.GetInstructorEmailGroupsAsync(request);
@@ -179,10 +190,9 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                // Get username from JWT token if not provided in request
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.Username = PortalClaimsHelper.GetPortalUsername(User);
                 }
 
                 var response = await _emailManagerService.GetStudentListForEmailAsync(request);
@@ -209,10 +219,9 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                // Get username from JWT token if not provided in request
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.Username = PortalClaimsHelper.GetPortalUsername(User);
                 }
 
                 var response = await _emailManagerService.ExportMessagesToExcelAsync(request);

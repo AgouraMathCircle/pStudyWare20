@@ -139,7 +139,7 @@ const CtaSection = () => {
                     },
                   }}
                 >
-                  AMC's Fall Semester 2024 starts on Saturday, August 24, 2024.
+                  AMC's Fall Semester 2026 starts on Saturday, August 29, 2026.
                 </Typography>
                 <Button
                   variant="contained"

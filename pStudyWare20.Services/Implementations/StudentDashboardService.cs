@@ -20,13 +20,29 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
-        /// Gets dashboard messages for student (Important Notice, Announcement, Competitions, Todo List)
+        /// Gets dashboard messages and report card in one round trip (parallel DB calls).
         /// </summary>
         public async Task<GetDashboardMessageResponse> GetDashboardMessageAsync(GetDashboardMessageRequest request)
         {
             try
             {
-                var dataTable = await _repository.GetDashboardMessageAsync(request.Username, request.ChapterID);
+                var username = request.Username?.Trim() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    return new GetDashboardMessageResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Username is required"
+                    };
+                }
+
+                var messagesTask = _repository.GetDashboardMessageAsync(username, request.ChapterID);
+                var reportCardTask = _repository.GetReportCardAsync(username);
+
+                await Task.WhenAll(messagesTask, reportCardTask);
+
+                var dataTable = await messagesTask;
+                var reportCardTable = await reportCardTask;
 
                 var importantNotice = string.Empty;
                 var announcement = string.Empty;
@@ -41,14 +57,21 @@ namespace pStudyWare20.Services.Implementations
                     todoList = dataTable.Rows.Count > 3 ? dataTable.Rows[3]["Message"]?.ToString() ?? string.Empty : string.Empty;
                 }
 
+                var reportCardEntries = new List<ReportCardEntry>(reportCardTable.Rows.Count);
+                foreach (DataRow row in reportCardTable.Rows)
+                {
+                    reportCardEntries.Add(MapDataRowToReportCardEntry(row));
+                }
+
                 return new GetDashboardMessageResponse
                 {
                     IsSuccess = true,
-                    Message = "Dashboard messages retrieved successfully",
+                    Message = "Dashboard data retrieved successfully",
                     ImportantNotice = importantNotice,
                     Announcement = announcement,
                     Competitions = competitions,
-                    TodoList = todoList
+                    TodoList = todoList,
+                    ReportCardEntries = reportCardEntries
                 };
             }
             catch (Exception ex)
@@ -56,11 +79,10 @@ namespace pStudyWare20.Services.Implementations
                 return new GetDashboardMessageResponse
                 {
                     IsSuccess = false,
-                    Message = $"Error retrieving dashboard messages: {ex.Message}"
+                    Message = $"Error retrieving dashboard data: {ex.Message}"
                 };
             }
         }
-
 
         /// <summary>
         /// Gets student profile information
@@ -193,8 +215,18 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                var dataTable = await _repository.GetReportCardAsync(request.Username);
-                var reportCardEntries = new List<ReportCardEntry>();
+                var username = request.Username?.Trim() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    return new GetReportCardResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Username is required"
+                    };
+                }
+
+                var dataTable = await _repository.GetReportCardAsync(username);
+                var reportCardEntries = new List<ReportCardEntry>(dataTable.Rows.Count);
 
                 foreach (DataRow row in dataTable.Rows)
                 {
@@ -204,7 +236,9 @@ namespace pStudyWare20.Services.Implementations
                 return new GetReportCardResponse
                 {
                     IsSuccess = true,
-                    Message = "Report card retrieved successfully",
+                    Message = reportCardEntries.Count > 0
+                        ? "Report card retrieved successfully"
+                        : "No report card records found",
                     ReportCardEntries = reportCardEntries
                 };
             }
@@ -547,24 +581,72 @@ namespace pStudyWare20.Services.Implementations
         {
             return new ReportCardEntry
             {
-                ReportCardID = row.Table.Columns.Contains("ReportCardID") ? Convert.ToInt32(row["ReportCardID"]) : 0,
-                StudentID = row.Table.Columns.Contains("StudentID") ? Convert.ToInt32(row["StudentID"]) : 0,
-                StudentName = row.Table.Columns.Contains("StudentName") ? row["StudentName"]?.ToString() ?? string.Empty : string.Empty,
-                Group = row.Table.Columns.Contains("Group") ? row["Group"]?.ToString() ?? string.Empty : string.Empty,
-                Subject = row.Table.Columns.Contains("Subject") ? row["Subject"]?.ToString() ?? string.Empty : string.Empty,
-                Grade = row.Table.Columns.Contains("Grade") ? row["Grade"]?.ToString() ?? string.Empty : string.Empty,
-                Score = row.Table.Columns.Contains("Score") && row["Score"] != DBNull.Value ? Convert.ToDecimal(row["Score"]) : null,
-                Semester = row.Table.Columns.Contains("Semester") ? row["Semester"]?.ToString() ?? string.Empty : string.Empty,
-                Year = row.Table.Columns.Contains("Year") ? Convert.ToInt32(row["Year"]) : DateTime.Now.Year,
-                Comments = row.Table.Columns.Contains("Comments") ? row["Comments"]?.ToString() ?? string.Empty : string.Empty,
-                ExamDate = row.Table.Columns.Contains("ExamDate") && row["ExamDate"] != DBNull.Value ? Convert.ToDateTime(row["ExamDate"]) : null,
-                ExamType = row.Table.Columns.Contains("ExamType") ? row["ExamType"]?.ToString() ?? string.Empty : string.Empty,
-                TotalCredit = row.Table.Columns.Contains("TotalCredit") && row["TotalCredit"] != DBNull.Value ? Convert.ToDecimal(row["TotalCredit"]) : null,
-                HighestScore = row.Table.Columns.Contains("HighestScore") && row["HighestScore"] != DBNull.Value ? Convert.ToDecimal(row["HighestScore"]) : null,
-                ClassAverage = row.Table.Columns.Contains("ClassAverage") && row["ClassAverage"] != DBNull.Value ? Convert.ToDecimal(row["ClassAverage"]) : null,
-                ReceivedCredit = row.Table.Columns.Contains("ReceivedCredit") && row["ReceivedCredit"] != DBNull.Value ? Convert.ToDecimal(row["ReceivedCredit"]) : null,
-                DateCreated = row.Table.Columns.Contains("DateCreated") && row["DateCreated"] != DBNull.Value ? Convert.ToDateTime(row["DateCreated"]) : null
+                ReportCardID = GetRowInt(row, "ReportCardID"),
+                StudentID = GetRowInt(row, "StudentID"),
+                StudentName = GetRowString(row, "StudentName"),
+                Group = GetRowString(row, "Group", "Class"),
+                Subject = GetRowString(row, "Subject"),
+                Grade = GetRowString(row, "Grade"),
+                Score = GetRowDecimal(row, "Score"),
+                Semester = GetRowString(row, "Semester", "Session", "CurrentSession"),
+                Year = GetRowInt(row, "Year", DateTime.Now.Year),
+                Comments = GetRowString(row, "Comments"),
+                ExamDate = GetRowDateTime(row, "ExamDate"),
+                ExamType = GetRowString(row, "ExamType"),
+                TotalCredit = GetRowDecimal(row, "TotalCredit", "TotalScore"),
+                HighestScore = GetRowDecimal(row, "HighestScore", "TopScore"),
+                ClassAverage = GetRowDecimal(row, "ClassAverage", "AVGScore", "AvgScore"),
+                ReceivedCredit = GetRowDecimal(row, "ReceivedCredit", "YourScore"),
+                DateCreated = GetRowDateTime(row, "DateCreated")
             };
+        }
+
+        private static string GetRowString(DataRow row, params string[] columnNames)
+        {
+            foreach (var name in columnNames)
+            {
+                if (row.Table.Columns.Contains(name))
+                {
+                    return row[name]?.ToString() ?? string.Empty;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private static int GetRowInt(DataRow row, string columnName, int defaultValue = 0)
+        {
+            if (!row.Table.Columns.Contains(columnName) || row[columnName] == DBNull.Value)
+            {
+                return defaultValue;
+            }
+
+            return int.TryParse(row[columnName]?.ToString(), out var value) ? value : defaultValue;
+        }
+
+        private static decimal? GetRowDecimal(DataRow row, params string[] columnNames)
+        {
+            foreach (var name in columnNames)
+            {
+                if (!row.Table.Columns.Contains(name) || row[name] == DBNull.Value)
+                {
+                    continue;
+                }
+
+                return decimal.TryParse(row[name]?.ToString(), out var value) ? value : null;
+            }
+
+            return null;
+        }
+
+        private static DateTime? GetRowDateTime(DataRow row, string columnName)
+        {
+            if (!row.Table.Columns.Contains(columnName) || row[columnName] == DBNull.Value)
+            {
+                return null;
+            }
+
+            return DateTime.TryParse(row[columnName]?.ToString(), out var value) ? value : null;
         }
 
         private static RegistrationStatus MapDataRowToRegistrationStatus(DataRow row)

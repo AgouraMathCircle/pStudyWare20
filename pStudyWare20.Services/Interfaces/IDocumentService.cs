@@ -43,6 +43,11 @@ namespace pStudyWare20.Services.Interfaces
         Task<DocumentUploadResponse> UploadDocumentAsync(DocumentUploadRequest request);
 
         /// <summary>
+        /// Upload Word/Excel/PowerPoint to Docs Repository (legacy DocumentsRepository.aspx).
+        /// </summary>
+        Task<DocumentUploadResponse> UploadRepositoryDocumentAsync(DocumentRepositoryUploadRequest request);
+
+        /// <summary>
         /// Delete document from repository
         /// </summary>
         /// <param name="request">Document delete request</param>
@@ -70,6 +75,17 @@ namespace pStudyWare20.Services.Interfaces
         /// <param name="request">Delete document request</param>
         /// <returns>Document operation response</returns>
         Task<DocumentOperationResponse> DeleteStudentDocumentAsync(DeleteDocumentRequest request);
+
+        /// <summary>
+        /// Read a student document file from storage for view/download.
+        /// </summary>
+        Task<StudentDocumentFileResponse> GetStudentDocumentFileAsync(string documentName);
+
+        /// <summary>
+        /// Read a class material PDF from storage for view/download.
+        /// Legacy path: ~/pStudyWare/Documents/
+        /// </summary>
+        Task<StudentDocumentFileResponse> GetClassMaterialFileAsync(string documentName);
 
         /// <summary>
         /// Get current session

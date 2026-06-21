@@ -109,6 +109,17 @@
   text-decoration: none;
 }
 
+.what-we-do-media-iframe {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 374 / 285;
+  border: 0;
+}
+.what-we-do-media-iframe-container{
+  width: 100% !important;
+}
+
 .what-we-do-content-part {
   padding: clamp(20px, 3vw, 30px);
   flex: 1;

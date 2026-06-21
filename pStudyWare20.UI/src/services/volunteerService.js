@@ -40,7 +40,10 @@ class VolunteerService {
 
   // Get session options (mock data for now)
   async getSessions() {
-    return [{ id: "S2026", name: "Spring Session 2026" }];
+    return [
+      { id: "F2026", name: "Fall Session 2026" },
+      { id: "S2026", name: "Spring Session 2026" },
+    ];
   }
 
   // Get grade options (mock data for now)

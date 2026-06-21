@@ -4,6 +4,7 @@ using pStudyWare20.Data.Models;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Shared;
 using System.Data;
+using System.Globalization;
 
 namespace pStudyWare20.Repository.Implementations
 {
@@ -19,6 +20,26 @@ namespace pStudyWare20.Repository.Implementations
                 {
                         _context = context;
                         _connectionString = configuration?.GetConnectionString("DefaultConnection") ?? "";
+                }
+
+                private static object ParseExamDateParameter(string? examDate)
+                {
+                        if (string.IsNullOrWhiteSpace(examDate))
+                                return DBNull.Value;
+
+                        if (DateTime.TryParse(
+                                examDate,
+                                CultureInfo.InvariantCulture,
+                                DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeLocal,
+                                out var parsed))
+                        {
+                                return parsed;
+                        }
+
+                        if (DateTime.TryParse(examDate, out parsed))
+                                return parsed;
+
+                        throw new FormatException($"Invalid exam date value: {examDate}");
                 }
 
                 /// <summary>
@@ -133,11 +154,11 @@ namespace pStudyWare20.Repository.Implementations
 
                                 command.Parameters.Add(new SqlParameter("@StudentID", request.StudentID ?? ""));
                                 command.Parameters.Add(new SqlParameter("@Group", request.Group ?? ""));
-                                command.Parameters.Add(new SqlParameter("@ExamDate", request.ExamDate ?? ""));
-                                command.Parameters.Add(new SqlParameter("@QuizTotalScore", request.QuizTotalScore ?? "5"));
+                                command.Parameters.Add(new SqlParameter("@ExamDate", ParseExamDateParameter(request.ExamDate)));
+                                command.Parameters.Add(new SqlParameter("@QuizTotalScore", request.QuizTotalScore ?? "10"));
                                 command.Parameters.Add(new SqlParameter("@QuizReceivedScore", request.QuizReceivedScore ?? ""));
                                 command.Parameters.Add(new SqlParameter("@QuizComments", request.QuizComments ?? ""));
-                                command.Parameters.Add(new SqlParameter("@ClassTestTotalScore", request.ClassTestTotalScore ?? "20"));
+                                command.Parameters.Add(new SqlParameter("@ClassTestTotalScore", request.ClassTestTotalScore ?? "10"));
                                 command.Parameters.Add(new SqlParameter("@ClassTestReceivedScore", request.ClassTestReceivedScore ?? ""));
                                 command.Parameters.Add(new SqlParameter("@ClassTestComments", request.ClassTestComments ?? ""));
                                 command.Parameters.Add(new SqlParameter("@HomeWorkTotalScore", request.HomeWorkTotalScore ?? "10"));
@@ -149,7 +170,6 @@ namespace pStudyWare20.Repository.Implementations
                                 command.Parameters.Add(new SqlParameter("@PlacementTestTotalScore", request.PlacementTestTotalScore ?? "0"));
                                 command.Parameters.Add(new SqlParameter("@PlacementTestReceivedScore", request.PlacementTestReceivedScore ?? ""));
                                 command.Parameters.Add(new SqlParameter("@PlacementTestComments", request.PlacementTestComments ?? ""));
-                                command.Parameters.Add(new SqlParameter("@Session", request.Session ?? ""));
 
                                 var dataTable = new DataTable();
                                 using var adapter = new SqlDataAdapter(command);
@@ -182,7 +202,7 @@ namespace pStudyWare20.Repository.Implementations
 
                                 command.Parameters.Add(new SqlParameter("@ReportID", request.ReportID ?? ""));
                                 command.Parameters.Add(new SqlParameter("@Group", request.Group ?? ""));
-                                command.Parameters.Add(new SqlParameter("@ExamDate", request.ExamDate ?? ""));
+                                command.Parameters.Add(new SqlParameter("@ExamDate", ParseExamDateParameter(request.ExamDate)));
                                 command.Parameters.Add(new SqlParameter("@Type", request.Type ?? ""));
                                 command.Parameters.Add(new SqlParameter("@TotalScore", request.TotalScore ?? ""));
                                 command.Parameters.Add(new SqlParameter("@ReceivedScore", request.ReceivedScore ?? ""));
@@ -308,7 +328,7 @@ namespace pStudyWare20.Repository.Implementations
                                 using var connection = new SqlConnection(_connectionString);
                                 await connection.OpenAsync();
 
-                                using var command = new SqlCommand("AMC_spGetStudentList", connection)
+                                using var command = new SqlCommand("AMC_spSelectStudentListbyUserName", connection)
                                 {
                                         CommandType = CommandType.StoredProcedure
                                 };
@@ -339,7 +359,7 @@ namespace pStudyWare20.Repository.Implementations
                                 using var connection = new SqlConnection(_connectionString);
                                 await connection.OpenAsync();
 
-                                using var command = new SqlCommand("AMC_spGetClassList", connection)
+                                using var command = new SqlCommand("AMC_spSelectClassListbyInstructor", connection)
                                 {
                                         CommandType = CommandType.StoredProcedure
                                 };
@@ -370,7 +390,7 @@ namespace pStudyWare20.Repository.Implementations
                                 using var connection = new SqlConnection(_connectionString);
                                 await connection.OpenAsync();
 
-                                using var command = new SqlCommand("AMC_spGetReportDateList", connection)
+                                using var command = new SqlCommand("AMC_spSelectReportCardDate", connection)
                                 {
                                         CommandType = CommandType.StoredProcedure
                                 };
@@ -401,13 +421,13 @@ namespace pStudyWare20.Repository.Implementations
                                 using var connection = new SqlConnection(_connectionString);
                                 await connection.OpenAsync();
 
-                                using var command = new SqlCommand("AMC_spGetClassSchedule", connection)
+                                using var command = new SqlCommand("AMC_spSelectScheduleLookup", connection)
                                 {
                                         CommandType = CommandType.StoredProcedure
                                 };
 
                                 command.Parameters.Add(new SqlParameter("@Username", username ?? ""));
-                                command.Parameters.Add(new SqlParameter("@Type", type ?? ""));
+                                command.Parameters.Add(new SqlParameter("@DisplayValue", type ?? "date"));
 
                                 var dataTable = new DataTable();
                                 using var adapter = new SqlDataAdapter(command);

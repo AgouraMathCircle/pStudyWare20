@@ -25,7 +25,8 @@ import {
   APPLICATION_ADMIN_TITLE_COLOR,
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
-} from "../../../styles/applicationSurfaces";
+  portalRoleSubheaderSpacerPx,
+} from "../styles/applicationSurfaces";
 
 const pageShellSx = {
   flex: 1,
@@ -207,7 +208,7 @@ const UpdateLookupSemester = () => {
   return (
     <Box sx={pageShellSx}>
       <AdminHeader user={user} />
-      <Box sx={{ height: "48px" }} aria-hidden />
+      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

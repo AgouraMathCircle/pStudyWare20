@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -27,28 +27,29 @@ import {
   FullscreenExit as FullscreenExitIcon,
 } from "@mui/icons-material";
 import { Document, Page, pdfjs } from "react-pdf";
-import config from "../../utils/config";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+import "react-pdf/dist/Page/TextLayer.css";
+import config, { getPublicDocumentUrl } from "../../utils/config";
+import documentService from "../../services/documentService";
 
-// Note: react-pdf CSS is typically handled automatically by the library
-// If needed, you can add custom styles for annotation and text layers
+// react-pdf v10 requires the bundled pdfjs worker (.mjs), not the legacy CDN .min.js URL.
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url
+).toString();
 
-// Set up pdfjs worker
-// Use protocol-relative URL or https for CDN
-if (typeof window !== "undefined") {
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
-}
+const ZOOM_STEP = 0.2;
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 3.0;
+
+const isPdfBlob = async (blob) => {
+  const headerBuffer = await blob.slice(0, 5).arrayBuffer();
+  const header = String.fromCharCode(...new Uint8Array(headerBuffer));
+  return header.startsWith("%PDF");
+};
 
 /**
- * PdfViewer Component
- * A reusable Material-UI integrated PDF viewer component using react-pdf
- *
- * @param {string} pdfUrl - The URL or path to the PDF file
- * @param {string} pdfName - The name/title of the PDF (optional, displayed in header)
- * @param {boolean} showHeader - Whether to show the header with close button (default: true)
- * @param {function} onClose - Callback function when close button is clicked (optional)
- * @param {number|string} width - Width of the PDF viewer (default: "100%")
- * @param {string} height - Height of the PDF viewer (default: "70vh")
- * @param {string} basePath - Base path for PDF documents (default: "/pStudyWare/Documents/")
+ * Reusable Material-UI PDF viewer using react-pdf (pagination + zoom).
  */
 const PdfViewer = ({
   pdfUrl,
@@ -57,252 +58,207 @@ const PdfViewer = ({
   onClose,
   width = "100%",
   height = "70vh",
-  basePath = "/pStudyWare/Documents/",
+  basePath = config.paths.publicDocuments,
+  apiEndpoint = null,
+  downloadEndpoint = null,
 }) => {
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [useFallback, setUseFallback] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [pageInput, setPageInput] = useState("1");
-  const [useFallback, setUseFallback] = useState(false);
+  const [pdfFile, setPdfFile] = useState(null);
+  const [loadingDocument, setLoadingDocument] = useState(true);
   const containerRef = React.useRef(null);
-  const loadingTimeoutRef = React.useRef(null);
+  const blobUrlRef = React.useRef(null);
 
-  // Construct the full PDF URL
   const getFullPdfUrl = useCallback(() => {
     if (!pdfUrl) return null;
 
-    // If already a full URL, use it as is
-    if (pdfUrl.startsWith("http://") || pdfUrl.startsWith("https://")) {
+    if (
+      pdfUrl.startsWith("http://") ||
+      pdfUrl.startsWith("https://") ||
+      pdfUrl.startsWith("/")
+    ) {
       return pdfUrl;
     }
 
-    // In development, use relative path (Vite proxy will forward to backend)
-    // In production, construct full backend URL
-    const isDevelopment = config.app.environment === "development";
-
-    if (isDevelopment) {
-      // Use relative path - Vite proxy will handle forwarding
-      return `${basePath}${pdfUrl}`;
-    } else {
-      // Production: construct full URL from backend server
-      const apiUrl = config.api.url;
-      const backendBaseUrl = apiUrl.replace("/api", "");
-      const relativePath = basePath.startsWith("/")
-        ? basePath.slice(1)
-        : basePath;
-      return `${backendBaseUrl}/${relativePath}${pdfUrl}`;
-    }
+    return basePath === config.paths.publicDocuments
+      ? getPublicDocumentUrl(pdfUrl)
+      : `${basePath}${pdfUrl}`;
   }, [pdfUrl, basePath]);
 
   const fullPdfUrl = getFullPdfUrl();
+  const fallbackViewerUrl = pdfFile || fullPdfUrl;
 
-  // Reset state when PDF URL changes
-  useEffect(() => {
-    if (!fullPdfUrl) {
-      setError("PDF URL is missing. Please provide a valid PDF URL.");
-      setLoading(false);
-      return;
+  const documentOptions = useMemo(() => ({
+    cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+    cMapPacked: true,
+    standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
+  }), []);
+
+  const revokeBlobUrl = useCallback(() => {
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
     }
+  }, []);
 
-    console.log("PdfViewer: Loading PDF from URL:", fullPdfUrl);
-    console.log("PdfViewer: pdfjs version:", pdfjs.version);
-    console.log(
-      "PdfViewer: Worker source:",
-      pdfjs.GlobalWorkerOptions.workerSrc
-    );
-    console.log("PdfViewer: Environment:", config.app.environment);
-    console.log("PdfViewer: API URL:", config.api.url);
+  useEffect(() => {
+    let cancelled = false;
 
-    // Pre-check if URL is accessible (optional - helps debug)
-    if (fullPdfUrl && typeof window !== "undefined") {
-      fetch(fullPdfUrl, { method: "HEAD" })
-        .then((response) => {
-          console.log(
-            "PDF URL pre-check:",
-            response.status,
-            response.statusText
-          );
-          if (!response.ok && response.status !== 405) {
-            // 405 is OK (Method Not Allowed for HEAD is common)
-            console.warn(
-              `PDF may not be accessible: ${response.status} ${response.statusText}`
+    const loadDocument = async () => {
+      if (!pdfUrl) {
+        setError("PDF URL is missing. Please provide a valid PDF URL.");
+        setLoadingDocument(false);
+        return;
+      }
+
+      revokeBlobUrl();
+      setPdfFile(null);
+      setLoadingDocument(true);
+      setError(null);
+      setUseFallback(false);
+      setNumPages(null);
+      setPageNumber(1);
+      setPageInput("1");
+      setScale(1.0);
+
+      try {
+        let blob;
+
+        if (apiEndpoint) {
+          blob = await documentService.fetchDocumentBlob(pdfUrl, apiEndpoint);
+        } else if (fullPdfUrl) {
+          const response = await fetch(fullPdfUrl);
+          if (!response.ok) {
+            throw new Error(
+              `Document not found (${response.status}). The file may not exist on the server.`
             );
           }
-        })
-        .catch((err) => {
-          console.warn("PDF URL pre-check failed:", err.message);
-        });
-    }
+          blob = await response.blob();
+        } else {
+          throw new Error("PDF URL is missing.");
+        }
 
-    setNumPages(null);
-    setPageNumber(1);
-    setPageInput("1");
-    setScale(1.0);
-    setLoading(true);
-    setError(null);
-    setUseFallback(false);
+        if (!(await isPdfBlob(blob))) {
+          throw new Error(
+            "The file is not a valid PDF. It may be missing from the server or the link is incorrect."
+          );
+        }
 
-    // Clear any existing timeout
-    if (loadingTimeoutRef.current) {
-      clearTimeout(loadingTimeoutRef.current);
-    }
+        const pdfBlob =
+          blob.type && blob.type.includes("pdf")
+            ? blob
+            : new Blob([blob], { type: "application/pdf" });
 
-    // Set timeout to detect if PDF is stuck loading
-    loadingTimeoutRef.current = setTimeout(() => {
-      console.warn("PDF loading timeout. Switching to fallback viewer.");
-      setError("PDF is taking too long to load. Using alternative viewer...");
-      setUseFallback(true);
-      setLoading(false);
-    }, 15000); // 15 second timeout (reduced for better UX)
+        if (cancelled) {
+          return;
+        }
 
-    return () => {
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
+        const objectUrl = URL.createObjectURL(pdfBlob);
+        blobUrlRef.current = objectUrl;
+        setPdfFile(objectUrl);
+      } catch (loadError) {
+        if (cancelled) {
+          return;
+        }
+        console.error("PDF load failed:", loadError);
+        setError(
+          loadError?.message || "Failed to load PDF. Please try again or download the file."
+        );
+      } finally {
+        if (!cancelled) {
+          setLoadingDocument(false);
+        }
       }
     };
-  }, [fullPdfUrl]);
 
-  // Handle document load success
-  const onDocumentLoadSuccess = ({ numPages }) => {
-    console.log("PDF loaded successfully. Pages:", numPages);
-    setNumPages(numPages);
-    setLoading(false);
+    loadDocument();
+
+    return () => {
+      cancelled = true;
+      revokeBlobUrl();
+    };
+  }, [pdfUrl, apiEndpoint, fullPdfUrl, revokeBlobUrl]);
+
+  const onDocumentLoadSuccess = ({ numPages: totalPages }) => {
+    setNumPages(totalPages);
     setError(null);
-    // Clear timeout on success
-    if (loadingTimeoutRef.current) {
-      clearTimeout(loadingTimeoutRef.current);
-      loadingTimeoutRef.current = null;
-    }
   };
 
-  // Handle document load error
-  const onDocumentLoadError = (error) => {
-    console.error("Error loading PDF:", error);
-    console.error("PDF URL attempted:", fullPdfUrl);
+  const onDocumentLoadError = (loadError) => {
+    console.error("Error loading PDF:", loadError, fullPdfUrl);
 
-    let errorMessage = "Failed to load PDF";
+    let errorMessage =
+      loadError?.message || loadError?.toString?.() || "Failed to load PDF";
 
-    if (error?.message) {
-      errorMessage = error.message;
-    } else if (error?.toString) {
-      errorMessage = error.toString();
-    }
-
-    // Provide more helpful error messages
     if (
+      errorMessage.includes("Invalid PDF") ||
       errorMessage.includes("CORS") ||
-      errorMessage.includes("cross-origin")
-    ) {
-      errorMessage =
-        "CORS error: PDF cannot be loaded due to cross-origin restrictions. The server may need to allow cross-origin requests for PDF files.";
-    } else if (
-      errorMessage.includes("network") ||
+      errorMessage.includes("cross-origin") ||
       errorMessage.includes("fetch") ||
       errorMessage.includes("Failed to fetch")
     ) {
-      errorMessage = `Network error: Unable to fetch the PDF from ${fullPdfUrl}. Please check:
-- Your internet connection
-- The backend server is running
-- The PDF file exists at this path
-- The proxy configuration is correct`;
-    } else if (
-      errorMessage.includes("404") ||
-      errorMessage.includes("Not Found")
-    ) {
-      errorMessage = `PDF file not found at ${fullPdfUrl}. Please verify the file path and ensure the file exists on the server.`;
-    } else if (
-      errorMessage.includes("401") ||
-      errorMessage.includes("Unauthorized")
-    ) {
-      errorMessage = "Authentication required: Please log in to view this PDF.";
-    } else if (
-      errorMessage.includes("403") ||
-      errorMessage.includes("Forbidden")
-    ) {
       errorMessage =
-        "Access denied: You don't have permission to view this PDF.";
-    }
-
-    // Automatically switch to fallback viewer on network errors
-    if (
-      errorMessage.includes("network") ||
-      errorMessage.includes("fetch") ||
-      errorMessage.includes("Failed to fetch")
-    ) {
-      console.warn("Network error detected. Switching to fallback viewer.");
-      setTimeout(() => {
-        setUseFallback(true);
-      }, 2000); // Give user time to see the error, then switch
+        "Unable to load PDF in the embedded viewer. Using the browser viewer instead.";
+      setUseFallback(true);
     }
 
     setError(errorMessage);
-    setLoading(false);
-    // Clear timeout on error
-    if (loadingTimeoutRef.current) {
-      clearTimeout(loadingTimeoutRef.current);
-      loadingTimeoutRef.current = null;
-    }
   };
 
-  // Navigate to previous page
   const goToPrevPage = () => {
     if (pageNumber > 1) {
-      setPageNumber(pageNumber - 1);
-      setPageInput((pageNumber - 1).toString());
+      const nextPage = pageNumber - 1;
+      setPageNumber(nextPage);
+      setPageInput(String(nextPage));
     }
   };
 
-  // Navigate to next page
   const goToNextPage = () => {
-    if (pageNumber < numPages) {
-      setPageNumber(pageNumber + 1);
-      setPageInput((pageNumber + 1).toString());
+    if (numPages && pageNumber < numPages) {
+      const nextPage = pageNumber + 1;
+      setPageNumber(nextPage);
+      setPageInput(String(nextPage));
     }
   };
 
-  // Navigate to first page
   const goToFirstPage = () => {
     setPageNumber(1);
     setPageInput("1");
   };
 
-  // Navigate to last page
   const goToLastPage = () => {
     if (numPages) {
       setPageNumber(numPages);
-      setPageInput(numPages.toString());
+      setPageInput(String(numPages));
     }
   };
 
-  // Navigate to specific page
   const goToPage = () => {
-    const page = parseInt(pageInput);
-    if (!isNaN(page) && page >= 1 && page <= numPages) {
+    const page = parseInt(pageInput, 10);
+    if (!Number.isNaN(page) && page >= 1 && page <= (numPages || 1)) {
       setPageNumber(page);
     } else {
-      setPageInput(pageNumber.toString());
+      setPageInput(String(pageNumber));
     }
   };
 
-  // Zoom in
   const zoomIn = () => {
-    setScale((prev) => Math.min(prev + 0.2, 3.0));
+    setScale((prev) => Math.min(prev + ZOOM_STEP, MAX_ZOOM));
   };
 
-  // Zoom out
   const zoomOut = () => {
-    setScale((prev) => Math.max(prev - 0.2, 0.5));
+    setScale((prev) => Math.max(prev - ZOOM_STEP, MIN_ZOOM));
   };
 
-  // Reset zoom
   const resetZoom = () => {
     setScale(1.0);
   };
 
-  // Toggle fullscreen
   const toggleFullscreen = () => {
     if (!fullscreen) {
       containerRef.current?.requestFullscreen?.();
@@ -313,33 +269,43 @@ const PdfViewer = ({
     }
   };
 
-  // Download PDF
-  const handleDownload = () => {
-    if (fullPdfUrl) {
+  const handleDownload = async () => {
+    try {
+      if (downloadEndpoint) {
+        await documentService.downloadDocumentFromApi(pdfUrl, downloadEndpoint);
+        return;
+      }
+
+      const downloadUrl = pdfFile || fullPdfUrl;
+      if (!downloadUrl) {
+        return;
+      }
+
       const link = document.createElement("a");
-      link.href = fullPdfUrl;
+      link.href = downloadUrl;
       link.download = pdfName || pdfUrl || "document.pdf";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    } catch (downloadError) {
+      console.error("Download failed:", downloadError);
+      setError(downloadError?.message || "Failed to download PDF.");
     }
   };
 
-  // Print PDF
   const handlePrint = () => {
-    if (fullPdfUrl) {
-      window.open(fullPdfUrl, "_blank");
+    const printUrl = pdfFile || fullPdfUrl;
+    if (printUrl) {
+      window.open(printUrl, "_blank", "noopener,noreferrer");
     }
   };
 
-  // Handle page input change
-  const handlePageInputChange = (e) => {
-    setPageInput(e.target.value);
+  const handlePageInputChange = (event) => {
+    setPageInput(event.target.value);
   };
 
-  // Handle page input key press
-  const handlePageInputKeyPress = (e) => {
-    if (e.key === "Enter") {
+  const handlePageInputKeyDown = (event) => {
+    if (event.key === "Enter") {
       goToPage();
     }
   };
@@ -348,22 +314,269 @@ const PdfViewer = ({
     return null;
   }
 
+  const toolbar = (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+        padding: "8px 16px",
+        backgroundColor: "#fff",
+        borderBottom: "1px solid #e0e0e0",
+        flexWrap: "wrap",
+        flexShrink: 0,
+      }}
+    >
+      <Stack direction="row" spacing={0.5} alignItems="center">
+        <Tooltip title="First Page">
+          <span>
+            <IconButton
+              size="small"
+              onClick={goToFirstPage}
+              disabled={!numPages || pageNumber === 1}
+              sx={{ color: "#4caf50" }}
+            >
+              <FirstPageIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+        <Tooltip title="Previous Page">
+          <span>
+            <IconButton
+              size="small"
+              onClick={goToPrevPage}
+              disabled={!numPages || pageNumber === 1}
+              sx={{ color: "#4caf50" }}
+            >
+              <PrevPageIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+        <TextField
+          size="small"
+          value={pageInput}
+          onChange={handlePageInputChange}
+          onKeyDown={handlePageInputKeyDown}
+          onBlur={goToPage}
+          sx={{
+            width: "72px",
+            "& .MuiOutlinedInput-root": {
+              fontSize: "0.75rem",
+              height: "32px",
+            },
+          }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end" sx={{ fontSize: "0.75rem" }}>
+                / {numPages || "?"}
+              </InputAdornment>
+            ),
+          }}
+        />
+        <Tooltip title="Next Page">
+          <span>
+            <IconButton
+              size="small"
+              onClick={goToNextPage}
+              disabled={!numPages || pageNumber === numPages}
+              sx={{ color: "#4caf50" }}
+            >
+              <NextPageIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+        <Tooltip title="Last Page">
+          <span>
+            <IconButton
+              size="small"
+              onClick={goToLastPage}
+              disabled={!numPages || pageNumber === numPages}
+              sx={{ color: "#4caf50" }}
+            >
+              <LastPageIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      </Stack>
+
+      <Box sx={{ flexGrow: 1 }} />
+
+      <Stack direction="row" spacing={0.5} alignItems="center">
+        <Tooltip title="Zoom Out">
+          <span>
+            <IconButton
+              size="small"
+              onClick={zoomOut}
+              disabled={scale <= MIN_ZOOM}
+              sx={{ color: "#4caf50" }}
+            >
+              <ZoomOutIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+        <Typography sx={{ fontSize: "0.75rem", minWidth: "50px", textAlign: "center" }}>
+          {Math.round(scale * 100)}%
+        </Typography>
+        <Tooltip title="Zoom In">
+          <span>
+            <IconButton
+              size="small"
+              onClick={zoomIn}
+              disabled={scale >= MAX_ZOOM}
+              sx={{ color: "#4caf50" }}
+            >
+              <ZoomInIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+        <Tooltip title="Reset Zoom">
+          <IconButton size="small" onClick={resetZoom} sx={{ color: "#4caf50" }}>
+            <RefreshIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Stack>
+
+      <Stack direction="row" spacing={0.5}>
+        <Tooltip title="Download">
+          <IconButton size="small" onClick={handleDownload} sx={{ color: "#4caf50" }}>
+            <DownloadIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Print">
+          <IconButton size="small" onClick={handlePrint} sx={{ color: "#4caf50" }}>
+            <PrintIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title={fullscreen ? "Exit Fullscreen" : "Fullscreen"}>
+          <IconButton size="small" onClick={toggleFullscreen} sx={{ color: "#4caf50" }}>
+            {fullscreen ? (
+              <FullscreenExitIcon fontSize="small" />
+            ) : (
+              <FullscreenIcon fontSize="small" />
+            )}
+          </IconButton>
+        </Tooltip>
+      </Stack>
+    </Box>
+  );
+
+  const viewerBody = useFallback ? (
+    <Box sx={{ flex: 1, minHeight: 0, backgroundColor: "#525252" }}>
+      <iframe
+        src={`${fallbackViewerUrl}#toolbar=1&navpanes=1&scrollbar=1`}
+        title={pdfName || "PDF Document"}
+        width="100%"
+        height="100%"
+        style={{ border: "none", display: "block", minHeight: "400px" }}
+      />
+    </Box>
+  ) : (
+    <Box
+      sx={{
+        flex: 1,
+        minHeight: 0,
+        overflow: "auto",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        padding: "16px",
+        backgroundColor: "#525252",
+      }}
+    >
+      {loadingDocument ? (
+        <Box sx={{ color: "white", p: 3, textAlign: "center" }}>
+          <LinearProgress sx={{ mb: 2, maxWidth: "400px" }} />
+          <Typography variant="body2">Loading PDF...</Typography>
+        </Box>
+      ) : error && !useFallback ? (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+            width: "100%",
+          }}
+        >
+          <Alert severity="error" sx={{ mb: 2, maxWidth: "520px" }}>
+            {error}
+          </Alert>
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="contained"
+              onClick={() => {
+                setUseFallback(true);
+                setError(null);
+              }}
+              sx={{ backgroundColor: "#4caf50" }}
+            >
+              Open in Browser Viewer
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleDownload}
+              startIcon={<DownloadIcon />}
+              sx={{ borderColor: "#4caf50", color: "#4caf50" }}
+            >
+              Download PDF
+            </Button>
+          </Stack>
+        </Box>
+      ) : pdfFile ? (
+        <Document
+          file={pdfFile}
+          onLoadSuccess={onDocumentLoadSuccess}
+          onLoadError={onDocumentLoadError}
+          options={documentOptions}
+          loading={
+            <Box sx={{ color: "white", p: 3, textAlign: "center" }}>
+              <LinearProgress sx={{ mb: 2, maxWidth: "400px" }} />
+              <Typography variant="body2">Rendering PDF...</Typography>
+            </Box>
+          }
+          error={
+            <Box sx={{ color: "white", p: 3, textAlign: "center" }}>
+              <Alert severity="error" sx={{ mb: 2, maxWidth: "500px" }}>
+                Failed to load PDF.
+              </Alert>
+              <Button
+                variant="contained"
+                onClick={() => setUseFallback(true)}
+                sx={{ backgroundColor: "#4caf50" }}
+              >
+                Open in Browser Viewer
+              </Button>
+            </Box>
+          }
+        >
+          <Page
+            pageNumber={pageNumber}
+            scale={scale}
+            renderTextLayer
+            renderAnnotationLayer
+          />
+        </Document>
+      ) : null}
+    </Box>
+  );
+
   return (
     <Paper
       ref={containerRef}
-      elevation={3}
+      elevation={showHeader ? 3 : 0}
       sx={{
-        mt: 2,
+        mt: showHeader ? 2 : 0,
         display: "flex",
         flexDirection: "column",
-        height: height,
+        height,
         maxHeight: fullscreen ? "100vh" : height,
-        width: width,
+        width,
         overflow: "hidden",
         backgroundColor: "#fafafa",
+        borderRadius: showHeader ? 1 : 0,
       }}
     >
-      {/* Header */}
       {showHeader && (
         <Box
           sx={{
@@ -374,6 +587,7 @@ const PdfViewer = ({
             backgroundColor: "#4caf50",
             color: "white",
             borderBottom: "1px solid rgba(0,0,0,0.1)",
+            flexShrink: 0,
           }}
         >
           <Typography
@@ -389,328 +603,18 @@ const PdfViewer = ({
           >
             {pdfName || pdfUrl}
           </Typography>
-          {onClose && (
+          {onClose ? (
             <Tooltip title="Close PDF Viewer">
-              <IconButton
-                size="small"
-                onClick={onClose}
-                sx={{ color: "white" }}
-              >
+              <IconButton size="small" onClick={onClose} sx={{ color: "white" }}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-          )}
+          ) : null}
         </Box>
       )}
 
-      {/* Toolbar */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          padding: "8px 16px",
-          backgroundColor: "#fff",
-          borderBottom: "1px solid #e0e0e0",
-          flexWrap: "wrap",
-        }}
-      >
-        {/* Page Navigation */}
-        <Stack direction="row" spacing={0.5} alignItems="center">
-          <Tooltip title="First Page">
-            <IconButton
-              size="small"
-              onClick={goToFirstPage}
-              disabled={!numPages || pageNumber === 1}
-              sx={{ color: "#4caf50" }}
-            >
-              <FirstPageIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Previous Page">
-            <IconButton
-              size="small"
-              onClick={goToPrevPage}
-              disabled={!numPages || pageNumber === 1}
-              sx={{ color: "#4caf50" }}
-            >
-              <PrevPageIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <TextField
-            size="small"
-            value={pageInput}
-            onChange={handlePageInputChange}
-            onKeyPress={handlePageInputKeyPress}
-            onBlur={goToPage}
-            sx={{
-              width: "60px",
-              "& .MuiOutlinedInput-root": {
-                fontSize: "0.75rem",
-                height: "32px",
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end" sx={{ fontSize: "0.75rem" }}>
-                  / {numPages || "?"}
-                </InputAdornment>
-              ),
-            }}
-          />
-          <Tooltip title="Next Page">
-            <IconButton
-              size="small"
-              onClick={goToNextPage}
-              disabled={!numPages || pageNumber === numPages}
-              sx={{ color: "#4caf50" }}
-            >
-              <NextPageIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Last Page">
-            <IconButton
-              size="small"
-              onClick={goToLastPage}
-              disabled={!numPages || pageNumber === numPages}
-              sx={{ color: "#4caf50" }}
-            >
-              <LastPageIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-
-        <Box sx={{ flexGrow: 1 }} />
-
-        {/* Zoom Controls */}
-        <Stack direction="row" spacing={0.5} alignItems="center">
-          <Tooltip title="Zoom Out">
-            <IconButton
-              size="small"
-              onClick={zoomOut}
-              disabled={scale <= 0.5}
-              sx={{ color: "#4caf50" }}
-            >
-              <ZoomOutIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Typography sx={{ fontSize: "0.75rem", minWidth: "50px" }}>
-            {Math.round(scale * 100)}%
-          </Typography>
-          <Tooltip title="Zoom In">
-            <IconButton
-              size="small"
-              onClick={zoomIn}
-              disabled={scale >= 3.0}
-              sx={{ color: "#4caf50" }}
-            >
-              <ZoomInIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Reset Zoom">
-            <IconButton
-              size="small"
-              onClick={resetZoom}
-              sx={{ color: "#4caf50" }}
-            >
-              <RefreshIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-
-        <Box sx={{ width: "8px" }} />
-
-        {/* Actions */}
-        <Stack direction="row" spacing={0.5}>
-          <Tooltip title="Download">
-            <IconButton
-              size="small"
-              onClick={handleDownload}
-              sx={{ color: "#4caf50" }}
-            >
-              <DownloadIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Print">
-            <IconButton
-              size="small"
-              onClick={handlePrint}
-              sx={{ color: "#4caf50" }}
-            >
-              <PrintIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={fullscreen ? "Exit Fullscreen" : "Fullscreen"}>
-            <IconButton
-              size="small"
-              onClick={toggleFullscreen}
-              sx={{ color: "#4caf50" }}
-            >
-              {fullscreen ? (
-                <FullscreenExitIcon fontSize="small" />
-              ) : (
-                <FullscreenIcon fontSize="small" />
-              )}
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      </Box>
-
-      {/* PDF Viewer - Fallback to iframe if react-pdf fails */}
-      {useFallback ? (
-        <Box
-          sx={{
-            flex: 1,
-            overflow: "auto",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "flex-start",
-            padding: "20px",
-            backgroundColor: "#525252",
-          }}
-        >
-          <Box sx={{ width: "100%", height: "100%" }}>
-            <iframe
-              src={`${fullPdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
-              title={pdfName || "PDF Document"}
-              width="100%"
-              height="100%"
-              style={{
-                border: "none",
-                minHeight: "600px",
-                backgroundColor: "white",
-              }}
-            />
-            <Box sx={{ mt: 2, textAlign: "center" }}>
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  setUseFallback(false);
-                  setError(null);
-                  setLoading(true);
-                }}
-                sx={{ color: "#4caf50", borderColor: "#4caf50" }}
-              >
-                Try React PDF Viewer Again
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-      ) : (
-        <Box
-          sx={{
-            flex: 1,
-            overflow: "auto",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "flex-start",
-            padding: "20px",
-            backgroundColor: "#525252",
-          }}
-        >
-          {error ? (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "40px",
-                width: "100%",
-              }}
-            >
-              <Alert severity="error" sx={{ mb: 2, maxWidth: "500px" }}>
-                {error}
-              </Alert>
-              <Stack direction="row" spacing={2}>
-                <Button
-                  variant="contained"
-                  onClick={() => {
-                    setUseFallback(true);
-                    setError(null);
-                  }}
-                  sx={{ backgroundColor: "#4caf50" }}
-                >
-                  Try Alternative Viewer
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={handleDownload}
-                  startIcon={<DownloadIcon />}
-                  sx={{ borderColor: "#4caf50", color: "#4caf50" }}
-                >
-                  Download PDF
-                </Button>
-              </Stack>
-            </Box>
-          ) : (
-            <Document
-              file={fullPdfUrl}
-              onLoadSuccess={onDocumentLoadSuccess}
-              onLoadError={onDocumentLoadError}
-              loading={
-                <Box sx={{ color: "white", p: 3, textAlign: "center" }}>
-                  <LinearProgress sx={{ mb: 2, maxWidth: "400px" }} />
-                  <Typography variant="body1" sx={{ mb: 2 }}>
-                    Loading PDF...
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#aaa", fontSize: "0.75rem" }}
-                  >
-                    {fullPdfUrl}
-                  </Typography>
-                </Box>
-              }
-              error={
-                <Box sx={{ color: "white", p: 3, textAlign: "center" }}>
-                  <Alert severity="error" sx={{ mb: 2, maxWidth: "500px" }}>
-                    Failed to load PDF with react-pdf viewer.
-                  </Alert>
-                  <Stack direction="row" spacing={2}>
-                    <Button
-                      variant="contained"
-                      onClick={() => setUseFallback(true)}
-                      sx={{ backgroundColor: "#4caf50" }}
-                    >
-                      Use Alternative Viewer
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      onClick={handleDownload}
-                      startIcon={<DownloadIcon />}
-                      sx={{ borderColor: "#4caf50", color: "#4caf50" }}
-                    >
-                      Download PDF
-                    </Button>
-                  </Stack>
-                </Box>
-              }
-              options={{
-                cMapUrl: `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/cmaps/`,
-                cMapPacked: true,
-                standardFontDataUrl: `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/standard_fonts/`,
-                httpHeaders: (() => {
-                  // Add authentication token if available
-                  const token = localStorage.getItem(config.auth.tokenKey);
-                  const headers = {};
-                  if (token) {
-                    headers["Authorization"] = `Bearer ${token}`;
-                  }
-                  return headers;
-                })(),
-              }}
-            >
-              <Page
-                pageNumber={pageNumber}
-                scale={scale}
-                renderTextLayer={true}
-                renderAnnotationLayer={true}
-              />
-            </Document>
-          )}
-        </Box>
-      )}
+      {toolbar}
+      {viewerBody}
     </Paper>
   );
 };

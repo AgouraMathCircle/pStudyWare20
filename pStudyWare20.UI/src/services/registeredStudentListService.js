@@ -1,4 +1,5 @@
 import api from "./api";
+import { postExcelExport } from "../utils/excelExport";
 
 /**
  * Service for Registered Student List API calls
@@ -164,24 +165,13 @@ export const getStudentForUpdate = async (request) => {
  */
 export const exportStudentListToExcel = async (request) => {
   try {
-    const response = await api.post(
+    const fileName = await postExcelExport(
+      api,
       "/RegisteredStudentList/ExportStudentListToExcel",
       request,
-      {
-        responseType: "blob", // Important for file download
-      }
+      "StudentList.xlsx"
     );
-
-    // Create a download link
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "StudentList.xls");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    return { isSuccess: true, message: "Excel file downloaded successfully" };
+    return { isSuccess: true, fileName, message: "Excel file downloaded successfully" };
   } catch (error) {
     console.error("Error exporting to Excel:", error);
     throw error;

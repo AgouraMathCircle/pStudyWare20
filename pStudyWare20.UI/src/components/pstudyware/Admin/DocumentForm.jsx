@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   TextField,
   Select,
@@ -17,11 +13,11 @@ import {
   Grid,
   Chip,
 } from "@mui/material";
-import { APPLICATION_ADMIN_TITLE_COLOR } from "../../../styles/applicationSurfaces";
 import {
   CloudUpload as UploadIcon,
-  Close as CloseIcon,
 } from "@mui/icons-material";
+import PortalDialog from "../Common/PortalDialog";
+import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
 import documentService from "../../../services/documentService";
 
 const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
@@ -227,209 +223,183 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
   };
 
   return (
-    <Dialog
+    <PortalDialog
       open={open}
       onClose={onClose}
       maxWidth="md"
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
-        },
-      }}
-    >
-      <DialogTitle
-        sx={{
-          backgroundColor: APPLICATION_ADMIN_TITLE_COLOR,
-          color: "white",
-          fontWeight: 600,
-        }}
-      >
-        Upload Class Material (PDF only, max 2 MB)
-      </DialogTitle>
-
-      <DialogContent sx={{ mt: 2 }}>
-        {uploadError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {uploadError}
-          </Alert>
-        )}
-
-        <Grid container spacing={2}>
-          {/* Topics */}
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Topics"
-              name="topics"
-              value={formData.topics}
-              onChange={handleChange}
-              error={!!errors.topics}
-              helperText={errors.topics}
-              required
-              inputProps={{ maxLength: 100 }}
-            />
-          </Grid>
-
-          {/* Video URL */}
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Video URL"
-              name="videoURL"
-              value={formData.videoURL}
-              onChange={handleChange}
-              inputProps={{ maxLength: 100 }}
-            />
-          </Grid>
-
-          {/* File Upload */}
-          <Grid item xs={12}>
-            <Box
-              sx={{
-                border: "2px dashed",
-                borderColor: errors.file ? "error.main" : APPLICATION_ADMIN_TITLE_COLOR,
-                borderRadius: 2,
-                p: 2,
-                textAlign: "center",
-                backgroundColor: "grey.50",
-              }}
-            >
-              <input
-                accept="application/pdf"
-                style={{ display: "none" }}
-                id="file-upload"
-                type="file"
-                onChange={handleFileChange}
-              />
-              <label htmlFor="file-upload">
-                <Button
-                  variant="contained"
-                  component="span"
-                  startIcon={<UploadIcon />}
-                  sx={{ textTransform: "none", fontWeight: 500 }}
-                >
-                  Select PDF File
-                </Button>
-              </label>
-              {formData.file && (
-                <Box sx={{ mt: 2 }}>
-                  <Chip
-                    label={formData.file.name}
-                    color="primary"
-                    variant="outlined"
-                    onDelete={() =>
-                      setFormData((prev) => ({ ...prev, file: null }))
-                    }
-                  />
-                  <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                    Size: {(formData.file.size / 1024).toFixed(2)} KB
-                  </Typography>
-                </Box>
-              )}
-              {errors.file && (
-                <Typography color="error" variant="caption" sx={{ mt: 1 }}>
-                  {errors.file}
-                </Typography>
-              )}
-            </Box>
-          </Grid>
-
-          {/* Description */}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Description</InputLabel>
-              <Select
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                label="Description"
-              >
-                {descriptionOptions.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {/* Session */}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Session</InputLabel>
-              <Select
-                name="session"
-                value={formData.session}
-                onChange={handleChange}
-                label="Session"
-              >
-                {sessionOptions.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {/* Class */}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Class</InputLabel>
-              <Select
-                name="class"
-                value={formData.class}
-                onChange={handleChange}
-                label="Class"
-              >
-                {classOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {/* Publish */}
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Publish</InputLabel>
-              <Select
-                name="publish"
-                value={formData.publish}
-                onChange={handleChange}
-                label="Publish"
-              >
-                <MenuItem value="0">No</MenuItem>
-                <MenuItem value="1">Yes</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
-      </DialogContent>
-
-      <DialogActions sx={{ p: 2, gap: 1 }}>
-        <Button
-          onClick={onClose}
-          startIcon={<CloseIcon />}
-          disabled={loading}
-          sx={{ textTransform: "none" }}
-        >
-          Cancel
-        </Button>
+      disableClose={loading}
+      ariaLabelledby="document-form-dialog-title"
+      title="Upload Class Material (PDF only, max 2 MB)"
+      icon={<UploadIcon sx={{ fontSize: 20 }} />}
+      actions={
         <Button
           onClick={handleSubmit}
           variant="contained"
           disabled={loading}
-          startIcon={loading ? <CircularProgress size={20} /> : <UploadIcon />}
-          sx={{ textTransform: "none", fontWeight: 500, minWidth: 120 }}
+          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <UploadIcon />}
+          sx={portalModalSendButtonSx}
         >
           {loading ? "Uploading..." : "Upload"}
         </Button>
-      </DialogActions>
-    </Dialog>
+      }
+    >
+      {uploadError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {uploadError}
+        </Alert>
+      )}
+
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Topics"
+            name="topics"
+            value={formData.topics}
+            onChange={handleChange}
+            error={!!errors.topics}
+            helperText={errors.topics}
+            required
+            size="small"
+            inputProps={{ maxLength: 100 }}
+            sx={portalModalFieldSx}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Video URL"
+            name="videoURL"
+            value={formData.videoURL}
+            onChange={handleChange}
+            size="small"
+            inputProps={{ maxLength: 100 }}
+            sx={portalModalFieldSx}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <Box
+            sx={{
+              border: "2px dashed",
+              borderColor: errors.file ? "error.main" : "primary.main",
+              borderRadius: 2,
+              p: 2,
+              textAlign: "center",
+              backgroundColor: "grey.50",
+            }}
+          >
+            <input
+              accept="application/pdf"
+              style={{ display: "none" }}
+              id="file-upload"
+              type="file"
+              onChange={handleFileChange}
+            />
+            <label htmlFor="file-upload">
+              <Button
+                variant="contained"
+                component="span"
+                startIcon={<UploadIcon />}
+                sx={{ textTransform: "none", fontWeight: 500 }}
+              >
+                Select PDF File
+              </Button>
+            </label>
+            {formData.file && (
+              <Box sx={{ mt: 2 }}>
+                <Chip
+                  label={formData.file.name}
+                  color="primary"
+                  variant="outlined"
+                  onDelete={() =>
+                    setFormData((prev) => ({ ...prev, file: null }))
+                  }
+                />
+                <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                  Size: {(formData.file.size / 1024).toFixed(2)} KB
+                </Typography>
+              </Box>
+            )}
+            {errors.file && (
+              <Typography color="error" variant="caption" sx={{ mt: 1 }}>
+                {errors.file}
+              </Typography>
+            )}
+          </Box>
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+            <InputLabel>Description</InputLabel>
+            <Select
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              label="Description"
+            >
+              {descriptionOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+            <InputLabel>Session</InputLabel>
+            <Select
+              name="session"
+              value={formData.session}
+              onChange={handleChange}
+              label="Session"
+            >
+              {sessionOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+            <InputLabel>Class</InputLabel>
+            <Select
+              name="class"
+              value={formData.class}
+              onChange={handleChange}
+              label="Class"
+            >
+              {classOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+            <InputLabel>Publish</InputLabel>
+            <Select
+              name="publish"
+              value={formData.publish}
+              onChange={handleChange}
+              label="Publish"
+            >
+              <MenuItem value="0">No</MenuItem>
+              <MenuItem value="1">Yes</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+      </Grid>
+    </PortalDialog>
   );
 };
 

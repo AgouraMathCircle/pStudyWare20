@@ -4,17 +4,19 @@ import {
   School as SchoolIcon,
   CalendarToday as CalendarIcon,
 } from "@mui/icons-material";
-import { applicationRoleHeaderBarSx } from "../../../styles/applicationSurfaces";
-import instructorHeaderBg from "../../../assets/images/bg.jpg";
+import {
+  applicationRoleHeaderBarSx,
+  instructorPortalContentContainerProps,
+} from "../styles/applicationSurfaces";
+import { useRoleHeaderDateTime } from "../../../hooks/useRoleHeaderDateTime";
 
 /**
- * Fixed band under site navigation (same idea as AdminHeader).
- * `top` and stacking must match real Topbar + AppBar heights — hard-coded 64px
- * sits under the MUI AppBar (z-index 1100) and was invisible.
+ * Fixed band under site navigation — content aligned with dashboard cards (maxWidth xl).
  */
 const InstructorHeader = ({ user }) => {
   const theme = useTheme();
   const [topPx, setTopPx] = useState(72);
+  const dateTime = useRoleHeaderDateTime();
 
   const measureTopOffset = useCallback(() => {
     const topbar = document.querySelector(".topbar-container");
@@ -45,13 +47,8 @@ const InstructorHeader = ({ user }) => {
     <Box
       sx={{
         ...applicationRoleHeaderBarSx,
-        bgcolor: "transparent",
-        backgroundImage: `linear-gradient(rgba(232, 245, 233, 0.88), rgba(232, 245, 233, 0.88)), url(${instructorHeaderBg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        pt: 2,
-        pb: 0.5,
+        pt: 1.25,
+        pb: 0.35,
         position: "fixed",
         top: `${topPx}px`,
         left: 0,
@@ -60,64 +57,97 @@ const InstructorHeader = ({ user }) => {
         width: "100%",
       }}
     >
-      <Container maxWidth="xl">
+      <Container {...instructorPortalContentContainerProps}>
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "flex-end",
-            gap: 2,
-            flexWrap: "wrap",
+            justifyContent: "space-between",
+            gap: 1.5,
+            minHeight: 28,
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              backgroundColor: "#e8f5e9",
-              px: 2,
-              py: 0.75,
-              borderRadius: 2,
-              boxShadow: "0 2px 4px rgba(46, 125, 50, 0.1)",
-            }}
-          >
-            <SchoolIcon sx={{ fontSize: 18, color: "#2e7d32" }} />
-            <Typography
-              variant="body2"
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box
               sx={{
-                color: "#1b5e20",
-                fontWeight: 600,
-                display: { xs: "none", sm: "block" },
+                width: 28,
+                height: 28,
+                borderRadius: "9px",
+                backgroundColor: "#1565c0",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(21, 101, 192, 0.28)",
+                flexShrink: 0,
               }}
             >
-              Welcome, {user?.firstName || "Instructor"}
+              <SchoolIcon sx={{ fontSize: 16 }} />
+            </Box>
+            <Typography
+              sx={{
+                fontWeight: 700,
+                fontSize: "0.875rem",
+                color: "#0d47a1",
+                letterSpacing: "-0.01em",
+                lineHeight: 1.2,
+              }}
+            >
+              Instructor
             </Typography>
           </Box>
 
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              backgroundColor: "#fff3e0",
-              px: 2,
-              py: 0.75,
-              borderRadius: 2,
-              boxShadow: "0 2px 4px rgba(255, 152, 0, 0.1)",
-            }}
-          >
-            <CalendarIcon sx={{ fontSize: 18, color: "#f57c00" }} />
-            <Typography
-              variant="body2"
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box
               sx={{
-                color: "#e65100",
-                fontWeight: 600,
-                display: { xs: "none", sm: "block" },
+                display: "flex",
+                alignItems: "center",
+                backgroundColor: "#ffffff",
+                px: { xs: 1, sm: 1.25 },
+                py: 0.35,
+                borderRadius: "999px",
+                border: "1.5px solid #1976d2",
+                boxShadow: "0 1px 4px rgba(21, 101, 192, 0.12)",
               }}
             >
-              {new Date().toLocaleDateString()}
-            </Typography>
+              <Typography
+                sx={{
+                  color: "#0d47a1",
+                  fontWeight: 600,
+                  fontSize: "0.75rem",
+                  lineHeight: 1.2,
+                  display: { xs: "none", sm: "block" },
+                }}
+              >
+                Welcome, {user?.firstName || "Instructor"}
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                backgroundColor: "#e3f2fd",
+                px: { xs: 1, sm: 1.25 },
+                py: 0.35,
+                borderRadius: "999px",
+                border: "1px solid #90caf9",
+              }}
+            >
+              <CalendarIcon sx={{ fontSize: 14, color: "#1565c0" }} />
+              <Typography
+                sx={{
+                  color: "#0d47a1",
+                  fontWeight: 600,
+                  fontSize: "0.75rem",
+                  lineHeight: 1.2,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {dateTime}
+              </Typography>
+            </Box>
           </Box>
         </Box>
       </Container>

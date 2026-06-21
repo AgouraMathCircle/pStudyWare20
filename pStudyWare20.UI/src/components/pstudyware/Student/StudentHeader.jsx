@@ -3,20 +3,16 @@ import {
   Box,
   Container,
   Typography,
-  useTheme,
-  useMediaQuery,
 } from "@mui/material";
 import {
-  Person as PersonIcon,
   CalendarToday as CalendarIcon,
   Dashboard as DashboardIcon,
 } from "@mui/icons-material";
-import { applicationRoleHeaderBarSx } from "../../../styles/applicationSurfaces";
+import { applicationRoleHeaderBarSx } from "../styles/applicationSurfaces";
+import { useRoleHeaderDateTime } from "../../../hooks/useRoleHeaderDateTime";
 
 const StudentHeader = ({ user }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
+  const dateTime = useRoleHeaderDateTime();
   return (
     <Box
       sx={{
@@ -24,7 +20,7 @@ const StudentHeader = ({ user }) => {
         pt: 2,
         pb: 0.5,
         position: "fixed",
-        top: "64px", // Position directly below Navbar
+        top: "64px",
         left: 0,
         right: 0,
         zIndex: 1000,
@@ -40,7 +36,6 @@ const StudentHeader = ({ user }) => {
             gap: 2,
           }}
         >
-          {/* Left: portal title */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
             <Box
               sx={{
@@ -59,19 +54,17 @@ const StudentHeader = ({ user }) => {
             </Box>
             <Typography
               sx={{
-                fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-                fontWeight: 800,
+                fontWeight: 700,
                 fontSize: "1.05rem",
                 color: "#1b5e20",
                 letterSpacing: "-0.01em",
                 display: { xs: "none", sm: "block" },
               }}
             >
-              Student Dashboard
+              Student
             </Typography>
           </Box>
 
-          {/* Right: welcome + date */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
             <Box
               sx={{
@@ -136,13 +129,10 @@ const StudentHeader = ({ user }) => {
                   color: "#1b5e20",
                   fontWeight: 600,
                   display: { xs: "none", sm: "block" },
+                  whiteSpace: "nowrap",
                 }}
               >
-                {new Date().toLocaleDateString('en-US', {
-                  month: 'numeric',
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
+                {dateTime}
               </Typography>
             </Box>
           </Box>

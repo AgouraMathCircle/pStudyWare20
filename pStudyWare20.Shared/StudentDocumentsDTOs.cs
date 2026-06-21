@@ -84,6 +84,9 @@ namespace pStudyWare20.Shared
         [Required(ErrorMessage = "Student ID is required")]
         public string StudentID { get; set; } = string.Empty;
 
+        [Display(Name = "Student Name")]
+        public string StudentName { get; set; } = string.Empty;
+
         [Display(Name = "Session")]
         [Required(ErrorMessage = "Session is required")]
         public string Session { get; set; } = string.Empty;
@@ -185,6 +188,25 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Message")]
         public string Message { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Student document file payload for view/download endpoints.
+    /// </summary>
+    public class StudentDocumentFileResponse
+    {
+        public bool IsSuccess { get; set; }
+
+        public string ErrorMessage { get; set; } = string.Empty;
+
+        public byte[] FileContent { get; set; } = Array.Empty<byte>();
+
+        public string ContentType { get; set; } = "application/pdf";
+
+        public string FileName { get; set; } = string.Empty;
+
+        /// <summary>Absolute path on disk when resolved (for diagnostics/logging).</summary>
+        public string FilePath { get; set; } = string.Empty;
     }
 
     /// <summary>

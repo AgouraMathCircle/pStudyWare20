@@ -1,14 +1,17 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  Box,
   Card,
   CardContent,
   CardHeader,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Typography,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
 } from "@mui/material";
 import {
   Support as SupportIcon,
@@ -17,17 +20,17 @@ import {
 import {
   adminPortalCardHeaderStripSx,
   adminDashboardWidgetCardSx,
-  adminDashboardWidgetCardContentFlushSx,
+  adminDashboardWidgetCardContentSx,
   adminDashboardWidgetTitleSx,
-  adminDashboardWidgetListItemButtonSx,
-  adminDashboardWidgetListItemTextProps,
+  adminDashboardWidgetTrackingHeaderCellSx,
+  adminDashboardWidgetTrackingCellSx,
+  adminDashboardWidgetTrackingTableSx,
   adminDashboardWidgetTableRowSx,
-} from "../../../styles/applicationSurfaces";
+} from "../styles/applicationSurfaces";
 
 const SystemSupport = () => {
   const navigate = useNavigate();
 
-  // Define system support links
   const supportLinks = [
     {
       label: "Student Waiting List",
@@ -90,15 +93,7 @@ const SystemSupport = () => {
   };
 
   return (
-    <Card
-      elevation={3}
-      className="admin-dashboard-widget-card"
-      sx={{
-        ...adminDashboardWidgetCardSx,
-        width: "100%",
-        maxWidth: "100%",
-      }}
-    >
+    <Card elevation={3} className="admin-dashboard-widget-card" sx={adminDashboardWidgetCardSx}>
       <CardHeader
         avatar={<SupportIcon fontSize="small" />}
         title={
@@ -108,48 +103,47 @@ const SystemSupport = () => {
         }
         sx={adminPortalCardHeaderStripSx}
       />
-      <CardContent sx={adminDashboardWidgetCardContentFlushSx}>
-        <List
-          dense
-          disablePadding
-          className="admin-dashboard-widget-list"
-          sx={{
-            py: 0,
-            flex: 1,
-            minHeight: 0,
-            overflow: "auto",
-          }}
-        >
-          {supportLinks.map((link, index) => (
-            <ListItem
-              key={index}
-              disablePadding
-              sx={{
-                minHeight: 0,
-                py: 0,
-                ...adminDashboardWidgetTableRowSx,
-              }}
-            >
-              <ListItemButton
-                onClick={() => handleLinkClick(link)}
-                sx={{
-                  ...adminDashboardWidgetListItemButtonSx,
-                  width: "100%",
-                  backgroundColor: "transparent",
-                  "&:hover": {
-                    backgroundColor: (theme) => theme.palette.action.selected,
-                  },
-                }}
-              >
-                <ListItemText
-                  primary={link.label}
-                  primaryTypographyProps={adminDashboardWidgetListItemTextProps}
-                />
-                <ChevronRightIcon sx={{ fontSize: "0.875rem" }} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
+      <CardContent sx={adminDashboardWidgetCardContentSx}>
+        <TableContainer sx={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+          <Table
+            size="small"
+            className="admin-dashboard-widget-table admin-dashboard-widget-count-table admin-dashboard-widget-support-table"
+            sx={adminDashboardWidgetTrackingTableSx}
+          >
+            <TableHead>
+              <TableRow>
+                <TableCell sx={adminDashboardWidgetTrackingHeaderCellSx}>Link</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {supportLinks.map((link, index) => (
+                <TableRow
+                  key={index}
+                  hover
+                  onClick={() => handleLinkClick(link)}
+                  sx={{
+                    ...adminDashboardWidgetTableRowSx,
+                    cursor: "pointer",
+                  }}
+                >
+                  <TableCell sx={adminDashboardWidgetTrackingCellSx}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 0.5,
+                      }}
+                    >
+                      <span>{link.label}</span>
+                      <ChevronRightIcon sx={{ fontSize: "0.875rem", flexShrink: 0 }} />
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </CardContent>
     </Card>
   );
