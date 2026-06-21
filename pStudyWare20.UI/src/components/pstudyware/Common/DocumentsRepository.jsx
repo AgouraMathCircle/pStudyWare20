@@ -78,8 +78,10 @@ const DocumentsRepository = () => {
       return;
     }
 
-    const previewWindow = window.open("about:blank", "_blank");
-    if (!previewWindow) {
+    const isPdf = documentService.isPdfDocumentName(docName);
+    const previewWindow = isPdf ? window.open("about:blank", "_blank") : null;
+
+    if (isPdf && !previewWindow) {
       showMessage(
         "Unable to open document. Please allow popups for this site.",
         "error",
@@ -87,9 +89,11 @@ const DocumentsRepository = () => {
       return;
     }
 
-    previewWindow.document.title = docName;
-    previewWindow.document.body.innerHTML =
-      '<p style="font-family:sans-serif;padding:16px;">Loading document...</p>';
+    if (previewWindow) {
+      previewWindow.document.title = docName;
+      previewWindow.document.body.innerHTML =
+        '<p style="font-family:sans-serif;padding:16px;">Loading document...</p>';
+    }
 
     documentService.viewRepositoryDocument(docName, previewWindow).catch((error) => {
       console.error("Error opening repository document:", error);
