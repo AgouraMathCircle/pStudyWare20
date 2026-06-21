@@ -173,7 +173,26 @@ const Courses = () => {
                       marginBottom: "8px",
                     }}
                   >
-                    Test Preparation - ACT and SAT/PSAT
+                    Test Preparation - ACT and SAT/PSAT -{" "}
+                    <Button
+                      variant="text"
+                      href="/registration/student"
+                      component="a"
+                      sx={{
+                        color: "#53b50a",
+                        textTransform: "none",
+                        padding: "0",
+                        minWidth: "auto",
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        "&:hover": {
+                          color: "#4a9d09",
+                          backgroundColor: "transparent",
+                        },
+                      }}
+                    >
+                      Register
+                    </Button>
                   </Typography>
                   <Typography
                     variant="body2"

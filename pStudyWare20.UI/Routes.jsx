@@ -31,6 +31,7 @@ import AwardCeremony2019 from "./src/components/AwardCeremony2019";
 import AwardCeremony2023 from "./src/components/AwardCeremony2023";
 import AwardCeremony2024 from "./src/components/AwardCeremony2024";
 import AwardCeremony2025 from "./src/components/AwardCeremony2025";
+import AwardCeremony2026 from "./src/components/AwardCeremony2026";
 import EC from "./src/components/EC";
 import FieldTrip2016 from "./src/components/FieldTrip2016";
 import MathKangaroo from "./src/components/MathKangaroo";
@@ -127,6 +128,10 @@ const AppRoutes = () => {
             <Route path="/contact" element={<Contact />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/gallery/photo" element={<PhotoGallery />} />
+            <Route
+              path="/gallery/photo/AwardCeremony2026"
+              element={<AwardCeremony2026 />}
+            />
             <Route
               path="/gallery/photo/AwardCeremony2025"
               element={<AwardCeremony2025 />}

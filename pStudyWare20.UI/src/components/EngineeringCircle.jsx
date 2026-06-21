@@ -191,23 +191,20 @@ const EngineeringCircle = () => {
                   AGOURA ENGINEERING CIRCLE
                 </Typography>
                 <Box className="des about-cont">
-                  <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 3 }}>
-                    Welcome to the Agoura Engineering Circle. Usually
-                    Mathematics and Computer programming, the two most universal
-                    languages, are taught independent of each other or they're
-                    taught one after the other. As part of Agoura Engineering
-                    Circle, we are trying to combine these two universal
-                    languages and solve some interesting problems. We will start
-                    out our journey by introducing basic programming concepts
-                    like branching, iteration, modular coding and data
-                    structures while solving mathematics problems that most
-                    students can understand but not necessarily solve by hand
-                    easily. This type of interdisciplinary learning helps in
-                    learning two things at the same time along with reinforcing
-                    any prior knowledge. Once everyone has achieved some
-                    proficiency in programming, we will move on to solving
-                    artificial intelligence and machine learning challenges. The
-                    goal of this program is to help students:
+                  <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 3, fontSize: "15px", color: "#333" }}>
+                    Welcome to the Agoura Engineering Circle.
+                  </Typography>
+                  <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 3, fontSize: "15px", color: "#333" }}>
+                    Agoura Engineering Circle (AEC) has completed a strong academic year (2025 - 2026), successfully delivering interdisciplinary STEM programs to a growing community of learners at no cost. The coming year marks an important evolution for AEC: an expanded four-course curriculum spanning both semesters. This reflects deliberate, thoughtful evolution of existing courses. The <em>Introduction to AI</em> course is being revised to place greater emphasis on conceptual understanding as well as real-world applications - ensuring students develop genuine insight into how AI works, not just technical algorithms and surface-level familiarity with tools. The <em>Foundations of Data Science</em> course is similarly being revised to be more project-based, giving students more hands-on experience with real datasets and end-to-end problem solving.
+                  </Typography>
+                  <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 3, fontSize: "15px", color: "#333" }}>
+                    A new course <em>Concept to Creation: Engineering Design and 3D Modeling</em> offered in Spring 2026 is one of AEC's most distinctive new offerings - and one that fills a genuine gap in students' educational pathways. Engineering design and 3D modeling form the foundational language of nearly every physical engineering discipline. Students who develop fluency here are better prepared for mechanical engineering, civil engineering, aeronautical and aerospace engineering, robotics, and many other fields where translating ideas into designed, buildable structures is a core professional skill.
+                  </Typography>
+                  <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 3, fontSize: "15px", color: "#333" }}>
+                    Another new course scheduled for Spring 2027 <em>Foundations of Cryptology - Cryptanalysis & Modern Cryptography</em> is designed with a dual impact in mind. In addition to its academic value as a rigorous introduction to cryptanalysis and modern cryptography, the course is specifically structured to prepare students for real-world applications and academic milestones.
+                  </Typography>
+                  <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 3, fontSize: "15px", color: "#333" }}>
+                    All courses are offered virtually on alternate weekends, making them accessible to students across the greater Los Angeles area and beyond. Instruction, materials, and registration are provided entirely free of charge.
                   </Typography>
                 </Box>
                 <Box sx={{ textAlign: { xs: "center", md: "left" }, mt: 2 }}>

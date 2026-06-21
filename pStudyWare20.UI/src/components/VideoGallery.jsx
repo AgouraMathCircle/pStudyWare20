@@ -45,7 +45,7 @@ const VideoGallery = () => {
           <img src={pageHeaderImg} alt="Breadcrumbs Image" />
         </div>
         <div className="breadcrumbs-text white-color">
-          <h1 className="page-title">GALLERY</h1>
+          <h1 className="page-title">VIDEO GALLERY</h1>
           <ul>
             <li>
               <Link to="/" className="active">
