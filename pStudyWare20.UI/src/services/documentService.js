@@ -216,15 +216,11 @@ const documentService = {
       return;
     }
 
-    const blob = await documentService.fetchDocumentBlob(docName, endpoint);
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = docName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    const { blob, fileName } = await documentService.fetchDocumentBlobWithMeta(
+      docName,
+      endpoint,
+    );
+    documentService.saveBlobAsFile(blob, fileName || docName);
   },
 
   /**
@@ -473,8 +469,65 @@ const documentService = {
    * @param {string} docName - Document file name
    * @returns {Promise<Blob>} PDF blob
    */
-  fetchClassMaterialBlob: async (docName) =>
-    documentService.fetchDocumentBlob(docName, "/Document/ViewClassMaterial"),
+  fetchClassMaterialBlob: async (docName) => {
+    const { blob } = await documentService.fetchDocumentBlobWithMeta(
+      docName,
+      "/Document/ViewClassMaterial",
+    );
+    return blob;
+  },
+
+  /**
+   * @param {string} fileName
+   * @returns {boolean}
+   */
+  isPdfDocumentName: (fileName) => /\.pdf$/i.test(String(fileName || "").trim()),
+
+  /**
+   * @param {string} header
+   * @returns {string}
+   */
+  parseContentDispositionFilename: (header) => {
+    if (!header) {
+      return "";
+    }
+
+    const utf8Match = header.match(/filename\*=UTF-8''([^;]+)/i);
+    if (utf8Match?.[1]) {
+      try {
+        return decodeURIComponent(utf8Match[1].trim());
+      } catch {
+        return utf8Match[1].trim();
+      }
+    }
+
+    const quotedMatch = header.match(/filename="([^"]+)"/i);
+    if (quotedMatch?.[1]) {
+      return quotedMatch[1].trim();
+    }
+
+    const plainMatch = header.match(/filename=([^;]+)/i);
+    return plainMatch?.[1]?.trim().replace(/^"|"$/g, "") || "";
+  },
+
+  /**
+   * Save a blob to disk with the original file name (avoids GUID blob URLs).
+   * @param {Blob} blob
+   * @param {string} fileName
+   */
+  saveBlobAsFile: (blob, fileName) => {
+    const safeName = String(fileName || "document").trim() || "document";
+    const typedBlob = documentService.withDocumentBlobType(blob, safeName);
+    const url = window.URL.createObjectURL(typedBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = safeName;
+    link.rel = "noopener";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  },
 
   /**
    * Build a full API URL for document view/download endpoints.
@@ -490,59 +543,11 @@ const documentService = {
   },
 
   /**
-   * Open a fetched document blob in a new tab without popup blockers.
-   * Pass previewWindow from the click handler so window.open runs synchronously.
-   * @param {() => Promise<Blob>} fetchBlob
-   * @param {string} docName
-   * @param {Record<string, unknown>} logContext
-   * @param {Window|null} previewWindow
-   * @returns {Promise<void>}
-   */
-  openDocumentBlobInNewWindow: async (
-    fetchBlob,
-    docName,
-    logContext = {},
-    previewWindow = null,
-  ) => {
-    const targetWindow =
-      previewWindow ?? window.open("about:blank", "_blank");
-    if (!targetWindow) {
-      throw new Error(
-        "Unable to open document. Please allow popups for this site.",
-      );
-    }
-
-    targetWindow.document.title = docName || "Document";
-    targetWindow.document.body.innerHTML =
-      '<p style="font-family:sans-serif;padding:16px;">Loading document...</p>';
-
-    try {
-      const blob = await fetchBlob();
-      const typedBlob = documentService.withDocumentBlobType(blob, docName);
-      const objectUrl = window.URL.createObjectURL(typedBlob);
-
-      console.info("[documentService] Document blob ready", {
-        docName,
-        contentType: typedBlob.type,
-        sizeBytes: typedBlob.size,
-        objectUrl,
-        ...logContext,
-      });
-
-      targetWindow.location.replace(objectUrl);
-      targetWindow.opener = null;
-      setTimeout(() => window.URL.revokeObjectURL(objectUrl), 120000);
-    } catch (error) {
-      targetWindow.close();
-      throw error;
-    }
-  },
-
-  /**
    * Open a Docs Repository file (Word/Excel/PowerPoint) via API storage.
-   * Legacy static AMC_Docs URLs are not served on production servers.
+   * PDF opens inline in a new tab; Office files download with the original file name
+   * (browsers cannot render Word/Excel/PowerPoint from blob URLs).
    * @param {string} docName - Document file name
-   * @param {Window|null} previewWindow - Open synchronously from click handler
+   * @param {Window|null} previewWindow - Open synchronously from click handler (PDF only)
    * @returns {Promise<void>}
    */
   viewRepositoryDocument: async (docName, previewWindow = null) => {
@@ -556,9 +561,11 @@ const documentService = {
       fileName: docName,
     });
     const legacyStaticUrl = getPublicDocumentUrl(`AMC_Docs/${docName}`);
+    const isPdf = documentService.isPdfDocumentName(docName);
 
     console.info("[documentService] Opening repository document", {
       docName,
+      isPdf,
       environment: config.app.environment,
       apiBaseUrl: getApiUrl() || config.api.url,
       viewApiUrl,
@@ -569,17 +576,36 @@ const documentService = {
         "Server storage: DocumentStorage:RepositoryDocsPath (pStudyWare/AMC_Docs)",
     });
 
-    await documentService.openDocumentBlobInNewWindow(
-      () => documentService.fetchClassMaterialBlob(docName),
-      docName,
-      {
-        source: "repository",
-        viewApiUrl,
-        legacyStaticUrl,
-        environment: config.app.environment,
-      },
-      previewWindow,
-    );
+    try {
+      const { blob, fileName } = await documentService.fetchDocumentBlobWithMeta(
+        docName,
+        endpoint,
+      );
+      const resolvedName = fileName || docName;
+      const typedBlob = documentService.withDocumentBlobType(blob, resolvedName);
+
+      if (isPdf) {
+        const targetWindow =
+          previewWindow ?? window.open("about:blank", "_blank");
+        if (!targetWindow) {
+          throw new Error(
+            "Unable to open document. Please allow popups for this site.",
+          );
+        }
+
+        const objectUrl = window.URL.createObjectURL(typedBlob);
+        targetWindow.location.replace(objectUrl);
+        targetWindow.opener = null;
+        setTimeout(() => window.URL.revokeObjectURL(objectUrl), 120000);
+        return;
+      }
+
+      previewWindow?.close();
+      documentService.saveBlobAsFile(typedBlob, resolvedName);
+    } catch (error) {
+      previewWindow?.close();
+      throw error;
+    }
   },
 
   /**
@@ -618,9 +644,23 @@ const documentService = {
    * Fetch a document file from an API endpoint.
    * @param {string} docName - Document file name
    * @param {string} endpoint - API endpoint path
-   * @returns {Promise<Blob>} PDF blob
+   * @returns {Promise<Blob>}
    */
   fetchDocumentBlob: async (docName, endpoint) => {
+    const { blob } = await documentService.fetchDocumentBlobWithMeta(
+      docName,
+      endpoint,
+    );
+    return blob;
+  },
+
+  /**
+   * Fetch a document file and return blob plus resolved file name from headers.
+   * @param {string} docName
+   * @param {string} endpoint
+   * @returns {Promise<{ blob: Blob, fileName: string, contentType: string, resolvedFilePath: string }>}
+   */
+  fetchDocumentBlobWithMeta: async (docName, endpoint) => {
     try {
       const requestUrl = documentService.buildDocumentApiUrl(endpoint, {
         fileName: docName,
@@ -640,11 +680,16 @@ const documentService = {
 
       const blob = response.data;
       const contentType = response.headers?.["content-type"] || "";
-      const resolvedFilePath = response.headers?.["x-document-file-path"];
+      const resolvedFilePath = response.headers?.["x-document-file-path"] || "";
+      const headerFileName = documentService.parseContentDispositionFilename(
+        response.headers?.["content-disposition"],
+      );
+      const fileName = headerFileName || docName;
 
       if (resolvedFilePath) {
         console.info("[documentService] Document resolved on server", {
           docName,
+          fileName,
           requestUrl,
           resolvedFilePath,
           environment: config.app.environment,
@@ -659,9 +704,26 @@ const documentService = {
         throw new Error(message || "Unable to open document.");
       }
 
-      return blob instanceof Blob
-        ? blob
-        : new Blob([blob], { type: "application/pdf" });
+      const normalizedBlob =
+        blob instanceof Blob
+          ? blob
+          : new Blob([blob], { type: "application/pdf" });
+
+      console.info("[documentService] Document blob ready", {
+        docName,
+        fileName,
+        contentType: normalizedBlob.type || contentType,
+        sizeBytes: normalizedBlob.size,
+        resolvedFilePath,
+        requestUrl,
+      });
+
+      return {
+        blob: normalizedBlob,
+        fileName,
+        contentType,
+        resolvedFilePath,
+      };
     } catch (error) {
       if (error.response?.status === 401) {
         console.error(
