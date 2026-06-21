@@ -45,7 +45,7 @@ import emailManagerService from "../../../services/emailManagerService";
 import StudentHeader from "../Student/StudentHeader";
 import AdminHeader from "../Admin/AdminHeader";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
-import { getPortalUsername } from "../../../utils/portalUsername";
+import { getPortalUsername, getPortalLoginIdentifier } from "../../../utils/portalUsername";
 import {
   getMessagePreview,
   getMessageFieldValue,
@@ -76,7 +76,7 @@ import {
   adminSessionListTableHeadCellSx,
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
-  adminSessionListToolbarButtonSx,
+  portalHeaderActionButtonSx,
   portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import {
@@ -99,6 +99,20 @@ const getEmailTrackingId = (message) => {
   const parsed = Number(id);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
+
+const getMessageSenderDisplay = (message) =>
+  message?.senderName ||
+  message?.SenderName ||
+  message?.sendFrom ||
+  message?.SendFrom ||
+  "";
+
+const getMessageReplyRecipient = (message) =>
+  message?.senderUsername ||
+  message?.SenderUsername ||
+  message?.sendFrom ||
+  message?.SendFrom ||
+  "";
 
 const MESSAGE_TABLE_COLUMN_WIDTHS = {
   actions: 128,
@@ -202,6 +216,7 @@ const EmailManager = () => {
   // Member type
   const memberType = user?.memberType?.toUpperCase() || "";
   const username = getPortalUsername(user);
+  const loginIdentifier = getPortalLoginIdentifier(user);
   const firstName = user?.firstName || "";
   const chapterId = user?.chapterID || "1";
 
@@ -220,7 +235,7 @@ const EmailManager = () => {
         return "";
       }
       return memberType === "S"
-        ? "Please select an instructor to send to"
+        ? "Please select From"
         : "Please select a student to send to";
     }
     return "";
@@ -315,7 +330,7 @@ const EmailManager = () => {
     } else if (memberType === "I" || memberType === "V" || memberType === "S") {
       loadStudentList();
     }
-  }, [username, memberType]);
+  }, [username, memberType, loginIdentifier]);
 
   // Apply search when messages or search criteria change
   useEffect(() => {
@@ -393,7 +408,7 @@ const EmailManager = () => {
   const loadStudentList = async () => {
     try {
       const response = await emailManagerService.getStudentListForEmail({
-        username,
+        username: loginIdentifier,
         memberType: "I",
       });
       if (response.isSuccess) {
@@ -409,7 +424,7 @@ const EmailManager = () => {
     const rowBody = message.message || message.Message || "";
 
     setSubject(message.subject || message.Subject || "");
-    setSendTo(message.sendFrom || message.SendFrom || "");
+    setSendTo(getMessageSenderDisplay(message));
     setMessageBody(rowBody);
     setSelectedMessage(message);
     setFormMode("view");
@@ -455,9 +470,9 @@ const EmailManager = () => {
 
   const handleReplyMessage = (message) => {
     setSelectedMessage(message);
-    setSubject(message.subject);
+    setSubject(message.subject || message.Subject || "");
     setMessageBody("");
-    setSendTo(message.sendFrom);
+    setSendTo(getMessageSenderDisplay(message));
     setFormMode("reply");
     setMessageModalOpen(true);
   };
@@ -550,17 +565,22 @@ const EmailManager = () => {
       // Determine sendTo based on member type
       if (memberType === "A") {
         if (formMode === "reply") {
-          finalSendTo = sendTo;
-          finalSendBy = selectedMessage?.sendBy || "";
+          finalSendTo = getMessageReplyRecipient(selectedMessage);
+          finalSendBy =
+            selectedMessage?.sendBy || selectedMessage?.SendBy || "";
         } else {
           finalSendTo = selectedClass;
         }
       } else if (memberType === "I" || memberType === "V" || memberType === "S") {
         if (formMode === "reply") {
-          finalSendTo = sendTo;
-          finalSendBy = selectedMessage?.sendBy || "";
+          finalSendTo = getMessageReplyRecipient(selectedMessage);
+          finalSendBy =
+            selectedMessage?.sendBy || selectedMessage?.SendBy || "";
           if (memberType === "S") {
-            finalFromName = selectedMessage?.senderName || finalFromName;
+            finalFromName =
+              selectedMessage?.senderName ||
+              selectedMessage?.SenderName ||
+              finalFromName;
           }
         } else {
           const studentInfo = selectedStudent.split("~");
@@ -851,11 +871,11 @@ useSessionListTableUi
                 variant="contained"
                 color={useSessionListTableUi ? "success" : undefined}
                 size={useSessionListTableUi ? "small" : "medium"}
-                startIcon={<SendIcon />}
+                startIcon={<SendIcon fontSize="inherit" />}
                 onClick={handleOpenCompose}
                 sx={
                   useSessionListTableUi
-                    ? adminSessionListToolbarButtonSx
+                    ? portalHeaderActionButtonSx
                     : {
                         backgroundColor: "#4caf50",
                         fontSize: "0.875rem",
@@ -872,11 +892,11 @@ useSessionListTableUi
                 variant="contained"
                 color={useSessionListTableUi ? "success" : undefined}
                 size={useSessionListTableUi ? "small" : "medium"}
-                startIcon={<DownloadIcon />}
+                startIcon={<DownloadIcon fontSize="inherit" />}
                 onClick={handleExportToExcel}
                 sx={
                   useSessionListTableUi
-                    ? adminSessionListToolbarButtonSx
+                    ? portalHeaderActionButtonSx
                     : {
                         backgroundColor: "#4caf50",
                         fontSize: "0.875rem",
@@ -896,7 +916,7 @@ useSessionListTableUi
                 onClick={() => navigate("/pstudyware/sentemail")}
                 sx={
                   useSessionListTableUi
-                    ? adminSessionListToolbarButtonSx
+                    ? portalHeaderActionButtonSx
                     : {
                         backgroundColor: "#4caf50",
                         fontSize: "0.875rem",
@@ -1685,18 +1705,12 @@ useSessionListTableUi
                     error={!!composeRecipientFieldError}
                   >
                     <InputLabel>
-                      {memberType === "S"
-                        ? "Send To (Instructor)"
-                        : "Send To (Student)"}
+                      {memberType === "S" ? "From" : "Send To (Student)"}
                     </InputLabel>
                     <Select
                       value={selectedStudent}
                       onChange={(e) => setSelectedStudent(e.target.value)}
-                      label={
-                        memberType === "S"
-                          ? "Send To (Instructor)"
-                          : "Send To (Student)"
-                      }
+                      label={memberType === "S" ? "From" : "Send To (Student)"}
                       disabled={sendingMessage}
                     >
                       <MenuItem value="" disabled>

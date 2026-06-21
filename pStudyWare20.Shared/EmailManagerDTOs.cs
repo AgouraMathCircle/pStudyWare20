@@ -41,6 +41,8 @@ namespace pStudyWare20.Shared
         public DateTime SendDate { get; set; }
         public string Status { get; set; } = string.Empty;
         public string SenderName { get; set; } = string.Empty;
+        /// <summary>Raw ET.SendFrom username parsed from legacy Emailinfo (used for replies).</summary>
+        public string SenderUsername { get; set; } = string.Empty;
     }
 
     /// <summary>

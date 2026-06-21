@@ -15,9 +15,9 @@ import {
   Typography,
 } from "@mui/material";
 import {
+  CloudUpload as UploadIcon,
   Delete as DeleteIcon,
   Publish as PublishIcon,
-  Add as AddIcon,
 } from "@mui/icons-material";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
@@ -48,7 +48,7 @@ import {
   adminSessionListTableHeadCellSx,
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
-  adminSessionListToolbarButtonSx,
+  portalHeaderActionButtonSx,
   studentPortalIntroTextSx,
   studentPortalLinkSx,
 } from "../styles/applicationSurfaces";
@@ -487,9 +487,9 @@ const InstructorClassMaterialList = ({
               variant="contained"
               color="success"
               size="small"
-              startIcon={<AddIcon />}
+              startIcon={<UploadIcon fontSize="inherit" />}
               onClick={onAdd}
-              sx={adminSessionListToolbarButtonSx}
+              sx={portalHeaderActionButtonSx}
             >
               Upload Documents
             </Button>

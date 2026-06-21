@@ -1,4 +1,5 @@
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using pStudyWare20.Data.Models;
 using pStudyWare20.Repository.Helpers;
@@ -291,7 +292,7 @@ namespace pStudyWare20.Repository.Implementations
         {
             try
             {
-                username = await PortalUsernameResolver.ResolveAsync(_context, username);
+                username = await ResolveStudentListUsernameAsync(username);
 
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
@@ -314,6 +315,33 @@ namespace pStudyWare20.Repository.Implementations
             {
                 throw new Exception($"Error getting student list for email: {ex.Message}", ex);
             }
+        }
+
+        /// <summary>
+        /// Legacy EmailManager.aspx.cs (member type S) passes Session["Username"] into
+        /// AMC_spSelectStudentListbyUserName, which matches parent AMC_tblUsers.coluserEmail.
+        /// </summary>
+        private async Task<string> ResolveStudentListUsernameAsync(string identifier)
+        {
+            if (string.IsNullOrWhiteSpace(identifier))
+            {
+                return string.Empty;
+            }
+
+            var resolvedUsername = await PortalUsernameResolver.ResolveAsync(_context, identifier);
+            var upper = resolvedUsername.ToUpperInvariant();
+
+            var member = await _context.MemberMasters
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m =>
+                    m.UserName != null && m.UserName.ToUpper() == upper);
+
+            if (string.Equals(member?.MemberType, "S", StringComparison.OrdinalIgnoreCase))
+            {
+                return await PortalUsernameResolver.ResolvePortalEmailAsync(_context, identifier);
+            }
+
+            return resolvedUsername;
         }
 
     }

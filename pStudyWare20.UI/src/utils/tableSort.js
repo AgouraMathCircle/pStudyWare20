@@ -56,7 +56,13 @@ export const getMessagePreview = (message) => {
 export const getMessageFieldValue = (message, field) => {
   switch (field) {
     case "from":
-      return message?.sendFrom ?? message?.SendFrom ?? "";
+      return (
+        message?.sendFrom ??
+        message?.SendFrom ??
+        message?.studentName ??
+        message?.StudentName ??
+        ""
+      );
     case "to":
       return message?.sendTo ?? message?.SendTo ?? "";
     case "subject":

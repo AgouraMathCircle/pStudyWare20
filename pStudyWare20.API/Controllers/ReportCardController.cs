@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Cors;
+using pStudyWare20.API.Helpers;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
 using System.Security.Claims;
@@ -22,6 +23,13 @@ namespace pStudyWare20.API.Controllers
             _logger = logger;
         }
 
+        private string GetPortalUsername(string? username = null)
+        {
+            return !string.IsNullOrWhiteSpace(username)
+                ? username
+                : PortalClaimsHelper.GetPortalUsername(User);
+        }
+
         /// <summary>
         /// Get report card list (matches BindGridView method)
         /// </summary>
@@ -36,7 +44,7 @@ namespace pStudyWare20.API.Controllers
                     request = new ReportCardListRequest();
 
                 if (string.IsNullOrEmpty(request.Username))
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.Username = GetPortalUsername();
 
                 if (string.IsNullOrEmpty(request.Username))
                 {
@@ -121,11 +129,16 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Add student score request</param>
         /// <returns>Student score response</returns>
         [HttpPost("AddStudentScore")]
-        [Authorize(Roles = "Admin,SystemAdmin,Instructor")] // Only admins and instructors can add scores
+        [Authorize]
         public async Task<IActionResult> AddStudentScore([FromBody] AddStudentScoreRequest request)
         {
             try
             {
+                if (!CanModifyScores())
+                {
+                    return Forbid();
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
@@ -190,7 +203,7 @@ namespace pStudyWare20.API.Controllers
                 // Get username from JWT token if not provided in request
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.Username = GetPortalUsername();
                 }
 
                 var response = await _reportCardService.ViewReportAsync(request);
@@ -209,11 +222,16 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Send email request</param>
         /// <returns>Send email response</returns>
         [HttpPost("SendEmail")]
-        [Authorize(Roles = "Admin,SystemAdmin,Instructor")] // Only admins and instructors can send emails
+        [Authorize]
         public async Task<IActionResult> SendEmail([FromBody] SendEmailRequest request)
         {
             try
             {
+                if (!CanModifyScores())
+                {
+                    return Forbid();
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
@@ -222,7 +240,7 @@ namespace pStudyWare20.API.Controllers
                 // Get username from JWT token if not provided in request
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.Username = GetPortalUsername();
                 }
 
                 if (string.IsNullOrEmpty(request.From))
@@ -246,11 +264,16 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Excel import request</param>
         /// <returns>Excel import response</returns>
         [HttpPost("ImportScoresFromExcel")]
-        [Authorize(Roles = "Admin,SystemAdmin,Instructor")] // Only admins and instructors can import scores
+        [Authorize]
         public async Task<IActionResult> ImportScoresFromExcel([FromBody] ExcelImportRequest request)
         {
             try
             {
+                if (!CanModifyScores())
+                {
+                    return Forbid();
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
@@ -272,11 +295,16 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Excel export request</param>
         /// <returns>Excel file response</returns>
         [HttpPost("ExportToExcel")]
-        [Authorize(Roles = "Admin,SystemAdmin,Instructor")] // Only admins and instructors can export data
+        [Authorize]
         public async Task<IActionResult> ExportToExcel([FromBody] ExcelExportRequest request)
         {
             try
             {
+                if (!CanModifyScores())
+                {
+                    return Forbid();
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
@@ -285,7 +313,7 @@ namespace pStudyWare20.API.Controllers
                 // Get username from JWT token if not provided in request
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.Username = GetPortalUsername();
                 }
 
                 var response = await _reportCardService.ExportToExcelAsync(request);
@@ -310,11 +338,16 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Send student report email request</param>
         /// <returns>Send student report email response</returns>
         [HttpPost("SendStudentReportEmail")]
-        [Authorize(Roles = "Admin,SystemAdmin,Instructor")] // Only admins and instructors can send report emails
+        [Authorize]
         public async Task<IActionResult> SendStudentReportEmail([FromBody] SendStudentReportEmailRequest request)
         {
             try
             {
+                if (!CanModifyScores())
+                {
+                    return Forbid();
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
@@ -323,7 +356,7 @@ namespace pStudyWare20.API.Controllers
                 // Get username from JWT token if not provided in request
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.Username = GetPortalUsername();
                 }
 
                 var response = await _reportCardService.SendStudentReportEmailAsync(request);
@@ -347,7 +380,7 @@ namespace pStudyWare20.API.Controllers
             try
             {
                 // Get username from JWT token if not provided
-                var userUsername = username ?? User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                var userUsername = GetPortalUsername(username);
 
                 if (string.IsNullOrEmpty(userUsername))
                 {
@@ -445,7 +478,7 @@ namespace pStudyWare20.API.Controllers
         {
             try
             {
-                var userUsername = username ?? User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                var userUsername = GetPortalUsername(username);
 
                 if (string.IsNullOrEmpty(userUsername))
                 {
@@ -535,6 +568,7 @@ namespace pStudyWare20.API.Controllers
                 ?? User.FindFirst("role")?.Value
                 ?? "";
             var memberType = User.FindFirst("MemberType")?.Value ?? "";
+            var systemAdmin = User.FindFirst("SystemAdmin")?.Value ?? "";
 
             if (string.Equals(memberType, "S", StringComparison.OrdinalIgnoreCase))
             {
@@ -542,9 +576,11 @@ namespace pStudyWare20.API.Controllers
             }
 
             return string.Equals(userRole, "Admin", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(userRole, "SystemAdmin", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(userRole, "Instructor", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(memberType, "A", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(memberType, "I", StringComparison.OrdinalIgnoreCase);
+                || string.Equals(memberType, "I", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(systemAdmin, "Y", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

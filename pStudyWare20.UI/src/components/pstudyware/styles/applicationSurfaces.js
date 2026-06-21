@@ -396,6 +396,20 @@ export const adminSessionListFindButtonSx = {
   "&:hover": { backgroundColor: "#f5f5f5" },
 };
 
+/** Green header/toolbar action buttons (Upload, Export, Compose, etc.). */
+export const portalHeaderActionButtonSx = {
+  ...adminSessionListFindButtonSx,
+  backgroundColor: "#4caf50",
+  color: "white",
+  flexShrink: 0,
+  px: 1.5,
+  "&:hover": { backgroundColor: "#43a047" },
+  "& .MuiButton-startIcon": {
+    mr: 0.5,
+    "& > *:first-of-type": { fontSize: "0.875rem" },
+  },
+};
+
 export const adminSessionListMenuItemSx = { fontSize: "0.75rem" };
 
 export const adminSessionListTableContainerSx = { width: "100%" };

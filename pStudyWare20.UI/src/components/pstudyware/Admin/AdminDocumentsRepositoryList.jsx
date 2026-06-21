@@ -49,7 +49,6 @@ import {
   adminSessionListTableHeadCellSx,
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
-  adminSessionListToolbarButtonSx,
 } from "../styles/applicationSurfaces";
 
 const repositoryColumnWidths = {
@@ -295,9 +294,20 @@ const AdminDocumentsRepositoryList = ({
             variant="contained"
             color="success"
             size="small"
-            startIcon={<UploadIcon />}
+            startIcon={<UploadIcon fontSize="inherit" />}
             onClick={onUpload}
-            sx={adminSessionListToolbarButtonSx}
+            sx={{
+              ...adminSessionListFindButtonSx,
+              backgroundColor: "#4caf50",
+              color: "white",
+              flexShrink: 0,
+              px: 1.5,
+              "&:hover": { backgroundColor: "#43a047" },
+              "& .MuiButton-startIcon": {
+                mr: 0.5,
+                "& > *:first-of-type": { fontSize: "0.875rem" },
+              },
+            }}
           >
             Upload Documents
           </Button>

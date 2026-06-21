@@ -18,6 +18,7 @@ import authService from "../../../services/authService";
 import {
   adminSessionListHeaderBarSx,
   adminSessionListTitleSx,
+  portalHeaderActionButtonSx,
 } from "../styles/applicationSurfaces";
 const NEW_PASSWORD_MIN_LEN = 10;
 const NEW_PASSWORD_MAX_LEN = 16;
@@ -216,7 +217,42 @@ const UpdatePassword = ({ embedded = false }) => {
     location.pathname.includes("/admin/update-password") ||
     location.pathname.includes("/admin/change-password") ||
     isStudentPasswordPage;
+  const isAdminUpdatePasswordPage =
+    location.pathname.includes("/pstudyware/admin/update-password") ||
+    location.pathname.includes("/admin/update-password");
   const useLegacyCompactLayout = embedded || isPortalPasswordPage;
+
+  const usePortalSubmitButton =
+    isAdminUpdatePasswordPage || isStudentPasswordPage;
+
+  const legacySubmitButtonSx = usePortalSubmitButton
+    ? {
+        ...portalHeaderActionButtonSx,
+        minWidth: 100,
+        boxShadow: "none",
+        "&:hover": { backgroundColor: "#43a047", boxShadow: "none" },
+        "&:disabled": {
+          backgroundColor: "#999999",
+          color: "white",
+        },
+      }
+    : {
+        minWidth: 100,
+        height: 25,
+        fontSize: "0.8rem",
+        lineHeight: 1,
+        backgroundColor: LEGACY_BUTTON_BG,
+        color: "#FFFFFF",
+        textTransform: "none",
+        boxShadow: "none",
+        "&:hover": {
+          backgroundColor: "#0f3209",
+          boxShadow: "none",
+        },
+        "&:disabled": {
+          backgroundColor: "#999999",
+        },
+      };
 
   const displayName =
     user?.username || user?.Username || user?.email || user?.Email || "";
@@ -332,24 +368,10 @@ const UpdatePassword = ({ embedded = false }) => {
           <Button
             type="submit"
             variant="contained"
+            color={usePortalSubmitButton ? "success" : undefined}
+            size={usePortalSubmitButton ? "small" : undefined}
             disabled={loading}
-            sx={{
-              minWidth: 100,
-              height: 25,
-              fontSize: "0.8rem",
-              lineHeight: 1,
-              backgroundColor: LEGACY_BUTTON_BG,
-              color: "#FFFFFF",
-              textTransform: "none",
-              boxShadow: "none",
-              "&:hover": {
-                backgroundColor: "#0f3209",
-                boxShadow: "none",
-              },
-              "&:disabled": {
-                backgroundColor: "#999999",
-              },
-            }}
+            sx={legacySubmitButtonSx}
           >
             {loading ? "..." : "Submit"}
           </Button>

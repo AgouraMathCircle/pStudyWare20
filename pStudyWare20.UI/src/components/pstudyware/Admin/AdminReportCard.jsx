@@ -66,6 +66,7 @@ import {
 } from "../Instructor/instructorPortalTableStyles";
 import {
   ADMIN_SESSION_LIST_BORDER,
+  ADMIN_SESSION_LIST_BAR_CONTROL_HEIGHT,
   adminSessionListEmptyCellSx,
   adminSessionListEmptyTextSx,
   adminSessionListFindButtonSx,
@@ -84,7 +85,7 @@ import {
   adminSessionListTableHeadCellSx,
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
-  adminSessionListToolbarButtonSx,
+  portalHeaderActionButtonSx,
   portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import SortableHeader from "../Common/SortableHeader";
@@ -131,11 +132,36 @@ const pickField = (item, ...keys) => {
   return "";
 };
 
-const formatExamDateValue = (value) => {
+const formatLegacyExamDate = (value) => {
   if (!value) return "";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return String(value);
-  return d.toISOString().split("T")[0];
+  const raw = String(value).trim();
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return raw;
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${mm}/${dd}/${yyyy}`;
+};
+
+const formatExamDateValue = (value) => formatLegacyExamDate(value);
+const formatReportCardDate = (value) => formatLegacyExamDate(value);
+
+const matchesReportDateFilter = (examDate, filterDate) => {
+  if (!filterDate || filterDate === ALL_FILTER_VALUE) return true;
+  const rowDate = formatLegacyExamDate(examDate);
+  const filter = formatLegacyExamDate(filterDate);
+  return (
+    rowDate === filter ||
+    String(examDate ?? "").trim() === String(filterDate).trim()
+  );
+};
+
+const matchesClassFilter = (group, filterClass) => {
+  if (!filterClass || filterClass === ALL_FILTER_VALUE) return true;
+  return (
+    String(group ?? "").trim().toLowerCase() ===
+    String(filterClass).trim().toLowerCase()
+  );
 };
 
 const resolveReportCardId = (value) => {
@@ -256,6 +282,8 @@ const ADD_SCORE_ROWS = [
 
 const SCORE_UPLOAD_TEMPLATE_URL = "/pstudyware/Documents/AMC_ScoreCard/StudentReportCard.csv";
 
+const ALL_FILTER_VALUE = "ALL";
+
 const DEFAULT_UPLOAD_SCORE_FORM = {
   className: "",
   examDate: "",
@@ -266,9 +294,9 @@ const DEFAULT_UPLOAD_SCORE_FORM = {
 };
 
 const adminReportCardTableSx = {
-  tableLayout: "auto",
+  tableLayout: "fixed",
   width: "100%",
-  minWidth: "max-content",
+  minWidth: "100%",
   borderCollapse: "collapse",
   border: ADMIN_SESSION_LIST_BORDER,
   "& .MuiTableCell-root": {
@@ -283,49 +311,72 @@ const adminReportCardTableContainerSx = {
   ...adminSessionListTableContainerSx,
   width: "100%",
   maxWidth: "100%",
-  overflowX: "auto",
+  minWidth: "100%",
+  overflowX: "hidden",
+};
+
+const adminReportCardTableWrapSx = {
+  width: "100%",
+  minWidth: "100%",
+  alignSelf: "stretch",
+};
+
+const reportCardCommentsCellSx = {
+  display: "block",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  maxWidth: "100%",
 };
 
 const reportCardLayoutSx = {
   width: "100%",
   maxWidth: "100%",
-  minWidth: 0,
+  minWidth: "100%",
 };
 
 const reportCardInlineToolbarSx = {
   mb: 1,
   display: "flex",
-  flexWrap: "nowrap",
+  flexWrap: "wrap",
   alignItems: "center",
-  gap: 1.13,
+  gap: 1,
   width: "100%",
   maxWidth: "100%",
   minWidth: 0,
-  overflowX: "auto",
-  overflowY: "hidden",
-  pb: 0.25,
+  boxSizing: "border-box",
 };
 
 const reportCardInlineFilterSx = {
-  flex: "0 1 173px",
-  minWidth: 129,
-  maxWidth: 195,
-  "& .MuiInputBase-root": { fontSize: "1.03rem" },
-  "& .MuiInputLabel-root": { fontSize: "1.03rem" },
+  flex: "1 1 0",
+  minWidth: 120,
+  maxWidth: "none",
+  "& .MuiInputBase-root": {
+    fontSize: "0.75rem",
+    height: ADMIN_SESSION_LIST_BAR_CONTROL_HEIGHT,
+    width: "100%",
+  },
+  "& .MuiInputLabel-root": {
+    fontSize: "0.75rem",
+  },
+  "& .MuiSelect-select": {
+    py: 0,
+    minHeight: "unset !important",
+    display: "flex",
+    alignItems: "center",
+  },
 };
 
-const reportCardInlineButtonSx = {
-  flexShrink: 0,
-  fontSize: "1.03rem",
-  px: 1.49,
-  py: 0.41,
-  textTransform: "none",
-  whiteSpace: "nowrap",
-  minHeight: 41,
-  lineHeight: 1.2,
-  "& .MuiButton-startIcon": {
-    mr: 0.57,
-    "& > *:first-of-type": { fontSize: "1.23rem" },
+const reportCardInlineCheckboxSx = {
+  flex: "0 0 auto",
+  m: 0,
+  height: ADMIN_SESSION_LIST_BAR_CONTROL_HEIGHT,
+  alignItems: "center",
+  px: 0.5,
+  "& .MuiFormControlLabel-label": {
+    fontSize: "0.75rem",
+    lineHeight: 1,
+    whiteSpace: "nowrap",
   },
 };
 
@@ -333,7 +384,6 @@ const reportCardInlineButtonSx = {
 const reportCardColumnWidths = {
   edit: 52,
   delete: 56,
-  num: 32,
   studentId: 72,
   studentName: null,
   class: 140,
@@ -341,17 +391,16 @@ const reportCardColumnWidths = {
   session: null,
   examType: null,
   examDate: 88,
-  total: 52,
+  total: 72,
   topScore: 72,
-  avg: 52,
+  avg: 72,
   yourScore: 72,
-  comments: null,
+  comments: 180,
 };
 
 const reportCardColWidthsPx = [
   reportCardColumnWidths.edit,
   reportCardColumnWidths.delete,
-  reportCardColumnWidths.num,
   reportCardColumnWidths.studentId,
   reportCardColumnWidths.studentName,
   reportCardColumnWidths.class,
@@ -364,36 +413,6 @@ const reportCardColWidthsPx = [
   reportCardColumnWidths.avg,
   reportCardColumnWidths.yourScore,
   reportCardColumnWidths.comments,
-];
-
-const summaryColumnWidths = {
-  num: 32,
-  studentId: 72,
-  studentName: null,
-  class: 140,
-  examDate: 88,
-  quiz: 56,
-  classWork: 80,
-  homeWork: 80,
-  finalExam: 80,
-  placementTest: 96,
-  totalScore: 80,
-  rank: 52,
-};
-
-const summaryColWidthsPx = [
-  summaryColumnWidths.num,
-  summaryColumnWidths.studentId,
-  summaryColumnWidths.studentName,
-  summaryColumnWidths.class,
-  summaryColumnWidths.examDate,
-  summaryColumnWidths.quiz,
-  summaryColumnWidths.classWork,
-  summaryColumnWidths.homeWork,
-  summaryColumnWidths.finalExam,
-  summaryColumnWidths.placementTest,
-  summaryColumnWidths.totalScore,
-  summaryColumnWidths.rank,
 ];
 
 const ReportCardColGroup = ({ widths }) => (
@@ -416,19 +435,20 @@ const AdminReportCard = () => {
   const hideRoleHeader = location.pathname.includes("/pstudyware/instructor/");
   const isAdminView = !hideRoleHeader;
   const { user } = useAuth();
-  const username = user?.email || user?.username || "";
-  const pageSize = 25;
+  const username = user?.username || user?.email || "";
+  const pageSize = 20;
   const [list, setList] = useState([]);
-  const [summaryData, setSummaryData] = useState([]);
-  const [showSummary, setShowSummary] = useState(false);
   const [loading, setLoading] = useState(true);
   const [reportDates, setReportDates] = useState([]);
   const [classList, setClassList] = useState([]);
   const [studentList, setStudentList] = useState([]);
   const [examDateList, setExamDateList] = useState([]);
-  const [selectedReportDate, setSelectedReportDate] = useState("");
-  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedReportDate, setSelectedReportDate] = useState(ALL_FILTER_VALUE);
+  const [selectedClass, setSelectedClass] = useState(ALL_FILTER_VALUE);
   const [semesterReport, setSemesterReport] = useState(false);
+  const [appliedReportDate, setAppliedReportDate] = useState(ALL_FILTER_VALUE);
+  const [appliedClass, setAppliedClass] = useState(ALL_FILTER_VALUE);
+  const [appliedSemesterReport, setAppliedSemesterReport] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [addForm, setAddForm] = useState(DEFAULT_ADD_SCORE_FORM);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -496,13 +516,26 @@ const AdminReportCard = () => {
       return {
         ...adminSessionListTableBodyCellSx(options),
         whiteSpace: "nowrap",
-        width: "auto",
-        minWidth: options.autoFit ? "max-content" : undefined,
+        width: options.truncate ? reportCardColumnWidths.comments : "auto",
+        maxWidth: options.truncate ? reportCardColumnWidths.comments : undefined,
+        minWidth: options.autoFit ? "max-content" : options.truncate ? 0 : undefined,
+        overflow: options.truncate ? "hidden" : undefined,
+        textOverflow: options.truncate ? "ellipsis" : undefined,
+        ...(options.align ? { textAlign: options.align } : {}),
       };
     }
     const base = options.isLast
       ? instructorCellBodySxLast
       : instructorCellBodySx;
+    if (options.truncate) {
+      return {
+        ...base,
+        maxWidth: reportCardColumnWidths.comments,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      };
+    }
     return options.action ? { ...base, verticalAlign: "middle" } : base;
   };
 
@@ -586,7 +619,6 @@ const AdminReportCard = () => {
       const raw = res?.reportCardList ?? res?.ReportCardList;
       const data = Array.isArray(raw) ? raw : (raw?.Table ?? raw?.Rows ?? []);
       setList(Array.isArray(data) ? data : []);
-      setShowSummary(false);
       if (res?.isSuccess === false && res?.errorMessage) {
         setSnackbar({
           open: true,
@@ -695,24 +727,24 @@ const AdminReportCard = () => {
     setSubmitting(true);
     try {
       const res = await reportCardService.addStudentScore({
-        StudentID: String(addForm.studentId),
-        Group: addForm.className,
-        ExamDate: addForm.examDate,
-        QuizTotalScore: addForm.quizTotal,
-        QuizReceivedScore: addForm.quizReceived,
-        QuizComments: addForm.quizComments,
-        ClassTestTotalScore: addForm.classTestTotal,
-        ClassTestReceivedScore: addForm.classTestReceived,
-        ClassTestComments: addForm.classTestComments,
-        HomeWorkTotalScore: addForm.homeWorkTotal,
-        HomeWorkReceivedScore: addForm.homeWorkReceived,
-        HomeWorkComments: addForm.homeWorkComments,
-        FinalExamTotalScore: addForm.finalExamTotal,
-        FinalExamReceivedScore: addForm.finalExamReceived,
-        FinalExamComments: addForm.finalExamComments,
-        PlacementTestTotalScore: addForm.placementTestTotal,
-        PlacementTestReceivedScore: addForm.placementTestReceived,
-        PlacementTestComments: addForm.placementTestComments,
+        studentId: addForm.studentId,
+        className: addForm.className,
+        examDate: addForm.examDate,
+        quizTotal: addForm.quizTotal,
+        quizReceived: addForm.quizReceived,
+        quizComments: addForm.quizComments,
+        classTestTotal: addForm.classTestTotal,
+        classTestReceived: addForm.classTestReceived,
+        classTestComments: addForm.classTestComments,
+        homeWorkTotal: addForm.homeWorkTotal,
+        homeWorkReceived: addForm.homeWorkReceived,
+        homeWorkComments: addForm.homeWorkComments,
+        finalExamTotal: addForm.finalExamTotal,
+        finalExamReceived: addForm.finalExamReceived,
+        finalExamComments: addForm.finalExamComments,
+        placementTestTotal: addForm.placementTestTotal,
+        placementTestReceived: addForm.placementTestReceived,
+        placementTestComments: addForm.placementTestComments,
       });
       if (res?.isSuccess !== false) {
         setSnackbar({
@@ -730,9 +762,17 @@ const AdminReportCard = () => {
         });
       }
     } catch (err) {
+      const status = err?.response?.status;
+      const serverMessage =
+        err?.response?.data?.error ??
+        err?.response?.data?.message ??
+        err?.response?.data?.errorMessage;
       setSnackbar({
         open: true,
-        message: err?.response?.data?.error ?? err?.message ?? "Add score failed.",
+        message:
+          status === 403
+            ? serverMessage ?? "You do not have permission to add scores."
+            : serverMessage ?? err?.message ?? "Add score failed.",
         severity: "error",
       });
     } finally {
@@ -747,38 +787,22 @@ const AdminReportCard = () => {
     } else setLoading(false);
   }, [username]);
 
-  useEffect(() => {
+  const renderFilterSelectValue = (selected) =>
+    !selected || selected === ALL_FILTER_VALUE ? "All" : selected;
+
+  const handleViewReport = () => {
+    setAppliedReportDate(selectedReportDate);
+    setAppliedClass(selectedClass);
+    setAppliedSemesterReport(semesterReport);
     setCurrentPage(1);
     setGoToPageInput("1");
-  }, [showSummary]);
-
-  const handleViewReport = async () => {
-    setSubmitting(true);
-    try {
-      const res = await reportCardService.viewReport({
-        Username: username,
-        Class: selectedClass,
-        ReportDate: selectedReportDate,
-        IsSemesterReport: semesterReport,
-      });
-      const raw = res?.reportData ?? res?.ReportData;
-      const data = Array.isArray(raw) ? raw : (raw?.Table ?? raw?.Rows ?? []);
-      setSummaryData(Array.isArray(data) ? data : []);
-      setShowSummary(true);
-    } catch (err) {
-      const msg =
-        err?.response?.data?.error ?? err?.message ?? "Failed to load report.";
-      setSnackbar({ open: true, message: msg, severity: "error" });
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   const handleExportExcel = async () => {
     try {
       await reportCardService.exportToExcel({
         Username: username,
-        IsSummaryReport: showSummary,
+        IsSummaryReport: false,
       });
       setSnackbar({
         open: true,
@@ -999,25 +1023,20 @@ const AdminReportCard = () => {
 
   const row = (r) => ({
     reportCardID: resolveReportCardId(
-      r.reportCardID ??
-        r.ReportCardID ??
-        r.ReportCardId ??
-        r.reportCardId ??
-        r.reportID ??
-        r.ReportID
+      pickField(r, "ReportCardID", "reportCardID", "reportCardId", "ReportCardId"),
     ),
-    studentID: r.studentID ?? r.StudentID,
-    studentName: r.studentName ?? r.StudentName,
-    group: r.group ?? r.Group,
-    grade: r.grade ?? r.Grade,
-    semester: r.semester ?? r.Semester,
-    examType: r.examType ?? r.ExamType,
-    examDate: r.examDate ?? r.ExamDate,
-    totalCredit: r.totalCredit ?? r.TotalCredit,
-    highestScore: r.highestScore ?? r.HighestScore,
-    classAverage: r.classAverage ?? r.ClassAverage,
-    receivedCredit: r.receivedCredit ?? r.ReceivedCredit,
-    comments: r.comments ?? r.Comments,
+    studentID: pickField(r, "StudentID", "studentID", "studentId", "StudentId"),
+    studentName: pickField(r, "StudentName", "studentName"),
+    group: pickField(r, "Group", "group"),
+    grade: pickField(r, "Grade", "grade"),
+    semester: pickField(r, "Semester", "semester"),
+    examType: pickField(r, "ExamType", "examType"),
+    examDate: pickField(r, "ExamDate", "examDate"),
+    totalCredit: pickField(r, "TotalCredit", "totalCredit"),
+    highestScore: pickField(r, "HighestScore", "highestScore"),
+    classAverage: pickField(r, "ClassAverage", "classAverage"),
+    receivedCredit: pickField(r, "ReceivedCredit", "receivedCredit"),
+    comments: pickField(r, "Comments", "comments"),
   });
 
   const getReportCardListFieldValue = (rawRow, field) => {
@@ -1028,7 +1047,7 @@ const AdminReportCard = () => {
       case "studentName":
         return r.studentName ?? "";
       case "class":
-        return getClassLabel(r.group ?? "");
+        return r.group ?? "";
       case "grade":
         return r.grade ?? "";
       case "session":
@@ -1052,37 +1071,6 @@ const AdminReportCard = () => {
     }
   };
 
-  const getReportCardSummaryFieldValue = (r, field) => {
-    switch (field) {
-      case "studentId":
-        return toSortableNumber(r.studentID ?? r.StudentID);
-      case "studentName":
-        return r.studentName ?? r.StudentName ?? "";
-      case "class":
-        return getClassLabel(r.group ?? r.Group ?? "");
-      case "examDate":
-        return toSortableDate(r.examDate ?? r.ExamDate);
-      case "quiz":
-        return toSortableNumber(r.quizReceived ?? r.QuizReceived);
-      case "classWork":
-        return toSortableNumber(r.classReceived ?? r.ClassReceived);
-      case "homeWork":
-        return toSortableNumber(r.homeWorkReceived ?? r.HomeWorkReceived);
-      case "finalExam":
-        return toSortableNumber(r.finalExamReceived ?? r.FinalExamReceived);
-      case "placementTest":
-        return toSortableNumber(
-          r.placementTestReceived ?? r.PlacementTestReceived,
-        );
-      case "totalScore":
-        return toSortableNumber(r.totalScore ?? r.TotalScore);
-      case "rank":
-        return toSortableNumber(r.classRank ?? r.ClassRank);
-      default:
-        return "";
-    }
-  };
-
   const matchField = (fieldValue, search, criteria) => {
     const fv = String(fieldValue ?? "").toLowerCase();
     const s = search.trim().toLowerCase();
@@ -1091,11 +1079,22 @@ const AdminReportCard = () => {
     return fv.includes(s);
   };
 
+  const reportFilteredList = useMemo(() => {
+    return list.filter((r) => {
+      const o = row(r);
+      if (!matchesClassFilter(o.group, appliedClass)) return false;
+      if (!appliedSemesterReport && !matchesReportDateFilter(o.examDate, appliedReportDate)) {
+        return false;
+      }
+      return true;
+    });
+  }, [list, appliedReportDate, appliedClass, appliedSemesterReport]);
+
   const filteredList = useMemo(() => {
-    if (!searchText.trim()) return list;
+    if (!searchText.trim()) return reportFilteredList;
     const search = searchText.trim();
     if (searchBy === "ALL") {
-      return list.filter((r) => {
+      return reportFilteredList.filter((r) => {
         const o = row(r);
         return (
           matchField(o.studentName, search, searchCriteria) ||
@@ -1108,7 +1107,7 @@ const AdminReportCard = () => {
         );
       });
     }
-    return list.filter((r) => {
+    return reportFilteredList.filter((r) => {
       const o = row(r);
       let fieldValue = "";
       switch (searchBy) {
@@ -1138,41 +1137,7 @@ const AdminReportCard = () => {
       }
       return matchField(fieldValue, search, searchCriteria);
     });
-  }, [list, searchText, searchBy, searchCriteria]);
-
-  const filteredSummary = useMemo(() => {
-    if (!searchText.trim()) return summaryData;
-    const search = searchText.trim();
-    if (searchBy === "ALL") {
-      return summaryData.filter((r) => {
-        const sn = r.studentName ?? r.StudentName ?? "";
-        const sid = r.studentID ?? r.StudentID ?? "";
-        const gr = r.group ?? r.Group ?? "";
-        return (
-          matchField(sn, search, searchCriteria) ||
-          matchField(sid, search, searchCriteria) ||
-          matchField(gr, search, searchCriteria)
-        );
-      });
-    }
-    return summaryData.filter((r) => {
-      let fieldValue = "";
-      switch (searchBy) {
-        case "STUDENT_ID":
-          fieldValue = r.studentID ?? r.StudentID ?? "";
-          break;
-        case "STUDENT_NAME":
-          fieldValue = r.studentName ?? r.StudentName ?? "";
-          break;
-        case "CLASS":
-          fieldValue = r.group ?? r.Group ?? "";
-          break;
-        default:
-          fieldValue = "";
-      }
-      return matchField(fieldValue, search, searchCriteria);
-    });
-  }, [summaryData, searchText, searchBy, searchCriteria]);
+  }, [reportFilteredList, searchText, searchBy, searchCriteria]);
 
   const sortedList = useMemo(
     () =>
@@ -1180,30 +1145,13 @@ const AdminReportCard = () => {
     [filteredList, sortField, sortOrder],
   );
 
-  const sortedSummary = useMemo(
-    () =>
-      sortRows(
-        filteredSummary,
-        sortField,
-        sortOrder,
-        getReportCardSummaryFieldValue,
-      ),
-    [filteredSummary, sortField, sortOrder],
-  );
-
-  const filteredRows = showSummary ? sortedSummary : sortedList;
-  const totalRecords = filteredRows.length;
+  const totalRecords = sortedList.length;
   const totalPages = Math.ceil(totalRecords / pageSize);
 
   const paginatedList = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return sortedList.slice(start, start + pageSize);
   }, [sortedList, currentPage]);
-
-  const paginatedSummary = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return sortedSummary.slice(start, start + pageSize);
-  }, [sortedSummary, currentPage]);
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -1230,9 +1178,10 @@ const AdminReportCard = () => {
     }
   };
 
-  const toolbarButtonSx = isAdminView
-    ? { ...adminSessionListToolbarButtonSx, ...reportCardInlineButtonSx }
-    : { fontSize: "0.75rem", px: 1.5, py: 0.25 };
+  const toolbarButtonSx = {
+    ...portalHeaderActionButtonSx,
+    flex: "0 0 auto",
+  };
 
   return (
     <Box sx={isAdminView ? { minHeight: "100vh" } : instructorPageShellSx}>
@@ -1288,9 +1237,11 @@ const AdminReportCard = () => {
                       <Select
                         value={selectedReportDate}
                         label="Report Date"
+                        displayEmpty
+                        renderValue={renderFilterSelectValue}
                         onChange={(e) => setSelectedReportDate(e.target.value)}
                       >
-                        <MenuItem value="">All</MenuItem>
+                        <MenuItem value={ALL_FILTER_VALUE}>All</MenuItem>
                         {reportDates.map((d, i) => {
                           const label = pickField(d, "reportDate", "ReportDate") || String(d);
                           return (
@@ -1306,9 +1257,11 @@ const AdminReportCard = () => {
                       <Select
                         value={selectedClass}
                         label="Class"
+                        displayEmpty
+                        renderValue={renderFilterSelectValue}
                         onChange={(e) => setSelectedClass(e.target.value)}
                       >
-                        <MenuItem value="">All</MenuItem>
+                        <MenuItem value={ALL_FILTER_VALUE}>All</MenuItem>
                         {classList.map((c, i) => {
                           const label = pickField(c, "className", "ClassName", "text", "Text", "value", "Value") || String(c);
                           return (
@@ -1320,7 +1273,7 @@ const AdminReportCard = () => {
                       </Select>
                     </FormControl>
                     <FormControlLabel
-                      sx={{ flexShrink: 0, m: 0 }}
+                      sx={reportCardInlineCheckboxSx}
                       control={
                         <Checkbox
                           size="small"
@@ -1328,48 +1281,30 @@ const AdminReportCard = () => {
                           onChange={(e) => setSemesterReport(e.target.checked)}
                         />
                       }
-                      label={
-                        <Typography sx={{ fontSize: "1.03rem", whiteSpace: "nowrap" }}>
-                          Semester
-                        </Typography>
-                      }
+                      label="Semester"
                     />
-                    {!showSummary ? (
-                      <Button
-                        variant="contained"
-                        color="success"
-                        size="small"
-                        startIcon={<ViewReportIcon />}
-                        onClick={handleViewReport}
-                        disabled={submitting}
-                        sx={toolbarButtonSx}
-                      >
-                        View Score Card Summary Report
-                      </Button>
-                    ) : (
-                      <>
-                        <Button
-                          variant="contained"
-                          color="success"
-                          size="small"
-                          onClick={() => setShowSummary(false)}
-                          sx={toolbarButtonSx}
-                        >
-                          Back to Score Card List
-                        </Button>
-                        <Button
-                          variant="contained"
-                          color="success"
-                          size="small"
-                          startIcon={<EmailIcon />}
-                          onClick={() => setEmailConfirmOpen(true)}
-                          disabled={submitting}
-                          sx={toolbarButtonSx}
-                        >
-                          Send Email
-                        </Button>
-                      </>
-                    )}
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="small"
+                      startIcon={<ViewReportIcon />}
+                      onClick={handleViewReport}
+                      disabled={submitting}
+                      sx={toolbarButtonSx}
+                    >
+                      View Score Card Summary Report
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="small"
+                      startIcon={<EmailIcon />}
+                      onClick={() => setEmailConfirmOpen(true)}
+                      disabled={submitting}
+                      sx={toolbarButtonSx}
+                    >
+                      Send Email
+                    </Button>
                     {canEdit && (
                       <>
                         <Button
@@ -1631,260 +1566,13 @@ const AdminReportCard = () => {
                         </Button>
                       </Box>
 
-                      {showSummary ? (
-                        <TableContainer
+                      <Box sx={adminReportCardTableWrapSx}>
+                      <TableContainer
                           component={Paper}
                           sx={
                             isAdminView
                               ? adminReportCardTableContainerSx
-                              : { width: "100%" }
-                          }
-                        >
-                          <Table
-                            sx={
-                              isAdminView
-                                ? adminReportCardTableSx
-                                : instructorTableSx
-                            }
-                            size="small"
-                          >
-                            {isAdminView && (
-                              <ReportCardColGroup widths={summaryColWidthsPx} />
-                            )}
-                            <TableHead>
-                              <TableRow
-                                sx={
-                                  isAdminView
-                                    ? adminSessionListTableHeadRowSx
-                                    : instructorTableHeadRowSx
-                                }
-                              >
-                                <TableCell
-                                  sx={sortHeadSx(summaryColumnWidths.num)}
-                                >
-                                  #
-                                </TableCell>
-                                <SortableHeader
-                                  label="Student #"
-                                  field="studentId"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    summaryColumnWidths.studentId,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Student Name"
-                                  field="studentName"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    summaryColumnWidths.studentName,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Class"
-                                  field="class"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    summaryColumnWidths.class,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Exam Date"
-                                  field="examDate"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    summaryColumnWidths.examDate,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Quiz"
-                                  field="quiz"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    summaryColumnWidths.quiz,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Class Work"
-                                  field="classWork"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    summaryColumnWidths.classWork,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Home Work"
-                                  field="homeWork"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    summaryColumnWidths.homeWork,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Final Exam"
-                                  field="finalExam"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    summaryColumnWidths.finalExam,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Placement Test"
-                                  field="placementTest"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    summaryColumnWidths.placementTest,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Total Score"
-                                  field="totalScore"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    summaryColumnWidths.totalScore,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Rank"
-                                  field="rank"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    summaryColumnWidths.rank,
-                                    true,
-                                  )}
-                                />
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {paginatedSummary.length === 0 ? (
-                                <TableRow>
-                                  <TableCell
-                                    colSpan={12}
-                                    align="center"
-                                    sx={
-                                      isAdminView
-                                        ? adminSessionListEmptyCellSx
-                                        : { fontSize: "0.75rem", py: 3 }
-                                    }
-                                  >
-                                    <Typography
-                                      variant="body2"
-                                      color="textSecondary"
-                                      sx={
-                                        isAdminView
-                                          ? adminSessionListEmptyTextSx
-                                          : { fontSize: "0.75rem" }
-                                      }
-                                    >
-                                      {searchText
-                                        ? "No summary data matching your search."
-                                        : "No summary data."}
-                                    </Typography>
-                                  </TableCell>
-                                </TableRow>
-                              ) : (
-                                paginatedSummary.map((r, idx) => (
-                                  <TableRow
-                                    key={idx}
-                                    sx={
-                                      isAdminView
-                                        ? adminSessionListTableBodyRowSx
-                                        : instructorTableBodyRowZebraSx
-                                    }
-                                  >
-                                    <TableCell sx={reportCardBodyCellSx()}>
-                                      {(currentPage - 1) * pageSize + idx + 1}
-                                    </TableCell>
-                                    <TableCell sx={reportCardBodyCellSx()}>
-                                      {r.studentID ?? r.StudentID ?? ""}
-                                    </TableCell>
-                                    <TableCell
-                                      sx={reportCardBodyCellSx({
-                                        autoFit: true,
-                                      })}
-                                    >
-                                      {r.studentName ?? r.StudentName ?? ""}
-                                    </TableCell>
-                                    <TableCell
-                                      sx={reportCardBodyCellSx({
-                                        autoFit: true,
-                                      })}
-                                    >
-                                      {getClassLabel(r.group ?? r.Group ?? "")}
-                                    </TableCell>
-                                    <TableCell sx={reportCardBodyCellSx()}>
-                                      {(r.examDate ?? r.ExamDate)
-                                        ? new Date(
-                                            r.examDate ?? r.ExamDate,
-                                          ).toLocaleDateString()
-                                        : ""}
-                                    </TableCell>
-                                    <TableCell sx={reportCardBodyCellSx()}>
-                                      {r.quizReceived ?? r.QuizReceived ?? ""}
-                                    </TableCell>
-                                    <TableCell sx={reportCardBodyCellSx()}>
-                                      {r.classReceived ?? r.ClassReceived ?? ""}
-                                    </TableCell>
-                                    <TableCell sx={reportCardBodyCellSx()}>
-                                      {r.homeWorkReceived ??
-                                        r.HomeWorkReceived ??
-                                        ""}
-                                    </TableCell>
-                                    <TableCell sx={reportCardBodyCellSx()}>
-                                      {r.finalExamReceived ??
-                                        r.FinalExamReceived ??
-                                        ""}
-                                    </TableCell>
-                                    <TableCell sx={reportCardBodyCellSx()}>
-                                      {r.placementTestReceived ??
-                                        r.PlacementTestReceived ??
-                                        ""}
-                                    </TableCell>
-                                    <TableCell sx={reportCardBodyCellSx()}>
-                                      {r.totalScore ?? r.TotalScore ?? ""}
-                                    </TableCell>
-                                    <TableCell
-                                      sx={reportCardBodyCellSx({
-                                        isLast: true,
-                                      })}
-                                    >
-                                      {r.classRank ?? r.ClassRank ?? ""}
-                                    </TableCell>
-                                  </TableRow>
-                                ))
-                              )}
-                            </TableBody>
-                          </Table>
-                        </TableContainer>
-                      ) : (
-                        <TableContainer
-                          component={Paper}
-                          sx={
-                            isAdminView
-                              ? adminReportCardTableContainerSx
-                              : { width: "100%" }
+                              : { width: "100%", minWidth: "100%" }
                           }
                         >
                           <Table
@@ -1917,11 +1605,6 @@ const AdminReportCard = () => {
                                   sx={sortHeadSx(reportCardColumnWidths.delete)}
                                 >
                                   Delete
-                                </TableCell>
-                                <TableCell
-                                  sx={sortHeadSx(reportCardColumnWidths.num)}
-                                >
-                                  #
                                 </TableCell>
                                 <SortableHeader
                                   label="Student #"
@@ -1994,7 +1677,7 @@ const AdminReportCard = () => {
                                   )}
                                 />
                                 <SortableHeader
-                                  label="Total"
+                                  label="Total Score"
                                   field="total"
                                   sortField={sortField}
                                   sortOrder={sortOrder}
@@ -2014,7 +1697,7 @@ const AdminReportCard = () => {
                                   )}
                                 />
                                 <SortableHeader
-                                  label="AVG"
+                                  label="AVG Score"
                                   field="avg"
                                   sortField={sortField}
                                   sortOrder={sortOrder}
@@ -2050,7 +1733,7 @@ const AdminReportCard = () => {
                               {paginatedList.length === 0 ? (
                                 <TableRow>
                                   <TableCell
-                                    colSpan={15}
+                                    colSpan={14}
                                     align="center"
                                     sx={
                                       isAdminView
@@ -2100,9 +1783,6 @@ const AdminReportCard = () => {
                                         {renderDeleteAction(o.reportCardID)}
                                       </TableCell>
                                       <TableCell sx={reportCardBodyCellSx()}>
-                                        {(currentPage - 1) * pageSize + idx + 1}
-                                      </TableCell>
-                                      <TableCell sx={reportCardBodyCellSx()}>
                                         {o.studentID}
                                       </TableCell>
                                       <TableCell
@@ -2117,7 +1797,7 @@ const AdminReportCard = () => {
                                           autoFit: true,
                                         })}
                                       >
-                                        {getClassLabel(o.group)}
+                                        {o.group}
                                       </TableCell>
                                       <TableCell sx={reportCardBodyCellSx()}>
                                         {o.grade}
@@ -2137,31 +1817,53 @@ const AdminReportCard = () => {
                                         {o.examType}
                                       </TableCell>
                                       <TableCell sx={reportCardBodyCellSx()}>
-                                        {o.examDate
-                                          ? new Date(
-                                              o.examDate,
-                                            ).toLocaleDateString()
-                                          : ""}
+                                        {formatReportCardDate(o.examDate)}
                                       </TableCell>
-                                      <TableCell sx={reportCardBodyCellSx()}>
+                                      <TableCell
+                                        sx={reportCardBodyCellSx({
+                                          align: "right",
+                                        })}
+                                      >
                                         {o.totalCredit}
                                       </TableCell>
-                                      <TableCell sx={reportCardBodyCellSx()}>
+                                      <TableCell
+                                        sx={reportCardBodyCellSx({
+                                          align: "right",
+                                        })}
+                                      >
                                         {o.highestScore}
                                       </TableCell>
-                                      <TableCell sx={reportCardBodyCellSx()}>
+                                      <TableCell
+                                        sx={reportCardBodyCellSx({
+                                          align: "right",
+                                        })}
+                                      >
                                         {o.classAverage}
                                       </TableCell>
-                                      <TableCell sx={reportCardBodyCellSx()}>
+                                      <TableCell
+                                        sx={reportCardBodyCellSx({
+                                          align: "right",
+                                        })}
+                                      >
                                         {o.receivedCredit}
                                       </TableCell>
                                       <TableCell
                                         sx={reportCardBodyCellSx({
-                                          autoFit: true,
                                           isLast: true,
+                                          truncate: true,
                                         })}
                                       >
-                                        {o.comments}
+                                        <Tooltip
+                                          title={o.comments || ""}
+                                          disableHoverListener={!o.comments}
+                                        >
+                                          <Box
+                                            component="span"
+                                            sx={reportCardCommentsCellSx}
+                                          >
+                                            {o.comments}
+                                          </Box>
+                                        </Tooltip>
                                       </TableCell>
                                     </TableRow>
                                   );
@@ -2170,7 +1872,7 @@ const AdminReportCard = () => {
                             </TableBody>
                           </Table>
                         </TableContainer>
-                      )}
+                      </Box>
 
                       {isAdminView ? (
                         <AdminSessionListPagination

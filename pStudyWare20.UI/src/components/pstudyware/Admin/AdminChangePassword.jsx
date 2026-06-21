@@ -1,12 +1,11 @@
 import React from "react";
-import { Box, Container, Card, CardContent, Typography } from "@mui/material";
+import { Box, Container, Card, CardContent } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader from "./AdminHeader";
 import UpdatePassword from "../Common/UpdatePassword";
 import {
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
-  adminSessionListTitleSx,
   portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 
@@ -30,18 +29,6 @@ const AdminChangePassword = () => {
           }}
         >
           <CardContent sx={{ p: 3 }}>
-            <Typography
-              component="h2"
-              variant="subtitle1"
-              sx={{
-                ...adminSessionListTitleSx,
-                mb: 2,
-                fontSize: "1.25rem",
-                fontWeight: 600,
-              }}
-            >
-              Update Password
-            </Typography>
             <UpdatePassword embedded />
           </CardContent>
         </Card>
