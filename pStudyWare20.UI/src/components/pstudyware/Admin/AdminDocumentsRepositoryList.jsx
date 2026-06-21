@@ -258,7 +258,7 @@ const AdminDocumentsRepositoryList = ({
       }}
     >
       <Box
-        onClick={() => onView(doc.docName || doc.mDocName)}
+        onClick={() => onView(getRepositoryDocumentName(doc))}
         sx={adminSessionListTableActionLinkSx}
       >
         View/Print

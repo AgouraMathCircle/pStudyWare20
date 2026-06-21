@@ -407,6 +407,15 @@ namespace pStudyWare20.API.Controllers
                     return NotFound(new { message = response.ErrorMessage });
                 }
 
+                if (!string.IsNullOrWhiteSpace(response.FilePath))
+                {
+                    Response.Headers["X-Document-File-Path"] = response.FilePath;
+                    _logger.LogInformation(
+                        "ViewClassMaterial serving file. FileName={FileName} FilePath={FilePath}",
+                        fileName,
+                        response.FilePath);
+                }
+
                 Response.Headers.ContentDisposition =
                     $"inline; filename=\"{response.FileName}\"; filename*=UTF-8''{Uri.EscapeDataString(response.FileName)}";
 

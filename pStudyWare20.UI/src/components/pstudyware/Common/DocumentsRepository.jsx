@@ -18,7 +18,6 @@ import documentService, {
   getDocumentApiList,
   isDocumentApiSuccess,
 } from "../../../services/documentService";
-import { getPublicDocumentUrl } from "../../../utils/config";
 import {
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
@@ -75,9 +74,30 @@ const DocumentsRepository = () => {
   };
 
   const handleView = (docName) => {
-    if (docName) {
-      window.open(getPublicDocumentUrl(`AMC_Docs/${docName}`), "_blank", "noopener,noreferrer");
+    if (!docName) {
+      return;
     }
+
+    const previewWindow = window.open("about:blank", "_blank");
+    if (!previewWindow) {
+      showMessage(
+        "Unable to open document. Please allow popups for this site.",
+        "error",
+      );
+      return;
+    }
+
+    previewWindow.document.title = docName;
+    previewWindow.document.body.innerHTML =
+      '<p style="font-family:sans-serif;padding:16px;">Loading document...</p>';
+
+    documentService.viewRepositoryDocument(docName, previewWindow).catch((error) => {
+      console.error("Error opening repository document:", error);
+      showMessage(
+        error?.message || "Unable to open document. Please try again.",
+        "error",
+      );
+    });
   };
 
   const handleDelete = async (docID, docName) => {

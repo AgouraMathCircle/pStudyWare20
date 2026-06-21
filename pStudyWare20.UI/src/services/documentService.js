@@ -1,5 +1,5 @@
 import api from "./api";
-import config, { getPublicDocumentUrl } from "../utils/config";
+import config, { getApiUrl, getPublicDocumentUrl } from "../utils/config";
 import { parseBlobError } from "../utils/excelExport";
 
 const inFlightRequests = new Map();
@@ -477,6 +477,144 @@ const documentService = {
     documentService.fetchDocumentBlob(docName, "/Document/ViewClassMaterial"),
 
   /**
+   * Build a full API URL for document view/download endpoints.
+   * @param {string} endpoint
+   * @param {Record<string, string>} params
+   * @returns {string}
+   */
+  buildDocumentApiUrl: (endpoint, params = {}) => {
+    const base = (getApiUrl() || config.api.url || "").replace(/\/$/, "");
+    const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    const query = new URLSearchParams(params).toString();
+    return query ? `${base}${path}?${query}` : `${base}${path}`;
+  },
+
+  /**
+   * Open a fetched document blob in a new tab without popup blockers.
+   * Pass previewWindow from the click handler so window.open runs synchronously.
+   * @param {() => Promise<Blob>} fetchBlob
+   * @param {string} docName
+   * @param {Record<string, unknown>} logContext
+   * @param {Window|null} previewWindow
+   * @returns {Promise<void>}
+   */
+  openDocumentBlobInNewWindow: async (
+    fetchBlob,
+    docName,
+    logContext = {},
+    previewWindow = null,
+  ) => {
+    const targetWindow =
+      previewWindow ?? window.open("about:blank", "_blank");
+    if (!targetWindow) {
+      throw new Error(
+        "Unable to open document. Please allow popups for this site.",
+      );
+    }
+
+    targetWindow.document.title = docName || "Document";
+    targetWindow.document.body.innerHTML =
+      '<p style="font-family:sans-serif;padding:16px;">Loading document...</p>';
+
+    try {
+      const blob = await fetchBlob();
+      const typedBlob = documentService.withDocumentBlobType(blob, docName);
+      const objectUrl = window.URL.createObjectURL(typedBlob);
+
+      console.info("[documentService] Document blob ready", {
+        docName,
+        contentType: typedBlob.type,
+        sizeBytes: typedBlob.size,
+        objectUrl,
+        ...logContext,
+      });
+
+      targetWindow.location.replace(objectUrl);
+      targetWindow.opener = null;
+      setTimeout(() => window.URL.revokeObjectURL(objectUrl), 120000);
+    } catch (error) {
+      targetWindow.close();
+      throw error;
+    }
+  },
+
+  /**
+   * Open a Docs Repository file (Word/Excel/PowerPoint) via API storage.
+   * Legacy static AMC_Docs URLs are not served on production servers.
+   * @param {string} docName - Document file name
+   * @param {Window|null} previewWindow - Open synchronously from click handler
+   * @returns {Promise<void>}
+   */
+  viewRepositoryDocument: async (docName, previewWindow = null) => {
+    if (!docName) {
+      previewWindow?.close();
+      return;
+    }
+
+    const endpoint = "/Document/ViewClassMaterial";
+    const viewApiUrl = documentService.buildDocumentApiUrl(endpoint, {
+      fileName: docName,
+    });
+    const legacyStaticUrl = getPublicDocumentUrl(`AMC_Docs/${docName}`);
+
+    console.info("[documentService] Opening repository document", {
+      docName,
+      environment: config.app.environment,
+      apiBaseUrl: getApiUrl() || config.api.url,
+      viewApiUrl,
+      legacyStaticUrl,
+      localDevHint:
+        "Dev storage: pStudyWare20.UI/public/pstudyware/Documents/AMC_Docs",
+      serverHint:
+        "Server storage: DocumentStorage:RepositoryDocsPath (pStudyWare/AMC_Docs)",
+    });
+
+    await documentService.openDocumentBlobInNewWindow(
+      () => documentService.fetchClassMaterialBlob(docName),
+      docName,
+      {
+        source: "repository",
+        viewApiUrl,
+        legacyStaticUrl,
+        environment: config.app.environment,
+      },
+      previewWindow,
+    );
+  },
+
+  /**
+   * Ensure blob has a useful MIME type for Office/PDF files.
+   * @param {Blob} blob
+   * @param {string} docName
+   * @returns {Blob}
+   */
+  withDocumentBlobType: (blob, docName) => {
+    if (blob.type && blob.type !== "application/octet-stream") {
+      return blob;
+    }
+
+    const extension = String(docName || "")
+      .split(".")
+      .pop()
+      ?.toLowerCase();
+    const mimeTypes = {
+      pdf: "application/pdf",
+      doc: "application/msword",
+      docx:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      xls: "application/vnd.ms-excel",
+      xlsx:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ppt: "application/vnd.ms-powerpoint",
+      pptx:
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    };
+
+    const contentType = mimeTypes[extension];
+    return contentType ? new Blob([blob], { type: contentType }) : blob;
+  },
+
+  /**
    * Fetch a document file from an API endpoint.
    * @param {string} docName - Document file name
    * @param {string} endpoint - API endpoint path
@@ -484,6 +622,16 @@ const documentService = {
    */
   fetchDocumentBlob: async (docName, endpoint) => {
     try {
+      const requestUrl = documentService.buildDocumentApiUrl(endpoint, {
+        fileName: docName,
+      });
+      console.info("[documentService] Fetching document blob", {
+        docName,
+        endpoint,
+        requestUrl,
+        environment: config.app.environment,
+      });
+
       const response = await api.get(endpoint, {
         params: { fileName: docName },
         responseType: "blob",
@@ -492,6 +640,16 @@ const documentService = {
 
       const blob = response.data;
       const contentType = response.headers?.["content-type"] || "";
+      const resolvedFilePath = response.headers?.["x-document-file-path"];
+
+      if (resolvedFilePath) {
+        console.info("[documentService] Document resolved on server", {
+          docName,
+          requestUrl,
+          resolvedFilePath,
+          environment: config.app.environment,
+        });
+      }
 
       if (
         blob instanceof Blob &&

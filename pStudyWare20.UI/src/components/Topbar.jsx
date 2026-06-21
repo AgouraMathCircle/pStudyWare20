@@ -99,30 +99,44 @@ const Topbar = () => {
     });
   };
 
+  const topbarLinkIconSx = { fontSize: 12, display: "flex" };
+  const topbarTextSx = {
+    fontSize: "0.831875rem",
+    lineHeight: 1,
+    m: 0,
+  };
+  const topbarActionTextSx = {
+    fontSize: "0.831875rem",
+    fontWeight: 500,
+    lineHeight: 1,
+    m: 0,
+  };
+  const topbarActionIconSx = { fontSize: 12 };
+
   const topbarLinks = [
     {
-      icon: <RocketIcon fontSize="small" />,
+      icon: <RocketIcon sx={topbarLinkIconSx} />,
       text: "Math Circle",
       href: "/about/math-circle",
     },
     {
-      icon: <RocketIcon fontSize="small" />,
+      icon: <RocketIcon sx={topbarLinkIconSx} />,
       text: "Engineering Circle",
       href: "/about/engineering-circle",
     },
     {
-      icon: <EditIcon fontSize="small" />,
+      icon: <EditIcon sx={topbarLinkIconSx} />,
       text: "Test Preparation",
       href: "/about/test-preparation",
     },
     {
-      icon: <EditIcon fontSize="small" />,
+      icon: <EditIcon sx={topbarLinkIconSx} />,
       text: "Triangular Talks",
       href: "http://triangulartalks.org/",
       external: true,
     },
     {
-      icon: <GroupIcon fontSize="small" />,
+      icon: <GroupIcon sx={topbarLinkIconSx} />,
       text: "Satellite Program",
       href: "/about/satellite-program",
     },
@@ -130,27 +144,27 @@ const Topbar = () => {
 
   const socialLinks = [
     {
-      icon: <FacebookIcon />,
+      icon: <FacebookIcon sx={topbarActionIconSx} />,
       href: "https://www.facebook.com/profile.php?id=100010784343153",
       label: "Facebook",
     },
     {
-      icon: <XIcon />,
+      icon: <XIcon sx={topbarActionIconSx} />,
       href: "https://x.com/agouramath/",
       label: "X",
     },
     {
-      icon: <YouTubeIcon />,
+      icon: <YouTubeIcon sx={topbarActionIconSx} />,
       href: "https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/videos",
       label: "YouTube",
     },
     {
-      icon: <LinkedInIcon />,
+      icon: <LinkedInIcon sx={topbarActionIconSx} />,
       href: "https://www.linkedin.com/in/agouramathcircle/",
       label: "LinkedIn",
     },
     {
-      icon: <InstagramIcon />,
+      icon: <InstagramIcon sx={topbarActionIconSx} />,
       href: "https://www.instagram.com/agouramathcircle/",
       label: "Instagram",
     },
@@ -194,8 +208,9 @@ const Topbar = () => {
         backgroundColor: "#102d47",
         color: "#ffffff",
         width: "100%",
-        fontSize: "14px",
-        py: { xs: 0.75, sm: 0.75, md: 0 },
+        fontSize: "13px",
+        py: 0.17,
+        minHeight: 26,
       }}
     >
       <Container maxWidth={false} sx={{ px: 0 }}>
@@ -206,8 +221,11 @@ const Topbar = () => {
             justifyContent: "space-between",
             alignItems: { xs: "stretch", md: "center" },
             width: "100%",
-            gap: { xs: 1, sm: 1.25, md: 0 },
-            px: { xs: 2, sm: 3, md: 8, lg: "1in", xl: "1in" },
+            gap: { xs: 0.75, sm: 1, md: 0 },
+            pl: { xs: 1.5, sm: 2, md: 4, lg: "0.6in", xl: "0.6in" },
+            pr: { xs: 2, sm: 3, md: 8, lg: "1in", xl: "1in" },
+            minHeight: 26,
+            py: 0,
           }}
         >
           {/* Left side - Navigation Links */}
@@ -215,11 +233,12 @@ const Topbar = () => {
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: { xs: 1.25, sm: 1.5, md: 2 },
+              gap: { xs: 1, sm: 1.25, md: 1.65 },
               flexShrink: 0,
               flexWrap: { xs: "nowrap", md: "wrap" },
               overflowX: { xs: "auto", md: "visible" },
-              py: { xs: 0.25, md: 0 },
+              py: 0,
+              ml: { md: -0.5, lg: -1 },
               "&::-webkit-scrollbar": { display: "none" },
               maskImage:
                 "linear-gradient(to right, transparent 0, black 12px, black calc(100% - 12px), transparent 100%)",
@@ -231,24 +250,17 @@ const Topbar = () => {
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 0.75,
+                  gap: 0.35,
                   cursor: "pointer",
                   "&:hover": { color: "#ccc" },
                   whiteSpace: "nowrap",
                   flexShrink: 0,
-                  fontSize: { xs: "0.85rem", sm: "0.9rem", md: "0.95rem" },
                   px: { xs: 0, md: 0 },
                 }}
                 onClick={() => handleNavigation(link.href, link.external)}
               >
-                <Box sx={{ fontSize: 13, mr: 0.5 }}>{link.icon}</Box>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontSize: { xs: "0.85rem", md: "0.95rem" },
-                    lineHeight: 1.3,
-                  }}
-                >
+                <Box sx={{ display: "flex", mr: 0.25 }}>{link.icon}</Box>
+                <Typography variant="body2" sx={topbarTextSx}>
                   {link.text}
                 </Typography>
               </Box>
@@ -262,8 +274,8 @@ const Topbar = () => {
               alignItems: { xs: "center", sm: "center", md: "center" },
               justifyContent: { xs: "space-between", sm: "flex-end" },
               flexWrap: { xs: "wrap", sm: "wrap", md: "nowrap" },
-              gap: { xs: 1, sm: 1.25, md: 1 },
-              ml: { xs: 0, md: 4 },
+              gap: { xs: 0.5, sm: 0.75, md: 0.5 },
+              ml: { xs: 0, md: 2 },
               flexShrink: 0,
             }}
           >
@@ -283,15 +295,15 @@ const Topbar = () => {
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 1,
-                    mr: { xs: 0, md: 2 },
+                    gap: 0.5,
+                    mr: { xs: 0, md: 1 },
                     order: { xs: 3, sm: 3, md: 1 },
                   }}
                 >
-                  <Typography variant="body2" sx={{ color: "#ffffff" }}>
+                  <Typography variant="body2" sx={{ color: "#ffffff", ...topbarTextSx }}>
                     Welcome {user?.firstName || "User"},
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "#ffffff", whiteSpace: "nowrap" }}>
+                  <Typography variant="body2" sx={{ color: "#ffffff", whiteSpace: "nowrap", ...topbarTextSx }}>
                     {dateTime}
                   </Typography>
                 </Box>
@@ -304,14 +316,18 @@ const Topbar = () => {
                 size="small"
                 sx={{
                   color: "#ffffff",
-                  padding: "5px",
+                  p: 0,
+                  width: 22,
+                  height: 22,
+                  minWidth: 22,
+                  minHeight: 22,
                   "&:hover": { color: "#ccc" },
                 }}
                 onClick={() =>
                   window.open(social.href, "_blank", "noopener,noreferrer")
                 }
               >
-                <Box sx={{ fontSize: 14 }}>{social.icon}</Box>
+                {social.icon}
               </IconButton>
             ))}
 
@@ -321,7 +337,7 @@ const Topbar = () => {
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 1,
+                  gap: 0.35,
                   cursor: "pointer",
                   "&:hover": { color: "#ccc" },
                   order: { xs: 1, sm: 1, md: 2 },
@@ -334,11 +350,8 @@ const Topbar = () => {
                 }}
                 onClick={handleLogout}
               >
-                <LogoutIcon sx={{ fontSize: 13, mr: 1 }} />
-                <Typography
-                  variant="body2"
-                  sx={{ fontSize: "15px", fontWeight: 400 }}
-                >
+                <LogoutIcon sx={topbarActionIconSx} />
+                <Typography variant="body2" sx={topbarActionTextSx}>
                   LOGOUT
                 </Typography>
               </Box>
@@ -349,7 +362,7 @@ const Topbar = () => {
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 1,
+                gap: 0,
                 cursor: "pointer",
                 "&:hover": { color: "#ccc" },
                 order: { xs: 2, sm: 2, md: 3 },
@@ -362,11 +375,8 @@ const Topbar = () => {
               }}
               onClick={() => navigate("/donate")}
             >
-              <DonateIcon sx={{ fontSize: 13, mr: 1 }} />
-              <Typography
-                variant="body2"
-                sx={{ fontSize: "15px", fontWeight: 400 }}
-              >
+              <DonateIcon sx={topbarActionIconSx} />
+              <Typography variant="body2" sx={topbarActionTextSx}>
                 DONATE
               </Typography>
             </Box>

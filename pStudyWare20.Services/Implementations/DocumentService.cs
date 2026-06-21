@@ -711,10 +711,13 @@ namespace pStudyWare20.Services.Implementations
                 LogDocumentStorageConfiguration("GetClassMaterialFile");
                 var searchDirectories = GetClassMaterialSearchDirectories().ToList();
                 _logger.LogInformation(
-                    "Class material lookup started. Environment={Environment} RequestedName={DocumentName} SafeFileName={SafeFileName} SearchPaths={SearchPaths}",
+                    "Document file lookup started. Environment={Environment} IsDevelopment={IsDevelopment} RequestedName={DocumentName} SafeFileName={SafeFileName} RepositoryPath={RepositoryPath} ClassMaterialPath={ClassMaterialPath} SearchPaths={SearchPaths}",
                     _hostEnvironment.EnvironmentName,
+                    _hostEnvironment.IsDevelopment(),
                     documentName,
                     safeFileName,
+                    GetRepositoryDocsPath(),
+                    GetLegacyClassMaterialDocsPath(),
                     string.Join(" | ", searchDirectories));
 
                 string? foundPath = null;
@@ -746,11 +749,15 @@ namespace pStudyWare20.Services.Implementations
                 }
 
                 _logger.LogInformation(
-                    "Class material file found at {FoundPath}",
-                    foundPath);
+                    "Document file resolved. Environment={Environment} RequestedName={DocumentName} FoundPath={FoundPath} ContentType={ContentType}",
+                    _hostEnvironment.EnvironmentName,
+                    documentName,
+                    foundPath,
+                    response.ContentType);
 
                 response.FileContent = await File.ReadAllBytesAsync(foundPath);
                 response.FileName = safeFileName;
+                response.FilePath = foundPath;
                 response.ContentType = GetStudentDocumentContentType(safeFileName);
                 response.IsSuccess = true;
             }
@@ -1017,9 +1024,42 @@ namespace pStudyWare20.Services.Implementations
         private static string GetStudentDocumentContentType(string fileName)
         {
             var extension = Path.GetExtension(fileName);
-            return extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase)
-                ? "application/pdf"
-                : "application/octet-stream";
+            if (extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                return "application/pdf";
+            }
+
+            if (extension.Equals(".doc", StringComparison.OrdinalIgnoreCase))
+            {
+                return "application/msword";
+            }
+
+            if (extension.Equals(".docx", StringComparison.OrdinalIgnoreCase))
+            {
+                return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            }
+
+            if (extension.Equals(".xls", StringComparison.OrdinalIgnoreCase))
+            {
+                return "application/vnd.ms-excel";
+            }
+
+            if (extension.Equals(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            }
+
+            if (extension.Equals(".ppt", StringComparison.OrdinalIgnoreCase))
+            {
+                return "application/vnd.ms-powerpoint";
+            }
+
+            if (extension.Equals(".pptx", StringComparison.OrdinalIgnoreCase))
+            {
+                return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+            }
+
+            return "application/octet-stream";
         }
 
         private static bool TryResolveDeleteDocumentId(string? rawDocumentId, out int docId)

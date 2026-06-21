@@ -738,7 +738,8 @@ const Navbar = () => {
                   justifyContent: showPortalMenu ? "center" : "flex-end",
                   gap: showPortalMenu ? 0.1 : 1,
                   flex: 1,
-                  mx: showPortalMenu ? 3 : 0,
+                  ml: showPortalMenu ? 1.5 : 0,
+                  mr: showPortalMenu ? 4.5 : 2.5,
                 }}
               >
                 {menuItems.map((item) => renderMenuItem(item, false))}

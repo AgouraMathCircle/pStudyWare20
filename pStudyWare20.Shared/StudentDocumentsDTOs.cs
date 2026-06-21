@@ -204,6 +204,9 @@ namespace pStudyWare20.Shared
         public string ContentType { get; set; } = "application/pdf";
 
         public string FileName { get; set; } = string.Empty;
+
+        /// <summary>Absolute path on disk when resolved (for diagnostics/logging).</summary>
+        public string FilePath { get; set; } = string.Empty;
     }
 
     /// <summary>
