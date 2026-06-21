@@ -16,7 +16,6 @@ import {
   YouTube as YouTubeIcon,
   LinkedIn as LinkedInIcon,
   Instagram as InstagramIcon,
-  Login as LoginIcon,
   Logout as LogoutIcon,
   AttachMoney as DonateIcon,
   Rocket as RocketIcon,
@@ -26,6 +25,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../services";
 import { isPortalRoute } from "../utils/routeUtils";
+import { useRoleHeaderDateTime } from "../hooks/useRoleHeaderDateTime";
 
 const Topbar = () => {
   const theme = useTheme();
@@ -33,6 +33,7 @@ const Topbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = React.useState(null);
+  const dateTime = useRoleHeaderDateTime();
 
   React.useEffect(() => {
     const currentUser = authService.getCurrentUser();
@@ -290,8 +291,8 @@ const Topbar = () => {
                   <Typography variant="body2" sx={{ color: "#ffffff" }}>
                     Welcome {user?.firstName || "User"},
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "#ffffff" }}>
-                    {new Date().toLocaleDateString()}
+                  <Typography variant="body2" sx={{ color: "#ffffff", whiteSpace: "nowrap" }}>
+                    {dateTime}
                   </Typography>
                 </Box>
               )}
@@ -314,46 +315,34 @@ const Topbar = () => {
               </IconButton>
             ))}
 
-            {/* Login/Logout Button */}
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                cursor: "pointer",
-                "&:hover": { color: "#ccc" },
-                order: { xs: 1, sm: 1, md: 2 },
-                flexGrow: { xs: 1, sm: 0 },
-                justifyContent: {
-                  xs: "flex-start",
-                  sm: "center",
-                  md: "flex-start",
-                },
-              }}
-              onClick={user ? handleLogout : () => navigate("/login")}
-            >
-              {user ? (
-                <>
-                  <LogoutIcon sx={{ fontSize: 13, mr: 1 }} />
-                  <Typography
-                    variant="body2"
-                    sx={{ fontSize: "15px", fontWeight: 400 }}
-                  >
-                    LOGOUT
-                  </Typography>
-                </>
-              ) : (
-                <>
-                  <LoginIcon sx={{ fontSize: 13, mr: 1 }} />
-                  <Typography
-                    variant="body2"
-                    sx={{ fontSize: "15px", fontWeight: 400 }}
-                  >
-                    LOGIN
-                  </Typography>
-                </>
-              )}
-            </Box>
+            {/* Logout Button */}
+            {user && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  cursor: "pointer",
+                  "&:hover": { color: "#ccc" },
+                  order: { xs: 1, sm: 1, md: 2 },
+                  flexGrow: { xs: 1, sm: 0 },
+                  justifyContent: {
+                    xs: "flex-start",
+                    sm: "center",
+                    md: "flex-start",
+                  },
+                }}
+                onClick={handleLogout}
+              >
+                <LogoutIcon sx={{ fontSize: 13, mr: 1 }} />
+                <Typography
+                  variant="body2"
+                  sx={{ fontSize: "15px", fontWeight: 400 }}
+                >
+                  LOGOUT
+                </Typography>
+              </Box>
+            )}
 
             {/* Donate Button */}
             <Box

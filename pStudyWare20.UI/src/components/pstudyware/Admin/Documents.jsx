@@ -18,6 +18,7 @@ import AdminHeader from "./AdminHeader";
 import AdminDocumentList from "./AdminDocumentList";
 import DocumentUploadForm from "./DocumentUploadForm";
 import InstructorClassMaterialList from "../Instructor/InstructorClassMaterialList";
+import PdfViewerModal from "../../common/PdfViewerModal";
 import {
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
@@ -163,34 +164,26 @@ const Documents = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Handle view document — instructor: in-app PDF modal; admin: static path
+  // Handle view document — open PDF via API storage (legacy static /pstudyware/Documents/ is not used for uploads)
   const handleView = (docName) => {
-    if (hideRoleHeader) {
-      setSelectedPdf(docName);
-      return;
-    }
-    documentService.viewDocument(docName);
+    setSelectedPdf(docName);
   };
 
   const handleClosePdfViewer = () => {
     setSelectedPdf(null);
   };
 
-  // Handle download document — instructor: API blob; admin: static path
+  // Handle download document via API blob
   const handleDownload = async (docName) => {
-    if (hideRoleHeader) {
-      try {
-        await documentService.downloadClassMaterial(docName);
-      } catch (err) {
-        console.error("Error downloading class material:", err);
-        showMessage(
-          err?.message || "Unable to download document. Please try again.",
-          "error",
-        );
-      }
-      return;
+    try {
+      await documentService.downloadClassMaterial(docName);
+    } catch (err) {
+      console.error("Error downloading class material:", err);
+      showMessage(
+        err?.message || "Unable to download document. Please try again.",
+        "error",
+      );
     }
-    documentService.downloadDocument(docName);
   };
 
   // Handle delete document
@@ -424,6 +417,15 @@ const Documents = () => {
         onSubmit={handleUploadSubmit}
         loading={uploading}
       />
+
+      {!hideRoleHeader && (
+        <PdfViewerModal
+          open={Boolean(selectedPdf)}
+          pdfUrl={selectedPdf}
+          pdfName={selectedPdf}
+          onClose={handleClosePdfViewer}
+        />
+      )}
 
       {/* Global Snackbar for Success/Error Messages */}
       <Snackbar

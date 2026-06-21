@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using pStudyWare20.Services.Interfaces;
@@ -12,6 +13,7 @@ namespace pStudyWare20.API.Controllers
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     [EnableCors("AllowReactApp")]
     [Produces(MediaTypeNames.Application.Json)]
     public class DocumentController : ControllerBase
@@ -180,7 +182,20 @@ namespace pStudyWare20.API.Controllers
 
             try
             {
+                _logger.LogInformation(
+                    "UploadDocument request. DocName={DocName} IsAuthenticated={IsAuthenticated} User={User}",
+                    request.DocName,
+                    User.Identity?.IsAuthenticated == true,
+                    User.Identity?.Name ?? "(anonymous)");
+
                 var response = await _documentService.UploadDocumentAsync(request).ConfigureAwait(false);
+                if (response.IsSuccess)
+                {
+                    _logger.LogInformation(
+                        "UploadDocument succeeded. DocName={DocName} SavedPath={SavedPath}",
+                        request.DocName,
+                        response.FilePath);
+                }
                 return Ok(response);
             }
             catch (OperationCanceledException)
@@ -373,12 +388,22 @@ namespace pStudyWare20.API.Controllers
 
             try
             {
+                _logger.LogInformation(
+                    "ViewClassMaterial request. FileName={FileName} IsAuthenticated={IsAuthenticated} User={User}",
+                    fileName,
+                    User.Identity?.IsAuthenticated == true,
+                    User.Identity?.Name ?? "(anonymous)");
+
                 var response = await _documentService
                     .GetClassMaterialFileAsync(fileName)
                     .ConfigureAwait(false);
 
                 if (!response.IsSuccess)
                 {
+                    _logger.LogWarning(
+                        "ViewClassMaterial not found. FileName={FileName} Error={Error}",
+                        fileName,
+                        response.ErrorMessage);
                     return NotFound(new { message = response.ErrorMessage });
                 }
 

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -80,11 +81,41 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidAudience = jwtSettings?.Audience,
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero,
+            ClockSkew = TimeSpan.FromMinutes(2),
             // Map role claim correctly for authorization
             // JWT tokens typically use "role" as the claim name
             RoleClaimType = "role",
             NameClaimType = System.Security.Claims.ClaimTypes.NameIdentifier
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                var logger = context.HttpContext.RequestServices
+                    .GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("JwtBearer");
+                logger.LogWarning(
+                    context.Exception,
+                    "JWT authentication failed for {Method} {Path}. AuthorizationRequired={AuthorizationRequired}",
+                    context.Request.Method,
+                    context.Request.Path,
+                    context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<IAuthorizeData>() != null);
+                return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                var logger = context.HttpContext.RequestServices
+                    .GetRequiredService<ILoggerFactory>()
+                    .CreateLogger("JwtBearer");
+                logger.LogWarning(
+                    "JWT challenge returned 401 for {Method} {Path}. Error={Error} ErrorDescription={ErrorDescription}",
+                    context.Request.Method,
+                    context.Request.Path,
+                    context.Error,
+                    context.ErrorDescription);
+                return Task.CompletedTask;
+            },
         };
     });
 

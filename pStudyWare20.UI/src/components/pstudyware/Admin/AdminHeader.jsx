@@ -8,6 +8,7 @@ import {
   applicationRoleHeaderBarSx,
   instructorPortalContentContainerProps,
 } from "../styles/applicationSurfaces";
+import { useRoleHeaderDateTime } from "../../../hooks/useRoleHeaderDateTime";
 
 /**
  * Fixed band under site navigation — content aligned with dashboard cards (maxWidth xl).
@@ -15,6 +16,7 @@ import {
 const AdminHeader = ({ user }) => {
   const theme = useTheme();
   const [topPx, setTopPx] = useState(72);
+  const dateTime = useRoleHeaderDateTime();
 
   const measureTopOffset = useCallback(() => {
     const topbar = document.querySelector(".topbar-container");
@@ -140,13 +142,10 @@ const AdminHeader = ({ user }) => {
                   fontWeight: 600,
                   fontSize: "0.75rem",
                   lineHeight: 1.2,
+                  whiteSpace: "nowrap",
                 }}
               >
-                {new Date().toLocaleDateString("en-US", {
-                  month: "numeric",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                {dateTime}
               </Typography>
             </Box>
           </Box>
