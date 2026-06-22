@@ -35,65 +35,86 @@ export const chief = [
 ];
 export const teamMembers = [
   // Senior Vice Presidents
-  { name: "AUSTIN LAW", role: "SENIOR VICE PRESIDENT", image: austinLaw },
   { name: "JOSHNA JUDE", role: "SENIOR VICE PRESIDENT", image: joshna },
-  { name: "CHARLIE NICKS", role: "SENIOR VICE PRESIDENT", image: teamMember14 },
   { name: "MUGIL", role: "SENIOR VICE PRESIDENT", image: mugil },
-  { name: "RUHAN", role: "SENIOR VICE PRESIDENT", image: ruhan },
-  { name: "MONISHKA TANWANI", role: "SENIOR VICE PRESIDENT", image: monishka },
   { name: "VIBUSHA", role: "SENIOR VICE PRESIDENT", image: vibusha },
+  { name: "MONISHKA TANWANI", role: "SENIOR VICE PRESIDENT", image: monishka },
+  { name: "RUHAN", role: "SENIOR VICE PRESIDENT", image: ruhan },
+  // { name: "AUSTIN LAW", role: "SENIOR VICE PRESIDENT", image: austinLaw },
+  // { name: "CHARLIE NICKS", role: "SENIOR VICE PRESIDENT", image: teamMember14 },
   // Vice Presidents
-  { name: "ANUSHA PANDEY", role: "VICE PRESIDENT", image: anusha },
-  { name: "CAITLYN DEPRANO", role: "VICE PRESIDENT", image: userImg },
-  { name: "NAYANA ASHOK", role: "VICE PRESIDENT", image: nayanaAshok },
-  { name: "BHAVYA SHANMUGAM", role: "VICE PRESIDENT", image: bhavyaShanmugam },
-  { name: "DHEEKSHAW GOPINATH", role: "VICE PRESIDENT", image: userImg },
-  {
-    name: "SHRINIDHI PRABHAHARAN",
-    role: "VICE PRESIDENT",
-    image: shrinidhiPrabhaharan,
-  },
-  { name: "THANUSHRI VEDAVALLI", role: "VICE PRESIDENT", image: tanushree },
+  // { name: "ANUSHA PANDEY", role: "VICE PRESIDENT", image: anusha },
+  // { name: "CAITLYN DEPRANO", role: "VICE PRESIDENT", image: userImg },
+  // { name: "NAYANA ASHOK", role: "VICE PRESIDENT", image: nayanaAshok },
+  // { name: "BHAVYA SHANMUGAM", role: "VICE PRESIDENT", image: bhavyaShanmugam },
+  // { name: "DHEEKSHAW GOPINATH", role: "VICE PRESIDENT", image: userImg },
+  // {
+  //   name: "SHRINIDHI PRABHAHARAN",
+  //   role: "VICE PRESIDENT",
+  //   image: shrinidhiPrabhaharan,
+  // },
+  // { name: "THANUSHRI VEDAVALLI", role: "VICE PRESIDENT", image: tanushree },
   // Assistant Vice Presidents
-  {
-    name: "AAROHAN CHAKRAVARTY",
-    role: "ASSISTANT VICE PRESIDENT",
-    image: userImg,
-  },
-  { name: "ASHWIKA TASIN", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  { name: "AVISHI GOEL", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  { name: "AYUSHI AGARWAL", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  { name: "IONE MCLAINL", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  { name: "JUSTIN ZHANG", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  { name: "NICK CHENG", role: "ASSISTANT VICE PRESIDENT", image: nickCheng },
-  { name: "KARINA DORDI", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  { name: "NYSHA PRASAD", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  { name: "YI LI", role: "ASSISTANT VICE PRESIDENT", image: yili },
-  { name: "OJAL MAHAJAN", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  { name: "DHRUVA MADHAN", role: "ASSISTANT VICE PRESIDENT", image: dhruva },
-  {
-    name: "SRISHARAN MURUGESAN",
-    role: "ASSISTANT VICE PRESIDENT",
-    image: userImg,
-  },
-  { name: "SASHANK VINOTH", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  {
-    name: "ALEXANDER BANKHEAD",
-    role: "ASSISTANT VICE PRESIDENT",
-    image: alexanderBankhead,
-  },
-  { name: "SIMRAN KAUR", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  { name: "HARI GEESON", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  { name: "PRANAV KUNDERU", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  { name: "SANJAY REDDY", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  {
-    name: "SYLESH SUNDARESAN",
-    role: "ASSISTANT VICE PRESIDENT",
-    image: userImg,
-  },
-  { name: "JOHANATHAN JHU", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  { name: "ADITI MAHAJAN", role: "ASSISTANT VICE PRESIDENT", image: userImg },
-  { name: "RISHIK TANWANI", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // {
+  //   name: "AAROHAN CHAKRAVARTY",
+  //   role: "ASSISTANT VICE PRESIDENT",
+  //   image: userImg,
+  // },
+  // { name: "ASHWIKA TASIN", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "AVISHI GOEL", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "AYUSHI AGARWAL", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "IONE MCLAINL", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "JUSTIN ZHANG", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "NICK CHENG", role: "ASSISTANT VICE PRESIDENT", image: nickCheng },
+  // { name: "KARINA DORDI", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "NYSHA PRASAD", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "YI LI", role: "ASSISTANT VICE PRESIDENT", image: yili },
+  // { name: "OJAL MAHAJAN", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "DHRUVA MADHAN", role: "ASSISTANT VICE PRESIDENT", image: dhruva },
+  // {
+  //   name: "SRISHARAN MURUGESAN",
+  //   role: "ASSISTANT VICE PRESIDENT",
+  //   image: userImg,
+  // },
+  // { name: "SASHANK VINOTH", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // {
+  //   name: "ALEXANDER BANKHEAD",
+  //   role: "ASSISTANT VICE PRESIDENT",
+  //   image: alexanderBankhead,
+  // },
+  // { name: "SIMRAN KAUR", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "HARI GEESON", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "PRANAV KUNDERU", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "SANJAY REDDY", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // {
+  //   name: "SYLESH SUNDARESAN",
+  //   role: "ASSISTANT VICE PRESIDENT",
+  //   image: userImg,
+  // },
+  // { name: "JOHANATHAN JHU", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "ADITI MAHAJAN", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "RISHIK TANWANI", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Aarohan Chakravarty", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Ashwika Tasin", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Avishi Goel", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Ayushi Agarwal", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Ione Mclainl", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Justin zhang", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Nick Cheng", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Karina Dordi", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Nysha Prasad", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Yi Li", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Ojal Mahajan", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Dhruva Madhan", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Srisharan Murugesan", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Sashank Vinoth", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Alexander Bankhead", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Simran Kaur", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Hari Geeson", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Pranav Kunderu", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Sanjay Reddy", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Johanathan Jhu", role: "ASSISTANT VICE PRESIDENT", image: userImg },
+  // { name: "Aditi Mahajan", role: "ASSISTANT VICE PRESIDENT", image: userImg },
 ];
 
 const AMCTeam = () => {
@@ -152,7 +173,7 @@ const AMCTeam = () => {
               <Box sx={{ textAlign: "center" }}>
                 <Box
                   sx={{
-                    width: "280px",
+                    width: "448px",
                     mx: "auto",
                     backgroundColor: "#fff",
                     borderRadius: "18px",
@@ -164,7 +185,7 @@ const AMCTeam = () => {
                   <Box
                     sx={{
                       width: "100%",
-                      height: "260px",
+                      height: "416px",
                       overflow: "hidden",
                       borderRadius: "14px",
                       position: "relative",
@@ -242,16 +263,9 @@ const AMCTeam = () => {
             </Grid>
           ))}
         </Grid>
+        
       </Box>
-
-      {/* AMC Student Board Members Section */}
       <Box sx={{ mt: 8 }}>
-        <Typography
-          variant="h3"
-          sx={{ fontWeight: 700, mb: 4, fontSize: { xs: "1.8rem", md: "2.2rem" } }}
-        >
-          AMC Student Board Members
-        </Typography>
 
         <Grid container spacing={3} justifyContent="center">
           {teamMembers.map((member, index) => (
@@ -294,7 +308,6 @@ const AMCTeam = () => {
                       }}
                     />
 
-                    {/* SOCIAL ICONS - Fixed position without sliding */}
                     <Box
                       className="overlay"
                       sx={{
@@ -330,7 +343,7 @@ const AMCTeam = () => {
                       textTransform: "capitalize",
                     }}
                   >
-                    {member.name}
+                    {member.name.toUpperCase()}
                   </Typography>
                   <Typography
                     variant="body2"
@@ -350,6 +363,7 @@ const AMCTeam = () => {
           ))}
         </Grid>
       </Box>
+      
     </>
   );
 };

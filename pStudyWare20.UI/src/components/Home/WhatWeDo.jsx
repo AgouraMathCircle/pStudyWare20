@@ -69,22 +69,21 @@ const WhatWeDo = () => {
               <Box className="what-we-do-des" component="div">
                 Math Circle - Agoura, CA Chapter
                 <br />
-                Math Circle - Charlotte, NC Chapter
-                <br />
                 Math Circle - Online Chapter
                 <br />
                 Engineering Circle - Intro to Data Science /AI
                 <br />
                 Test Preparation - ACT and SAT/PSAT
                 <br />
-                Triangular Talks - Every Month
-                <br />
-                Satellite Program -{" "}
                 <a href="/studentregistration">
-                  Register
+                  <button className="active">Register</button>
                 </a>
                 <br />
-                Math Kangraoo -{" "}
+                Triangular Talks - Every Month
+                <br />
+                Satellite Program - <a href="/studentregistration">Register</a>
+                <br />
+                Math Kangaroo -{" "}
                 <a href="https://mathkangaroo.oasis-lms.com/Public/Catalog/Home.aspx?Criteria=44&Option=503&tab=2">
                   Register
                 </a>
@@ -197,7 +196,6 @@ const WhatWeDo = () => {
                       Juniority TV
                     </a>
                   </li>
-                  
                   <li>
                     <a
                       href="https://x.com/agouramath"

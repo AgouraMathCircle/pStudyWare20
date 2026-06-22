@@ -42,6 +42,9 @@ import sriyabImg from "../assets/images/team/volunteers/SRIYABANDARUPALLI.jpg";
 import pratyushImg from "../assets/images/team/volunteers/PRATYUSHMUDGAL.jpg";
 import abhishaiImg from "../assets/images/team/volunteers/Abhishai.jpg";
 
+import AustinImg from "../assets/images/team/person-icon.png";
+import CharlieImg from "../assets/images/team/volunteers/charlie.png";
+
 const Alumini = () => {
   const formatName = (name) => {
     const parts = name.split(" ");
@@ -139,6 +142,8 @@ const Alumini = () => {
             { img: sriyabImg, name: "SRIYA BANDARUPALLI", college: "" },
             { img: pratyushImg, name: "PRATYUSH MUDGAL", college: "" },
             { img: abhishaiImg, name: "ABHISHAI GANTA", college: "" },
+            { img: AustinImg, name: "AUSTIN LAW", college: "" },
+            { img: CharlieImg, name: "CHARLIE NICKS", college: "" },
           ].map((m) => (
             <Grid key={m.name} item xs={12} sm={3} md={3}>
               <Box className="ourteam-card">

@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import "../styles/Gallery.css";
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
+// Import photo album icons 
 import award2026Icon from "../assets/images/gallery/photos/AwardCeremony2026/IMG 1.jpeg";
 import award2025Icon from "../assets/images/gallery/photos/AwardCeremony2025/017.jpg";
 import award2024Icon from "../assets/images/gallery/photos/AwardCeremony2024/icon.jpeg";

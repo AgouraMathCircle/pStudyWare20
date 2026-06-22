@@ -44,6 +44,8 @@ const Donate = () => {
 
   // Financial reports data
   const financialReports = [
+    { year: "2025", link: "/pstudyware/Documents/Statements/AMC PnL 2025.pdf" },
+    { year: "2024", link: "/pstudyware/Documents/Statements/AMC PnL 2024.pdf" },
     { year: "2023", link: "/pstudyware/Documents/Statements/AMC PnL 2023.pdf" },
     { year: "2022", link: "/pstudyware/Documents/Statements/AMC PnL 2022.pdf" },
     { year: "2021", link: "/pstudyware/Documents/Statements/AMC PnL 2021.pdf" },

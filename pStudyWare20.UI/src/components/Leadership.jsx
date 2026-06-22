@@ -217,39 +217,7 @@ const Leadership = () => {
             { img: josephImg, name: "JOSEPH KEAYS", role: "Agoura High" },
             { img: chitraImg, name: "CHITRA JAYARAMAN", role: "Bank Of America" },
           ].map((m) => (
-<<<<<<< HEAD
             <MemberCard key={m.name} m={m} altText="Advisory Member" />
-=======
-            <Grid key={m.name} item xs={12} sm={3} md={3}>
-              <Box className="leader-card">
-                <Box className="leader-image">
-                  <img src={m.img} alt="Advisory Member" />
-                  <Box className="social-overlay">
-                    <Box className="social-icon">
-                      <FacebookIcon />
-                    </Box>
-                    <Box className="social-icon">
-                      <GoogleIcon />
-                    </Box>
-                    <Box className="social-icon">
-                      <XIcon />
-                    </Box>
-                    <Box className="social-icon">
-                      <LinkedInIcon />
-                    </Box>
-                  </Box>
-                </Box>
-                <Box className="leader-info">
-                  <Typography className="leader-name" variant="h6">
-                    {m.name}
-                  </Typography>
-                  <Typography className="leader-role" variant="body2">
-                    {m.role}
-                  </Typography>
-                </Box>
-              </Box>
-            </Grid>
->>>>>>> main
           ))}
         </Box>
       </Container>
@@ -278,39 +246,7 @@ const Leadership = () => {
             { img: sumitaImg, name: "SUMITA ESWARAN", role: "EVP, Student Board Operation" },
             { img: amarpalImg, name: "AMARPAL SINGH", role: "EVP, Engineering Circle" },
           ].map((m) => (
-<<<<<<< HEAD
             <MemberCard key={m.name} m={m} altText="Executive Team Member" />
-=======
-            <Grid key={m.name} item xs={12} sm={3} md={3}>
-              <Box className="leader-card">
-                <Box className="leader-image">
-                  <img src={m.img} alt="Board Member" />
-                  <Box className="social-overlay">
-                    <Box className="social-icon">
-                      <FacebookIcon />
-                    </Box>
-                    <Box className="social-icon">
-                      <GoogleIcon />
-                    </Box>
-                    <Box className="social-icon">
-                      <XIcon />
-                    </Box>
-                    <Box className="social-icon">
-                      <LinkedInIcon />
-                    </Box>
-                  </Box>
-                </Box>
-                <Box className="leader-info">
-                  <Typography className="leader-name" variant="h6">
-                    {formatName(m.name)}
-                  </Typography>
-                  <Typography className="leader-role" variant="body2">
-                    {m.role}
-                  </Typography>
-                </Box>
-              </Box>
-            </Grid>
->>>>>>> main
           ))}
         </Box>
       </Container>
@@ -345,39 +281,7 @@ const Leadership = () => {
             { img: simranImg, name: "SIMRAN KAUR", role: "Vice President - Engineering Circle" },
             { img: haridevImg, name: "HARIDEV P", role: "Officer - Engineering Circle" },
           ].map((m) => (
-<<<<<<< HEAD
             <MemberCard key={m.name} m={m} altText="Student Board Member" />
-=======
-            <Grid key={m.name} item xs={12} sm={3} md={3}>
-              <Box className="leader-card">
-                <Box className="leader-image">
-                  <img src={m.img} alt="Student Board Member" />
-                  <Box className="social-overlay">
-                    <Box className="social-icon">
-                      <FacebookIcon />
-                    </Box>
-                    <Box className="social-icon">
-                      <GoogleIcon />
-                    </Box>
-                    <Box className="social-icon">
-                      <XIcon />
-                    </Box>
-                    <Box className="social-icon">
-                      <LinkedInIcon />
-                    </Box>
-                  </Box>
-                </Box>
-                <Box className="leader-info">
-                  <Typography className="leader-name" variant="h6">
-                    {formatName(m.name)}
-                  </Typography>
-                  <Typography className="leader-role" variant="body2">
-                    {m.role}
-                  </Typography>
-                </Box>
-              </Box>
-            </Grid>
->>>>>>> main
           ))}
         </Box>
       </Container>

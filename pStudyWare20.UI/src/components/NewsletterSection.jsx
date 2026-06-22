@@ -16,10 +16,11 @@ const NewsletterSectionBox = styled(Box)(({ theme }) => ({
   background: "linear-gradient(135deg, #1c3d5a 0%, #2a5a8a 100%)",
   borderRadius: "8px",
   position: "relative",
-  marginTop: "40px",
-  marginBottom: "0px",
-  zIndex: 10,
+  zIndex: 50,
+  transform: "translateY(-80px)",
+  overflow: "visible",
   boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
+
   [theme.breakpoints.down("md")]: {
     padding: "30px 20px",
     marginTop: "30px",

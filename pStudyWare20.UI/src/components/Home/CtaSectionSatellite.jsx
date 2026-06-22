@@ -64,11 +64,12 @@ const CtaSectionSatellite = () => {
             >
               {/* Satellite Program */}
               <Grid
+                item
                 xs={12}
-                sm={12}
+                sm={4}
                 md={4}
                 lg={4}
-                sx={{ margin: { xs: "8px 0", sm: "12px 0", md: 0 } }}
+                sx={{ margin: 0 }}
               >
                 <Box
                   sx={{
@@ -78,9 +79,9 @@ const CtaSectionSatellite = () => {
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-evenly",
-                    minHeight: { xs: "auto", sm: "350px", md: "400px" },
-                    padding: { xs: "16px", sm: "20px", md: "24px" },
-                    gap: { xs: "16px", sm: "20px", md: "24px" },
+                    minHeight: { xs: "auto", sm: "300px", md: "320px" },
+                    padding: { xs: "12px", sm: "10px", md: "12px" },
+                    gap: { xs: "12px", sm: "10px", md: "12px" },
                   }}
                 >
                   <Box
@@ -95,13 +96,13 @@ const CtaSectionSatellite = () => {
                       src={satelliteLogoImg}
                       alt="Satellite Program"
                       sx={{
-                        width: { xs: "180px", sm: "200px", md: "220px" },
-                        height: { xs: "100px", sm: "115px", md: "130px" },
+                        width: { xs: "180px", sm: "160px", md: "200px" },
+                        height: { xs: "100px", sm: "90px", md: "115px" },
                         borderRadius: "10px",
                         objectFit: "contain",
                         display: "block",
                         margin: "0 auto",
-                        marginBottom: { xs: "12px", sm: "8px", md: "8px" },
+                        marginBottom: { xs: "8px", sm: "6px", md: "8px" },
                       }}
                     />
                     <Typography
@@ -110,8 +111,8 @@ const CtaSectionSatellite = () => {
                         color: "#ffffff",
                         fontWeight: 600,
                         textDecoration: "none",
-                        fontSize: { xs: "1.1rem", sm: "1.25rem", md: "1.5rem" },
-                        marginBottom: { xs: "8px", sm: "0px", md: "0px" },
+                        fontSize: { xs: "1.1rem", sm: "1.05rem", md: "1.25rem" },
+                        marginBottom: 0,
                       }}
                     >
                       Start your own club
@@ -121,10 +122,10 @@ const CtaSectionSatellite = () => {
                     sx={{
                       display: "flex",
                       flexDirection: { xs: "column", sm: "row" },
-                      gap: { xs: 1.5, sm: 2 },
-                      justifyContent: "space-evenly",
+                      gap: { xs: 1, sm: 1 },
+                      justifyContent: "center",
                       flexWrap: "wrap",
-                      marginTop: { xs: "12px", sm: "8px", md: "8px" },
+                      marginTop: { xs: "8px", sm: "6px", md: "8px" },
                     }}
                   >
                     <Button
@@ -135,11 +136,11 @@ const CtaSectionSatellite = () => {
                       sx={{
                         backgroundColor: "#53b50a",
                         color: "#ffffff",
-                        padding: { xs: "8px 16px", sm: "10px 20px" },
+                        padding: { xs: "6px 12px", sm: "6px 10px", md: "8px 16px" },
                         borderRadius: "3px",
                         textTransform: "capitalize",
                         fontWeight: 600,
-                        fontSize: { xs: "0.875rem", sm: "1rem" },
+                        fontSize: { xs: "0.8rem", sm: "0.75rem", md: "0.85rem" },
                         transition: "all 0.3s ease",
                         "&:hover": {
                           backgroundColor: "transparent",
@@ -161,11 +162,11 @@ const CtaSectionSatellite = () => {
                         borderColor: "#53b50a",
                         backgroundColor: "#53b50a",
                         color: "#ffffff",
-                        padding: { xs: "8px 16px", sm: "10px 20px" },
+                        padding: { xs: "6px 12px", sm: "6px 10px", md: "8px 16px" },
                         borderRadius: "3px",
                         textTransform: "capitalize",
                         fontWeight: 600,
-                        fontSize: { xs: "0.875rem", sm: "1rem" },
+                        fontSize: { xs: "0.8rem", sm: "0.75rem", md: "0.85rem" },
                         transition: "all 0.3s ease",
                         "&:hover": {
                           borderColor: "#ffffff",
@@ -183,21 +184,22 @@ const CtaSectionSatellite = () => {
 
               {/* YouTube Video */}
               <Grid
+                item
                 xs={12}
-                sm={12}
+                sm={4}
                 md={4}
                 lg={4}
-                sx={{ margin: { xs: "8px 0", sm: "12px 0", md: 0 } }}
+                sx={{ margin: 0 }}
               >
                 <Box
                   sx={{
                     display: "flex",
-                    justifyContent: "space-evenly",
+                    justifyContent: "center",
                     alignItems: "center",
                     animation: `${fadeInAnimation} 0.8s ease-out 0.2s both`,
                     height: "100%",
-                    minHeight: { xs: "auto", sm: "350px", md: "400px" },
-                    padding: { xs: "16px", sm: "20px", md: "24px" },
+                    minHeight: { xs: "auto", sm: "300px", md: "320px" },
+                    padding: { xs: "12px", sm: "10px", md: "12px" },
                   }}
                 >
                   <Box
@@ -212,8 +214,8 @@ const CtaSectionSatellite = () => {
                     sx={{
                       borderRadius: "8px",
                       width: "100%",
-                      maxWidth: { xs: "100%", sm: "260px", md: "280px" },
-                      height: { xs: "200px", sm: "240px", md: "280px" },
+                      maxWidth: { xs: "100%", sm: "220px", md: "260px", lg: "280px" },
+                      height: { xs: "200px", sm: "180px", md: "220px", lg: "260px" },
                     }}
                   />
                 </Box>
@@ -221,11 +223,12 @@ const CtaSectionSatellite = () => {
 
               {/* Triangular Talks */}
               <Grid
+                item
                 xs={12}
-                sm={12}
+                sm={4}
                 md={4}
                 lg={4}
-                sx={{ margin: { xs: "8px 0", sm: "12px 0", md: 0 } }}
+                sx={{ margin: 0 }}
               >
                 <Box
                   sx={{
@@ -235,9 +238,9 @@ const CtaSectionSatellite = () => {
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-evenly",
-                    minHeight: { xs: "auto", sm: "350px", md: "400px" },
-                    padding: { xs: "16px", sm: "20px", md: "24px" },
-                    gap: { xs: "16px", sm: "20px", md: "24px" },
+                    minHeight: { xs: "auto", sm: "300px", md: "320px" },
+                    padding: { xs: "12px", sm: "10px", md: "12px" },
+                    gap: { xs: "12px", sm: "10px", md: "12px" },
                   }}
                 >
                   <Box
@@ -252,13 +255,13 @@ const CtaSectionSatellite = () => {
                       src={triangularTalksLogoImg}
                       alt="Triangular Talks"
                       sx={{
-                        width: { xs: "180px", sm: "200px", md: "220px" },
-                        height: { xs: "100px", sm: "115px", md: "130px" },
+                        width: { xs: "180px", sm: "160px", md: "200px" },
+                        height: { xs: "100px", sm: "90px", md: "115px" },
                         borderRadius: "10px",
                         objectFit: "contain",
                         display: "block",
                         margin: "0 auto",
-                        marginBottom: { xs: "12px", sm: "8px", md: "8px" },
+                        marginBottom: { xs: "8px", sm: "6px", md: "8px" },
                       }}
                     />
                     <Typography
@@ -267,23 +270,21 @@ const CtaSectionSatellite = () => {
                         color: "#ffffff",
                         fontWeight: 600,
                         textDecoration: "none",
-                        fontSize: { xs: "1.1rem", sm: "1.25rem", md: "1.5rem" },
-                        marginBottom: { xs: "8px", sm: "0px", md: "0px" },
+                        fontSize: { xs: "1.1rem", sm: "1.05rem", md: "1.25rem" },
+                        marginBottom: 0,
                       }}
                     >
-                      Aug 30, 2025
-                      <br />
-                      9.00 AM - 10:00 AM PST
+                      Coming Soon!!
                     </Typography>
                   </Box>
                   <Box
                     sx={{
                       display: "flex",
                       flexDirection: { xs: "column", sm: "row" },
-                      gap: { xs: 1.5, sm: 2 },
-                      justifyContent: "space-evenly",
+                      gap: { xs: 1, sm: 1 },
+                      justifyContent: "center",
                       flexWrap: "wrap",
-                      marginTop: { xs: "12px", sm: "8px", md: "8px" },
+                      marginTop: { xs: "8px", sm: "6px", md: "8px" },
                     }}
                   >
                     <Button
@@ -295,11 +296,11 @@ const CtaSectionSatellite = () => {
                       sx={{
                         backgroundColor: "#53b50a",
                         color: "#ffffff",
-                        padding: { xs: "8px 16px", sm: "10px 20px" },
+                        padding: { xs: "6px 12px", sm: "6px 10px", md: "8px 16px" },
                         borderRadius: "3px",
                         textTransform: "capitalize",
                         fontWeight: 600,
-                        fontSize: { xs: "0.875rem", sm: "1rem" },
+                        fontSize: { xs: "0.8rem", sm: "0.75rem", md: "0.85rem" },
                         transition: "all 0.3s ease",
                         "&:hover": {
                           backgroundColor: "transparent",
@@ -314,18 +315,18 @@ const CtaSectionSatellite = () => {
                     <Button
                       variant="outlined"
                       endIcon={<PlayArrowIcon />}
-                      href="https://us06web.zoom.us/j/89825144487?pwd=NDdCRXFUWXFESXM3dXpEekNzbkFNUT09"
+                      href="https://us06web.zoom.us/j/3215897076"
                       component="a"
                       target="_blank"
                       sx={{
                         borderColor: "#53b50a",
                         backgroundColor: "#53b50a",
                         color: "#ffffff",
-                        padding: { xs: "8px 16px", sm: "10px 20px" },
+                        padding: { xs: "6px 12px", sm: "6px 10px", md: "8px 16px" },
                         borderRadius: "3px",
                         textTransform: "capitalize",
                         fontWeight: 600,
-                        fontSize: { xs: "0.875rem", sm: "1rem" },
+                        fontSize: { xs: "0.8rem", sm: "0.75rem", md: "0.85rem" },
                         transition: "all 0.3s ease",
                         "&:hover": {
                           borderColor: "#ffffff",
