@@ -49,7 +49,83 @@ const reportCardService = {
     return response.data;
   },
   addStudentScore: async (request) => {
-    const response = await api.post(`${BASE}/AddStudentScore`, request);
+    const response = await api.post(`${BASE}/AddStudentScore`, {
+      studentID: String(
+        request.studentID ?? request.StudentID ?? request.studentId ?? ""
+      ),
+      class:
+        request.class ??
+        request.group ??
+        request.Group ??
+        request.className ??
+        "",
+      examDate: request.examDate ?? request.ExamDate ?? "",
+      quizTotalScore: String(
+        request.quizTotalScore ?? request.QuizTotalScore ?? request.quizTotal ?? "10"
+      ),
+      quizReceivedScore: String(
+        request.quizReceivedScore ??
+          request.QuizReceivedScore ??
+          request.quizReceived ??
+          ""
+      ),
+      quizComments: request.quizComments ?? request.QuizComments ?? "",
+      classTestTotalScore: String(
+        request.classTestTotalScore ??
+          request.ClassTestTotalScore ??
+          request.classTestTotal ??
+          "10"
+      ),
+      classTestReceivedScore: String(
+        request.classTestReceivedScore ??
+          request.ClassTestReceivedScore ??
+          request.classTestReceived ??
+          ""
+      ),
+      classTestComments:
+        request.classTestComments ?? request.ClassTestComments ?? "",
+      homeWorkTotalScore: String(
+        request.homeWorkTotalScore ??
+          request.HomeWorkTotalScore ??
+          request.homeWorkTotal ??
+          "10"
+      ),
+      homeWorkReceivedScore: String(
+        request.homeWorkReceivedScore ??
+          request.HomeWorkReceivedScore ??
+          request.homeWorkReceived ??
+          ""
+      ),
+      homeWorkComments: request.homeWorkComments ?? request.HomeWorkComments ?? "",
+      finalExamTotalScore: String(
+        request.finalExamTotalScore ??
+          request.FinalExamTotalScore ??
+          request.finalExamTotal ??
+          "0"
+      ),
+      finalExamReceivedScore: String(
+        request.finalExamReceivedScore ??
+          request.FinalExamReceivedScore ??
+          request.finalExamReceived ??
+          ""
+      ),
+      finalExamComments:
+        request.finalExamComments ?? request.FinalExamComments ?? "",
+      placementTestTotalScore: String(
+        request.placementTestTotalScore ??
+          request.PlacementTestTotalScore ??
+          request.placementTestTotal ??
+          "0"
+      ),
+      placementTestReceivedScore: String(
+        request.placementTestReceivedScore ??
+          request.PlacementTestReceivedScore ??
+          request.placementTestReceived ??
+          ""
+      ),
+      placementTestComments:
+        request.placementTestComments ?? request.PlacementTestComments ?? "",
+    });
     return response.data;
   },
   updateStudentScore: async (request) => {

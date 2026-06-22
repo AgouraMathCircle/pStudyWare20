@@ -15,7 +15,6 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { Refresh as RefreshIcon } from "@mui/icons-material";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 import {
@@ -40,7 +39,6 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListGridTableSx,
   adminSessionListTitleSx,
-  adminSessionListToolbarButtonSx,
 } from "../styles/applicationSurfaces";
 
 const studentDocsColWidthsPx = [
@@ -89,7 +87,6 @@ const getStudentDocumentFieldValue = (doc, field) => {
 
 const AdminStudentDocumentList = ({
   documents,
-  onRefresh,
   onView,
   onDownload,
   onDelete,
@@ -102,7 +99,7 @@ const AdminStudentDocumentList = ({
   const [goToPageInput, setGoToPageInput] = useState("1");
   const [sortField, setSortField] = useState("insertDate");
   const [sortOrder, setSortOrder] = useState("desc");
-  const pageSize = 10;
+  const pageSize = 20;
 
   const filteredDocuments = useMemo(() => {
     const q = searchText.trim();
@@ -229,18 +226,6 @@ const AdminStudentDocumentList = ({
           <Typography variant="caption" color="text.secondary" display="block">
             View and manage student-uploaded documents (legacy StudentDocuments.aspx).
           </Typography>
-        </Box>
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <Button
-            variant="outlined"
-            color="primary"
-            size="small"
-            startIcon={<RefreshIcon />}
-            onClick={onRefresh}
-            sx={adminSessionListToolbarButtonSx}
-          >
-            Refresh
-          </Button>
         </Box>
       </Box>
 

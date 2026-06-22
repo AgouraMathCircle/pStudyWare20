@@ -86,9 +86,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = jwtSettings?.Audience,
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromMinutes(2),
-            // Map role claim correctly for authorization
-            // JWT tokens typically use "role" as the claim name
-            RoleClaimType = "role",
+            // Match inbound JWT claim mapping (role -> ClaimTypes.Role)
+            RoleClaimType = System.Security.Claims.ClaimTypes.Role,
             NameClaimType = System.Security.Claims.ClaimTypes.NameIdentifier
         };
 

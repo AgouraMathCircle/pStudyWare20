@@ -262,11 +262,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Handle refresh data
-  const handleRefresh = () => {
-    window.location.reload();
-  };
-
   // Show loading while auth context is loading or while validating user
   if (authLoading || loading) {
     return (
@@ -423,7 +418,6 @@ const AdminDashboard = () => {
                   students={studentList}
                   onExportToExcel={handleExportToExcel}
                   canExportData={adminPrivileges.canExportData}
-                  onRefresh={handleRefresh}
                 />
               </CardContent>
             </Card>

@@ -342,9 +342,12 @@ const AppRoutes = () => {
             <Route
               path="/pstudyware/student/message-center"
               element={
-                <ProtectedRoute>
+                <RoleProtectedRoute
+                  allowedRoles={["Student"]}
+                  allowedMemberTypes={["S"]}
+                >
                   <EmailManager />
-                </ProtectedRoute>
+                </RoleProtectedRoute>
               }
             />
             <Route

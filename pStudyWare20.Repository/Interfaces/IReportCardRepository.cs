@@ -8,6 +8,11 @@ namespace pStudyWare20.Repository.Interfaces
     public interface IReportCardRepository
     {
         /// <summary>
+        /// Resolve login identifier to legacy MemberMaster.UserName for stored procedures.
+        /// </summary>
+        Task<string> ResolvePortalUsernameAsync(string? identifier);
+
+        /// <summary>
         /// Get report card list
         /// </summary>
         /// <param name="username">Username</param>

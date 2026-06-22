@@ -4,6 +4,7 @@ using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 
 namespace pStudyWare20.Services.Implementations
 {
@@ -30,7 +31,8 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                var reportCardList = await _reportCardRepository.GetReportCardListAsync(request.Username);
+                var username = await ResolvePortalUsernameAsync(request.Username);
+                var reportCardList = await _reportCardRepository.GetReportCardListAsync(username);
 
                 return new ReportCardListResponse
                 {
@@ -156,8 +158,7 @@ namespace pStudyWare20.Services.Implementations
                 var dict = new Dictionary<string, object?>();
                 foreach (DataColumn col in table.Columns)
                 {
-                    var key = ToCamelCaseColumnName(col.ColumnName);
-                    dict[key] = row[col] == DBNull.Value ? null : row[col];
+                    dict[col.ColumnName] = row[col] == DBNull.Value ? null : row[col];
                 }
                 list.Add(dict);
             }
@@ -165,13 +166,14 @@ namespace pStudyWare20.Services.Implementations
             return list;
         }
 
-        private static string ToCamelCaseColumnName(string name)
+        private async Task<string> ResolvePortalUsernameAsync(string? identifier)
         {
-            if (string.IsNullOrEmpty(name))
-                return name;
-            if (name.Length == 1)
-                return name.ToLowerInvariant();
-            return char.ToLowerInvariant(name[0]) + name.Substring(1);
+            if (string.IsNullOrWhiteSpace(identifier))
+            {
+                return string.Empty;
+            }
+
+            return await _reportCardRepository.ResolvePortalUsernameAsync(identifier);
         }
 
         /// <summary>
@@ -215,6 +217,17 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
+                NormalizeAddStudentScoreRequest(request);
+
+                if (ExtractStudentId(request.StudentID) <= 0)
+                {
+                    return new StudentScoreResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "A valid student is required."
+                    };
+                }
+
                 await _reportCardRepository.AddStudentScoreAsync(request);
 
                 return new StudentScoreResponse
@@ -265,15 +278,16 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
+                var username = await ResolvePortalUsernameAsync(request.Username);
                 object reportData;
 
                 if (request.IsSemesterReport)
                 {
-                    reportData = await _reportCardRepository.GetSemesterReportAsync(request.Username, request.Class);
+                    reportData = await _reportCardRepository.GetSemesterReportAsync(username, request.Class);
                 }
                 else
                 {
-                    reportData = await _reportCardRepository.GetSummaryReportAsync(request.Username, request.ReportDate, request.Class);
+                    reportData = await _reportCardRepository.GetSummaryReportAsync(username, request.ReportDate, request.Class);
                 }
 
                 return new ViewReportResponse
@@ -299,9 +313,8 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                var username = !string.IsNullOrEmpty(request.Username)
-                    ? request.Username
-                    : request.From;
+                var username = await ResolvePortalUsernameAsync(
+                    !string.IsNullOrEmpty(request.Username) ? request.Username : request.From);
 
                 if (string.IsNullOrEmpty(username))
                 {
@@ -412,19 +425,20 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
+                var username = await ResolvePortalUsernameAsync(request.Username);
                 object data;
                 string fileName;
 
                 if (request.IsSummaryReport)
                 {
                     // Get summary report data
-                    data = await _reportCardRepository.GetSummaryReportAsync(request.Username, "", "");
+                    data = await _reportCardRepository.GetSummaryReportAsync(username, "", "");
                     fileName = "SummaryReport";
                 }
                 else
                 {
                     // Get report card list data
-                    data = await _reportCardRepository.GetReportCardListAsync(request.Username);
+                    data = await _reportCardRepository.GetReportCardListAsync(username);
                     fileName = "ReportCardlist";
                 }
 
@@ -462,12 +476,14 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
+                var username = await ResolvePortalUsernameAsync(request.Username);
+
                 // Get all dashboard data in parallel
-                var reportCardListTask = _reportCardRepository.GetReportCardListAsync(request.Username);
-                var studentListTask = _reportCardRepository.GetStudentListAsync(request.Username);
-                var classListTask = _reportCardRepository.GetClassListAsync(request.Username);
-                var reportDateListTask = _reportCardRepository.GetReportDateListAsync(request.Username);
-                var examDateListTask = _reportCardRepository.GetClassScheduleAsync(request.Username, "date");
+                var reportCardListTask = _reportCardRepository.GetReportCardListAsync(username);
+                var studentListTask = _reportCardRepository.GetStudentListAsync(username);
+                var classListTask = _reportCardRepository.GetClassListAsync(username);
+                var reportDateListTask = _reportCardRepository.GetReportDateListAsync(username);
+                var examDateListTask = _reportCardRepository.GetClassScheduleAsync(username, "date");
 
                 await Task.WhenAll(reportCardListTask, studentListTask, classListTask, reportDateListTask, examDateListTask);
 
@@ -553,7 +569,8 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                var summaryReportData = await _reportCardRepository.GetSummaryReportAsync(request.Username, request.ReportDate, "");
+                var username = await ResolvePortalUsernameAsync(request.Username);
+                var summaryReportData = await _reportCardRepository.GetSummaryReportAsync(username, request.ReportDate, "");
 
                 if (summaryReportData is DataTable dataTable && dataTable.Rows.Count > 0)
                 {
@@ -688,6 +705,48 @@ namespace pStudyWare20.Services.Implementations
                 }
             }
             return "";
+        }
+
+        private static void NormalizeAddStudentScoreRequest(AddStudentScoreRequest request)
+        {
+            request.StudentID = ExtractStudentId(request.StudentID).ToString(CultureInfo.InvariantCulture);
+            request.Group = request.Group?.Trim() ?? string.Empty;
+            request.Session = request.Session?.Trim() ?? string.Empty;
+            request.QuizTotalScore = NormalizeScoreValue(request.QuizTotalScore, "10");
+            request.QuizReceivedScore = NormalizeScoreValue(request.QuizReceivedScore, "0");
+            request.ClassTestTotalScore = NormalizeScoreValue(request.ClassTestTotalScore, "10");
+            request.ClassTestReceivedScore = NormalizeScoreValue(request.ClassTestReceivedScore, "0");
+            request.HomeWorkTotalScore = NormalizeScoreValue(request.HomeWorkTotalScore, "10");
+            request.HomeWorkReceivedScore = NormalizeScoreValue(request.HomeWorkReceivedScore, "0");
+            request.FinalExamTotalScore = NormalizeScoreValue(request.FinalExamTotalScore, "0");
+            request.FinalExamReceivedScore = NormalizeScoreValue(request.FinalExamReceivedScore, "0");
+            request.PlacementTestTotalScore = NormalizeScoreValue(request.PlacementTestTotalScore, "0");
+            request.PlacementTestReceivedScore = NormalizeScoreValue(request.PlacementTestReceivedScore, "0");
+            request.QuizComments = request.QuizComments?.Trim() ?? string.Empty;
+            request.ClassTestComments = request.ClassTestComments?.Trim() ?? string.Empty;
+            request.HomeWorkComments = request.HomeWorkComments?.Trim() ?? string.Empty;
+            request.FinalExamComments = request.FinalExamComments?.Trim() ?? string.Empty;
+            request.PlacementTestComments = request.PlacementTestComments?.Trim() ?? string.Empty;
+        }
+
+        private static int ExtractStudentId(string? studentId)
+        {
+            var value = (studentId ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(value))
+            {
+                return 0;
+            }
+
+            var parts = value.Split('~');
+            var idPart = parts.Length >= 2 ? parts[1].Trim() : value;
+            return int.TryParse(idPart, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
+                ? parsed
+                : 0;
+        }
+
+        private static string NormalizeScoreValue(string? value, string defaultValue)
+        {
+            return string.IsNullOrWhiteSpace(value) ? defaultValue : value.Trim();
         }
     }
 }

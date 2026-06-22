@@ -39,6 +39,7 @@ namespace pStudyWare20.Services.Implementations
                 {
                     foreach (DataRow row in messagesData.Rows)
                     {
+                        var emailInfo = GetStringValue(row, "Emailinfo");
                         messages.Add(new MessageInfo
                         {
                             MessageID = GetIntValue(row, "MessageID"),
@@ -52,7 +53,8 @@ namespace pStudyWare20.Services.Implementations
                             Message = GetStringValue(row, "Message"),
                             SendDate = GetDateTimeValue(row, "SendDate"),
                             Status = GetStringValue(row, "Status"),
-                            SenderName = GetStringValue(row, "SenderName"),
+                            SenderName = GetSenderNameFromRow(row, emailInfo),
+                            SenderUsername = ParseSenderUsernameFromEmailInfo(emailInfo),
                         });
                     }
                 }
@@ -475,6 +477,42 @@ namespace pStudyWare20.Services.Implementations
                 return value;
 
             return DateTime.MinValue;
+        }
+
+        private static string GetSenderNameFromRow(DataRow row, string emailInfo)
+        {
+            var senderName = GetStringValue(row, "SenderName");
+            if (!string.IsNullOrWhiteSpace(senderName))
+            {
+                return senderName;
+            }
+
+            return ParseSenderNameFromEmailInfo(emailInfo);
+        }
+
+        /// <summary>
+        /// Legacy Emailinfo: ID~#SendFrom~#Subject~#Name~#SendBy
+        /// </summary>
+        private static string ParseSenderUsernameFromEmailInfo(string emailInfo)
+        {
+            if (string.IsNullOrWhiteSpace(emailInfo))
+            {
+                return string.Empty;
+            }
+
+            var parts = emailInfo.Split("~#");
+            return parts.Length > 1 ? parts[1].Trim() : string.Empty;
+        }
+
+        private static string ParseSenderNameFromEmailInfo(string emailInfo)
+        {
+            if (string.IsNullOrWhiteSpace(emailInfo))
+            {
+                return string.Empty;
+            }
+
+            var parts = emailInfo.Split("~#");
+            return parts.Length > 3 ? parts[3].Trim() : string.Empty;
         }
     }
 }

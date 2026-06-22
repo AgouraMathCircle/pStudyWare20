@@ -39,7 +39,6 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListTableSx,
   adminSessionListTitleSx,
-  adminSessionListToolbarButtonSx,
 } from "../styles/applicationSurfaces";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
@@ -59,11 +58,13 @@ const instructorListColumnWidths = {
   status: "7%",
 };
 
-const instructorAddButtonSx = {
-  ...adminSessionListToolbarButtonSx,
+const instructorHeaderActionButtonSx = {
+  ...adminSessionListFindButtonSx,
   backgroundColor: "#4caf50",
-  color: "#fff",
-  "&:hover": { backgroundColor: "#45a049" },
+  color: "white",
+  flexShrink: 0,
+  px: 1.5,
+  "&:hover": { backgroundColor: "#43a047" },
 };
 
 const instructorDeleteLinkSx = {
@@ -288,7 +289,7 @@ const InstructorList = ({
               size="small"
               startIcon={<AddIcon />}
               onClick={onAdd}
-              sx={instructorAddButtonSx}
+              sx={instructorHeaderActionButtonSx}
             >
               Add Instructor
             </Button>
@@ -300,7 +301,7 @@ const InstructorList = ({
               size="small"
               startIcon={<DownloadIcon />}
               onClick={onExportToExcel}
-              sx={adminSessionListToolbarButtonSx}
+              sx={instructorHeaderActionButtonSx}
             >
               Export Excel
             </Button>

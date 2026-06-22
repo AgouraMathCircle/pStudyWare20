@@ -1,6 +1,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using pStudyWare20.Data.Models;
+using pStudyWare20.Repository.Helpers;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Shared;
 using System.Data;
@@ -22,6 +23,11 @@ namespace pStudyWare20.Repository.Implementations
                         _connectionString = configuration?.GetConnectionString("DefaultConnection") ?? "";
                 }
 
+                public Task<string> ResolvePortalUsernameAsync(string? identifier)
+                {
+                        return PortalUsernameResolver.ResolveAsync(_context, identifier);
+                }
+
                 private static object ParseExamDateParameter(string? examDate)
                 {
                         if (string.IsNullOrWhiteSpace(examDate))
@@ -40,6 +46,48 @@ namespace pStudyWare20.Repository.Implementations
                                 return parsed;
 
                         throw new FormatException($"Invalid exam date value: {examDate}");
+                }
+
+                private static int ExtractStudentId(string? studentId)
+                {
+                        var value = (studentId ?? string.Empty).Trim();
+                        if (string.IsNullOrEmpty(value))
+                                return 0;
+
+                        var parts = value.Split('~');
+                        var idPart = parts.Length >= 2 ? parts[1].Trim() : value;
+                        return ParseIntParameter(idPart, 0);
+                }
+
+                private static int ParseIntParameter(string? value, int defaultValue)
+                {
+                        if (string.IsNullOrWhiteSpace(value))
+                                return defaultValue;
+
+                        var trimmed = value.Trim();
+                        if (int.TryParse(trimmed, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result))
+                                return result;
+
+                        if (double.TryParse(trimmed, NumberStyles.Float, CultureInfo.InvariantCulture, out var numeric))
+                                return (int)numeric;
+
+                        return defaultValue;
+                }
+
+                private static double ParseFloatParameter(string? value, double defaultValue)
+                {
+                        if (string.IsNullOrWhiteSpace(value))
+                                return defaultValue;
+
+                        if (double.TryParse(value.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var result))
+                                return result;
+
+                        return defaultValue;
+                }
+
+                private static object ToOptionalStringParameter(string? value)
+                {
+                        return string.IsNullOrWhiteSpace(value) ? DBNull.Value : value.Trim();
                 }
 
                 /// <summary>
@@ -90,7 +138,10 @@ namespace pStudyWare20.Repository.Implementations
                                         CommandType = CommandType.StoredProcedure
                                 };
 
-                                command.Parameters.Add(new SqlParameter("@ReportCardID", reportCardId ?? ""));
+                                command.Parameters.Add(new SqlParameter("@ReportCardID", SqlDbType.Int)
+                                {
+                                        Value = ParseIntParameter(reportCardId, 0)
+                                });
 
                                 var dataTable = new DataTable();
                                 using var adapter = new SqlDataAdapter(command);
@@ -121,7 +172,10 @@ namespace pStudyWare20.Repository.Implementations
                                         CommandType = CommandType.StoredProcedure
                                 };
 
-                                command.Parameters.Add(new SqlParameter("@ReportCardID", reportCardId ?? ""));
+                                command.Parameters.Add(new SqlParameter("@ReportCardID", SqlDbType.Int)
+                                {
+                                        Value = ParseIntParameter(reportCardId, 0)
+                                });
 
                                 var dataTable = new DataTable();
                                 using var adapter = new SqlDataAdapter(command);
@@ -152,24 +206,82 @@ namespace pStudyWare20.Repository.Implementations
                                         CommandType = CommandType.StoredProcedure
                                 };
 
-                                command.Parameters.Add(new SqlParameter("@StudentID", request.StudentID ?? ""));
-                                command.Parameters.Add(new SqlParameter("@Group", request.Group ?? ""));
-                                command.Parameters.Add(new SqlParameter("@ExamDate", ParseExamDateParameter(request.ExamDate)));
-                                command.Parameters.Add(new SqlParameter("@QuizTotalScore", request.QuizTotalScore ?? "10"));
-                                command.Parameters.Add(new SqlParameter("@QuizReceivedScore", request.QuizReceivedScore ?? ""));
-                                command.Parameters.Add(new SqlParameter("@QuizComments", request.QuizComments ?? ""));
-                                command.Parameters.Add(new SqlParameter("@ClassTestTotalScore", request.ClassTestTotalScore ?? "10"));
-                                command.Parameters.Add(new SqlParameter("@ClassTestReceivedScore", request.ClassTestReceivedScore ?? ""));
-                                command.Parameters.Add(new SqlParameter("@ClassTestComments", request.ClassTestComments ?? ""));
-                                command.Parameters.Add(new SqlParameter("@HomeWorkTotalScore", request.HomeWorkTotalScore ?? "10"));
-                                command.Parameters.Add(new SqlParameter("@HomeWorkReceivedScore", request.HomeWorkReceivedScore ?? ""));
-                                command.Parameters.Add(new SqlParameter("@HomeWorkComments", request.HomeWorkComments ?? ""));
-                                command.Parameters.Add(new SqlParameter("@FinalExamTotalScore", request.FinalExamTotalScore ?? "0"));
-                                command.Parameters.Add(new SqlParameter("@FinalExamReceivedScore", request.FinalExamReceivedScore ?? ""));
-                                command.Parameters.Add(new SqlParameter("@FinalExamComments", request.FinalExamComments ?? ""));
-                                command.Parameters.Add(new SqlParameter("@PlacementTestTotalScore", request.PlacementTestTotalScore ?? "0"));
-                                command.Parameters.Add(new SqlParameter("@PlacementTestReceivedScore", request.PlacementTestReceivedScore ?? ""));
-                                command.Parameters.Add(new SqlParameter("@PlacementTestComments", request.PlacementTestComments ?? ""));
+                                command.Parameters.Add(new SqlParameter("@StudentID", SqlDbType.Int)
+                                {
+                                        Value = ExtractStudentId(request.StudentID)
+                                });
+                                command.Parameters.Add(new SqlParameter("@Group", SqlDbType.VarChar, 100)
+                                {
+                                        Value = ToOptionalStringParameter(request.Group)
+                                });
+                                command.Parameters.Add(new SqlParameter("@ExamDate", SqlDbType.Date)
+                                {
+                                        Value = ParseExamDateParameter(request.ExamDate)
+                                });
+                                command.Parameters.Add(new SqlParameter("@QuizTotalScore", SqlDbType.Int)
+                                {
+                                        Value = ParseIntParameter(request.QuizTotalScore, 10)
+                                });
+                                command.Parameters.Add(new SqlParameter("@QuizReceivedScore", SqlDbType.Float)
+                                {
+                                        Value = ParseFloatParameter(request.QuizReceivedScore, 0)
+                                });
+                                command.Parameters.Add(new SqlParameter("@QuizComments", SqlDbType.VarChar, 1000)
+                                {
+                                        Value = request.QuizComments ?? string.Empty
+                                });
+                                command.Parameters.Add(new SqlParameter("@ClassTestTotalScore", SqlDbType.Int)
+                                {
+                                        Value = ParseIntParameter(request.ClassTestTotalScore, 10)
+                                });
+                                command.Parameters.Add(new SqlParameter("@ClassTestReceivedScore", SqlDbType.Float)
+                                {
+                                        Value = ParseFloatParameter(request.ClassTestReceivedScore, 0)
+                                });
+                                command.Parameters.Add(new SqlParameter("@ClassTestComments", SqlDbType.VarChar, 1000)
+                                {
+                                        Value = request.ClassTestComments ?? string.Empty
+                                });
+                                command.Parameters.Add(new SqlParameter("@HomeWorkTotalScore", SqlDbType.Int)
+                                {
+                                        Value = ParseIntParameter(request.HomeWorkTotalScore, 10)
+                                });
+                                command.Parameters.Add(new SqlParameter("@HomeWorkReceivedScore", SqlDbType.Float)
+                                {
+                                        Value = ParseFloatParameter(request.HomeWorkReceivedScore, 0)
+                                });
+                                command.Parameters.Add(new SqlParameter("@HomeWorkComments", SqlDbType.VarChar, 1000)
+                                {
+                                        Value = request.HomeWorkComments ?? string.Empty
+                                });
+                                command.Parameters.Add(new SqlParameter("@FinalExamTotalScore", SqlDbType.Int)
+                                {
+                                        Value = ParseIntParameter(request.FinalExamTotalScore, 0)
+                                });
+                                command.Parameters.Add(new SqlParameter("@FinalExamReceivedScore", SqlDbType.Float)
+                                {
+                                        Value = ParseFloatParameter(request.FinalExamReceivedScore, 0)
+                                });
+                                command.Parameters.Add(new SqlParameter("@FinalExamComments", SqlDbType.VarChar, 1000)
+                                {
+                                        Value = request.FinalExamComments ?? string.Empty
+                                });
+                                command.Parameters.Add(new SqlParameter("@PlacementTestTotalScore", SqlDbType.Int)
+                                {
+                                        Value = ParseIntParameter(request.PlacementTestTotalScore, 0)
+                                });
+                                command.Parameters.Add(new SqlParameter("@PlacementTestReceivedScore", SqlDbType.Float)
+                                {
+                                        Value = ParseFloatParameter(request.PlacementTestReceivedScore, 0)
+                                });
+                                command.Parameters.Add(new SqlParameter("@PlacementTestComments", SqlDbType.VarChar, 1000)
+                                {
+                                        Value = request.PlacementTestComments ?? string.Empty
+                                });
+                                command.Parameters.Add(new SqlParameter("@Session", SqlDbType.VarChar, 30)
+                                {
+                                        Value = ToOptionalStringParameter(request.Session)
+                                });
 
                                 var dataTable = new DataTable();
                                 using var adapter = new SqlDataAdapter(command);
@@ -200,13 +312,34 @@ namespace pStudyWare20.Repository.Implementations
                                         CommandType = CommandType.StoredProcedure
                                 };
 
-                                command.Parameters.Add(new SqlParameter("@ReportID", request.ReportID ?? ""));
-                                command.Parameters.Add(new SqlParameter("@Group", request.Group ?? ""));
-                                command.Parameters.Add(new SqlParameter("@ExamDate", ParseExamDateParameter(request.ExamDate)));
-                                command.Parameters.Add(new SqlParameter("@Type", request.Type ?? ""));
-                                command.Parameters.Add(new SqlParameter("@TotalScore", request.TotalScore ?? ""));
-                                command.Parameters.Add(new SqlParameter("@ReceivedScore", request.ReceivedScore ?? ""));
-                                command.Parameters.Add(new SqlParameter("@Comments", request.Comments ?? ""));
+                                command.Parameters.Add(new SqlParameter("@ReportID", SqlDbType.Int)
+                                {
+                                        Value = ParseIntParameter(request.ReportID, 0)
+                                });
+                                command.Parameters.Add(new SqlParameter("@Group", SqlDbType.VarChar, 100)
+                                {
+                                        Value = ToOptionalStringParameter(request.Group)
+                                });
+                                command.Parameters.Add(new SqlParameter("@ExamDate", SqlDbType.Date)
+                                {
+                                        Value = ParseExamDateParameter(request.ExamDate)
+                                });
+                                command.Parameters.Add(new SqlParameter("@Type", SqlDbType.VarChar, 100)
+                                {
+                                        Value = request.Type ?? string.Empty
+                                });
+                                command.Parameters.Add(new SqlParameter("@TotalScore", SqlDbType.Int)
+                                {
+                                        Value = ParseIntParameter(request.TotalScore, 0)
+                                });
+                                command.Parameters.Add(new SqlParameter("@ReceivedScore", SqlDbType.Float)
+                                {
+                                        Value = ParseFloatParameter(request.ReceivedScore, 0)
+                                });
+                                command.Parameters.Add(new SqlParameter("@Comments", SqlDbType.VarChar, 500)
+                                {
+                                        Value = request.Comments ?? string.Empty
+                                });
 
                                 var dataTable = new DataTable();
                                 using var adapter = new SqlDataAdapter(command);
@@ -269,9 +402,18 @@ namespace pStudyWare20.Repository.Implementations
                                         CommandType = CommandType.StoredProcedure
                                 };
 
-                                command.Parameters.Add(new SqlParameter("@Username", username ?? ""));
-                                command.Parameters.Add(new SqlParameter("@ReportDate", reportDate ?? ""));
-                                command.Parameters.Add(new SqlParameter("@Class", @class ?? ""));
+                                command.Parameters.Add(new SqlParameter("@Username", SqlDbType.VarChar, 100)
+                                {
+                                        Value = username ?? string.Empty
+                                });
+                                command.Parameters.Add(new SqlParameter("@ReportDate", SqlDbType.Date)
+                                {
+                                        Value = ParseExamDateParameter(reportDate)
+                                });
+                                command.Parameters.Add(new SqlParameter("@Class", SqlDbType.VarChar, 100)
+                                {
+                                        Value = string.IsNullOrWhiteSpace(@class) ? "ALL" : @class.Trim()
+                                });
 
                                 var dataTable = new DataTable();
                                 using var adapter = new SqlDataAdapter(command);

@@ -31,10 +31,18 @@ namespace pStudyWare20.Services.Implementations
                 {
                     foreach (DataRow row in dataTable.Rows)
                     {
+                        var emailInfo = GetStringValue(row, "Emailinfo", "EmailInfo");
+                        var studentName = GetStringValue(row, "StudentName");
+                        // Student branch (S): grid SendFrom is child student name (StudentName column).
+                        // Instructor branch (I): grid SendFrom is class-section (SendFrom column only).
+                        var sendFrom = !string.IsNullOrWhiteSpace(studentName)
+                            ? studentName
+                            : GetStringValue(row, "SendFrom");
+
                         messages.Add(new SentMessageInfo
                         {
                             MessageID = GetIntValue(row, "MessageID"),
-                            SendFrom = GetStringValue(row, "SendFrom"),
+                            SendFrom = sendFrom,
                             SendTo = GetStringValue(row, "SendTo"),
                             Subject = GetStringValue(row, "Subject"),
                             SendDate = GetDateTimeValue(row, "SendDate"),
@@ -42,7 +50,9 @@ namespace pStudyWare20.Services.Implementations
                             EmailID = GetIntValue(row, "EmailID") != 0
                                 ? GetIntValue(row, "EmailID")
                                 : GetIntValue(row, "TrackingID"),
-                            Name = GetStringValue(row, "Name", "StudentName", "MessageTo"),
+                            Name = ParseNameFromEmailInfo(emailInfo),
+                            StudentName = studentName,
+                            MessageTo = GetStringValue(row, "MessageTo"),
                             SendBy = GetStringValue(row, "SendBy")
                         });
                     }
@@ -121,16 +131,20 @@ namespace pStudyWare20.Services.Implementations
         /// <summary>
         /// Helper method to get string value from DataRow (handles missing columns)
         /// </summary>
-        private string GetStringValue(DataRow row, params string[] columnNames)
+        private static string GetStringValue(DataRow row, params string[] columnNames)
         {
             foreach (var columnName in columnNames)
             {
-                if (row.Table.Columns.Contains(columnName) && row[columnName] != DBNull.Value)
+                var column = row.Table.Columns.Cast<DataColumn>()
+                    .FirstOrDefault(c =>
+                        string.Equals(c.ColumnName, columnName, StringComparison.OrdinalIgnoreCase));
+
+                if (column != null && row[column] != DBNull.Value)
                 {
-                    var value = row[columnName]?.ToString();
+                    var value = row[column]?.ToString();
                     if (!string.IsNullOrWhiteSpace(value))
                     {
-                        return value;
+                        return value.Trim();
                     }
                 }
             }
@@ -151,6 +165,20 @@ namespace pStudyWare20.Services.Implementations
                 }
             }
             return DateTime.MinValue;
+        }
+
+        /// <summary>
+        /// Legacy Emailinfo: ID~#SendFrom~#Subject~#Name~#SendBy
+        /// </summary>
+        private static string ParseNameFromEmailInfo(string emailInfo)
+        {
+            if (string.IsNullOrWhiteSpace(emailInfo))
+            {
+                return string.Empty;
+            }
+
+            var parts = emailInfo.Split("~#");
+            return parts.Length > 3 ? parts[3].Trim() : string.Empty;
         }
     }
 }
