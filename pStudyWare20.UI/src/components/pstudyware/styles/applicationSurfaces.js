@@ -91,6 +91,16 @@ export const adminDashboardWidgetBorderedTableSx = {
   },
 };
 
+/** Shared compact table body typography for dashboard widgets. */
+export const adminDashboardWidgetTableBodyFontSx = {
+  fontSize: "0.75rem",
+  lineHeight: 1.2,
+  fontWeight: 400,
+};
+
+/** Standard font for all admin portal data tables (headers + body rows). */
+export const adminPortalTableFontSx = adminDashboardWidgetTableBodyFontSx;
+
 /** Compact table cells for dashboard count widgets (Group / OnSite / Online). */
 export const adminDashboardWidgetTableCellSx = {
   ...adminDashboardWidgetTableBodyFontSx,
@@ -119,22 +129,10 @@ export const adminDashboardWidgetTrackingHeaderCellSx = {
 
 /** To Do user-tracking summary body cells — extra compact (legacy kGrid ~200×75). */
 export const adminDashboardWidgetTrackingCellSx = {
-  fontSize: "0.75rem",
+  ...adminDashboardWidgetTableBodyFontSx,
   padding: "1px 4px",
-  fontWeight: 400,
-  lineHeight: 1.2,
   border: ADMIN_DASHBOARD_WIDGET_TABLE_BORDER,
 };
-
-/** System Support widget body text — e.g. "Student Waiting List" link row. */
-export const adminDashboardWidgetTableBodyFontSx = {
-  fontSize: adminDashboardWidgetTrackingCellSx.fontSize,
-  lineHeight: adminDashboardWidgetTrackingCellSx.lineHeight,
-  fontWeight: adminDashboardWidgetTrackingCellSx.fontWeight,
-};
-
-/** Standard font for all admin portal data tables (headers + body rows). */
-export const adminPortalTableFontSx = adminDashboardWidgetTableBodyFontSx;
 
 export const adminDashboardWidgetTrackingTableSx = {
   width: "100%",
