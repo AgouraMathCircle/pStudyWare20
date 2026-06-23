@@ -1,12 +1,11 @@
 import React from "react";
 import { Box, Container, Card, CardContent } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
-import AdminHeader from "./AdminHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import UpdatePassword from "../Common/UpdatePassword";
 import {
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 
 const AdminChangePassword = () => {
@@ -15,7 +14,7 @@ const AdminChangePassword = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
+      <AdminRoleHeaderSpacer />
       <Container maxWidth="md" sx={{ mb: 4 }}>
         <Card
           sx={{

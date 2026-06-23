@@ -188,7 +188,9 @@ const Topbar = () => {
       user.role === "SystemAdmin" ||
       user.memberType?.toUpperCase() === "A";
     const isInstructor =
-      user.role === "Instructor" || user.memberType?.toUpperCase() === "I";
+      user.role === "Instructor" ||
+      user.memberType?.toUpperCase() === "I" ||
+      user.memberType?.toUpperCase() === "C";
     const isVolunteer =
       user.role === "Volunteer" || user.memberType?.toUpperCase() === "V";
 

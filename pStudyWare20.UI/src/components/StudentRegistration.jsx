@@ -24,7 +24,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 // Import images from src/assets
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
-import { useNavigate } from "react-router-dom";
 import studentService from "../services/studentService";
 import "../styles/StudentRegistration.css";
 
@@ -109,11 +108,32 @@ const validationSchema = yup.object({
   picturePermission: yup.boolean(),
 });
 
+const defaultFormValues = {
+  parentFirstName: "",
+  parentLastName: "",
+  parentEmail: "",
+  parentPhoneNo: "",
+  city: "",
+  state: "",
+  country: "",
+  studentFirstName: "",
+  studentLastName: "",
+  studentEmail: "",
+  studentSchoolName: "",
+  studentGrade: "0",
+  sessionId: "0",
+  locationId: 0,
+  userName: "P",
+  liabilitySignature: "",
+  ruleSignature: "",
+  picturePermission: true,
+};
+
 const StudentRegistration = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -130,29 +150,11 @@ const StudentRegistration = () => {
     handleSubmit,
     formState: { errors },
     reset,
+    getValues,
     watch,
   } = useForm({
     resolver: yupResolver(validationSchema),
-    defaultValues: {
-      parentFirstName: "",
-      parentLastName: "",
-      parentEmail: "",
-      parentPhoneNo: "",
-      city: "",
-      state: "",
-      country: "",
-      studentFirstName: "",
-      studentLastName: "",
-      studentEmail: "",
-      studentSchoolName: "",
-      studentGrade: "0",
-      sessionId: "0",
-      locationId: 0,
-      userName: "P",
-      liabilitySignature: "",
-      ruleSignature: "",
-      picturePermission: true,
-    },
+    defaultValues: defaultFormValues,
   });
 
   const userNameOption = watch("userName");
@@ -203,10 +205,6 @@ const StudentRegistration = () => {
     });
   };
 
-  const handleNavigation = (path) => {
-    navigate(path);
-  };
-
   const handleCloseSnackbar = () => {
     setSnackbar({
       ...snackbar,
@@ -245,20 +243,8 @@ const StudentRegistration = () => {
 
       console.log("API Response:", response);
 
-      // Check if the response indicates success
       if (response && response.isSuccess !== false) {
-        showSnackbar(
-          "Registration submitted successfully! We will review and update your enrollment status by email.",
-          "success",
-        );
-
-        // Reset form after successful submission
-        reset();
-
-        // Optionally redirect after a delay
-        setTimeout(() => {
-          navigate("/");
-        }, 3000);
+        setSuccessDialogOpen(true);
       } else {
         showSnackbar(
           response?.ErrorMessage || "Registration failed. Please try again.",
@@ -274,6 +260,25 @@ const StudentRegistration = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRegisterAnother = () => {
+    const parentData = {
+      parentFirstName: getValues("parentFirstName"),
+      parentLastName: getValues("parentLastName"),
+      parentEmail: getValues("parentEmail"),
+      parentPhoneNo: getValues("parentPhoneNo"),
+      city: getValues("city"),
+      state: getValues("state"),
+      country: getValues("country"),
+      userName: getValues("userName"),
+    };
+    reset({ ...defaultFormValues, ...parentData });
+    setSuccessDialogOpen(false);
+  };
+
+  const handleSuccessDialogClose = () => {
+    setSuccessDialogOpen(false);
   };
 
   return (
@@ -1016,6 +1021,39 @@ const StudentRegistration = () => {
               </button>
             </div>
           )}
+
+          {/* Registration Success Dialog */}
+          <Dialog
+            open={successDialogOpen}
+            onClose={handleSuccessDialogClose}
+            maxWidth="sm"
+            fullWidth
+          >
+            <DialogTitle sx={{ color: "#174a10", fontWeight: "bold" }}>
+              Registration Successful
+            </DialogTitle>
+            <DialogContent>
+              <Typography>
+                Registration successful, do you want to register another student?
+                you will receive an email once it is approved.
+              </Typography>
+            </DialogContent>
+            <DialogActions sx={{ padding: "16px 24px" }}>
+              <Button onClick={handleSuccessDialogClose} color="inherit">
+                No
+              </Button>
+              <Button
+                onClick={handleRegisterAnother}
+                variant="contained"
+                sx={{
+                  backgroundColor: "#53b50a",
+                  "&:hover": { backgroundColor: "#469409" },
+                }}
+              >
+                Yes
+              </Button>
+            </DialogActions>
+          </Dialog>
 
           {/* Rules Popup Dialog */}
           <Dialog

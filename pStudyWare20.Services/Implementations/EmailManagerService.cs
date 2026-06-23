@@ -91,6 +91,37 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
+        /// Get unread message count for portal header (AMC_spGetMessageCenter @Mode = C)
+        /// </summary>
+        public async Task<GetMessageTotalResponse> GetMessageTotalAsync(GetMessagesRequest request)
+        {
+            try
+            {
+                var countData = await _emailManagerRepository.GetMessagesAsync(request.Username, "C");
+                var total = 0;
+
+                if (countData != null && countData.Rows.Count > 0)
+                {
+                    total = GetIntValue(countData.Rows[0], "Total");
+                }
+
+                return new GetMessageTotalResponse
+                {
+                    IsSuccess = true,
+                    Total = total,
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GetMessageTotalResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message,
+                };
+            }
+        }
+
+        /// <summary>
         /// Get a specific message by ID
         /// </summary>
         public async Task<GetMessageResponse> GetMessageAsync(GetMessageRequest request)
@@ -512,7 +543,14 @@ namespace pStudyWare20.Services.Implementations
             }
 
             var parts = emailInfo.Split("~#");
-            return parts.Length > 3 ? parts[3].Trim() : string.Empty;
+            if (parts.Length <= 3)
+            {
+                return string.Empty;
+            }
+
+            var name = parts[3].Trim();
+            // Admin inbox Emailinfo uses literal '0' for Name (legacy EmailManager.aspx.cs).
+            return name == "0" ? string.Empty : name;
         }
     }
 }

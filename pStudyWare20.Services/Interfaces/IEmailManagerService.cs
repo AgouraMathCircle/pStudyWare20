@@ -15,6 +15,11 @@ namespace pStudyWare20.Services.Interfaces
         Task<GetMessagesResponse> GetMessagesAsync(GetMessagesRequest request);
 
         /// <summary>
+        /// Get unread message count for a user (legacy header badge)
+        /// </summary>
+        Task<GetMessageTotalResponse> GetMessageTotalAsync(GetMessagesRequest request);
+
+        /// <summary>
         /// Get a specific message by ID
         /// </summary>
         /// <param name="request">Get message request</param>

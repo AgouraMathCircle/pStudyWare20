@@ -37,7 +37,7 @@ import {
   portalModalSendButtonSx,
 } from "../Common/portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
-import AdminHeader from "./AdminHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import volunteersRequestService from "../../../services/volunteersRequestService";
 import {
   adminSessionListEmptyCellSx,
@@ -60,7 +60,6 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
   adminSessionListToolbarButtonSx,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
@@ -77,6 +76,7 @@ const volunteersRequestPageSx = {
 const volunteersRequestColumnWidths = {
   edit: "4%",
   delete: "4%",
+  status: "6%",
   id: "5%",
   volunteerName: "10%",
   grade: "5%",
@@ -87,7 +87,6 @@ const volunteersRequestColumnWidths = {
   city: "6%",
   enrolledFor: "8%",
   interestedFor: "8%",
-  status: "6%",
   requestedDate: "7%",
   comments: "8%",
 };
@@ -144,8 +143,8 @@ const VolunteersRequest = () => {
     section: "A",
   });
   const [submitting, setSubmitting] = useState(false);
-  const [orderBy, setOrderBy] = useState("volunteerID");
-  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("insertDate");
+  const [order, setOrder] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
   const [searchBy, setSearchBy] = useState("ALL");
@@ -228,10 +227,14 @@ const VolunteersRequest = () => {
     loadChapterLocations();
   }, []);
 
+  /** Legacy kGrid: first header click DESC, same column toggles ASC/DESC. */
   const handleSort = (property) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
+    if (orderBy === property) {
+      setOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setOrderBy(property);
+      setOrder("desc");
+    }
     setCurrentPage(1);
     setGoToPageInput("1");
   };
@@ -295,8 +298,26 @@ const VolunteersRequest = () => {
     return [...filtered].sort((a, b) => {
       let aVal = a[key];
       let bVal = b[key];
-      if (typeof aVal === "number" && typeof bVal === "number")
+
+      if (key === "volunteerID") {
+        const aNum = Number(aVal);
+        const bNum = Number(bVal);
+        if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+          return order === "asc" ? aNum - bNum : bNum - aNum;
+        }
+      }
+
+      if (key === "insertDate") {
+        const aTime = aVal ? new Date(aVal).getTime() : 0;
+        const bTime = bVal ? new Date(bVal).getTime() : 0;
+        if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) {
+          return order === "asc" ? aTime - bTime : bTime - aTime;
+        }
+      }
+
+      if (typeof aVal === "number" && typeof bVal === "number") {
         return order === "asc" ? aVal - bVal : bVal - aVal;
+      }
       aVal = (aVal ?? "").toString();
       bVal = (bVal ?? "").toString();
       return order === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
@@ -421,7 +442,7 @@ const VolunteersRequest = () => {
   return (
     <Box sx={volunteersRequestPageSx}>
       <AdminHeader user={user} />
-      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
+      <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
@@ -541,6 +562,7 @@ const VolunteersRequest = () => {
                             >
                               Delete
                             </TableCell>
+                            <SortableHeader label="Status" field="status" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.status)} />
                             <SortableHeader label="#" field="volunteerID" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.id)} />
                             <SortableHeader label="Volunteer Name" field="volunteerName" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.volunteerName)} />
                             <SortableHeader label="Grade" field="grade" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.grade)} />
@@ -551,7 +573,6 @@ const VolunteersRequest = () => {
                             <SortableHeader label="City" field="city" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.city)} />
                             <SortableHeader label="Enrolled For" field="enrolledSession" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.enrolledFor)} />
                             <SortableHeader label="Interested For" field="interest" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.interestedFor)} />
-                            <SortableHeader label="Status" field="status" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.status)} />
                             <SortableHeader label="Requested Date" field="insertDate" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.requestedDate)} />
                             <SortableHeader label="Comments" field="comments" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.comments, true)} />
                           </TableRow>
@@ -572,6 +593,9 @@ const VolunteersRequest = () => {
                                   >
                                     Delete
                                   </Box>
+                                </TableCell>
+                                <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                  {row.status ?? "—"}
                                 </TableCell>
                                 <TableCell sx={adminSessionListTableBodyCellSx()}>
                                   {row.volunteerID ?? "—"}
@@ -612,9 +636,6 @@ const VolunteersRequest = () => {
                                   <Tooltip title={row.interest ?? "—"}>
                                     <span>{row.interest ?? "—"}</span>
                                   </Tooltip>
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                  {row.status ?? "—"}
                                 </TableCell>
                                 <TableCell sx={adminSessionListTableBodyCellSx()}>
                                   {formatDate(row.insertDate) || "—"}

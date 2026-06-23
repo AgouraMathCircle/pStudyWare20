@@ -93,25 +93,21 @@ export const adminDashboardWidgetBorderedTableSx = {
 
 /** Compact table cells for dashboard count widgets (Group / OnSite / Online). */
 export const adminDashboardWidgetTableCellSx = {
-  fontSize: "0.75rem",
+  ...adminDashboardWidgetTableBodyFontSx,
   padding: "1px 3px",
-  fontWeight: 400,
-  lineHeight: 1.2,
   border: ADMIN_DASHBOARD_WIDGET_TABLE_BORDER,
 };
 
 /** Table header row only — minimal vertical spacing. */
 export const adminDashboardWidgetTableHeaderCellSx = {
-  fontSize: "0.75rem",
+  ...adminDashboardWidgetTableBodyFontSx,
   padding: "0 3px",
-  fontWeight: 400,
-  lineHeight: 1.2,
   border: ADMIN_DASHBOARD_WIDGET_TABLE_BORDER,
 };
 
 /** To Do user-tracking summary headers (legacy kGrid .kGridHead). */
 export const adminDashboardWidgetTrackingHeaderCellSx = {
-  fontSize: "0.6875rem",
+  ...adminDashboardWidgetTableBodyFontSx,
   fontWeight: 700,
   color: "#043807",
   padding: "2px 4px",
@@ -129,6 +125,16 @@ export const adminDashboardWidgetTrackingCellSx = {
   lineHeight: 1.2,
   border: ADMIN_DASHBOARD_WIDGET_TABLE_BORDER,
 };
+
+/** System Support widget body text — e.g. "Student Waiting List" link row. */
+export const adminDashboardWidgetTableBodyFontSx = {
+  fontSize: adminDashboardWidgetTrackingCellSx.fontSize,
+  lineHeight: adminDashboardWidgetTrackingCellSx.lineHeight,
+  fontWeight: adminDashboardWidgetTrackingCellSx.fontWeight,
+};
+
+/** Standard font for all admin portal data tables (headers + body rows). */
+export const adminPortalTableFontSx = adminDashboardWidgetTableBodyFontSx;
 
 export const adminDashboardWidgetTrackingTableSx = {
   width: "100%",
@@ -220,8 +226,11 @@ export const instructorPortalContentContainerProps = {
   maxWidth: "xl",
 };
 
-/** Spacer height below fixed instructor/admin role header bars. */
+/** Spacer height below fixed instructor role header bars. */
 export const portalRoleSubheaderSpacerPx = 42;
+
+/** Spacer height below fixed admin role header bar (tighter vertical padding). */
+export const adminRoleSubheaderSpacerPx = 22;
 
 /** Optional inset panel (e.g. nested cards). */
 export const applicationContentPanelSx = {
@@ -439,10 +448,9 @@ export const adminSessionListTableHeadRowSx = {
 };
 
 export const adminSessionListTableHeadCellSx = (width, isLast = false) => ({
-  fontWeight: 400,
+  ...adminPortalTableFontSx,
   ...(isLast ? {} : { borderRight: ADMIN_SESSION_LIST_BORDER }),
   width,
-  fontSize: "0.75rem",
   padding: ADMIN_SESSION_LIST_CELL_PADDING,
 });
 
@@ -455,8 +463,8 @@ export const adminSessionListTableBodyCellSx = ({
   ellipsis = false,
   action = false,
 } = {}) => ({
+  ...adminPortalTableFontSx,
   ...(isLast ? {} : { borderRight: ADMIN_SESSION_LIST_BORDER }),
-  fontSize: "0.75rem",
   padding: ADMIN_SESSION_LIST_CELL_PADDING,
   ...(action ? { verticalAlign: "middle" } : {}),
   ...(ellipsis
@@ -469,23 +477,21 @@ export const adminSessionListTableBodyCellSx = ({
 });
 
 export const adminSessionListTableActionLinkSx = {
-  fontSize: "0.75rem",
-  fontWeight: 400,
+  ...adminPortalTableFontSx,
   color: "#0000ee",
   textDecoration: "underline",
   cursor: "pointer",
-  lineHeight: 1.2,
   "&:visited": { color: "#551a8b" },
   "&:hover": { color: "#551a8b" },
 };
 
 export const adminSessionListEmptyCellSx = {
-  fontSize: "0.75rem",
+  ...adminPortalTableFontSx,
   padding: ADMIN_SESSION_LIST_CELL_PADDING,
   py: 3,
 };
 
-export const adminSessionListEmptyTextSx = { fontSize: "0.75rem" };
+export const adminSessionListEmptyTextSx = { ...adminPortalTableFontSx };
 
 export const adminSessionListPaginationBarSx = {
   ...adminSessionListControlBarBaseSx,

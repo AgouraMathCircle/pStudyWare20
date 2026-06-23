@@ -13,7 +13,7 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
 import StudentDocumentList from "../Student/StudentDocumentList";
-import VolunteerHeader from "./VolunteerHeader";
+import VolunteerHeader, { VolunteerRoleHeaderSpacer } from "./VolunteerHeader";
 import {
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
@@ -158,7 +158,7 @@ const VolunteerClassMaterial = () => {
   return (
     <Box>
       <VolunteerHeader user={user} />
-      <Box sx={{ height: "48px" }} />
+      <VolunteerRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4, pt: 2 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

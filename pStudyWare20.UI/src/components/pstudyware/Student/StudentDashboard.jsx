@@ -12,7 +12,7 @@ import {
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
-import StudentHeader from "./StudentHeader";
+import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import DashboardMessages from "./DashboardMessages";
 import StudentProfile from "./StudentProfile";
 import ReportCard from "./ReportCard";
@@ -305,7 +305,7 @@ const StudentDashboard = () => {
   return (
     <Box className="student-dashboard">
       <StudentHeader user={user} />
-      <Box sx={{ height: "48px" }} />
+      <StudentRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sx={{ pb: "0 !important" }}>

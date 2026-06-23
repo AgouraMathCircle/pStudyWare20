@@ -43,9 +43,9 @@ import documentService, {
   getStudentDocumentDeleteId,
   getStudentDocumentName,
 } from "../../../services/documentService";
-import StudentHeader from "./StudentHeader";
+import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import { getPortalUsername } from "../../../utils/portalUsername";
-import AdminHeader from "../Admin/AdminHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "../Admin/AdminHeader";
 import AdminStudentDocumentList from "../Admin/AdminStudentDocumentList";
 import InstructorPortalPaginationBar from "../Instructor/InstructorPortalPaginationBar";
 import {
@@ -87,13 +87,13 @@ import {
   adminSessionListEmptyTextSx,
   APPLICATION_SURFACE_BG,
   APPLICATION_SURFACE_BORDER,
-  portalRoleSubheaderSpacerPx,
   portalHeaderActionButtonSx,
 } from "../styles/applicationSurfaces";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 import PortalDialog from "../Common/PortalDialog";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
+import PdfViewerModal from "../../common/PdfViewerModal";
 import {
   PORTAL_MODAL_FG,
   portalModalFieldSx,
@@ -215,6 +215,7 @@ const StudentDocuments = () => {
   const [deletingDocument, setDeletingDocument] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState(null);
+  const [selectedPdf, setSelectedPdf] = useState(null);
 
   // Upload form state
   const [uploadForm, setUploadForm] = useState({
@@ -474,21 +475,15 @@ const StudentDocuments = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Handle view document
-  const handleView = async (documentName) => {
+  const handleView = (documentName) => {
     if (!documentName) {
       return;
     }
+    setSelectedPdf(documentName);
+  };
 
-    try {
-      await documentService.viewStudentDocument(documentName);
-    } catch (err) {
-      console.error("Error opening document:", err);
-      showMessage(
-        err?.message || "Unable to open document. The file may be missing.",
-        "error"
-      );
-    }
+  const handleClosePdfViewer = () => {
+    setSelectedPdf(null);
   };
 
   // Handle download document
@@ -1080,7 +1075,7 @@ const StudentDocuments = () => {
           {isAdminStudentDocsRoute ? (
             <Box sx={adminStudentDocsPageSx}>
               <AdminHeader user={user} />
-              <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />
+              <AdminRoleHeaderSpacer />
               <Container maxWidth="xl" sx={{ mb: 4 }}>
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
@@ -1113,7 +1108,7 @@ const StudentDocuments = () => {
       ) : (
         <Box className="student-dashboard">
           <StudentHeader user={user} />
-          <Box sx={{ height: "48px" }} aria-hidden />
+          <StudentRoleHeaderSpacer />
           <Container maxWidth="xl" sx={{ mb: 4 }}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
@@ -1471,6 +1466,15 @@ const StudentDocuments = () => {
         </Box>
       </PortalDialog>
       )}
+
+      <PdfViewerModal
+        open={Boolean(selectedPdf)}
+        pdfUrl={selectedPdf}
+        pdfName={selectedPdf}
+        onClose={handleClosePdfViewer}
+        apiEndpoint="/Document/ViewStudentDocument"
+        downloadEndpoint="/Document/DownloadStudentDocument"
+      />
 
       <AppConfirmDialog
         open={deleteDialogOpen}

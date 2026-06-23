@@ -50,6 +50,33 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
+        /// Get unread message count for portal header badge
+        /// </summary>
+        [HttpPost("GetMessageTotal")]
+        public async Task<IActionResult> GetMessageTotal([FromBody] GetMessagesRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                if (string.IsNullOrEmpty(request.Username))
+                {
+                    request.Username = PortalClaimsHelper.GetPortalUsername(User);
+                }
+
+                var response = await _emailManagerService.GetMessageTotalAsync(request);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while getting message total", error = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Get a specific message by ID
         /// </summary>
         /// <param name="request">Get message request</param>

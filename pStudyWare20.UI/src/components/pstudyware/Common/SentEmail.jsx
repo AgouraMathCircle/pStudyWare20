@@ -34,8 +34,8 @@ import {
 } from "../../../utils/tableSort";
 import SortableHeader from "./SortableHeader";
 import PortalDialog from "./PortalDialog";
-import StudentHeader from "../Student/StudentHeader";
-import AdminHeader from "../Admin/AdminHeader";
+import StudentHeader, { StudentRoleHeaderSpacer } from "../Student/StudentHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "../Admin/AdminHeader";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import {
   portalPaperAntiLiftSx,
@@ -61,7 +61,6 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
   portalHeaderActionButtonSx,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import { portalModalFieldSx } from "./portalModalStyles";
 
@@ -82,17 +81,39 @@ const getMessageCenterPath = (user) => {
   return "/pstudyware/emailmanager";
 };
 
-/** Legacy sent grid [SendFrom]: student name (S), class-section (I), student details (A). */
-const getSentGridFromDisplay = (message) =>
-  message?.sendFrom ||
-  message?.SendFrom ||
-  message?.studentName ||
-  message?.StudentName ||
-  "";
+/** Legacy sentemail.aspx grid [SendFrom] — always the SP SendFrom column. */
+const getSentGridFromDisplay = (message, memberType) => {
+  const fromCol = message?.sendFrom || message?.SendFrom || "";
+  if (fromCol) {
+    return fromCol;
+  }
+  // Student branch also exposes StudentName (same value when joins succeed).
+  if (memberType === "S") {
+    return message?.studentName || message?.StudentName || "";
+  }
+  return "";
+};
 
-/** Legacy sent grid [SendTo]: class-section (S), student name (I), email group (A). */
+/** Legacy sentemail.aspx grid [SendTo] — always the SP SendTo column. */
 const getSentGridToDisplay = (message) =>
   message?.sendTo || message?.SendTo || "";
+
+const getSentMessageFieldValue = (message, field, memberType) => {
+  switch (field) {
+    case "from":
+      return getSentGridFromDisplay(message, memberType);
+    case "to":
+      return getSentGridToDisplay(message);
+    case "subject":
+      return message?.subject || message?.Subject || "";
+    case "message":
+      return getMessagePreview(message);
+    case "messageDate":
+      return message?.sendDate || message?.SendDate || "";
+    default:
+      return getMessageFieldValue(message, field);
+  }
+};
 
 /**
  * Legacy sentemail.aspx View dialog — uses Emailinfo Name, not the grid SendFrom.
@@ -102,7 +123,7 @@ const getSentViewFromDisplay = (message, memberType) => {
   if (memberType === "S") {
     return message?.name || message?.Name || "";
   }
-  return getSentGridFromDisplay(message);
+  return getSentGridFromDisplay(message, memberType);
 };
 
 const getSentViewToDisplay = (message, memberType) => {
@@ -227,7 +248,7 @@ const SentEmail = () => {
 
         switch (searchBy) {
           case "FROM":
-            fieldValue = getSentGridFromDisplay(message);
+            fieldValue = getSentGridFromDisplay(message, memberType);
             break;
           case "TO":
             fieldValue = getSentGridToDisplay(message);
@@ -274,8 +295,11 @@ const SentEmail = () => {
   };
 
   const sortedMessages = useMemo(
-    () => sortRows(filteredMessages, sortField, sortOrder, getMessageFieldValue),
-    [filteredMessages, sortField, sortOrder]
+    () =>
+      sortRows(filteredMessages, sortField, sortOrder, (message, field) =>
+        getSentMessageFieldValue(message, field, memberType)
+      ),
+    [filteredMessages, sortField, sortOrder, memberType]
   );
 
   const totalRecords = sortedMessages.length;
@@ -397,9 +421,9 @@ const SentEmail = () => {
   return (
     <Box>
       {isAdmin && <AdminHeader user={user} />}
-      {isAdmin && <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />}
+      {isAdmin && <AdminRoleHeaderSpacer />}
       {shouldShowStudentHeader && <StudentHeader user={user} />}
-      {shouldShowStudentHeader && <Box sx={{ height: "48px" }} />}
+      {shouldShowStudentHeader && <StudentRoleHeaderSpacer />}
 
       <Container maxWidth="xl" sx={{ mt: 0, mb: 4 }}>
         <Paper
@@ -611,8 +635,10 @@ const SentEmail = () => {
                         <TableCell
                           sx={adminSessionListTableBodyCellSx({ ellipsis: true })}
                         >
-                          <Tooltip title={getSentGridFromDisplay(message) || "—"}>
-                            <span>{getSentGridFromDisplay(message) || "—"}</span>
+                          <Tooltip title={getSentGridFromDisplay(message, memberType) || "—"}>
+                            <span>
+                              {getSentGridFromDisplay(message, memberType) || "—"}
+                            </span>
                           </Tooltip>
                         </TableCell>
                         <TableCell

@@ -27,7 +27,7 @@ import {
 } from "@mui/material";
 import { Refresh as RefreshIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Save as SaveIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
-import AdminHeader from "./AdminHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 import PortalDialog from "../Common/PortalDialog";
@@ -52,7 +52,6 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
   adminSessionListToolbarButtonSx,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 
 // Normalize API response to array of items (handles PostMessageListResponse or legacy shapes)
@@ -334,7 +333,7 @@ const PostMessage = () => {
   return (
     <Box sx={{ minHeight: "100vh" }}>
       <AdminHeader />
-      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
+      <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12}>

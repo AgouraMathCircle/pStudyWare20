@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
 import studentDashboardService from "../../../services/studentDashboardService";
-import StudentHeader from "./StudentHeader";
+import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import {
   adminSessionListFindButtonSx,
   adminSessionListGridTableSx,
@@ -616,7 +616,7 @@ const ReportCard = ({
   return (
     <Box className="student-dashboard report-card-page">
       <StudentHeader user={user} />
-      <Box sx={{ height: "48px" }} aria-hidden />
+      <StudentRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4, mt: 0 }}>
         <Card sx={adminSessionListPanelCardSx}>
           <CardContent

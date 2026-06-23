@@ -1,17 +1,17 @@
 import React from "react";
 import { TableCell, Box } from "@mui/material";
+import { adminPortalTableFontSx } from "../styles/applicationSurfaces";
 
 const SortIndicator = ({ active, direction }) => (
   <Box
     component="span"
     sx={{
       display: "inline-block",
-      ml: 0.35,
+      flexShrink: 0,
       fontSize: "0.5rem",
       lineHeight: 1,
       color: active ? "#1b5e20" : "#2e7d32",
       opacity: 1,
-      verticalAlign: "middle",
     }}
     aria-hidden
   >
@@ -37,7 +37,7 @@ const SortableHeader = ({
         ...headCellSx,
         cursor: "pointer",
         userSelect: "none",
-        whiteSpace: "nowrap",
+        whiteSpace: headCellSx?.whiteSpace ?? "nowrap",
       }}
       onClick={() => onSort(field)}
       aria-sort={
@@ -47,15 +47,28 @@ const SortableHeader = ({
       <Box
         component="span"
         sx={{
-          display: "inline-flex",
+          display: "flex",
           alignItems: "center",
-          fontSize: "0.75rem",
-          lineHeight: 1.2,
+          gap: 0.25,
+          width: "100%",
+          minWidth: 0,
+          ...adminPortalTableFontSx,
           color: active ? "#1b5e20" : "#2e7d32",
           fontWeight: active ? 600 : 400,
         }}
       >
-        {label}
+        <Box
+          component="span"
+          sx={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            flex: "1 1 auto",
+            minWidth: 0,
+          }}
+        >
+          {label}
+        </Box>
         <SortIndicator active={active} direction={sortOrder} />
       </Box>
     </TableCell>

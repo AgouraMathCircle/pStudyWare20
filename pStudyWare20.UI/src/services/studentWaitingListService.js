@@ -1,5 +1,6 @@
 import api from "./api";
 import { postExcelExport } from "../utils/excelExport";
+import { postCsvExport } from "../utils/csvExport";
 
 const BASE = "/StudentWaitingList";
 
@@ -62,6 +63,20 @@ const studentWaitingListService = {
       `${BASE}/ExportToExcel`,
       request,
       "StudentWaitingList.xlsx"
+    );
+    return { isSuccess: true, fileName };
+  },
+
+  /**
+   * Export waiting list to CSV.
+   * @param {object} request - { Username: string, Mode?: string }
+   */
+  exportToCsv: async (request) => {
+    const fileName = await postCsvExport(
+      api,
+      `${BASE}/ExportToCsv`,
+      request,
+      "StudentWaitingList.csv"
     );
     return { isSuccess: true, fileName };
   },

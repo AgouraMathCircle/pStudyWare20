@@ -1,108 +1,104 @@
-import React from "react";
-import {
-  Box,
-  Container,
-  Typography,
-} from "@mui/material";
+import React, { useRef } from "react";
+import { Box, Container, Typography } from "@mui/material";
 import {
   CalendarToday as CalendarIcon,
   Dashboard as DashboardIcon,
 } from "@mui/icons-material";
-import { applicationRoleHeaderBarSx } from "../styles/applicationSurfaces";
-import { useRoleHeaderDateTime } from "../../../hooks/useRoleHeaderDateTime";
+import { instructorPortalContentContainerProps } from "../styles/applicationSurfaces";
+import { formatRoleHeaderLoginDateTime } from "../../../hooks/useRoleHeaderDateTime";
+import PortalHeaderMessageControls from "../Common/PortalHeaderMessageControls";
+import {
+  StudentRoleHeaderSpacer,
+  ROLE_HEADER_HEIGHT_VARS,
+  compactRoleHeaderBarSx,
+  useFixedRoleHeaderLayout,
+} from "../Common/roleHeaderLayout";
+
+export { StudentRoleHeaderSpacer };
+
+const studentRoleHeaderBarSx = compactRoleHeaderBarSx("#c8e6c9");
 
 const StudentHeader = ({ user }) => {
-  const dateTime = useRoleHeaderDateTime();
+  const headerRef = useRef(null);
+  const dateTime = formatRoleHeaderLoginDateTime(user?.loginAt);
+  const { fixedSx } = useFixedRoleHeaderLayout(
+    headerRef,
+    ROLE_HEADER_HEIGHT_VARS.student,
+    [user?.firstName, user?.loginAt],
+  );
+
   return (
     <Box
+      ref={headerRef}
+      className="student-role-header"
       sx={{
-        ...applicationRoleHeaderBarSx,
-        pt: 2,
-        pb: 0.5,
-        position: "fixed",
-        top: "64px",
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        width: "100%",
+        ...studentRoleHeaderBarSx,
+        ...fixedSx,
       }}
     >
-      <Container maxWidth="xl">
+      <Container
+        {...instructorPortalContentContainerProps}
+        sx={{ py: 0, px: { xs: 2, sm: 3 } }}
+      >
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 2,
+            gap: 1,
+            minHeight: 0,
+            py: 0.25,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Box
               sx={{
-                width: 34,
-                height: 34,
-                borderRadius: "11px",
+                width: 24,
+                height: 24,
+                borderRadius: "8px",
                 backgroundColor: "#2e7d32",
                 color: "#fff",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 4px 10px rgba(46, 125, 50, 0.32)",
+                boxShadow: "0 2px 8px rgba(46, 125, 50, 0.28)",
+                flexShrink: 0,
               }}
             >
-              <DashboardIcon sx={{ fontSize: 19 }} />
+              <DashboardIcon sx={{ fontSize: 14 }} />
             </Box>
             <Typography
               sx={{
                 fontWeight: 700,
-                fontSize: "1.05rem",
+                fontSize: "0.875rem",
                 color: "#1b5e20",
                 letterSpacing: "-0.01em",
-                display: { xs: "none", sm: "block" },
+                lineHeight: 1,
               }}
             >
               Student
             </Typography>
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 1,
                 backgroundColor: "#ffffff",
-                pl: 0.5,
-                pr: { xs: 0.5, sm: 1.75 },
-                py: 0.5,
+                px: { xs: 0.75, sm: 1 },
+                py: 0.25,
                 borderRadius: "999px",
-                border: "2px solid #4caf50",
-                boxShadow: "0 2px 6px rgba(46, 125, 50, 0.15)",
+                border: "1px solid #4caf50",
+                boxShadow: "0 1px 3px rgba(46, 125, 50, 0.1)",
               }}
             >
-              <Box
-                sx={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: "50%",
-                  background:
-                    "linear-gradient(135deg, #2e7d32 0%, #4caf50 100%)",
-                  color: "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: 700,
-                  fontSize: "0.8rem",
-                  flexShrink: 0,
-                }}
-              >
-                {(user?.firstName || "S").charAt(0).toUpperCase()}
-              </Box>
               <Typography
-                variant="body2"
                 sx={{
                   color: "#1b5e20",
-                  fontWeight: 700,
+                  fontWeight: 600,
+                  fontSize: "0.75rem",
+                  lineHeight: 1,
                   display: { xs: "none", sm: "block" },
                 }}
               >
@@ -110,25 +106,27 @@ const StudentHeader = ({ user }) => {
               </Typography>
             </Box>
 
+            <PortalHeaderMessageControls user={user} />
+
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 0.75,
+                gap: 0.5,
                 backgroundColor: "#e8f5e9",
-                px: { xs: 1.25, sm: 1.75 },
-                py: 0.85,
+                px: { xs: 0.75, sm: 1 },
+                py: 0.25,
                 borderRadius: "999px",
                 border: "1px solid #c8e6c9",
               }}
             >
-              <CalendarIcon sx={{ fontSize: 18, color: "#2e7d32" }} />
+              <CalendarIcon sx={{ fontSize: 14, color: "#2e7d32" }} />
               <Typography
-                variant="body2"
                 sx={{
                   color: "#1b5e20",
                   fontWeight: 600,
-                  display: { xs: "none", sm: "block" },
+                  fontSize: "0.75rem",
+                  lineHeight: 1,
                   whiteSpace: "nowrap",
                 }}
               >

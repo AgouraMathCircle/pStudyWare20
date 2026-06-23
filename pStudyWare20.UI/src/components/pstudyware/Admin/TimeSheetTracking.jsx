@@ -42,7 +42,7 @@ import {
   portalModalSendButtonSx,
 } from "../Common/portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
-import AdminHeader from "./AdminHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import SortableHeader from "../Common/SortableHeader";
 import timeSheetTrackingService from "../../../services/timeSheetTrackingService";
 import {
@@ -54,7 +54,6 @@ import {
   APPLICATION_ADMIN_TITLE_COLOR,
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 
 const timeSheetTrackingPageSx = {
@@ -566,7 +565,7 @@ const TimeSheetTracking = () => {
   return (
     <Box sx={timeSheetTrackingPageSx}>
       <AdminHeader user={user} />
-      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
+      <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

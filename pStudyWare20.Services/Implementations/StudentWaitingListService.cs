@@ -153,7 +153,9 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                DataTable dataTable = await _repository.GetStudentWaitingListExportTableAsync(request.Username ?? "");
+                DataTable dataTable = await _repository.GetStudentWaitingListExportTableAsync(
+                    request.Username ?? "",
+                    string.IsNullOrWhiteSpace(request.Mode) ? "E" : request.Mode);
                 if (dataTable.Rows.Count == 0)
                 {
                     return new ExportExcelResponse
@@ -169,6 +171,42 @@ namespace pStudyWare20.Services.Implementations
                     FileName = "StudentWaitingList.xlsx",
                     FileContent = DataTableExcelExporter.ToXlsxBytes(dataTable, "StudentWaitingList"),
                     ContentType = DataTableExcelExporter.XlsxContentType,
+                    ErrorMessage = ""
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ExportExcelResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<ExportExcelResponse> ExportToCsvAsync(ExportExcelRequest request)
+        {
+            try
+            {
+                DataTable dataTable = await _repository.GetStudentWaitingListExportTableAsync(
+                    request.Username ?? "",
+                    string.IsNullOrWhiteSpace(request.Mode) ? "E" : request.Mode);
+                if (dataTable.Rows.Count == 0)
+                {
+                    return new ExportExcelResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "No data available for export"
+                    };
+                }
+
+                return new ExportExcelResponse
+                {
+                    IsSuccess = true,
+                    FileName = "StudentWaitingList.csv",
+                    FileContent = DataTableCsvExporter.ToCsvBytes(dataTable),
+                    ContentType = DataTableCsvExporter.CsvContentType,
                     ErrorMessage = ""
                 };
             }

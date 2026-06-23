@@ -28,7 +28,7 @@ import AppConfirmDialog from "../Common/AppConfirmDialog";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import finalExamService from "../../../services/finalExamService";
-import StudentHeader from "./StudentHeader";
+import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import FinalExamScoresGrid from "./FinalExamScoresGrid";
 import {
   APPLICATION_ADMIN_TITLE_COLOR,
@@ -42,9 +42,6 @@ import {
 import "../../../styles/StudentDashboard.css";
 
 const EXAM_TYPE = "Final Exam";
-
-/** Clearance for fixed StudentHeader (top: 64px) — tight, no extra gap */
-const STUDENT_HEADER_SPACER = "52px";
 
 /** Legacy FinalExam.aspx / style.css palette */
 const LEGACY_CONTROL_BOX_BG = "#54B50A";
@@ -807,7 +804,8 @@ const FinalExam = () => {
     return (
       <Box className="student-dashboard final-exam-page">
         <StudentHeader user={user} />
-        <Container maxWidth="xl" sx={{ pt: STUDENT_HEADER_SPACER }}>
+        <StudentRoleHeaderSpacer />
+        <Container maxWidth="xl">
           <Box
             display="flex"
             flexDirection="column"
@@ -829,7 +827,8 @@ const FinalExam = () => {
   return (
     <Box className="student-dashboard final-exam-page">
       <StudentHeader user={user} />
-      <Container maxWidth="xl" sx={{ pt: STUDENT_HEADER_SPACER, mb: 4, mt: 0 }}>
+      <StudentRoleHeaderSpacer />
+      <Container maxWidth="xl" sx={{ mb: 4, mt: 0 }}>
         {/* Instructions — legacy green panel above Answer Sheet */}
         {showForm && (
           <Paper

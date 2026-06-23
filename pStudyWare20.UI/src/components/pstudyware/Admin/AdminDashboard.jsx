@@ -13,12 +13,11 @@ import {
 } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
 import adminDashboardService from "../../../services/adminDashboardService";
-import AdminHeader from "./AdminHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import {
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
   adminDashboardWidgetColumnSx,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import EnrolledStudents from "./EnrolledStudents";
 import ToDoList from "./ToDoList";
@@ -315,7 +314,7 @@ const AdminDashboard = () => {
   return (
     <Box className="admin-dashboard">
       <AdminHeader user={user} />
-      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
+      <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sx={{ pb: 0 }}>

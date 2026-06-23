@@ -1,7 +1,7 @@
 import React from "react";
 import { Box } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
-import VolunteerHeader from "./VolunteerHeader";
+import VolunteerHeader, { VolunteerRoleHeaderSpacer } from "./VolunteerHeader";
 import { portalDashboardPageSx } from "../styles/applicationSurfaces";
 
 const VolunteerShell = ({ children }) => {
@@ -18,7 +18,7 @@ const VolunteerShell = ({ children }) => {
       }}
     >
       <VolunteerHeader user={user} />
-      <Box sx={{ height: "48px" }} aria-hidden />
+      <VolunteerRoleHeaderSpacer />
       <Box sx={{ px: { xs: 1, sm: 2 }, py: 2, flex: 1 }} component="main">
         {children}
       </Box>

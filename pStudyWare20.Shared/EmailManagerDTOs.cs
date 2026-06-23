@@ -27,6 +27,21 @@ namespace pStudyWare20.Shared
     }
 
     /// <summary>
+    /// Model for unread message count response (AMC_spGetMessageCenter @Mode = C)
+    /// </summary>
+    public class GetMessageTotalResponse
+    {
+        [Display(Name = "Is Success")]
+        public bool IsSuccess { get; set; }
+
+        [Display(Name = "Error Message")]
+        public string ErrorMessage { get; set; } = string.Empty;
+
+        [Display(Name = "Total")]
+        public int Total { get; set; }
+    }
+
+    /// <summary>
     /// Model for message information
     /// </summary>
     public class MessageInfo

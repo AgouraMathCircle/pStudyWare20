@@ -30,7 +30,7 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import registeredStudentListService from "../../../services/registeredStudentListService";
-import AdminHeader from "./AdminHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import PortalDialog from "../Common/PortalDialog";
@@ -56,7 +56,6 @@ import {
   adminSessionListTableHeadCellSx,
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 
 const RegisteredStudentList = () => {
@@ -466,7 +465,7 @@ const RegisteredStudentList = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
+      <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

@@ -12,8 +12,7 @@ import {
 } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
-import AdminHeader from "./AdminHeader";
-import { portalRoleSubheaderSpacerPx } from "../styles/applicationSurfaces";
+import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import DocumentList from "./DocumentList";
 import DocumentForm from "./DocumentForm";
 
@@ -314,7 +313,7 @@ const DocumentManagement = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
+      <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

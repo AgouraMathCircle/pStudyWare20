@@ -14,7 +14,7 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
 import adminDashboardService from "../../../services/adminDashboardService";
-import AdminHeader from "./AdminHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import AdminDocumentList from "./AdminDocumentList";
 import DocumentUploadForm from "./DocumentUploadForm";
 import InstructorClassMaterialList from "../Instructor/InstructorClassMaterialList";
@@ -23,7 +23,6 @@ import {
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
   instructorPortalContentContainerProps,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import "../../../styles/InstructorClassMaterial.css";
 
@@ -349,7 +348,7 @@ const Documents = () => {
     <Box className={hideRoleHeader ? "instructor-class-material" : undefined}>
       {!hideRoleHeader && <AdminHeader user={user} />}
       {!hideRoleHeader && (
-        <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />
+        <AdminRoleHeaderSpacer />
       )}
       <Container
         {...(hideRoleHeader ? instructorPortalContentContainerProps : { maxWidth: "xl" })}

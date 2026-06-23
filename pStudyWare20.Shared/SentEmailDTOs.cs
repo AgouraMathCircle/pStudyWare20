@@ -64,6 +64,9 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Send By")]
         public string SendBy { get; set; } = string.Empty;
+
+        /// <summary>Raw ET.SendFrom from legacy Emailinfo (view/reply).</summary>
+        public string SenderUsername { get; set; } = string.Empty;
     }
 
     /// <summary>

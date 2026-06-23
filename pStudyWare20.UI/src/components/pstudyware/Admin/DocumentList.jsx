@@ -29,22 +29,27 @@ import {
 } from "@mui/icons-material";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import SortableHeader from "../Common/SortableHeader";
+import { adminPortalTableFontSx } from "../styles/applicationSurfaces";
 import {
   sortRows,
   toSortableDate,
   toSortableNumber,
 } from "../../../utils/tableSort";
 
-const documentHeadCellSx = {
-  fontWeight: 600,
+const documentTableCellSx = {
+  ...adminPortalTableFontSx,
   borderRight: "1px solid #4caf50",
-  fontSize: "0.875rem",
   padding: "8px 12px",
 };
 
-const documentHeadCellSxLast = {
+const documentHeadCellSx = {
+  ...documentTableCellSx,
   fontWeight: 600,
-  fontSize: "0.875rem",
+};
+
+const documentHeadCellSxLast = {
+  ...adminPortalTableFontSx,
+  fontWeight: 600,
   padding: "8px 12px",
 };
 
@@ -427,7 +432,7 @@ const DocumentList = ({
                 <TableCell
                   colSpan={9}
                   align="center"
-                  sx={{ py: 4, fontSize: "0.875rem" }}
+                  sx={{ py: 4, ...adminPortalTableFontSx }}
                 >
                   <Typography variant="body1" color="textSecondary">
                     {searchTerm
@@ -445,13 +450,7 @@ const DocumentList = ({
 
                 return (
                   <TableRow key={doc.docID || index} sx={rowStyle} hover>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #4caf50",
-                        fontSize: "0.875rem",
-                        padding: "8px 12px",
-                      }}
-                    >
+                    <TableCell sx={documentTableCellSx}>
                       <Box sx={{ display: "flex", gap: 0.5 }}>
                         <Tooltip title="View">
                           <IconButton
@@ -514,22 +513,10 @@ const DocumentList = ({
                         )}
                       </Box>
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #4caf50",
-                        fontSize: "0.875rem",
-                        padding: "8px 12px",
-                      }}
-                    >
+                    <TableCell sx={documentTableCellSx}>
                       {doc.docID}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #4caf50",
-                        fontSize: "0.875rem",
-                        padding: "8px 12px",
-                      }}
-                    >
+                    <TableCell sx={documentTableCellSx}>
                       <Tooltip title={getClassLabel(doc.class)}>
                         <Chip
                           label={doc.class}
@@ -542,60 +529,34 @@ const DocumentList = ({
                         />
                       </Tooltip>
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #4caf50",
-                        fontSize: "0.875rem",
-                        padding: "8px 12px",
-                      }}
-                    >
+                    <TableCell sx={documentTableCellSx}>
                       {doc.topics || "N/A"}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #4caf50",
-                        fontSize: "0.875rem",
-                        padding: "8px 12px",
-                      }}
-                    >
+                    <TableCell sx={documentTableCellSx}>
                       {doc.description || "N/A"}
                     </TableCell>
                     <TableCell
                       sx={{
-                        borderRight: "1px solid #4caf50",
+                        ...documentTableCellSx,
                         maxWidth: 200,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
-                        fontSize: "0.875rem",
-                        padding: "8px 12px",
                       }}
                     >
                       <Tooltip title={doc.docName}>
                         <span>{doc.docName || "N/A"}</span>
                       </Tooltip>
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #4caf50",
-                        fontSize: "0.875rem",
-                        padding: "8px 12px",
-                      }}
-                    >
+                    <TableCell sx={documentTableCellSx}>
                       {doc.session || "N/A"}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        borderRight: "1px solid #4caf50",
-                        fontSize: "0.875rem",
-                        padding: "8px 12px",
-                      }}
-                    >
+                    <TableCell sx={documentTableCellSx}>
                       {formatDate(doc.uploadedDate)}
                     </TableCell>
                     <TableCell
                       sx={{
-                        fontSize: "0.875rem",
+                        ...adminPortalTableFontSx,
                         padding: "8px 12px",
                       }}
                     >

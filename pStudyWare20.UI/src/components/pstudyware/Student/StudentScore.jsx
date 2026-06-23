@@ -27,7 +27,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import studentScoreService, {
   getErrorMessage,
 } from "../../../services/studentScoreService";
-import StudentHeader from "./StudentHeader";
+import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import StudentScoreScoresGrid from "./StudentScoreScoresGrid";
 import {
   adminSessionListPanelCardSx,
@@ -571,7 +571,7 @@ const StudentScore = () => {
   return (
     <Box className="student-dashboard">
       <StudentHeader user={user} />
-      <Box sx={{ height: "48px" }} aria-hidden />
+      <StudentRoleHeaderSpacer />
 
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>

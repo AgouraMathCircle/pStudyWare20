@@ -11,7 +11,7 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
 import StudentDocumentList from "./StudentDocumentList";
-import StudentHeader from "./StudentHeader";
+import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import {
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
@@ -173,7 +173,7 @@ const ClassMaterial = () => {
   return (
     <Box className="student-dashboard">
       <StudentHeader user={user} />
-      <Box sx={{ height: "48px" }} aria-hidden />
+      <StudentRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

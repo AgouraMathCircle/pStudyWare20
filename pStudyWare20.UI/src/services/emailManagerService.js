@@ -24,6 +24,25 @@ const emailManagerService = {
   },
 
   /**
+   * Gets unread message count for portal header badge
+   * @param {string} username - Username (optional, JWT token used if not provided)
+   * @returns {Promise<object>} Get message total response
+   */
+  getMessageTotal: async (username = null) => {
+    try {
+      const response = await api.post(
+        `${EMAIL_MANAGER_API_BASE_URL}/GetMessageTotal`,
+        { username: username || "" },
+        { timeout: 30000 }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching message total:", error);
+      throw error;
+    }
+  },
+
+  /**
    * Gets a specific message by ID
    * @param {number} emailId - Email ID
    * @returns {Promise<object>} Get message response
