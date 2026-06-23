@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import {
   AppBar,
   Toolbar,
@@ -64,11 +64,16 @@ import { authService } from "../services";
 import { useAuth } from "../contexts/AuthContext";
 import useNavigation from "../hooks/useNavigation";
 import { getPortalDashboardPath, isPortalRoute } from "../utils/routeUtils";
+import {
+  clearPortalNavbarBottom,
+  publishPortalNavbarBottom,
+} from "./pstudyware/Common/roleHeaderLayout";
 import "../styles/Navbar.css";
 // Import images from src/assets
 import logoImg from "../assets/images/logo.png";
+import portalLogoImg from "../assets/images/Logo.jpg";
 
-const Navbar = () => {
+const Navbar = ({ usePortalLogo = false }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
   const navigate = useNavigate();
@@ -79,8 +84,43 @@ const Navbar = () => {
   const [expandedMenus, setExpandedMenus] = useState({});
   const [suppressDesktopHover, setSuppressDesktopHover] = useState(false);
 
-  // Logo image - updated path to use src/assets/images/
-  const logoUrl = logoImg; // Updated path
+  const logoUrl = usePortalLogo ? portalLogoImg : logoImg;
+  const appBarRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (!usePortalLogo) {
+      clearPortalNavbarBottom();
+      return undefined;
+    }
+
+    const publish = () => publishPortalNavbarBottom(appBarRef.current);
+    publish();
+
+    const appBar = appBarRef.current;
+    if (!appBar) return undefined;
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(publish)
+        : null;
+    resizeObserver?.observe(appBar);
+
+    const logoImgEl = appBar.querySelector(".navbar-logo img");
+    logoImgEl?.addEventListener("load", publish);
+
+    window.addEventListener("resize", publish);
+    const t1 = window.setTimeout(publish, 0);
+    const t2 = window.setTimeout(publish, 200);
+
+    return () => {
+      resizeObserver?.disconnect();
+      logoImgEl?.removeEventListener("load", publish);
+      window.removeEventListener("resize", publish);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      clearPortalNavbarBottom();
+    };
+  }, [usePortalLogo, logoUrl]);
 
   // Regular menu items for non-authenticated users
   const regularMenuItems = [
@@ -335,7 +375,9 @@ const Navbar = () => {
   const isInstructor =
     isAuthenticated &&
     user &&
-    (user.memberType?.toUpperCase() === "I" || user.role === "Instructor");
+    (user.memberType?.toUpperCase() === "I" ||
+      user.memberType?.toUpperCase() === "C" ||
+      user.role === "Instructor");
 
   const isVolunteer =
     isAuthenticated &&
@@ -567,10 +609,11 @@ const Navbar = () => {
             color: "#ffffff", // White text for contrast against green background
             fontWeight: isActive ? 600 : 400,
             textTransform: "none",
-            fontSize: showPortalMenu ? "0.85rem" : "1rem",
-            px: showPortalMenu ? 0.8 : 2,
-            py: 1,
+            fontSize: showPortalMenu ? "0.75rem" : "1rem",
+            px: showPortalMenu ? 0.6 : 2,
+            py: showPortalMenu ? 0.5 : 1,
             minWidth: "auto",
+            minHeight: showPortalMenu ? 24 : "auto",
             "&:hover": {
               backgroundColor: "rgba(255, 255, 255, 0.1)",
             },
@@ -658,7 +701,7 @@ const Navbar = () => {
             src={logoUrl}
             alt="AMC Logo"
             sx={{
-              height: 40,
+              height: usePortalLogo ? 28 : 40,
               width: "auto",
               objectFit: "contain",
             }}
@@ -681,7 +724,8 @@ const Navbar = () => {
   return (
     <>
       <AppBar
-        className="navbar-sticky"
+        ref={appBarRef}
+        className={`navbar-sticky${usePortalLogo ? " navbar-sticky--portal" : ""}`}
         position="sticky"
         elevation={0}
         sx={{
@@ -691,6 +735,9 @@ const Navbar = () => {
           color: "#ffffff", // White text for contrast
           borderBottom: 1,
           borderColor: "rgba(255, 255, 255, 0.1)",
+          ...(usePortalLogo && {
+            borderBottom: "none",
+          }),
         }}
       >
         <Container maxWidth={false} sx={{ width: "100%", px: 0 }}>
@@ -699,16 +746,22 @@ const Navbar = () => {
               width: "100%",
               px: { xs: 0 },
               justifyContent: "space-between",
+              ...(usePortalLogo && {
+                minHeight: 32,
+                height: 32,
+                py: 0,
+                my: 0,
+              }),
             }}
           >
-            {/* Logo */}
+            {/* Logo — portal logo replaces public logo after login */}
             <Box
-              className="navbar-logo"
+              className={`navbar-logo${usePortalLogo ? " navbar-logo--portal" : ""}`}
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: 1,
-                mr: 2,
+                gap: usePortalLogo ? 0.5 : 1,
+                mr: usePortalLogo ? 1.2 : 2,
                 cursor: "pointer",
               }}
               onClick={handleLogoClick}
@@ -718,7 +771,9 @@ const Navbar = () => {
                 src={logoUrl}
                 alt="AMC Logo"
                 sx={{
-                  height: isMobile ? 50 : 90,
+                  height: usePortalLogo
+                    ? { xs: 32, md: 32 }
+                    : { xs: 50, md: 90 },
                   width: "auto",
                   objectFit: "contain",
                 }}

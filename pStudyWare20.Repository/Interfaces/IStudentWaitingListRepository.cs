@@ -44,8 +44,8 @@ namespace pStudyWare20.Repository.Interfaces
         Task<PasswordResponse> GetPasswordAsync(GetPasswordRequest request);
 
         /// <summary>
-        /// Raw grid from AMC_spExportToExcel for building a real .xlsx in the service layer.
+        /// Export grid via legacy StudentWaitingList.aspx — AMC_spSelectStudentList @Mode E.
         /// </summary>
-        Task<DataTable> GetStudentWaitingListExportTableAsync(string username);
+        Task<DataTable> GetStudentWaitingListExportTableAsync(string username, string mode = "E");
     }
 }

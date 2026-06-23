@@ -310,17 +310,21 @@ namespace pStudyWare20.Repository.Implementations
         }
 
         /// <inheritdoc />
-        public async Task<DataTable> GetStudentWaitingListExportTableAsync(string username)
+        public async Task<DataTable> GetStudentWaitingListExportTableAsync(
+            string username,
+            string mode = "E")
         {
             using var connection = new SqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            using var command = new SqlCommand("AMC_spExportToExcel", connection)
+            using var command = new SqlCommand("AMC_spSelectStudentList", connection)
             {
                 CommandType = CommandType.StoredProcedure
             };
 
             command.Parameters.Add(new SqlParameter("@Username", username ?? ""));
+            command.Parameters.Add(
+                new SqlParameter("@Mode", string.IsNullOrWhiteSpace(mode) ? "E" : mode));
 
             var dataTable = new DataTable();
             using var adapter = new SqlDataAdapter(command);

@@ -22,7 +22,7 @@ import {
 } from "@mui/material";
 import { Refresh as RefreshIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
-import AdminHeader from "./AdminHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import SortableHeader from "../Common/SortableHeader";
 import adminDashboardService from "../../../services/adminDashboardService";
 import {
@@ -34,7 +34,6 @@ import {
   APPLICATION_ADMIN_TITLE_COLOR,
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 
 const SEARCH_FIELDS = [
@@ -186,7 +185,7 @@ const AdminUserTracking = () => {
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f5f5" }}>
       <AdminHeader user={user} />
-      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
+      <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

@@ -42,8 +42,8 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import emailManagerService from "../../../services/emailManagerService";
-import StudentHeader from "../Student/StudentHeader";
-import AdminHeader from "../Admin/AdminHeader";
+import StudentHeader, { StudentRoleHeaderSpacer } from "../Student/StudentHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "../Admin/AdminHeader";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import { getPortalUsername, getPortalLoginIdentifier } from "../../../utils/portalUsername";
 import {
@@ -77,7 +77,6 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
   portalHeaderActionButtonSx,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import {
   PORTAL_MODAL_FG,
@@ -100,12 +99,46 @@ const getEmailTrackingId = (message) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
-const getMessageSenderDisplay = (message) =>
-  message?.senderName ||
-  message?.SenderName ||
+const isLegacyPlaceholderName = (name) =>
+  !name || String(name).trim() === "0";
+
+const parseLegacyEmailInfoName = (message) => {
+  const name = message?.senderName || message?.SenderName || "";
+  return isLegacyPlaceholderName(name) ? "" : name;
+};
+
+/** Admin reply/view: legacy uses Emailinfo SendFrom (raw username), not Name ('0'). */
+const getAdminReplyRecipientDisplay = (message) =>
+  message?.senderUsername ||
+  message?.SenderUsername ||
   message?.sendFrom ||
   message?.SendFrom ||
   "";
+
+const getMessageModalRecipientDisplay = (message, memberType) => {
+  if (memberType === "A") {
+    return getAdminReplyRecipientDisplay(message);
+  }
+  return (
+    parseLegacyEmailInfoName(message) ||
+    message?.sendFrom ||
+    message?.SendFrom ||
+    ""
+  );
+};
+
+const getMessageModalRecipientLabel = (memberType, formMode) => {
+  if (memberType === "A") {
+    return formMode === "view" ? "From" : "Send To";
+  }
+  if (formMode === "view" && (memberType === "S" || memberType === "V")) {
+    return "From";
+  }
+  if (formMode === "reply") {
+    return "Send To";
+  }
+  return "From";
+};
 
 const getMessageReplyRecipient = (message) =>
   message?.senderUsername ||
@@ -424,7 +457,7 @@ const EmailManager = () => {
     const rowBody = message.message || message.Message || "";
 
     setSubject(message.subject || message.Subject || "");
-    setSendTo(getMessageSenderDisplay(message));
+    setSendTo(getMessageModalRecipientDisplay(message, memberType));
     setMessageBody(rowBody);
     setSelectedMessage(message);
     setFormMode("view");
@@ -472,7 +505,7 @@ const EmailManager = () => {
     setSelectedMessage(message);
     setSubject(message.subject || message.Subject || "");
     setMessageBody("");
-    setSendTo(getMessageSenderDisplay(message));
+    setSendTo(getMessageModalRecipientDisplay(message, memberType));
     setFormMode("reply");
     setMessageModalOpen(true);
   };
@@ -578,9 +611,7 @@ const EmailManager = () => {
             selectedMessage?.sendBy || selectedMessage?.SendBy || "";
           if (memberType === "S") {
             finalFromName =
-              selectedMessage?.senderName ||
-              selectedMessage?.SenderName ||
-              finalFromName;
+              parseLegacyEmailInfoName(selectedMessage) || finalFromName;
           }
         } else {
           const studentInfo = selectedStudent.split("~");
@@ -822,10 +853,10 @@ const EmailManager = () => {
   return (
     <Box>
       {isAdminMessageCenter && <AdminHeader user={user} />}
-      {isAdminMessageCenter && <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />}
+      {isAdminMessageCenter && <AdminRoleHeaderSpacer />}
       {shouldShowStudentHeader && <StudentHeader user={user} />}
       {/* Spacer to account for fixed StudentHeader */}
-      {shouldShowStudentHeader && <Box sx={{ height: "48px" }} />}
+      {shouldShowStudentHeader && <StudentRoleHeaderSpacer />}
       <Container maxWidth="xl" sx={{ mt: containerTopMargin, mb: 4 }}>
         <Paper
           elevation={useSessionListTableUi ? 0 : 3}
@@ -1659,7 +1690,7 @@ useSessionListTableUi
                     fullWidth
                     variant="outlined"
                     size="small"
-                    label="From"
+                    label={getMessageModalRecipientLabel(memberType, formMode)}
                     value={sendTo}
                     disabled
                     sx={portalModalFieldSx}

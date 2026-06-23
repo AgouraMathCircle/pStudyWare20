@@ -24,7 +24,7 @@ import {
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import onlineExamService from "../../../services/onlineExamService";
-import StudentHeader from "./StudentHeader";
+import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import FinalExamScoresGrid from "./FinalExamScoresGrid";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import SendIcon from "@mui/icons-material/Send";
@@ -483,7 +483,7 @@ const OnlineExam = () => {
   return (
     <Box className="student-dashboard">
       <StudentHeader user={user} />
-      <Box sx={{ height: "48px" }} aria-hidden />
+      <StudentRoleHeaderSpacer />
 
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>

@@ -8,6 +8,7 @@ import {
 import portalBackgroundImg from "../assets/images/bg.jpg";
 import Topbar from "./Topbar";
 import Navbar from "./Navbar";
+import PortalLoginToolbar from "./pstudyware/Common/PortalLoginToolbar";
 import Footer from "./Footer";
 import ScrollToTop from "./ScrollToTop";
 import { UpdateProfileModalProvider } from "../contexts/UpdateProfileModalContext";
@@ -90,11 +91,10 @@ const AppLayout = ({ children }) => {
 
   // Render appropriate navigation based on authentication and route
   const renderNavigation = () => {
-    // Show main navigation for all pages (Topbar and Navbar handle their own visibility logic)
     return (
       <>
-        <Topbar />
-        <Navbar />
+        {showAuthenticatedPortalChrome ? <PortalLoginToolbar /> : <Topbar />}
+        <Navbar usePortalLogo={showAuthenticatedPortalChrome} />
       </>
     );
   };

@@ -48,5 +48,12 @@ namespace pStudyWare20.Services.Interfaces
         /// <param name="request">ExportExcelRequest</param>
         /// <returns>Task&lt;ExportExcelResponse&gt;</returns>
         Task<ExportExcelResponse> ExportToExcelAsync(ExportExcelRequest request);
+
+        /// <summary>
+        /// Export waiting list to CSV (same dataset as Excel export).
+        /// </summary>
+        /// <param name="request">ExportExcelRequest</param>
+        /// <returns>Task&lt;ExportExcelResponse&gt;</returns>
+        Task<ExportExcelResponse> ExportToCsvAsync(ExportExcelRequest request);
     }
 }

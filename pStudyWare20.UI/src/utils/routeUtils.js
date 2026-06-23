@@ -26,7 +26,7 @@ export function getPortalDashboardPath(user) {
     return "/pstudyware/admin/dashboard";
   }
 
-  if (memberType === "I" || user.role === "Instructor") {
+  if (memberType === "I" || memberType === "C" || user.role === "Instructor") {
     return "/pstudyware/instructor/dashboard";
   }
 
@@ -39,4 +39,32 @@ export function getPortalDashboardPath(user) {
   }
 
   return "/";
+}
+
+export function getMessageCenterPath(user) {
+  if (!user) return "/login";
+
+  const memberType = user.memberType?.toUpperCase();
+
+  if (
+    memberType === "A" ||
+    user.role === "Admin" ||
+    user.role === "SystemAdmin"
+  ) {
+    return "/pstudyware/admin/message-center";
+  }
+
+  if (memberType === "I" || memberType === "C" || user.role === "Instructor") {
+    return "/pstudyware/instructor/message-center";
+  }
+
+  if (memberType === "V" || user.role === "Volunteer") {
+    return "/pstudyware/volunteer/message-center";
+  }
+
+  if (memberType === "S" || user.role === "Student") {
+    return "/pstudyware/student/message-center";
+  }
+
+  return "/login";
 }

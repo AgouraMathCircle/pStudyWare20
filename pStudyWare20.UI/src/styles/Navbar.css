@@ -1,5 +1,9 @@
 /* Navbar Component Styles - Matching Original Header Design */
 
+:root {
+  --portal-navbar-bottom: 32px;
+}
+
 /* Main Navbar Container */
 .navbar-container {
   width: 100%;
@@ -16,6 +20,24 @@
   background: #53b50a;
   padding: 5px 0px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navbar-sticky.navbar-sticky--portal {
+  padding: 0;
+  border-bottom: none !important;
+}
+
+.navbar-sticky--portal .MuiToolbar-root {
+  min-height: 32px !important;
+  height: 32px;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.navbar-sticky--portal .navbar-menu-item {
+  font-size: 12.5px;
+  height: 24px;
+  padding: 5px 7px;
 }
 
 /* Logo Area */
@@ -35,6 +57,11 @@
   -webkit-transition: 0.4s;
   max-height: 48px;
   height: 50px;
+}
+
+.navbar-logo--portal img {
+  max-height: 30px;
+  height: 32px;
 }
 
 .navbar-logo-text {

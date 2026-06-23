@@ -26,7 +26,6 @@ import {
 } from "@mui/material";
 import {
   Download as DownloadIcon,
-  Refresh as RefreshIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
@@ -38,7 +37,6 @@ import {
 } from "../Common/portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
 import {
-  ADMIN_SESSION_LIST_CELL_PADDING,
   adminSessionListEmptyCellSx,
   adminSessionListEmptyTextSx,
   adminSessionListFindButtonSx,
@@ -54,15 +52,16 @@ import {
   adminSessionListTableActionLinkSx,
   adminSessionListTableBodyCellSx,
   adminSessionListTableBodyRowSx,
+  adminSessionListTableContainerSx,
+  adminSessionListTableHeadCellSx,
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
-  adminSessionListToolbarButtonSx,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
-import AdminHeader from "./AdminHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 import studentWaitingListService from "../../../services/studentWaitingListService";
+import "../../../styles/StudentWaitingList.css";
 
 const studentWaitingListPageSx = {
   flex: 1,
@@ -70,6 +69,80 @@ const studentWaitingListPageSx = {
   width: "100%",
   display: "flex",
   flexDirection: "column",
+};
+
+const waitingListColumnWidths = {
+  action: "6%",
+  status: "5.5%",
+  studentId: "4.5%",
+  studentName: "8%",
+  location: "5.5%",
+  class: "6%",
+  grade: "5%",
+  school: "6%",
+  parent: "5.5%",
+  phone: "5.5%",
+  email: "8%",
+  session: "4.5%",
+  registeredDate: "9.5%",
+  password: "6%",
+  city: "4.5%",
+  state: "4%",
+  country: "6.5%",
+};
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  document.body.removeChild(textarea);
+  return copied;
+}
+
+const WaitingListCopyCell = ({ value, onCopied }) => {
+  const display =
+    value == null || value === "" ? "—" : String(value).trim() || "—";
+  const canCopy = display !== "—";
+
+  const handleClick = async (event) => {
+    event.stopPropagation();
+    if (!canCopy) return;
+    try {
+      const copied = await copyTextToClipboard(display);
+      if (copied) {
+        onCopied?.(display);
+      }
+    } catch {
+      // ignore copy failures
+    }
+  };
+
+  return (
+    <Tooltip title={canCopy ? `${display} (click to copy)` : display}>
+      <Box
+        component="span"
+        onClick={handleClick}
+        sx={{
+          display: "block",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          maxWidth: "100%",
+          cursor: canCopy ? "pointer" : "default",
+        }}
+      >
+        {display}
+      </Box>
+    </Tooltip>
+  );
 };
 
 const CLASS_OPTIONS = [
@@ -131,6 +204,20 @@ function waitingListDefaultSection(classCode, chapterID) {
   return cls === "SI" || cls === "SA" || ch !== "1" ? "A" : "B";
 }
 
+/** Password from row or legacy StudentClassInfo (matches StudentWaitingList.aspx grid). */
+function getRowPassword(row) {
+  const direct = (row?.password ?? "").toString().trim();
+  if (direct) return direct;
+  return parseStudentClassInfo(row?.studentClassInfo).password || "";
+}
+
+const waitingListDeleteLinkSx = {
+  ...adminSessionListTableActionLinkSx,
+  color: "#c62828",
+  "&:visited": { color: "#c62828" },
+  "&:hover": { color: "#b71c1c" },
+};
+
 const StudentWaitingList = () => {
   const { user, isAuthenticated } = useAuth();
   const [list, setList] = useState([]);
@@ -152,14 +239,14 @@ const StudentWaitingList = () => {
     reason: "",
   });
   const [submitting, setSubmitting] = useState(false);
-  const [orderBy, setOrderBy] = useState("studentID");
-  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("registeredDate");
+  const [order, setOrder] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
   const [searchBy, setSearchBy] = useState("ALL");
-  const [searchCriteria, setSearchCriteria] = useState("contains");
+  const [searchCriteria, setSearchCriteria] = useState("");
   const [searchText, setSearchText] = useState("");
-  const pageSize = 10;
+  const pageSize = 20;
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -183,31 +270,35 @@ const StudentWaitingList = () => {
       if (res?.isSuccess && Array.isArray(data)) {
         setList(
           data
-            .map((row) =>
-              row && typeof row === "object"
-                ? {
-                    studentID: row.studentID ?? row.StudentID,
-                    studentName: row.studentName ?? row.StudentName,
-                    eventLocation: row.eventLocation ?? row.EventLocation,
-                    class: row.class ?? row.Class,
-                    grade: row.grade ?? row.Grade,
-                    school: row.school ?? row.School,
-                    parentName: row.parentName ?? row.ParentName,
-                    phoneNumber: row.phoneNumber ?? row.PhoneNumber,
-                    emailAddress: row.emailAddress ?? row.EmailAddress,
-                    eventSession: row.eventSession ?? row.EventSession,
-                    registeredDate: row.registeredDate ?? row.RegisteredDate,
-                    password: row.password ?? row.Password,
-                    city: row.city ?? row.City,
-                    state: row.state ?? row.State,
-                    country: row.country ?? row.Country,
-                    applicationStatus:
-                      row.applicationStatus ?? row.ApplicationStatus,
-                    studentClassInfo:
-                      row.studentClassInfo ?? row.StudentClassInfo,
-                  }
-                : null,
-            )
+            .map((row) => {
+              if (!row || typeof row !== "object") return null;
+              const studentClassInfo =
+                row.studentClassInfo ?? row.StudentClassInfo;
+              const parsed = parseStudentClassInfo(studentClassInfo);
+              return {
+                studentID: row.studentID ?? row.StudentID,
+                studentName: row.studentName ?? row.StudentName,
+                eventLocation: row.eventLocation ?? row.EventLocation,
+                class: row.class ?? row.Class,
+                grade: row.grade ?? row.Grade,
+                school: row.school ?? row.School,
+                parentName: row.parentName ?? row.ParentName,
+                phoneNumber: row.phoneNumber ?? row.PhoneNumber,
+                emailAddress: row.emailAddress ?? row.EmailAddress,
+                eventSession: row.eventSession ?? row.EventSession,
+                registeredDate: row.registeredDate ?? row.RegisteredDate,
+                password:
+                  (row.password ?? row.Password ?? "").toString().trim() ||
+                  parsed.password ||
+                  "",
+                city: row.city ?? row.City,
+                state: row.state ?? row.State,
+                country: row.country ?? row.Country,
+                applicationStatus:
+                  row.applicationStatus ?? row.ApplicationStatus,
+                studentClassInfo,
+              };
+            })
             .filter(Boolean),
         );
       } else {
@@ -251,6 +342,10 @@ const StudentWaitingList = () => {
       setLoading(false);
       return;
     }
+    setOrderBy("registeredDate");
+    setOrder("desc");
+    setCurrentPage(1);
+    setGoToPageInput("1");
     loadList();
   }, [isAuthenticated, user, waitingForOnSite]);
 
@@ -258,10 +353,14 @@ const StudentWaitingList = () => {
     loadChapterLocations();
   }, []);
 
+  /** Legacy kGrid: first header click DESC, same column toggles ASC/DESC. */
   const handleRequestSort = (property) => {
-    const isAsc = orderBy === property && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(property);
+    if (orderBy === property) {
+      setOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setOrderBy(property);
+      setOrder("desc");
+    }
     setCurrentPage(1);
     setGoToPageInput("1");
   };
@@ -339,8 +438,26 @@ const StudentWaitingList = () => {
     return [...filtered].sort((a, b) => {
       let aVal = a[key];
       let bVal = b[key];
-      if (typeof aVal === "number" && typeof bVal === "number")
+
+      if (key === "studentID") {
+        const aNum = Number(aVal);
+        const bNum = Number(bVal);
+        if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+          return order === "asc" ? aNum - bNum : bNum - aNum;
+        }
+      }
+
+      if (key === "registeredDate") {
+        const aTime = aVal ? new Date(aVal).getTime() : 0;
+        const bTime = bVal ? new Date(bVal).getTime() : 0;
+        if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) {
+          return order === "asc" ? aTime - bTime : bTime - aTime;
+        }
+      }
+
+      if (typeof aVal === "number" && typeof bVal === "number") {
         return order === "asc" ? aVal - bVal : bVal - aVal;
+      }
       aVal = (aVal ?? "").toString();
       bVal = (bVal ?? "").toString();
       return order === "asc"
@@ -489,286 +606,474 @@ const StudentWaitingList = () => {
     }
   };
 
+  const handleExportCsv = async () => {
+    try {
+      await studentWaitingListService.exportToCsv({
+        Username: username,
+        Mode: "E",
+      });
+      setSnackbar({
+        open: true,
+        message: "CSV export downloaded.",
+        severity: "success",
+      });
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: err?.message || "CSV export failed.",
+        severity: "error",
+      });
+    }
+  };
+
   const formatDate = (d) => {
     if (!d) return "";
     const date = typeof d === "string" ? new Date(d) : d;
     return isNaN(date.getTime()) ? d : date.toLocaleDateString();
   };
 
-  const headCellSx = (width) => ({
-    fontWeight: 400,
+  const headCellSx = (width, isLast = false, extra = {}) => ({
+    ...adminSessionListTableHeadCellSx(width, isLast),
     width,
-    fontSize: "0.75rem",
-    padding: ADMIN_SESSION_LIST_CELL_PADDING,
+    overflow: "hidden",
+    ...extra,
   });
 
+  const handleCellCopy = () => {
+    setSnackbar({
+      open: true,
+      message: "Copied to clipboard",
+      severity: "success",
+    });
+  };
+
+  const dataCell = (value, isLast = false) => (
+    <TableCell
+      sx={adminSessionListTableBodyCellSx({ ellipsis: true, isLast })}
+    >
+      <WaitingListCopyCell value={value} onCopied={handleCellCopy} />
+    </TableCell>
+  );
+
+  const exportToolbarButtonSx = {
+    ...adminSessionListFindButtonSx,
+    backgroundColor: "#4caf50",
+    color: "white",
+    flexShrink: 0,
+    px: 1.5,
+    "&:hover": { backgroundColor: "#43a047" },
+  };
+
   return (
-    <Box sx={studentWaitingListPageSx}>
+    <Box className="student-waiting-list" sx={studentWaitingListPageSx}>
       <AdminHeader user={user} />
-      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
+      <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <Card sx={adminSessionListPanelCardSx}>
               <CardContent sx={adminSessionListPanelContentSx}>
-              <Box sx={adminSessionListHeaderBarSx}>
-                <Typography variant="subtitle1" sx={adminSessionListTitleSx}>
-                  Student Waiting List
-                </Typography>
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    size="small"
-                    startIcon={<DownloadIcon />}
-                    onClick={handleExportExcel}
-                    sx={adminSessionListToolbarButtonSx}
+                <Box sx={adminSessionListHeaderBarSx}>
+                  <Typography
+                    variant="subtitle1"
+                    component="div"
+                    sx={adminSessionListTitleSx}
                   >
-                    Export Excel
-                  </Button>
-                  <Button
-                    variant={
-                      waitingForOnSite === "Y" ? "contained" : "outlined"
-                    }
-                    color="primary"
-                    size="small"
-                    onClick={() =>
-                      setWaitingForOnSite((v) => (v === "Y" ? "N" : "Y"))
-                    }
-                    sx={adminSessionListToolbarButtonSx}
-                  >
-                    Waiting for OnSite Class
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                    startIcon={<RefreshIcon />}
-                    onClick={loadList}
-                    disabled={loading}
-                    sx={adminSessionListToolbarButtonSx}
-                  >
-                    Refresh
-                  </Button>
-                </Box>
-              </Box>
-
-              {loading ? (
-                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                  <CircularProgress />
-                </Box>
-              ) : (
-                <>
-                  <Box sx={adminSessionListSearchBarSx}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                      <Typography sx={adminSessionListSearchLabelSx}>
-                        Search By:
-                      </Typography>
-                      <Select
-                        value={searchBy}
-                        onChange={(e) => setSearchBy(e.target.value)}
-                        size="small"
-                        sx={adminSessionListSearchSelectSx}
-                      >
-                        <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
-                          -ALL-
-                        </MenuItem>
-                        <MenuItem value="STUDENT_ID" sx={adminSessionListMenuItemSx}>
-                          Student #
-                        </MenuItem>
-                        <MenuItem value="STUDENT_NAME" sx={adminSessionListMenuItemSx}>
-                          Student Name
-                        </MenuItem>
-                        <MenuItem value="CLASS" sx={adminSessionListMenuItemSx}>
-                          Class
-                        </MenuItem>
-                        <MenuItem value="GRADE" sx={adminSessionListMenuItemSx}>
-                          Grade
-                        </MenuItem>
-                        <MenuItem value="SCHOOL" sx={adminSessionListMenuItemSx}>
-                          School
-                        </MenuItem>
-                        <MenuItem value="PARENT" sx={adminSessionListMenuItemSx}>
-                          Parent
-                        </MenuItem>
-                        <MenuItem value="EMAIL" sx={adminSessionListMenuItemSx}>
-                          Email
-                        </MenuItem>
-                        <MenuItem value="STATUS" sx={adminSessionListMenuItemSx}>
-                          Status
-                        </MenuItem>
-                      </Select>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                      <Typography sx={adminSessionListSearchLabelSx}>
-                        Criteria:
-                      </Typography>
-                      <Select
-                        value={searchCriteria}
-                        onChange={(e) => setSearchCriteria(e.target.value)}
-                        size="small"
-                        sx={adminSessionListSearchSelectSx}
-                      >
-                        <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
-                          Contains
-                        </MenuItem>
-                        <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
-                          Equals
-                        </MenuItem>
-                        <MenuItem value="starts_with" sx={adminSessionListMenuItemSx}>
-                          Starts With
-                        </MenuItem>
-                      </Select>
-                    </Box>
-                    <TextField
-                      size="small"
-                      placeholder="Search Text"
-                      value={searchText}
-                      onChange={(e) => setSearchText(e.target.value)}
-                      sx={adminSessionListSearchFieldSx}
-                    />
+                    Student Waiting List
+                  </Typography>
+                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                     <Button
                       variant="contained"
+                      color="success"
                       size="small"
-                      onClick={handleSearch}
-                      sx={adminSessionListFindButtonSx}
+                      startIcon={<DownloadIcon />}
+                      onClick={handleExportExcel}
+                      sx={exportToolbarButtonSx}
                     >
-                      Find
+                      Export Excel
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="small"
+                      startIcon={<DownloadIcon />}
+                      onClick={handleExportCsv}
+                      sx={exportToolbarButtonSx}
+                    >
+                      Export CSV
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="small"
+                      onClick={() =>
+                        setWaitingForOnSite((v) => (v === "Y" ? "N" : "Y"))
+                      }
+                      sx={{
+                        ...exportToolbarButtonSx,
+                      }}
+                    >
+                      Waiting for OnSite Class
                     </Button>
                   </Box>
+                </Box>
 
-                  <TableContainer component={Paper} sx={{ width: "100%" }}>
-                    <Table sx={adminSessionListGridTableSx} size="small">
-                      <TableHead>
-                        <TableRow sx={adminSessionListTableHeadRowSx}>
-                          <TableCell sx={headCellSx("4%")}>Edit</TableCell>
-                          <TableCell sx={headCellSx("4%")}>Delete</TableCell>
-                          <SortableHeader label="Status" field="applicationStatus" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("6%")} />
-                          <SortableHeader label="Student #" field="studentID" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("10%")} />
-                          <SortableHeader label="Student Name" field="studentName" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("14%")} />
-                          <SortableHeader label="Location" field="eventLocation" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("9%")} />
-                          <SortableHeader label="Class" field="class" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("11%")} />
-                          <SortableHeader label="Grade" field="grade" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("5%")} />
-                          <SortableHeader label="School" field="school" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("8%")} />
-                          <SortableHeader label="Parent" field="parentName" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("8%")} />
-                          <SortableHeader label="Contact #" field="phoneNumber" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("8%")} />
-                          <SortableHeader label="Email" field="emailAddress" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("5%")} />
-                          <SortableHeader label="Session" field="eventSession" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("6%")} />
-                          <SortableHeader label="Reg. Date" field="registeredDate" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("7%")} />
-                          <SortableHeader label="City" field="city" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("6%")} />
-                          <SortableHeader label="State" field="state" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("5%")} />
-                          <SortableHeader label="Country" field="country" sortField={orderBy} sortOrder={order} onSort={handleRequestSort} headCellSx={headCellSx("5%")} />
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {paginatedList.length > 0 ? (
-                          paginatedList.map((row) => (
-                            <TableRow
-                              key={row.studentID}
-                              sx={adminSessionListTableBodyRowSx}
+                {loading ? (
+                  <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : (
+                  <Box className="student-waiting-list-table-panel">
+                    <Box sx={adminSessionListSearchBarSx}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                      >
+                        <Typography sx={adminSessionListSearchLabelSx}>
+                          Search By:
+                        </Typography>
+                        <Select
+                          value={searchBy}
+                          onChange={(e) => setSearchBy(e.target.value)}
+                          size="small"
+                          sx={adminSessionListSearchSelectSx}
+                        >
+                          <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
+                            -ALL-
+                          </MenuItem>
+                          <MenuItem
+                            value="STUDENT_ID"
+                            sx={adminSessionListMenuItemSx}
+                          >
+                            Student #
+                          </MenuItem>
+                          <MenuItem
+                            value="STUDENT_NAME"
+                            sx={adminSessionListMenuItemSx}
+                          >
+                            Student Name
+                          </MenuItem>
+                          <MenuItem value="CLASS" sx={adminSessionListMenuItemSx}>
+                            Class
+                          </MenuItem>
+                          <MenuItem value="GRADE" sx={adminSessionListMenuItemSx}>
+                            Grade
+                          </MenuItem>
+                          <MenuItem value="SCHOOL" sx={adminSessionListMenuItemSx}>
+                            School
+                          </MenuItem>
+                          <MenuItem value="PARENT" sx={adminSessionListMenuItemSx}>
+                            Parent
+                          </MenuItem>
+                          <MenuItem value="EMAIL" sx={adminSessionListMenuItemSx}>
+                            Email
+                          </MenuItem>
+                          <MenuItem value="STATUS" sx={adminSessionListMenuItemSx}>
+                            Status
+                          </MenuItem>
+                        </Select>
+                      </Box>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                      >
+                        <Typography sx={adminSessionListSearchLabelSx}>
+                          Criteria:
+                        </Typography>
+                        <Select
+                          value={searchCriteria}
+                          onChange={(e) => setSearchCriteria(e.target.value)}
+                          size="small"
+                          sx={adminSessionListSearchSelectSx}
+                        >
+                          <MenuItem value="" sx={adminSessionListMenuItemSx}>
+                            Select Criteria
+                          </MenuItem>
+                          <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
+                            Equals
+                          </MenuItem>
+                          <MenuItem
+                            value="contains"
+                            sx={adminSessionListMenuItemSx}
+                          >
+                            Contains
+                          </MenuItem>
+                          <MenuItem
+                            value="starts_with"
+                            sx={adminSessionListMenuItemSx}
+                          >
+                            Starts With
+                          </MenuItem>
+                        </Select>
+                      </Box>
+                      <TextField
+                        size="small"
+                        placeholder="Search Text"
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        sx={adminSessionListSearchFieldSx}
+                      />
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={handleSearch}
+                        sx={adminSessionListFindButtonSx}
+                      >
+                        Find
+                      </Button>
+                    </Box>
+
+                    <TableContainer
+                      component={Paper}
+                      sx={adminSessionListTableContainerSx}
+                      className="student-waiting-list-table-container"
+                    >
+                      <Table
+                        sx={adminSessionListGridTableSx}
+                        size="small"
+                        className="student-waiting-list-table"
+                      >
+                        <TableHead>
+                          <TableRow sx={adminSessionListTableHeadRowSx}>
+                            <TableCell
+                              className="student-waiting-list-action-cell"
+                              sx={headCellSx(waitingListColumnWidths.action)}
                             >
-                              <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
-                                <Box
-                                  onClick={() => handleEdit(row)}
-                                  sx={adminSessionListTableActionLinkSx}
+                              Action
+                            </TableCell>
+                            <SortableHeader
+                              label="Status"
+                              field="applicationStatus"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.status)}
+                            />
+                            <SortableHeader
+                              label="Student #"
+                              field="studentID"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.studentId)}
+                            />
+                            <SortableHeader
+                              label="Student Name"
+                              field="studentName"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.studentName)}
+                            />
+                            <SortableHeader
+                              label="Location"
+                              field="eventLocation"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.location)}
+                            />
+                            <SortableHeader
+                              label="Class"
+                              field="class"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.class)}
+                            />
+                            <SortableHeader
+                              label="Grade"
+                              field="grade"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.grade)}
+                            />
+                            <SortableHeader
+                              label="School"
+                              field="school"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.school)}
+                            />
+                            <SortableHeader
+                              label="Parent"
+                              field="parentName"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.parent)}
+                            />
+                            <SortableHeader
+                              label="Phone"
+                              field="phoneNumber"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.phone)}
+                            />
+                            <SortableHeader
+                              label="Email"
+                              field="emailAddress"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.email)}
+                            />
+                            <SortableHeader
+                              label="Session"
+                              field="eventSession"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.session)}
+                            />
+                            <SortableHeader
+                              label="Registered Date"
+                              field="registeredDate"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(
+                                waitingListColumnWidths.registeredDate,
+                              )}
+                            />
+                            <SortableHeader
+                              label="Password"
+                              field="password"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.password)}
+                            />
+                            <SortableHeader
+                              label="City"
+                              field="city"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.city)}
+                            />
+                            <SortableHeader
+                              label="State"
+                              field="state"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.state)}
+                            />
+                            <SortableHeader
+                              label="Country"
+                              field="country"
+                              sortField={orderBy}
+                              sortOrder={order}
+                              onSort={handleRequestSort}
+                              headCellSx={headCellSx(waitingListColumnWidths.country, true)}
+                            />
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {paginatedList.length > 0 ? (
+                            paginatedList.map((row, index) => (
+                              <TableRow
+                                key={row.studentID ?? `row-${index}`}
+                                sx={adminSessionListTableBodyRowSx}
+                              >
+                                <TableCell
+                                  className="student-waiting-list-action-cell"
+                                  sx={adminSessionListTableBodyCellSx({
+                                    action: true,
+                                  })}
                                 >
-                                  Edit
-                                </Box>
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
-                                {row.studentID === 0 ? (
-                                  "—"
-                                ) : (
                                   <Box
-                                    onClick={() => handleDeleteClick(row)}
-                                    sx={adminSessionListTableActionLinkSx}
+                                    component="span"
+                                    sx={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: 0.25,
+                                      whiteSpace: "nowrap",
+                                    }}
                                   >
-                                    Delete
+                                    <Box
+                                      component="span"
+                                      onClick={() => handleEdit(row)}
+                                      sx={adminSessionListTableActionLinkSx}
+                                    >
+                                      Edit
+                                    </Box>
+                                    <Box component="span" sx={{ color: "#666" }}>
+                                      /
+                                    </Box>
+                                    {row.studentID === 0 ? (
+                                      <Box
+                                        component="span"
+                                        sx={{ color: "#999" }}
+                                      >
+                                        Delete
+                                      </Box>
+                                    ) : (
+                                      <Box
+                                        component="span"
+                                        onClick={() => handleDeleteClick(row)}
+                                        sx={waitingListDeleteLinkSx}
+                                      >
+                                        Delete
+                                      </Box>
+                                    )}
                                   </Box>
-                                )}
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                {row.applicationStatus ?? "-"}
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                {row.studentID ?? "-"}
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-                                <Tooltip title={row.studentName ?? "-"}>
-                                  <span>{row.studentName ?? "-"}</span>
-                                </Tooltip>
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-                                <Tooltip title={row.eventLocation ?? "-"}>
-                                  <span>{row.eventLocation ?? "-"}</span>
-                                </Tooltip>
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-                                <Tooltip title={row.class ?? "-"}>
-                                  <span>{row.class ?? "-"}</span>
-                                </Tooltip>
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                {row.grade ?? "-"}
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                {row.school ?? "-"}
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                {row.parentName ?? "-"}
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                {row.phoneNumber ?? "-"}
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-                                <Tooltip title={row.emailAddress ?? "-"}>
-                                  <span>{row.emailAddress ?? "-"}</span>
-                                </Tooltip>
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                {row.eventSession ?? "-"}
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                {formatDate(row.registeredDate) || "-"}
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                {row.city ?? "-"}
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                {row.state ?? "-"}
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
-                                {row.country ?? "-"}
+                                </TableCell>
+                                {dataCell(row.applicationStatus)}
+                                {dataCell(row.studentID)}
+                                {dataCell(row.studentName)}
+                                {dataCell(row.eventLocation)}
+                                {dataCell(row.class)}
+                                {dataCell(row.grade)}
+                                {dataCell(row.school)}
+                                {dataCell(row.parentName)}
+                                {dataCell(row.phoneNumber)}
+                                {dataCell(row.emailAddress)}
+                                {dataCell(row.eventSession)}
+                                {dataCell(formatDate(row.registeredDate) || null)}
+                                {dataCell(getRowPassword(row))}
+                                {dataCell(row.city)}
+                                {dataCell(row.state)}
+                                {dataCell(row.country, true)}
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell
+                                colSpan={17}
+                                align="center"
+                                sx={adminSessionListEmptyCellSx}
+                              >
+                                <Typography
+                                  variant="body2"
+                                  color="textSecondary"
+                                  sx={adminSessionListEmptyTextSx}
+                                >
+                                  {searchText
+                                    ? "No records found matching your search criteria."
+                                    : "No records found."}
+                                </Typography>
                               </TableCell>
                             </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell colSpan={17} align="center" sx={adminSessionListEmptyCellSx}>
-                              <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
-                                {searchText
-                                  ? "No records found matching your search."
-                                  : "No records found."}
-                              </Typography>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
 
-                  <AdminSessionListPagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalRecords={totalRecords}
-                    pageSize={pageSize}
-                    goToPageInput={goToPageInput}
-                    onGoToPageInputChange={setGoToPageInput}
-                    onPageChange={handlePageChange}
-                    onGoToPage={handleGoToPage}
-                  />
-                </>
-              )}
+                    <AdminSessionListPagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      totalRecords={totalRecords}
+                      pageSize={pageSize}
+                      goToPageInput={goToPageInput}
+                      onGoToPageInputChange={setGoToPageInput}
+                      onPageChange={handlePageChange}
+                      onGoToPage={handleGoToPage}
+                    />
+                  </Box>
+                )}
               </CardContent>
             </Card>
           </Grid>

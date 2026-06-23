@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Container, Card, CardContent } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
-import StudentHeader from "./StudentHeader";
+import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import UpdatePassword from "../Common/UpdatePassword";
 import {
   adminSessionListPanelCardSx,
@@ -14,7 +14,7 @@ const StudentChangePassword = () => {
   return (
     <Box className="student-dashboard">
       <StudentHeader user={user} />
-      <Box sx={{ height: "48px" }} aria-hidden />
+      <StudentRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4, display: "flex", justifyContent: "center" }}>
         <Card
           sx={{

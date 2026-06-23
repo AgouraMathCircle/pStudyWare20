@@ -38,7 +38,7 @@ import {
 } from "@mui/icons-material";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
-import AdminHeader from "./AdminHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import PortalDialog from "../Common/PortalDialog";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import {
@@ -86,7 +86,6 @@ import {
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
   portalHeaderActionButtonSx,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 import SortableHeader from "../Common/SortableHeader";
 import {
@@ -1186,7 +1185,7 @@ const AdminReportCard = () => {
   return (
     <Box sx={isAdminView ? { minHeight: "100vh" } : instructorPageShellSx}>
       {!hideRoleHeader && <AdminHeader user={user} />}
-      {!hideRoleHeader && <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />}
+      {!hideRoleHeader && <AdminRoleHeaderSpacer />}
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={isAdminView ? 3 : 2}>
           <Grid item xs={12}>

@@ -21,12 +21,14 @@ class AuthService {
       } = response.data;
 
       if (token) {
+        const loginAt = new Date().toISOString();
         const userDataToStore = {
           token,
           userId,
           email: userEmail,
           role,
           expiresAt,
+          loginAt,
           ...userData,
         };
 

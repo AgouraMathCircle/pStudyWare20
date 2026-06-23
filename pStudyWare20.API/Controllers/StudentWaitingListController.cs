@@ -212,5 +212,37 @@ namespace pStudyWare20.API.Controllers
                 return StatusCode(500, new { message = "An error occurred while exporting to Excel", error = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Export waiting list to CSV (legacy StudentWaitingList export dataset).
+        /// </summary>
+        /// <param name="request">ExportExcelRequest</param>
+        /// <returns>CSV file download</returns>
+        [HttpPost("ExportToCsv")]
+        public async Task<IActionResult> ExportToCsv([FromBody] ExportExcelRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+            }
+
+            try
+            {
+                if (string.IsNullOrEmpty(request.Username))
+                {
+                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                }
+
+                var response = await _service.ExportToCsvAsync(request);
+                if (!response.IsSuccess)
+                    return BadRequest(new { message = response.ErrorMessage });
+
+                return File(response.FileContent, response.ContentType, response.FileName);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while exporting to CSV", error = ex.Message });
+            }
+        }
     }
 }

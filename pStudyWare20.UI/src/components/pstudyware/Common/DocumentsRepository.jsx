@@ -11,7 +11,7 @@ import {
   CardContent,
 } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
-import AdminHeader from "../Admin/AdminHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "../Admin/AdminHeader";
 import AdminDocumentsRepositoryList from "../Admin/AdminDocumentsRepositoryList";
 import DocumentRepositoryUploadForm from "../Admin/DocumentRepositoryUploadForm";
 import documentService, {
@@ -21,7 +21,6 @@ import documentService, {
 import {
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 
 const DocumentsRepository = () => {
@@ -183,7 +182,7 @@ const DocumentsRepository = () => {
     return (
       <Box>
         <AdminHeader user={user} />
-        <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />
+        <AdminRoleHeaderSpacer />
         <Box
           sx={{
             display: "flex",
@@ -207,7 +206,7 @@ const DocumentsRepository = () => {
     return (
       <Box>
         <AdminHeader user={user} />
-        <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />
+        <AdminRoleHeaderSpacer />
         <Box
           sx={{
             display: "flex",
@@ -227,7 +226,7 @@ const DocumentsRepository = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} aria-hidden />
+      <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

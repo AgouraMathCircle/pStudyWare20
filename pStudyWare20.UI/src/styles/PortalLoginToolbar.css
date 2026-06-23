@@ -1,0 +1,9 @@
+.portal-login-toolbar {
+  position: relative;
+  z-index: 1101;
+}
+
+.portal-login-toolbar__actions a,
+.portal-login-toolbar__actions button {
+  font-family: inherit;
+}

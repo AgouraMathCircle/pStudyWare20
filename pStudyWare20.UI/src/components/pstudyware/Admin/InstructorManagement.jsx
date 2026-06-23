@@ -13,13 +13,12 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import instructorService from "../../../services/instructorService";
 import studentWaitingListService from "../../../services/studentWaitingListService";
-import AdminHeader from "./AdminHeader";
+import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import InstructorList from "./InstructorList";
 import InstructorForm from "./InstructorForm";
 import {
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
-  portalRoleSubheaderSpacerPx,
 } from "../styles/applicationSurfaces";
 
 const instructorManagementPageSx = {
@@ -350,7 +349,7 @@ const InstructorManagement = () => {
   return (
     <Box sx={instructorManagementPageSx}>
       <AdminHeader user={user} />
-      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
+      <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

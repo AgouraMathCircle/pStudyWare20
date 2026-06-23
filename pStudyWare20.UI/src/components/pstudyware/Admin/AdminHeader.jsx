@@ -1,78 +1,62 @@
-import React, { useCallback, useLayoutEffect, useState } from "react";
-import { Box, Container, Typography, useTheme } from "@mui/material";
+import React, { useRef } from "react";
+import { Box, Container, Typography } from "@mui/material";
 import {
   CalendarToday as CalendarIcon,
   Dashboard as DashboardIcon,
 } from "@mui/icons-material";
+import { instructorPortalContentContainerProps } from "../styles/applicationSurfaces";
+import { formatRoleHeaderLoginDateTime } from "../../../hooks/useRoleHeaderDateTime";
+import PortalHeaderMessageControls from "../Common/PortalHeaderMessageControls";
 import {
-  applicationRoleHeaderBarSx,
-  instructorPortalContentContainerProps,
-} from "../styles/applicationSurfaces";
-import { useRoleHeaderDateTime } from "../../../hooks/useRoleHeaderDateTime";
+  AdminRoleHeaderSpacer,
+  ROLE_HEADER_HEIGHT_VARS,
+  compactRoleHeaderBarSx,
+  useFixedRoleHeaderLayout,
+} from "../Common/roleHeaderLayout";
+import "../../../styles/AdminPortalTables.css";
 
-/**
- * Fixed band under site navigation — content aligned with dashboard cards (maxWidth xl).
- */
+export { AdminRoleHeaderSpacer };
+
+const adminRoleHeaderBarSx = compactRoleHeaderBarSx("#c8e6c9");
+
 const AdminHeader = ({ user }) => {
-  const theme = useTheme();
-  const [topPx, setTopPx] = useState(72);
-  const dateTime = useRoleHeaderDateTime();
-
-  const measureTopOffset = useCallback(() => {
-    const topbar = document.querySelector(".topbar-container");
-    const appBar =
-      document.querySelector("header.MuiAppBar-root") ||
-      document.querySelector(".MuiAppBar-root");
-
-    let sum = 0;
-    if (topbar) sum += topbar.getBoundingClientRect().height;
-    if (appBar) sum += appBar.getBoundingClientRect().height;
-
-    setTopPx(Math.max(Math.ceil(sum), 56));
-  }, []);
-
-  useLayoutEffect(() => {
-    measureTopOffset();
-    window.addEventListener("resize", measureTopOffset);
-    const t1 = window.setTimeout(measureTopOffset, 0);
-    const t2 = window.setTimeout(measureTopOffset, 150);
-    return () => {
-      window.removeEventListener("resize", measureTopOffset);
-      window.clearTimeout(t1);
-      window.clearTimeout(t2);
-    };
-  }, [measureTopOffset]);
+  const headerRef = useRef(null);
+  const dateTime = formatRoleHeaderLoginDateTime(user?.loginAt);
+  const { fixedSx } = useFixedRoleHeaderLayout(
+    headerRef,
+    ROLE_HEADER_HEIGHT_VARS.admin,
+    [user?.firstName, user?.loginAt],
+  );
 
   return (
     <Box
+      ref={headerRef}
+      className="admin-role-header"
       sx={{
-        ...applicationRoleHeaderBarSx,
-        pt: 1.25,
-        pb: 0.35,
-        position: "fixed",
-        top: `${topPx}px`,
-        left: 0,
-        right: 0,
-        zIndex: theme.zIndex.appBar - 1,
-        width: "100%",
+        ...adminRoleHeaderBarSx,
+        ...fixedSx,
       }}
     >
-      <Container {...instructorPortalContentContainerProps}>
+      <Container
+        {...instructorPortalContentContainerProps}
+        sx={{ py: 0, px: { xs: 2, sm: 3 } }}
+      >
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 1.5,
-            minHeight: 28,
+            gap: 1,
+            minHeight: 0,
+            py: 0.25,
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Box
               sx={{
-                width: 28,
-                height: 28,
-                borderRadius: "9px",
+                width: 24,
+                height: 24,
+                borderRadius: "8px",
                 backgroundColor: "#2e7d32",
                 color: "#fff",
                 display: "flex",
@@ -82,7 +66,7 @@ const AdminHeader = ({ user }) => {
                 flexShrink: 0,
               }}
             >
-              <DashboardIcon sx={{ fontSize: 16 }} />
+              <DashboardIcon sx={{ fontSize: 14 }} />
             </Box>
             <Typography
               sx={{
@@ -90,7 +74,7 @@ const AdminHeader = ({ user }) => {
                 fontSize: "0.875rem",
                 color: "#1b5e20",
                 letterSpacing: "-0.01em",
-                lineHeight: 1.2,
+                lineHeight: 1,
               }}
             >
               Admin
@@ -103,11 +87,11 @@ const AdminHeader = ({ user }) => {
                 display: "flex",
                 alignItems: "center",
                 backgroundColor: "#ffffff",
-                px: { xs: 1, sm: 1.25 },
-                py: 0.35,
+                px: { xs: 0.75, sm: 1 },
+                py: 0.25,
                 borderRadius: "999px",
-                border: "1.5px solid #4caf50",
-                boxShadow: "0 1px 4px rgba(46, 125, 50, 0.12)",
+                border: "1px solid #4caf50",
+                boxShadow: "0 1px 3px rgba(46, 125, 50, 0.1)",
               }}
             >
               <Typography
@@ -115,7 +99,7 @@ const AdminHeader = ({ user }) => {
                   color: "#1b5e20",
                   fontWeight: 600,
                   fontSize: "0.75rem",
-                  lineHeight: 1.2,
+                  lineHeight: 1,
                   display: { xs: "none", sm: "block" },
                 }}
               >
@@ -123,14 +107,16 @@ const AdminHeader = ({ user }) => {
               </Typography>
             </Box>
 
+            <PortalHeaderMessageControls user={user} />
+
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
                 gap: 0.5,
                 backgroundColor: "#e8f5e9",
-                px: { xs: 1, sm: 1.25 },
-                py: 0.35,
+                px: { xs: 0.75, sm: 1 },
+                py: 0.25,
                 borderRadius: "999px",
                 border: "1px solid #c8e6c9",
               }}
@@ -141,7 +127,7 @@ const AdminHeader = ({ user }) => {
                   color: "#1b5e20",
                   fontWeight: 600,
                   fontSize: "0.75rem",
-                  lineHeight: 1.2,
+                  lineHeight: 1,
                   whiteSpace: "nowrap",
                 }}
               >

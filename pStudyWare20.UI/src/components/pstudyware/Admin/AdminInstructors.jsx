@@ -2,8 +2,8 @@ import React from "react";
 import { Container, Box, Card, CardContent, Typography } from "@mui/material";
 import { School as SchoolIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
-import AdminHeader from "./AdminHeader";
-import { APPLICATION_ADMIN_TITLE_COLOR, portalRoleSubheaderSpacerPx} from "../styles/applicationSurfaces";
+import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
+import { APPLICATION_ADMIN_TITLE_COLOR} from "../styles/applicationSurfaces";
 
 const AdminInstructors = () => {
   const { user } = useAuth();
@@ -11,7 +11,7 @@ const AdminInstructors = () => {
   return (
     <Box>
       <AdminHeader user={user} />
-      <Box sx={{ height: `${portalRoleSubheaderSpacerPx}px` }} />
+      <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Card elevation={3}>
           <CardContent sx={{ textAlign: "center", py: 8 }}>
