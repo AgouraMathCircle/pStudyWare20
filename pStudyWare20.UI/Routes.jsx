@@ -75,6 +75,7 @@ import UploadAnswerKey from "./src/components/pstudyware/Admin/UploadAnswerKey";
 import UpdateLookupSemester from "./src/components/pstudyware/Admin/UpdateLookupSemester";
 import AdminReportCard from "./src/components/pstudyware/Admin/AdminReportCard";
 import AdminUserTracking from "./src/components/pstudyware/Admin/AdminUserTracking";
+import AdminVolunteerAvailability from "./src/components/pstudyware/Admin/AdminVolunteerAvailability";
 import {
   InstructorShell,
   InstructorDashboard,
@@ -498,6 +499,28 @@ const AppRoutes = () => {
                   allowedMemberTypes={["A"]}
                 >
                   <VolunteersRequest />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/volunteers-availability"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <AdminVolunteerAvailability />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/volunteers-availability"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <AdminVolunteerAvailability />
                 </RoleProtectedRoute>
               }
             />

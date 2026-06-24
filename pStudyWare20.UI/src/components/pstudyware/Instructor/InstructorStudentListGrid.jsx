@@ -223,7 +223,7 @@ const InstructorStudentListGrid = ({
     if (loading) {
       return (
         <TableRow>
-          <TableCell colSpan={9} align="center" sx={adminSessionListEmptyCellSx}>
+          <TableCell colSpan={8} align="center" sx={adminSessionListEmptyCellSx}>
             <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
               Loading students…
             </Typography>
@@ -235,7 +235,7 @@ const InstructorStudentListGrid = ({
     if (pageRows.length === 0) {
       return (
         <TableRow>
-          <TableCell colSpan={9} align="center" sx={adminSessionListEmptyCellSx}>
+          <TableCell colSpan={8} align="center" sx={adminSessionListEmptyCellSx}>
             <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
               {emptyMessage}
             </Typography>
@@ -248,15 +248,6 @@ const InstructorStudentListGrid = ({
       const sid = studentId(row);
       return (
         <TableRow key={sid ?? `row-${idx}`} sx={adminSessionListTableBodyRowSx}>
-          <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
-            {sid ? (
-              <Box onClick={() => handleEditProfile(sid)} sx={adminSessionListTableActionLinkSx}>
-                Edit
-              </Box>
-            ) : (
-              "—"
-            )}
-          </TableCell>
           <TableCell sx={{ ...adminSessionListTableBodyCellSx(), whiteSpace: "nowrap" }}>
             {sid ?? "—"}
           </TableCell>
@@ -355,15 +346,12 @@ const InstructorStudentListGrid = ({
         <TableContainer component={Paper} sx={adminSessionListTableContainerSx}>
           <Table size="small" sx={adminSessionListGridTableSx}>
             <colgroup>
-              {instructorDashboardStudentListColWidthsPx.map((w, i) => (
+              {instructorDashboardStudentListColWidthsPx.slice(1).map((w, i) => (
                 <col key={i} style={w == null ? undefined : { width: w }} />
               ))}
             </colgroup>
             <TableHead>
               <TableRow sx={adminSessionListTableHeadRowSx}>
-                <TableCell sx={adminSessionListTableHeadCellSx()}>
-                  Actions
-                </TableCell>
                 {COLS.map((c, index) => (
                   <SortableHeader
                     key={c.searchBy}

@@ -119,7 +119,7 @@ const getAvailabilityFieldValue = (row, field) => {
   return cell(row, col.keys);
 };
 
-const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error = null }) => {
+const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error = null, hideTitle = false }) => {
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("contains");
   const [searchText, setSearchText] = useState("");
@@ -201,22 +201,24 @@ const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error
 
   return (
     <Box>
-      <Box
-        sx={{
-          mb: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 2,
-        }}
-      >
-        <Box>
-          <Typography variant="subtitle1" sx={instructorPageTitleSx}>
-            Volunteers Availability List for upcoming class
-          </Typography>
+      {!hideTitle && (
+        <Box
+          sx={{
+            mb: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 2,
+          }}
+        >
+          <Box>
+            <Typography variant="subtitle1" sx={instructorPageTitleSx}>
+              Volunteers Availability List for upcoming class
+            </Typography>
+          </Box>
         </Box>
-      </Box>
+      )}
 
       <Box sx={{ ...instructorGreenSearchBarSx, mb: 1 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
