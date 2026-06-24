@@ -17,6 +17,7 @@ import {
   LinkedIn as LinkedInIcon,
   Instagram as InstagramIcon,
   Logout as LogoutIcon,
+  Login as LoginIcon,
   AttachMoney as DonateIcon,
   Rocket as RocketIcon,
   Edit as EditIcon,
@@ -126,7 +127,7 @@ const Topbar = () => {
     },
     {
       icon: <EditIcon sx={topbarLinkIconSx} />,
-      text: "Test Preparation",
+      text: "Test Preperation",
       href: "/about/test-preparation",
     },
     {
@@ -355,6 +356,33 @@ const Topbar = () => {
                 <LogoutIcon sx={topbarActionIconSx} />
                 <Typography variant="body2" sx={topbarActionTextSx}>
                   LOGOUT
+                </Typography>
+              </Box>
+            )}
+
+            {/* Login Button */}
+            {!user && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0,
+                  cursor: "pointer",
+                  "&:hover": { color: "#ccc" },
+                  order: { xs: 2, sm: 2, md: 3 },
+                  flexGrow: { xs: 1, sm: 0 },
+                  justifyContent: {
+                    xs: "flex-start",
+                    sm: "center",
+                    md: "flex-start",
+                  },
+                  mr: 1,
+                }}
+                onClick={() => navigate("/login")}
+              >
+                <LoginIcon sx={topbarActionIconSx} />
+                <Typography variant="body2" sx={topbarActionTextSx}>
+                  &nbsp;LOGIN
                 </Typography>
               </Box>
             )}

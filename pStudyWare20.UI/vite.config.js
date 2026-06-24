@@ -7,6 +7,7 @@ export default defineConfig({
   // Class-material PDFs/DOCs live under public/pstudyware/Documents and are served
   // directly by Vite (dev) and copied to dist on build. Do not proxy these to the API.
   server: {
+    host: true,
     proxy: {
       // Proxy all /api requests to the local backend, bypassing HTTPS redirect issues
       '/api': {

@@ -19,9 +19,9 @@ import "../styles/EngineeringCircle.css";
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
 import engineeringCirclePhoto from "../assets/images/Engineering Circle 1 (1).jpg";
 import aecLogoImg from "../assets/images/AECLogo.jpg";
-import agouraDataScienceImg from "../assets/images/about/agoura-ds-updated.jpg";
-import agouraAiImg from "../assets/images/about/agoura-ai.png";
-import mobileAppDevImg from "../assets/images/about/MobileAppDevelopmentPoster.png";
+import agouraDataScienceImg from "../assets/images/about/Foundation of DataScience.PNG";
+import agouraAiImg from "../assets/images/about/Intoduction to AI.PNG";
+import engineeringAnd3DModeling from "../assets/images/about/design and 3D modeling.PNG";
 import arrow1Img from "../assets/images/arrow-1.png";
 import arrow2Img from "../assets/images/arrow-2.png";
 import arrow3Img from "../assets/images/arrow-3.png";
@@ -35,6 +35,16 @@ import kumarImg from "../assets/images/team/person-icon.png";
 import srihariImg from "../assets/images/team/volunteers/Srihari.jpg";
 import nayanaImg from "../assets/images/team/volunteers/Nayana_Ashok_Photo.jpg";
 import haridevImg from "../assets/images/team/volunteers/Haridev.jpg";
+import Joshua_Manoj_Img from "../assets/images/team/volunteers/Joshua.png";
+import Ethan_Yang_Img from "../assets/images/team/volunteers/Ethan.png";
+import Monn_Maiti_Img from "../assets/images/team/volunteers/Monn Maiti.jpeg";
+import Sylesh_Sunderesan_Img from "../assets/images/team/volunteers/Sylesh.jpg";
+import Srihari_Img from "../assets/images/team/volunteers/Srihari.jpg";
+import Simran_Kaur_Img from "../assets/images/team/volunteers/Simran.jpeg";
+import Amarpal_Singh_Img from "../assets/images/team/volunteers/Amarpal.png";
+import Vibusha_Img from "../assets/images/team/volunteers/Vibusha.png";
+
+
 
 const EngineeringCircle = () => {
   const theme = useTheme();
@@ -191,40 +201,38 @@ const EngineeringCircle = () => {
                   AGOURA ENGINEERING CIRCLE
                 </Typography>
                 <Box className="des about-cont">
-                  <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 3 }}>
-                    Welcome to the Agoura Engineering Circle. Usually
-                    Mathematics and Computer programming, the two most universal
-                    languages, are taught independent of each other or they're
-                    taught one after the other. As part of Agoura Engineering
-                    Circle, we are trying to combine these two universal
-                    languages and solve some interesting problems. We will start
-                    out our journey by introducing basic programming concepts
-                    like branching, iteration, modular coding and data
-                    structures while solving mathematics problems that most
-                    students can understand but not necessarily solve by hand
-                    easily. This type of interdisciplinary learning helps in
-                    learning two things at the same time along with reinforcing
-                    any prior knowledge. Once everyone has achieved some
-                    proficiency in programming, we will move on to solving
-                    artificial intelligence and machine learning challenges. The
-                    goal of this program is to help students:
+                  <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 3, fontSize: "15px", color: "#333" }}>
+                    Welcome to the Agoura Engineering Circle.
+                  </Typography>
+                  <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 3, fontSize: "15px", color: "#333" }}>
+                    Agoura Engineering Circle (AEC) has completed a strong academic year (2025 - 2026), successfully delivering interdisciplinary STEM programs to a growing community of learners at no cost. The coming year marks an important evolution for AEC: an expanded four-course curriculum spanning both semesters. This reflects deliberate, thoughtful evolution of existing courses. The <em>Introduction to AI</em> course is being revised to place greater emphasis on conceptual understanding as well as real-world applications - ensuring students develop genuine insight into how AI works, not just technical algorithms and surface-level familiarity with tools. The <em>Foundations of Data Science</em> course is similarly being revised to be more project-based, giving students more hands-on experience with real datasets and end-to-end problem solving.
+                  </Typography>
+                  <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 3, fontSize: "15px", color: "#333" }}>
+                    A new course <em>Concept to Creation: Engineering Design and 3D Modeling</em> offered in Spring 2026 is one of AEC's most distinctive new offerings - and one that fills a genuine gap in students' educational pathways. Engineering design and 3D modeling form the foundational language of nearly every physical engineering discipline. Students who develop fluency here are better prepared for mechanical engineering, civil engineering, aeronautical and aerospace engineering, robotics, and many other fields where translating ideas into designed, buildable structures is a core professional skill.
+                  </Typography>
+                  <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 3, fontSize: "15px", color: "#333" }}>
+                    Another new course scheduled for Spring 2027 <em>Foundations of Cryptology - Cryptanalysis & Modern Cryptography</em> is designed with a dual impact in mind. In addition to its academic value as a rigorous introduction to cryptanalysis and modern cryptography, the course is specifically structured to prepare students for real-world applications and academic milestones.
+                  </Typography>
+                  <Typography variant="body1" sx={{ lineHeight: 1.8, mb: 3, fontSize: "15px", color: "#333" }}>
+                    All courses are offered virtually on alternate weekends, making them accessible to students across the greater Los Angeles area and beyond. Instruction, materials, and registration are provided entirely free of charge.
                   </Typography>
                 </Box>
                 <Box sx={{ textAlign: { xs: "center", md: "left" }, mt: 2 }}>
                   <Button
                     variant="contained"
-                    className="readon"
                     onClick={() => handleNavigation("/about/projects")}
                     sx={{
                       backgroundColor: "#00b800",
                       color: "white",
                       px: 4,
                       py: 1.5,
-                      borderRadius: "5px",
+                      borderRadius: 1,
                       fontWeight: 600,
-                      "&:hover": {
-                        backgroundColor: "#009600",
-                      },
+                      fontSize: "1rem",
+                      opacity: isButtonVisible ? 1 : 0,
+                      transform: "translateY(0)",
+                      transition: "all 0.7s ease-out",
+                      "&:hover": { backgroundColor: "#009600" },
                     }}
                   >
                     PROJECTS
@@ -267,6 +275,7 @@ const EngineeringCircle = () => {
           </Grid>
 
           {/* Data Science Section */}
+          {/*
           <Grid
             container
             spacing={1}
@@ -353,8 +362,8 @@ const EngineeringCircle = () => {
                   </Box>
                 </Box>
               </Box>
-            </Grid>
-            <Grid
+            </Grid>*/}
+          {/*<Grid
               item
               xs={12}
               md={4}
@@ -381,7 +390,7 @@ const EngineeringCircle = () => {
                 />
               </Box>
             </Grid>
-          </Grid>
+          </Grid>*/}
         </Container>
 
         {/* Animated Arrows */}
@@ -515,36 +524,19 @@ const EngineeringCircle = () => {
                     textAlign: { xs: "center", md: "left" },
                   }}
                 >
-                  INTRODUCTION TO DATA SCIENCE
+                  FOUNDATIONS OF DATA SCIENCE
                 </Typography>
 
                 <Box sx={{ textAlign: { xs: "center", md: "left" } }}>
-                  <Typography
-                    variant="body2"
-                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
-                  >
-                    <strong>CURRICULUM URL:</strong>{" "}
-                    <span style={{ color: "#00b800" }}>
-                      INTRODUCTION TO DATA SCIENCE
-                    </span>{" "}
-                    -{" "}
-                    <a
-                      href="/Documents/AEC_DataScience_Curriculum.pdf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: "#00b800", fontWeight: 600 }}
-                    >
-                      Download 📄
-                    </a>
-                  </Typography>
 
                   <Typography
                     variant="body2"
                     sx={{ mb: 1.25, fontSize: "1.1rem", color: "#555" }}
                   >
                     <strong>STARTING DATE:</strong>{" "}
-                    <span style={{ color: "#00b800" }}>AUG 24, 2025</span>
+                    <span style={{ color: "#00b800" }}>AUG 30, 2026</span>
                   </Typography>
+
 
                   <Typography
                     variant="body2"
@@ -560,8 +552,16 @@ const EngineeringCircle = () => {
                   >
                     <strong>SCHEDULE:</strong>{" "}
                     <span style={{ color: "#00b800" }}>
-                      ALTERNATE SUNDAYS 10:00AM - 12:00P [PST].
+                      ALTERNATE SUNDAYS 10:00 AM - 12:00 noon [PST].
                     </span>
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    sx={{ mb: 1.25, fontSize: "1.1rem", color: "#555" }}
+                  >
+                    <strong>SEMESTER:</strong>{" "}
+                    <span style={{ color: "#00b800" }}>Fall 2026, Spring 2027</span>
                   </Typography>
 
                   <Typography
@@ -583,11 +583,7 @@ const EngineeringCircle = () => {
                       lineHeight: 1.6,
                     }}
                   >
-                    <strong>Pre-requisites:</strong> Good understanding of basic
-                    mathematical concepts (no higher than 8th grade level or
-                    taught in Senior Intermediate level at Agoura Math Circle).
-                    Also, students have to get their own desktops or laptops to
-                    program.
+                    <strong>Pre-requisites:</strong> Strong foundation in 8th grade math or Senior Intermediate curriculum. Students must bring their own desktop/laptop.
                   </Typography>
 
                   <Box
@@ -625,173 +621,219 @@ const EngineeringCircle = () => {
         </Container>
       </Box>
 
+
+
+
+
+
+
       {/* Agoura AI section: content left, image right */}
       <Box
-        id="agoura-ai-section"
+  id="agoura-ai-section"
+  sx={{
+    backgroundColor: "#ffffff",
+    py: { xs: 1, md: 2 },
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  }}
+>
+  <Container maxWidth="lg" sx={{ px: { xs: 2, md: 4 } }}>
+    <Grid
+      container
+      spacing={1}
+      sx={{
+        flexWrap: "nowrap",
+        overflowX: { xs: "auto", md: "visible" },
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {/* Left content */}
+      <Grid
+        item
+        xs={6}
+        md={6}
         sx={{
-          backgroundColor: "#ffffff",
-          py: { xs: 1, md: 2 },
           display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          alignItems: "flex-start",
         }}
       >
-        <Container maxWidth="lg" sx={{ px: { xs: 2, md: 4 } }}>
-          <Grid
-            container
-            spacing={2}
-            alignItems="center"
+        <Box
+          sx={{
+            pl: { md: 2, xs: 0 },
+            textAlign: { xs: "center", md: "left" },
+            width: "100%",
+          }}
+        >
+          <Typography
+            variant="h3"
             sx={{
-              display: "flex",
-              justifyContent: "space-between",
+              fontWeight: 700,
+              fontSize: { xs: "1.85rem", md: "2.3rem" },
+              color: "#333",
+              mb: 1,
             }}
           >
-            {/* Left: registration/content */}
-            <Grid item xs={12} md={5}>
-              <Box
-                sx={{
-                  pl: { md: 2, xs: 0 },
-                  textAlign: { xs: "center", md: "left" },
-                }}
-              >
-                <Typography
-                  variant="h3"
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: { xs: "1.85rem", md: "2.3rem" },
-                    color: "#333",
-                    mb: 1,
-                  }}
-                >
-                  INTRODUCTION TO AI
-                </Typography>
+            INTRODUCTION TO AI
+          </Typography>
 
-                <Box>
-                  <Typography
-                    variant="body2"
-                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
-                  >
-                    <strong>CURRICULUM URL :</strong>{" "}
-                    <span style={{ color: "#00b800" }}>INTRODUCTION TO AI</span>{" "}
-                    -{" "}
-                    <a
-                      href="/Documents/AEC_AI_Curriculum.pdf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        color: "#00b800",
-                        fontWeight: 700,
-                        textDecoration: "none",
-                      }}
-                    >
-                      Download 📄
-                    </a>
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
-                  >
-                    <strong>STARTING DATE:</strong>{" "}
-                    <span style={{ color: "#00b800" }}>AUG 23, 2025</span>
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
-                  >
-                    <strong>LOCATION:</strong>{" "}
-                    <span style={{ color: "#00b800" }}>VIRTUAL</span>
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
-                  >
-                    <strong>SCHEDULE:</strong>{" "}
-                    <span style={{ color: "#00b800" }}>
-                      ALTERNATE SATURDAYS 7:00AM - 9:00AM [PST]
-                    </span>
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
-                  >
-                    <strong>SEMESTER:</strong>{" "}
-                    <span style={{ color: "#00b800" }}>FALL AND SPRING</span>
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
-                    sx={{ mb: 2, fontSize: "1.1rem", color: "#555" }}
-                  >
-                    <strong>CONTACT US:</strong>{" "}
-                    <span style={{ color: "#00b800" }}>
-                      SUPPORT@AGOURAMATHCIRCLE.ORG
-                    </span>
-                  </Typography>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: { xs: "center", md: "flex-start" },
-                    }}
-                  >
-                    <Button
-                      variant="contained"
-                      onClick={() => handleNavigation("/studentregistration")}
-                      sx={{
-                        backgroundColor: "#00b800",
-                        color: "#fff",
-                        px: 4,
-                        py: 1.5,
-                        borderRadius: 1,
-                        fontWeight: 600,
-                        fontSize: "1rem",
-                        "&:hover": { backgroundColor: "#009600" },
-                      }}
-                    >
-                      Register Now
-                    </Button>
-                  </Box>
-                </Box>
-              </Box>
-            </Grid>
-
-            {/* Right: Agoura AI image */}
-            <Grid
-              item
-              xs={12}
-              md={7}
-              sx={{ display: "flex", justifyContent: "flex-end" }}
+          <Box>
+            <Typography
+              variant="body2"
+              sx={{
+                mb: 1.25,
+                fontSize: "1.1rem",
+                color: "#555",
+              }}
             >
-              <Box
+              <strong>STARTING DATE:</strong>{" "}
+              <span style={{ color: "#00b800" }}>AUG 29, 2026</span>
+            </Typography>
+
+            <Typography
+              variant="body2"
+              sx={{
+                mb: 1.25,
+                fontSize: "1.1rem",
+                color: "#555",
+              }}
+            >
+              <strong>LOCATION:</strong>{" "}
+              <span style={{ color: "#00b800" }}>VIRTUAL</span>
+            </Typography>
+
+            <Typography
+              variant="body2"
+              sx={{
+                mb: 1.25,
+                fontSize: "1.1rem",
+                color: "#555",
+              }}
+            >
+              <strong>SCHEDULE:</strong>{" "}
+              <span style={{ color: "#00b800" }}>
+                ALTERNATE SATURDAYS 9:00 AM - 11:00 AM [PST].
+              </span>
+            </Typography>
+
+            <Typography
+              variant="body2"
+              sx={{
+                mb: 1.25,
+                fontSize: "1.1rem",
+                color: "#555",
+              }}
+            >
+              <strong>SEMESTER:</strong>{" "}
+              <span style={{ color: "#00b800" }}>Fall 2026</span>
+            </Typography>
+
+            <Typography
+              variant="body2"
+              sx={{
+                mb: 2,
+                fontSize: "1.1rem",
+                color: "#555",
+              }}
+            >
+              <strong>CONTACT US:</strong>{" "}
+              <span style={{ color: "#00b800" }}>
+                SUPPORT@AGOURAMATHCIRCLE.ORG
+              </span>
+            </Typography>
+
+            <Typography
+              variant="body2"
+              sx={{
+                mb: 3,
+                fontSize: "1.05rem",
+                color: "#666",
+                lineHeight: 1.6,
+              }}
+            >
+              <strong>Pre-requisites:</strong> No prior AI experience needed.
+              Basic programming (Scratch or Python) is helpful, but not
+              required. Strong foundation in 8th grade math or Senior
+              Intermediate curriculum. Must bring your own desktop/laptop.
+            </Typography>
+
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: { xs: "center", md: "flex-start" },
+              }}
+            >
+              <Button
+                variant="contained"
+                onClick={() => handleNavigation("/studentregistration")}
                 sx={{
-                  width: "100%",
-                  maxWidth: 720,
-                  ml: { md: 6, xs: 0 },
+                  backgroundColor: "#00b800",
+                  color: "#fff",
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: 1,
+                  fontWeight: 600,
+                  fontSize: "1rem",
+                  "&:hover": {
+                    backgroundColor: "#009600",
+                  },
                 }}
               >
-                <Box
-                  component="img"
-                  src={agouraAiImg}
-                  alt="Agoura AI"
-                  sx={{
-                    width: "100%",
-                    height: "auto",
-                    maxHeight: { xs: 360, md: 650 },
-                    objectFit: "cover",
-                    display: "block",
-                    borderRadius: 2,
-                    boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
-                  }}
-                />
-              </Box>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
+                Register Now
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Grid>
+
+      {/* Right image */}
+      <Grid
+        item
+        xs={12} // 👈 was 6 → now full width on mobile
+        md={7} // 👈 was 6 → now bigger on desktop
+        sx={{
+          display: "flex",
+          justifyContent: { xs: "flex-start", md: "center" },
+          flexShrink: 0,
+          minWidth: { xs: "300px", md: "auto" },
+        }}
+      >
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: 720, // 👈 was 520 → now bigger
+            boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+            borderRadius: 0,
+            overflow: "hidden",
+            background: "#fff",
+          }}
+        >
+          <Box
+            component="img"
+            src={agouraAiImg}
+            alt="AI Course"
+            sx={{
+              width: "100%",
+              height: "auto",
+              objectFit: "cover",
+              maxHeight: { xs: 360, md: 620 }, // 👈 Increased height
+              display: "block",
+            }}
+          />
+        </Box>
+      </Grid>
+    </Grid>
+  </Container>
+</Box>
+
+
+
+
+
+
+
+
 
       {/* Mobile App Development Section */}
       <Box
@@ -819,8 +861,8 @@ const EngineeringCircle = () => {
             {/* Left image */}
             <Grid
               item
-              xs={12}
-              md={7}
+              xs={6}
+              md={6}
               sx={{
                 display: "flex",
                 justifyContent: { xs: "flex-start", md: "center" },
@@ -840,7 +882,7 @@ const EngineeringCircle = () => {
               >
                 <Box
                   component="img"
-                  src={mobileAppDevImg}
+                  src={engineeringAnd3DModeling}
                   alt="Mobile App Development Course"
                   sx={{
                     width: "100%",
@@ -856,8 +898,8 @@ const EngineeringCircle = () => {
             {/* Right content */}
             <Grid
               item
-              xs={6}
-              md={6}
+              xs={12}
+              md={7}
               sx={{
                 minWidth: { xs: "300px", md: "auto" },
                 display: "flex",
@@ -881,34 +923,12 @@ const EngineeringCircle = () => {
                 <Box sx={{ textAlign: { xs: "center", md: "left" } }}>
                   <Typography
                     variant="body2"
-                    sx={{ mb: 1, fontSize: "1.1rem", color: "#555" }}
-                  >
-                    <strong>CURRICULUM URL:</strong>{" "}
-                    <span style={{ color: "#00b800" }}>
-                      INTRODUCTION TO MOBILE APP DEVELOPMENT
-                    </span>{" "}
-                    -{" "}
-                    <a
-                      href="/Documents/Mobile_App_Development_Course_Outline.pdf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        color: "#00b800",
-                        fontWeight: 600,
-                        textDecoration: "none",
-                      }}
-                    >
-                      Download 📄
-                    </a>
-                  </Typography>
-
-                  <Typography
-                    variant="body2"
                     sx={{ mb: 1.25, fontSize: "1.1rem", color: "#555" }}
                   >
                     <strong>STARTING DATE:</strong>{" "}
-                    <span style={{ color: "#00b800" }}>AUG 23, 2025</span>
+                    <span style={{ color: "#00b800" }}>AUG 30, 2026</span>
                   </Typography>
+
 
                   <Typography
                     variant="body2"
@@ -924,8 +944,16 @@ const EngineeringCircle = () => {
                   >
                     <strong>SCHEDULE:</strong>{" "}
                     <span style={{ color: "#00b800" }}>
-                      ALTERNATE SATURDAYS 9:00AM - 11:00PM [PST].
+                      ALTERNATE SUNDAYS 10:00 AM - 12:00 noon [PST].
                     </span>
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    sx={{ mb: 1.25, fontSize: "1.1rem", color: "#555" }}
+                  >
+                    <strong>SEMESTER:</strong>{" "}
+                    <span style={{ color: "#00b800" }}>Fall 2026</span>
                   </Typography>
 
                   <Typography
@@ -947,12 +975,7 @@ const EngineeringCircle = () => {
                       lineHeight: 1.6,
                     }}
                   >
-                    <strong>Pre-requisites:</strong> Understanding and knowledge
-                    of any basic programming language (optional). Good
-                    understanding of basic mathematical concepts (no higher than
-                    8th grade level or taught in Senior Intermediate level at
-                    Agoura Math Circle). Students must have their own
-                    desktop/laptop to code.
+                    <strong>Pre-requisites:</strong> Strong foundation in 8th grade math or Senior Intermediate curriculum. Students must bring their own desktop/laptop.
                   </Typography>
 
                   <Box
@@ -1007,7 +1030,7 @@ const EngineeringCircle = () => {
               mb: 4,
             }}
           >
-            AEC TEAM
+            OUR TEAM
           </Typography>
 
           <Grid
@@ -1021,13 +1044,17 @@ const EngineeringCircle = () => {
             {[
               { img: sriyaImg, name: "SRIYA KALYAN(AHS)", role: "Founder" },
               { img: andrewImg, name: "ANDREW XU (MIT)", role: "Director" },
-              { img: hussainImg, name: "HUSSAIN PATEL", role: "Coordinator" },
+              { img: Amarpal_Singh_Img, name: "Amarpal Singh", role: "Senior Vice President" },
+              { img: Vibusha_Img, name: "Vibusha", role: "EVP" },
               { img: balajiImg, name: "BALAJI", role: "Coordinator" },
-              { img: gopinathImg, name: "GOPINATH", role: "Coordinator" },
-              { img: kumarImg, name: "KUMAR", role: "Instructor" },
-              { img: srihariImg, name: "SRIHARI K", role: "Instructor" },
-              { img: nayanaImg, name: "NAYANA", role: "Instructor" },
-              { img: haridevImg, name: "HARIDEV", role: "Instructor" },
+              { img: hussainImg, name: "Kumar", role: "Coordinator" },
+              { img: Simran_Kaur_Img, name: "Simran Kaur", role: "Lead Instructor" },
+              { img: Srihari_Img, name: "SRIHARI K", role: "Instructor" },
+              { img: Sylesh_Sunderesan_Img, name: "Sylesh Sunderesan", role: "Instructor" },
+              { img: Monn_Maiti_Img, name: "Monn Maiti", role: "Instructor" },
+              { img: haridevImg, name: "Haridev", role: "Instructor" },
+              { img: Ethan_Yang_Img, name: "Ethan Yang", role: "Instructor" },
+              { img: Joshua_Manoj_Img, name: "Joshua Manoj", role: "Instructor" },
             ].map((member) => (
               <Grid
                 key={member.name}

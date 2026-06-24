@@ -15,7 +15,9 @@ import DashboardMessages from "../Student/DashboardMessages";
 import StudentMeetingSchedule from "../Student/StudentMeetingSchedule";
 import instructorDashboardService from "../../../services/instructorDashboardService";
 import studentDashboardService from "../../../services/studentDashboardService";
+import volunteerAvailabilityService from "../../../services/volunteerAvailabilityService";
 import InstructorStudentListGrid from "./InstructorStudentListGrid";
+import InstructorVolunteerAvailabilityGrid from "./InstructorVolunteerAvailabilityGrid";
 import {
   instructorDashboardMeetingTitleSx,
   instructorDashboardMessagesPanelContentSx,
@@ -37,6 +39,11 @@ const InstructorDashboard = () => {
   const [studentRows, setStudentRows] = useState([]);
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState(null);
+  
+  const [availabilityRows, setAvailabilityRows] = useState([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState(null);
+
   const [dashboardMessages, setDashboardMessages] = useState({
     importantNotice: "",
     announcement: "",
@@ -108,6 +115,29 @@ const InstructorDashboard = () => {
     }
   }, [username]);
 
+  const loadVolunteerAvailability = useCallback(async () => {
+    if (!username) return;
+
+    setAvailabilityError(null);
+    setAvailabilityLoading(true);
+
+    try {
+      const res = await volunteerAvailabilityService.getAvailabilitySummary({ username });
+      if (res?.isSuccess) {
+        setAvailabilityRows(res.summaryData || []);
+        setAvailabilityError(null);
+      } else {
+        setAvailabilityRows([]);
+        setAvailabilityError(res?.errorMessage || "Could not load volunteer availability list.");
+      }
+    } catch (e) {
+      setAvailabilityError(e?.message || "Failed to load volunteer availability list.");
+      setAvailabilityRows([]);
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  }, [username]);
+
   useEffect(() => {
     if (!isValidated || !username) return;
 
@@ -115,14 +145,17 @@ const InstructorDashboard = () => {
 
     const load = async () => {
       if (cancelled) return;
-      await loadStudentList();
+      await Promise.all([
+        loadStudentList(),
+        loadVolunteerAvailability()
+      ]);
     };
 
     load();
     return () => {
       cancelled = true;
     };
-  }, [isValidated, username, loadStudentList]);
+  }, [isValidated, username, loadStudentList, loadVolunteerAvailability]);
 
   useEffect(() => {
     if (!isValidated || !username) return;
@@ -226,6 +259,18 @@ const InstructorDashboard = () => {
             />
           </Grid>
 
+           <Grid item xs={12} sx={{ pt: "2px !important", mt: "10px !important" }}>
+            <Card sx={instructorDashboardPanelCardSx}>
+              <CardContent sx={instructorDashboardPanelContentSx}>
+                <InstructorVolunteerAvailabilityGrid
+                  rows={availabilityRows}
+                  loading={availabilityLoading}
+                  error={availabilityError}
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+
           <Grid item xs={12} sx={{ pt: "0 !important", mt: "-4px !important" }}>
             <Card sx={instructorDashboardPanelCardSx}>
               <CardContent sx={instructorDashboardPanelContentSx}>
@@ -239,6 +284,8 @@ const InstructorDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
+
+         
         </Grid>
       </Container>
     </Box>

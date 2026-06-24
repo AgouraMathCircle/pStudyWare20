@@ -69,15 +69,15 @@ const VideoGallery = () => {
       title: "AMC Success Story 3",
     },
     {
-      id: "6rUbesvZ9cM",
-      title: "AMC Success Story 4",
+      id: "thaUk7N8_gk",
+      title: "Agoura Math Circle Fest 2026",
     },
   ];
 
   // Create video pairs for side-by-side display
   const videoPairs = [
-    [videos[0], videos[1]], // First pair: videos 1,2
-    [videos[2], videos[3]], // Second pair: videos 3,4
+    [videos[0], videos[3]], // First pair: Success Story 1 + Fest 2026
+    [videos[1], videos[2]], // Second pair: Success Story 2 + Success Story 3
   ];
 
   // Auto-advance carousel - cycles through pairs

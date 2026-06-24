@@ -112,6 +112,64 @@ const OurTeam = () => {
         </Box>
       </Box>
 
+      
+
+      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 6 }, px: { xs: 2, md: 4 } }}>
+        <Typography
+          variant="h2"
+          sx={{
+            fontWeight: 700,
+            fontSize: { xs: "1.9rem", md: "2.2rem" },
+            color: "#002855",
+            textAlign: "center",
+            mb: 3,
+          }}
+        >
+          Technology Team
+        </Typography>
+
+        <Grid container spacing={2} justifyContent="flex-start" alignItems="stretch">
+          {[
+            { img: sathyaImg, name: "SATHYA", role: "Senior Software Engineer" },
+            { img: srihariImg, name: "SRI HARI", role: "Software Engineer (Team Lead)" },
+            { img: jonesImg, name: "JONES", role: "Developer" },
+            { img: harshaImg, name: "HARSHA MULLANGI", role: "Developer" },
+            { img: haridevImg, name: "HARIDEV", role: "Developer" },
+            { img: neelabhImg, name: "NEELABH", role: "Developer" },
+            { img: personIcon, name: "DHARSHANA", role: "Developer" },
+          ].map((m) => (
+            <Grid key={m.name} item xs={12} sm={3} md={3}>
+              <Box className="ourteam-card">
+                <Box className="ourteam-image">
+                  <img src={m.img} alt="Technology Team Member" />
+                  <Box className="social-overlay">
+                    <Box className="social-icon">
+                      <FacebookIcon />
+                    </Box>
+                    <Box className="social-icon">
+                      <GoogleIcon />
+                    </Box>
+                    <Box className="social-icon">
+                      <XIcon />
+                    </Box>
+                    <Box className="social-icon">
+                      <LinkedInIcon />
+                    </Box>
+                  </Box>
+                </Box>
+                <Box className="ourteam-info">
+                  <Typography className="ourteam-name" variant="h6">
+                    {formatName(m.name)}
+                  </Typography>
+                  <Typography className="ourteam-role" variant="body2">
+                    {m.role}
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
       <Container maxWidth="lg" sx={{ py: { xs: 3, md: 6 }, px: { xs: 2, md: 4 } }}>
         <Typography
           variant="h2"
@@ -144,7 +202,6 @@ const OurTeam = () => {
             { img: sundaresanImg, name: "SUNDARESAN", role: "Vice President" },
             { img: sujataImg, name: "SUJATA BHATTACHARYA", role: "Vice President" },
             { img: sireeshaImg, name: "SIREESHA CHINTALAPATI", role: "Vice President" },
-            { img: adhunikaImg, name: "ADHUNIKA SEEDHAR", role: "Vice President" },
             { img: suhaImg, name: "SUHASINI YENDAMURI", role: "Vice President" },
             { img: gopiImg, name: "GOPINATH SRINIVASAN", role: "Vice President" },
             { img: anneImg, name: "SRI ANNE", role: "Vice President" },
@@ -154,67 +211,6 @@ const OurTeam = () => {
               <Box className="ourteam-card">
                 <Box className="ourteam-image">
                   <img src={m.img} alt="Team Member" />
-                  <Box className="social-overlay">
-                    <Box className="social-icon">
-                      <FacebookIcon />
-                    </Box>
-                    <Box className="social-icon">
-                      <GoogleIcon />
-                    </Box>
-                    <Box className="social-icon">
-                      <XIcon />
-                    </Box>
-                    <Box className="social-icon">
-                      <LinkedInIcon />
-                    </Box>
-                  </Box>
-                </Box>
-                <Box className="ourteam-info">
-                  <Typography className="ourteam-name" variant="h6">
-                    {formatName(m.name)}
-                  </Typography>
-                  <Typography className="ourteam-role" variant="body2">
-                    {m.role}
-                  </Typography>
-                </Box>
-              </Box>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
-
-      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 6 }, px: { xs: 2, md: 4 } }}>
-        <Typography
-          variant="h2"
-          sx={{
-            fontWeight: 700,
-            fontSize: { xs: "1.9rem", md: "2.2rem" },
-            color: "#002855",
-            textAlign: "center",
-            mb: 3,
-          }}
-        >
-          Technology Team
-        </Typography>
-
-        <Grid container spacing={2} justifyContent="flex-start" alignItems="stretch">
-          {[
-            { img: sathyaImg, name: "SATHYA", role: "Senior Software Engineer" },
-            { img: srihariImg, name: "SRI HARI", role: "Software Engineer (Team Lead)" },
-            { img: vaibhavTechImg, name: "VAIBHAV GARG", role: "Software Engineer" },
-            { img: prabakaranImg, name: "PRABAKARAN", role: "BTS Informatics" },
-            { img: haridevImg, name: "HARIDEV", role: "Developer" },
-            { img: jonesImg, name: "JONES", role: "Developer" },
-            { img: nayanaImg, name: "NAYANA", role: "Developer" },
-            { img: harshaImg, name: "HARSHA MULLANGI", role: "Developer" },
-            { img: neelabhImg, name: "NEELABH", role: "Developer" },
-            { img: personIcon, name: "DHARSHANA", role: "Developer" },
-            { img: shreyamImg, name: "SHREYAM", role: "Developer" },
-          ].map((m) => (
-            <Grid key={m.name} item xs={12} sm={3} md={3}>
-              <Box className="ourteam-card">
-                <Box className="ourteam-image">
-                  <img src={m.img} alt="Technology Team Member" />
                   <Box className="social-overlay">
                     <Box className="social-icon">
                       <FacebookIcon />

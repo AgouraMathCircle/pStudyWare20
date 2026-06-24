@@ -120,7 +120,7 @@ const Overview = () => {
           </div>
         </div>
       </div>
-      <NewsletterSection />
+    
             </div>
     
   );

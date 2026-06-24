@@ -17,32 +17,57 @@ import satelliteLogoImg from "../../assets/images/about/Satellite_logo.jpg";
 import triangularTalksLogoImg from "../../assets/images/talk/Triangular-Talks-Logo.png";
 import ctaBgImage from "../../assets/images/bg/cta-bg.jpg";
 import ctaBgImage2 from "../../assets/images/bg/cta-bg2.jpg";
-import class010 from "../../assets/images/class/010.jpg";
-import class011 from "../../assets/images/class/011.jpg";
-import class001 from "../../assets/images/class/001.jpg";
-import class002 from "../../assets/images/class/002.jpg";
-import class003 from "../../assets/images/class/003.jpg";
-import class004 from "../../assets/images/class/004.jpg";
-import class005 from "../../assets/images/class/005.jpg";
-import class006 from "../../assets/images/class/006.jpg";
-import class007 from "../../assets/images/class/007.jpg";
-import class008 from "../../assets/images/class/008.jpg";
-import class009 from "../../assets/images/class/009.jpg";
+import award2026_1 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 1.jpeg";
+import award2026_2 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 2.jpeg";
+import award2026_3 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 3.jpeg";
+import award2026_4 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 4.jpeg";
+import award2026_5 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 5.jpeg";
+import award2026_6 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 6.jpeg";
+import award2026_7 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 7.jpg";
+import award2026_8 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 8.jpg";
+import award2026_9 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 9.jpg";
+import award2026_10 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 10.jpg";
+import award2026_11 from "../../assets/images/gallery/photos/AwardCeremony2026/702043303_2699111117125007_350006303293899090_n.jpg";
+import award2026_12 from "../../assets/images/gallery/photos/AwardCeremony2026/702209742_2699111300458322_4851501361847296435_n.jpg";
+import award2026_13 from "../../assets/images/gallery/photos/AwardCeremony2026/702273406_2699111453791640_6425016817942404446_n.jpg";
+import award2026_14 from "../../assets/images/gallery/photos/AwardCeremony2026/702107084_2699111743791611_4185937333306236328_n.jpg";
+import award2026_15 from "../../assets/images/gallery/photos/AwardCeremony2026/702191501_2699112190458233_7860505479694526610_n.jpg";
+import award2026_16 from "../../assets/images/gallery/photos/AwardCeremony2026/702064010_2699112283791557_6409814095350757349_n.jpg";
+import award2026_17 from "../../assets/images/gallery/photos/AwardCeremony2026/702087051_2699112483791537_5641882611819009816_n.jpg";
+import award2026_18 from "../../assets/images/gallery/photos/AwardCeremony2026/702094161_2699112623791523_1137279335811766909_n.jpg";
+import award2026_19 from "../../assets/images/gallery/photos/AwardCeremony2026/702051665_2699112693791516_7438569826337495576_n.jpg";
+import award2026_20 from "../../assets/images/gallery/photos/AwardCeremony2026/702325042_2701215580247894_8611988381996383593_n.jpg";
+import award2026_21 from "../../assets/images/gallery/photos/AwardCeremony2026/702621355_2701217093581076_2170575568894046260_n.jpg";
+import award2026_22 from "../../assets/images/gallery/photos/AwardCeremony2026/702718823_2701217206914398_1760117873653005247_n.jpg";
 
-// Class images for carousel
-const classImages = [
-  class010,
-  class011,
-  class001,
-  class002,
-  class003,
-  class004,
-  class005,
-  class006,
-  class007,
-  class008,
-  class009,
+// All Award 2026 images
+const award2026Images = [
+  award2026_1,
+  award2026_2,
+  award2026_3,
+  award2026_4,
+  award2026_5,
+  award2026_6,
+  award2026_7,
+  award2026_8,
+  award2026_9,
+  award2026_10,
+  award2026_11,
+  award2026_12,
+  award2026_13,
+  award2026_14,
+  award2026_15,
+  award2026_16,
+  award2026_17,
+  award2026_18,
+  award2026_19,
+  award2026_20,
+  award2026_21,
+  award2026_22,
 ];
+
+// Class images are now all Award 2026 images
+const classImages = award2026Images;
 
 // Keyframe animations
 const fadeInAnimation = keyframes`
@@ -64,15 +89,16 @@ const CtaSection = () => {
   const newsItems = [
     {
       subtitle: "Agoura Math Circle",
-      title: "Triangular Talks - April 13, 2024 at 9 AM PST.",
+      title: "Triangular Talks - Coming Soon!",
     },
     {
       subtitle: "Math Circle",
-      title: "AMC Fall semester starts on 24 Aug,2024",
+      title: "AMC Fall semester starts on 29 Aug, 2026",
     },
     {
       subtitle: "Agoura Engineering Circle",
-      title: "Coding Game final presentation on May 18th, 2024.",
+      title:
+        "Mobile App Development and Artificial Intelligence courses start on Aug 29, 2026",
     },
     {
       subtitle: "Satellite Program",
@@ -188,8 +214,8 @@ const CtaSection = () => {
                     >
                       <CardMedia
                         component="img"
-                        image={classImages[currentImageIndex]}
-                        alt="Class activity"
+                        image={award2026Images[0]}
+                        alt="Award Ceremony 2026"
                         sx={{
                           height: "100%",
                           objectFit: "cover",
@@ -210,12 +236,8 @@ const CtaSection = () => {
                     >
                       <CardMedia
                         component="img"
-                        image={
-                          classImages[
-                            (currentImageIndex + 1) % classImages.length
-                          ]
-                        }
-                        alt="Class activity"
+                        image={award2026Images[1]}
+                        alt="Award Ceremony 2026"
                         sx={{
                           height: "100%",
                           objectFit: "cover",

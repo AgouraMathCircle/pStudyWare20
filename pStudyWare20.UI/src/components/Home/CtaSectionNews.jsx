@@ -29,11 +29,11 @@ const fadeInAnimation = keyframes`
 const newsItems = [
   {
     subtitle: "Agoura Math Circle",
-    title: "Triangular Talks - Coming Soon!",
+    title: "Triangular Talks - coming soon !!",
   },
   {
     subtitle: "Math Circle",
-    title: "AMC Fall semester starts on 29 Aug, 2026",
+    title: "AMC Fall semester starts on Aug 29, 2026",
   },
   {
     subtitle: "Agoura Engineering Circle",

@@ -139,6 +139,7 @@ builder.Services.AddDbContext<AMC_DBContext>(options =>
 // Register Repositories
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 builder.Services.AddScoped<IVolunteerRepository, VolunteerRepository>();
+builder.Services.AddScoped<IVolunteerAvailabilityRepository, VolunteerAvailabilityRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<ITimesheetRepository, TimesheetRepository>();
@@ -167,6 +168,7 @@ builder.Services.AddScoped<ISemesterLookupRepository, SemesterLookupRepository>(
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IVolunteerService, VolunteerService>();
+builder.Services.AddScoped<IVolunteerAvailabilityService, VolunteerAvailabilityService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<ITimesheetService, TimesheetService>();
