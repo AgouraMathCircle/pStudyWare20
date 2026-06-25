@@ -48,8 +48,8 @@ namespace pStudyWare20.Services.Implementations
                 // Determine user role based on MemberType (same as original logic)
                 string role = GetUserRole(user);
 
-                // Fetch current session and current semester
-                var (currentSession, currentSemester) = await _memberRepository.GetCurrentSessionAndSemesterAsync(user.ChapterID?.ToString() ?? "");
+                // Fetch current session, current semester and volunteer availability
+                var (currentSession, currentSemester, volunteerAvailability) = await _memberRepository.GetCurrentSessionAndSemesterAsync(user.ChapterID?.ToString() ?? "");
 
                 // Generate JWT token
                 var token = _jwtService.GenerateToken(
@@ -75,6 +75,7 @@ namespace pStudyWare20.Services.Implementations
                     SystemAdmin = user.systemAdmin,
                     CurrentSession = currentSession,
                     CurrentSemester = currentSemester,
+                    VolunteerAvailability = volunteerAvailability,
                     ExpiresAt = DateTime.UtcNow.AddMinutes(60)
                 };
             }

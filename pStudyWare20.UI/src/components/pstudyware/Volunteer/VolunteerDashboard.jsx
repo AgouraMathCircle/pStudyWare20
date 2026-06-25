@@ -46,6 +46,11 @@ const VolunteerDashboard = () => {
     [user?.chapterId, user?.chapterID]
   );
 
+  const showVolunteerAvailability = useMemo(
+    () => user?.volunteerAvailability === "Y" || user?.VolunteerAvailability === "Y",
+    [user?.volunteerAvailability, user?.VolunteerAvailability]
+  );
+
   useEffect(() => {
     if (authLoading) return;
     if (hasRedirectedRef.current) return;
@@ -196,7 +201,7 @@ const VolunteerDashboard = () => {
           </Card>
         </Grid>
         {/* Left Column: Stats & Logged Hours Grid */}
-        <Grid item xs={12} md={8} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <Grid item xs={12} md={showVolunteerAvailability ? 8 : 12} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Card sx={panelCardSx}>
             <CardContent sx={panelContentSx}>
               {/* Header Box with Title and Action Button */}
@@ -306,13 +311,15 @@ const VolunteerDashboard = () => {
         </Grid>
 
         {/* Right Column: Volunteer Availability Form */}
-        <Grid item xs={12} md={4}>
-          <Card sx={panelCardSx}>
-            <CardContent sx={panelContentSx}>
-              <VolunteerAvailability embedded={true} />
-            </CardContent>
-          </Card>
-        </Grid>
+        {showVolunteerAvailability && (
+          <Grid item xs={12} md={4}>
+            <Card sx={panelCardSx}>
+              <CardContent sx={panelContentSx}>
+                <VolunteerAvailability embedded={true} />
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
       </Grid>
     </Container>
   );

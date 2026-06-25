@@ -18,6 +18,7 @@ import studentDashboardService from "../../../services/studentDashboardService";
 import volunteerAvailabilityService from "../../../services/volunteerAvailabilityService";
 import InstructorStudentListGrid from "./InstructorStudentListGrid";
 import InstructorVolunteerAvailabilityGrid from "./InstructorVolunteerAvailabilityGrid";
+import VolunteerAvailability from "../Volunteer/VolunteerAvailability";
 import {
   instructorDashboardMeetingTitleSx,
   instructorDashboardMessagesPanelContentSx,
@@ -61,6 +62,11 @@ const InstructorDashboard = () => {
     [user?.chapterId, user?.chapterID]
   );
 
+  const showVolunteerAvailability = useMemo(
+    () => user?.volunteerAvailability === "Y" || user?.VolunteerAvailability === "Y",
+    [user?.volunteerAvailability, user?.VolunteerAvailability]
+  );
+
   useEffect(() => {
     if (authLoading) return;
     if (hasRedirectedRef.current) return;
@@ -73,7 +79,7 @@ const InstructorDashboard = () => {
 
     const memberType = user.memberType?.toUpperCase();
     const role = user.role;
-    if (memberType !== "I" && role !== "Instructor") {
+    if (memberType !== "I" && memberType !== "C" && role !== "Instructor") {
       hasRedirectedRef.current = true;
       if (memberType === "A" || role === "Admin") {
         navigate("/pstudyware/admin/dashboard", { replace: true });
@@ -244,22 +250,14 @@ const InstructorDashboard = () => {
             </Card>
           </Grid>
 
-          <Grid
-            item
-            xs={12}
-            sx={{
-              pt: "0 !important",
-              "&:empty": { display: "none", m: 0, p: 0, minHeight: 0 },
-            }}
-          >
+          {/* Left Column: Stats & Logged Hours / Schedules */}
+          <Grid item xs={12} md={showVolunteerAvailability ? 8 : 12} sx={{ display: "flex", flexDirection: "column", gap: 3, pt: "0 !important" }}>
             <StudentMeetingSchedule
               username={username}
               panelCardSx={instructorDashboardPanelCardSx}
               sectionTitleSx={instructorDashboardMeetingTitleSx}
             />
-          </Grid>
 
-           <Grid item xs={12} sx={{ pt: "2px !important", mt: "10px !important" }}>
             <Card sx={instructorDashboardPanelCardSx}>
               <CardContent sx={instructorDashboardPanelContentSx}>
                 <InstructorVolunteerAvailabilityGrid
@@ -269,9 +267,7 @@ const InstructorDashboard = () => {
                 />
               </CardContent>
             </Card>
-          </Grid>
 
-          <Grid item xs={12} sx={{ pt: "0 !important", mt: "-4px !important" }}>
             <Card sx={instructorDashboardPanelCardSx}>
               <CardContent sx={instructorDashboardPanelContentSx}>
                 <InstructorStudentListGrid
@@ -285,7 +281,16 @@ const InstructorDashboard = () => {
             </Card>
           </Grid>
 
-         
+          {/* Right Column: Own Volunteer Availability Form */}
+          {showVolunteerAvailability && (
+            <Grid item xs={12} md={4} sx={{ pt: "0 !important" }}>
+              <Card sx={instructorDashboardPanelCardSx}>
+                <CardContent sx={instructorDashboardPanelContentSx}>
+                  <VolunteerAvailability embedded={true} />
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
         </Grid>
       </Container>
     </Box>

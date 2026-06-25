@@ -101,7 +101,8 @@ namespace pStudyWare20.Services.Implementations
                 SiTotalSpace = Cell(row, "SITotalSpace", "siTotalSpace"),
                 SaTotalSpace = Cell(row, "SATotalSpace", "saTotalSpace"),
                 CurrentExamDate = Cell(row, "CurrentExamDate", "currentExamDate"),
-                CurrentExamDueTime = Cell(row, "CurrentExamDueTime", "currentExamDueTime")
+                CurrentExamDueTime = Cell(row, "CurrentExamDueTime", "currentExamDueTime"),
+                VolunteerAvailability = Cell(row, "VolunteerAvailability", "volunteerAvailability")
             };
         }
 

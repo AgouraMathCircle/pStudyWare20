@@ -228,10 +228,11 @@ namespace pStudyWare20.Repository.Implementations
             }
         }
 
-        public async Task<(string currentSession, string currentSemester)> GetCurrentSessionAndSemesterAsync(string chapterId)
+        public async Task<(string currentSession, string currentSemester, string volunteerAvailability)> GetCurrentSessionAndSemesterAsync(string chapterId)
         {
             string currentSession = "";
             string currentSemester = "";
+            string volunteerAvailability = "N";
 
             try
             {
@@ -247,6 +248,16 @@ namespace pStudyWare20.Repository.Implementations
                     {
                         var semIndex = reader.GetOrdinal("semester");
                         currentSemester = reader.GetValue(semIndex)?.ToString()?.Trim() ?? "";
+
+                        try
+                        {
+                            var volIndex = reader.GetOrdinal("VolunteerAvailability");
+                            volunteerAvailability = reader.GetValue(volIndex)?.ToString()?.Trim() ?? "N";
+                        }
+                        catch
+                        {
+                            volunteerAvailability = "N";
+                        }
                     }
                 }
 
@@ -270,7 +281,7 @@ namespace pStudyWare20.Repository.Implementations
                 if (string.IsNullOrEmpty(currentSemester)) currentSemester = "Spring 2026";
             }
 
-            return (currentSession, currentSemester);
+            return (currentSession, currentSemester, volunteerAvailability);
         }
     }
 }

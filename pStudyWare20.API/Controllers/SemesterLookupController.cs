@@ -53,10 +53,12 @@ namespace pStudyWare20.API.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList();
+                    _logger.LogWarning("UpdateSemesterLookup validation failed: {Errors}", string.Join("; ", errors));
                     return BadRequest(new
                     {
                         message = "Invalid request data",
-                        errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                        errors = errors
                     });
                 }
 

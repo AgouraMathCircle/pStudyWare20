@@ -85,6 +85,7 @@ const emptyForm = {
   saTotalSpace: "",
   currentExamDate: "",
   currentExamDueTime: "",
+  volunteerAvailability: "N",
 };
 
 const UpdateLookupSemester = () => {
@@ -128,6 +129,7 @@ const UpdateLookupSemester = () => {
         saTotalSpace: L.saTotalSpace ?? "",
         currentExamDate: L.currentExamDate ?? "",
         currentExamDueTime: L.currentExamDueTime ?? "",
+        volunteerAvailability: L.volunteerAvailability ?? "N",
       });
     } catch (e) {
       setError(
@@ -174,6 +176,7 @@ const UpdateLookupSemester = () => {
         saTotalSpace: form.saTotalSpace,
         currentExamDate: form.currentExamDate,
         currentExamDueTime: form.currentExamDueTime,
+        volunteerAvailability: form.volunteerAvailability,
         chapterID,
       };
       const res = await semesterLookupService.updateSemesterLookup(payload);
@@ -189,12 +192,11 @@ const UpdateLookupSemester = () => {
       if (status === 403) {
         setError(data?.errorMessage || "You do not have permission to update.");
       } else {
+        const errorDetails = data?.errors && Array.isArray(data.errors)
+          ? `: ${data.errors.join(", ")}`
+          : "";
         setError(
-          data?.message ||
-            data?.error ||
-            data?.errorMessage ||
-            e.message ||
-            "Update failed.",
+          (data?.message || data?.error || data?.errorMessage || e.message || "Update failed.") + errorDetails
         );
       }
     } finally {
@@ -411,6 +413,31 @@ const UpdateLookupSemester = () => {
                               >
                                 <MenuItem value="O">Open</MenuItem>
                                 <MenuItem value="C">Close</MenuItem>
+                              </TextField>
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell
+                              component="th"
+                              scope="row"
+                              sx={lookupLabelCellSx}
+                            >
+                              Volunteer Availability
+                            </TableCell>
+                            <TableCell sx={lookupInputCellSx}>
+                              <TextField
+                                fullWidth
+                                select
+                                size="small"
+                                variant="outlined"
+                                hiddenLabel
+                                value={form.volunteerAvailability}
+                                onChange={handleChange("volunteerAvailability")}
+                                disabled={!canUpdate || saving}
+                                sx={lookupFieldSx}
+                              >
+                                <MenuItem value="Y">Open (Yes)</MenuItem>
+                                <MenuItem value="N">Close (No)</MenuItem>
                               </TextField>
                             </TableCell>
                           </TableRow>

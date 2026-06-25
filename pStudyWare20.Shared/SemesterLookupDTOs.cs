@@ -24,6 +24,7 @@ namespace pStudyWare20.Shared
         public string SaTotalSpace { get; set; } = "";
         public string CurrentExamDate { get; set; } = "";
         public string CurrentExamDueTime { get; set; } = "";
+        public string VolunteerAvailability { get; set; } = "N";
     }
 
     public class GetSemesterLookupResponse
@@ -54,6 +55,7 @@ namespace pStudyWare20.Shared
         public string SaTotalSpace { get; set; } = "";
         public string CurrentExamDate { get; set; } = "";
         public string CurrentExamDueTime { get; set; } = "";
+        public string VolunteerAvailability { get; set; } = "N";
 
         /// <summary>Caller chapter ID; must be "1" to update (matches legacy Session ChapterID).</summary>
         [Required]

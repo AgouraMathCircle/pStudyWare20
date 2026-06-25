@@ -62,10 +62,10 @@ namespace pStudyWare20.Repository.Implementations
 
                 command.Parameters.Add(new SqlParameter("@semester", request.Semester ?? (object)DBNull.Value));
                 command.Parameters.Add(new SqlParameter("@LastSemester", request.LastSemester ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@StartingDate", request.StartingDate ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@RegStartDate", request.RegStartDate ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@StartingDate", CleanDate(request.StartingDate) ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@RegStartDate", CleanDate(request.RegStartDate) ?? (object)DBNull.Value));
                 // Legacy .aspx.cs used "@RegCloseDate " with trailing space; most DBs use @RegCloseDate.
-                command.Parameters.Add(new SqlParameter("@RegCloseDate", request.RegCloseDate ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@RegCloseDate", CleanDate(request.RegCloseDate) ?? (object)DBNull.Value));
                 command.Parameters.Add(new SqlParameter("@RegistrationStatus", request.RegistrationStatus ?? "O"));
                 command.Parameters.Add(new SqlParameter("@DisplayDocumentsFrom", request.DisplayDocumentsFrom ?? (object)DBNull.Value));
                 command.Parameters.Add(new SqlParameter("@JBTotalSpace", request.JbTotalSpace ?? (object)DBNull.Value));
@@ -74,8 +74,9 @@ namespace pStudyWare20.Repository.Implementations
                 command.Parameters.Add(new SqlParameter("@SBTotalSpace", request.SbTotalSpace ?? (object)DBNull.Value));
                 command.Parameters.Add(new SqlParameter("@SITotalSpace", request.SiTotalSpace ?? (object)DBNull.Value));
                 command.Parameters.Add(new SqlParameter("@SATotalSpace", request.SaTotalSpace ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@CurrentExamDate", request.CurrentExamDate ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@CurrentExamDueTime", request.CurrentExamDueTime ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@CurrentExamDate", CleanDate(request.CurrentExamDate) ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@CurrentExamDueTime", CleanDate(request.CurrentExamDueTime) ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@VolunteerAvailability", request.VolunteerAvailability ?? "N"));
 
                 await command.ExecuteNonQueryAsync();
             }
@@ -83,6 +84,12 @@ namespace pStudyWare20.Repository.Implementations
             {
                 throw new Exception($"Error updating semester lookup: {ex.Message}", ex);
             }
+        }
+
+        private static string? CleanDate(string? input)
+        {
+            if (input == null) return null;
+            return input.Replace('\u202F', ' ').Replace('\u00A0', ' ').Trim();
         }
     }
 }
