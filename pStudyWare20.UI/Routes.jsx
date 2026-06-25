@@ -842,7 +842,7 @@ const AppRoutes = () => {
               element={
                 <RoleProtectedRoute
                   allowedRoles={["Instructor"]}
-                  allowedMemberTypes={["I"]}
+                  allowedMemberTypes={["I", "C"]}
                 >
                   <InstructorShell />
                 </RoleProtectedRoute>

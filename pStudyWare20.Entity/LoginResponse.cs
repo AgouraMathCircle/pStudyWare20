@@ -14,6 +14,7 @@ namespace pStudyWare20.Entity
         public string SystemAdmin { get; set; } = string.Empty;
         public string CurrentSession { get; set; } = string.Empty;
         public string CurrentSemester { get; set; } = string.Empty;
+        public string VolunteerAvailability { get; set; } = "N";
         public DateTime ExpiresAt { get; set; }
     }
 } 
