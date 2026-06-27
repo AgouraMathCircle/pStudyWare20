@@ -1,0 +1,10 @@
+/* Upload Online Exam Answer Key — scoped overrides matching /pstudyware/admin/instructor */
+
+.upload-answer-key-page .MuiTableCell-root {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.upload-answer-key-page .MuiTableRow-root:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}

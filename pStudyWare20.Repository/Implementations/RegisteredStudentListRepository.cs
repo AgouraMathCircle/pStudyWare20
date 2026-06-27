@@ -69,12 +69,22 @@ namespace pStudyWare20.Repository.Implementations
                     CommandType = CommandType.StoredProcedure
                 };
 
-                command.Parameters.Add(new SqlParameter("@StudentID", studentId));
-                command.Parameters.Add(new SqlParameter("@Class", @class));
-                command.Parameters.Add(new SqlParameter("@Section", section));
-                command.Parameters.Add(new SqlParameter("@ChapterID", chapterId));
-                command.Parameters.Add(new SqlParameter("@Location", location));
-                command.Parameters.Add(new SqlParameter("@Session", session));
+                if (!int.TryParse(studentId, out var parsedStudentId) || parsedStudentId <= 0)
+                {
+                    throw new ArgumentException("Invalid student ID.");
+                }
+
+                if (!int.TryParse(chapterId, out var parsedChapterId) || parsedChapterId <= 0)
+                {
+                    throw new ArgumentException("Invalid chapter ID.");
+                }
+
+                command.Parameters.Add(new SqlParameter("@StudentID", SqlDbType.Int) { Value = parsedStudentId });
+                command.Parameters.Add(new SqlParameter("@Class", SqlDbType.Char, 2) { Value = @class });
+                command.Parameters.Add(new SqlParameter("@Section", SqlDbType.Char, 1) { Value = section });
+                command.Parameters.Add(new SqlParameter("@ChapterID", SqlDbType.Int) { Value = parsedChapterId });
+                command.Parameters.Add(new SqlParameter("@Location", SqlDbType.Char, 1) { Value = location });
+                command.Parameters.Add(new SqlParameter("@Session", SqlDbType.Char, 5) { Value = session });
 
                 var dataSet = new DataSet();
                 using var adapter = new SqlDataAdapter(command);
@@ -172,6 +182,87 @@ namespace pStudyWare20.Repository.Implementations
             {
                 throw new Exception($"Error getting student list for export: {ex.Message}", ex);
             }
+        }
+
+        /// <summary>
+        /// Active semester sessions for update-class (current + next, legacy drSession).
+        /// </summary>
+        public async Task<List<RegisteredStudentSessionOption>> GetActiveSessionOptionsAsync()
+        {
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand(@"
+                    SELECT TOP 1
+                        LTRIM(RTRIM(semester)) AS Semester,
+                        LTRIM(RTRIM(LastSemester)) AS LastSemester,
+                        LTRIM(RTRIM(NextSemester)) AS NextSemester,
+                        LTRIM(RTRIM(SemesterName)) AS SemesterName
+                    FROM AMC_tblLookupSemester WITH (NOLOCK)
+                    WHERE Active = 1", connection);
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (!await reader.ReadAsync())
+                {
+                    return new List<RegisteredStudentSessionOption>();
+                }
+
+                var options = new List<RegisteredStudentSessionOption>();
+                AddSessionOption(options, ReadString(reader, "Semester"), ReadString(reader, "SemesterName"));
+                AddSessionOption(options, ReadString(reader, "NextSemester"));
+                AddSessionOption(options, ReadString(reader, "LastSemester"));
+                return options;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error getting active session options: {ex.Message}", ex);
+            }
+        }
+
+        private static string ReadString(SqlDataReader reader, string columnName)
+        {
+            var ordinal = reader.GetOrdinal(columnName);
+            return reader.IsDBNull(ordinal) ? "" : reader.GetString(ordinal).Trim();
+        }
+
+        private static void AddSessionOption(
+            List<RegisteredStudentSessionOption> options,
+            string value,
+            string? label = null)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            if (options.Any(option => option.Value.Equals(value, StringComparison.OrdinalIgnoreCase)))
+            {
+                return;
+            }
+
+            options.Add(new RegisteredStudentSessionOption
+            {
+                Value = value,
+                Label = string.IsNullOrWhiteSpace(label) ? FormatSessionLabel(value) : label.Trim()
+            });
+        }
+
+        private static string FormatSessionLabel(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Length < 5)
+            {
+                return value;
+            }
+
+            var term = value[0] switch
+            {
+                'F' or 'f' => "Fall",
+                'S' or 's' => "Spring",
+                _ => value[..1]
+            };
+            return $"{term} {value[1..]}";
         }
     }
 }

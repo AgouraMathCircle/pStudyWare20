@@ -3,7 +3,6 @@ import {
   Box,
   TextField,
   Button,
-  Select,
   MenuItem,
   FormControl,
   InputLabel,
@@ -13,6 +12,7 @@ import {
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import PortalDialog from "./PortalDialog";
+import PortalModalSelect from "./PortalModalSelect";
 import { portalModalFieldSx, portalModalSendButtonSx } from "./portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
 import studentDashboardService from "../../../services/studentDashboardService";
@@ -306,7 +306,7 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
             <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <FormControl fullWidth size="small" sx={portalModalFieldSx}>
                 <InputLabel>Grade</InputLabel>
-                <Select
+                <PortalModalSelect
                   name="grade"
                   value={formData.grade}
                   onChange={handleInputChange}
@@ -317,7 +317,7 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
                       {g}
                     </MenuItem>
                   ))}
-                </Select>
+                </PortalModalSelect>
               </FormControl>
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -365,7 +365,7 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
             <Grid size={{ xs: 12, md: 4 }}>
               <FormControl fullWidth size="small" sx={portalModalFieldSx}>
                 <InputLabel>Country</InputLabel>
-                <Select
+                <PortalModalSelect
                   name="country"
                   value={formData.country}
                   onChange={handleInputChange}
@@ -376,7 +376,7 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
                       {c.label}
                     </MenuItem>
                   ))}
-                </Select>
+                </PortalModalSelect>
               </FormControl>
             </Grid>
           </Grid>

@@ -105,11 +105,8 @@ namespace pStudyWare20.Repository.Implementations
 
                 command.Parameters.Add(new SqlParameter("@LogID", logId));
 
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
-
-                return dataTable;
+                await command.ExecuteNonQueryAsync();
+                return new DataTable();
             }
             catch (Exception ex)
             {

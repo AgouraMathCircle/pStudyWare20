@@ -1,0 +1,211 @@
+/* Admin Volunteers Request — page shell + table panel (pairs with applicationSurfaces sx in JSX) */
+
+.admin-volunteers-request {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+  box-sizing: border-box;
+}
+
+/* Prevent global portal card hover lift on this page */
+.admin-volunteers-request .MuiCard-root {
+  transition: none !important;
+  transform: none !important;
+}
+
+.admin-volunteers-request .MuiCard-root:hover {
+  transform: none !important;
+}
+
+/* Table cell spacing — match User Tracking / session list row height */
+.admin-volunteers-request .admin-volunteers-request-table-panel .MuiTableCell-root {
+  padding: 5px 4px !important;
+  vertical-align: middle;
+}
+
+.admin-volunteers-request .admin-volunteers-request-table-panel .MuiTableCell-head {
+  background-color: #e8f5e8;
+  overflow: hidden;
+  padding: 7px 4px !important;
+}
+
+.admin-volunteers-request .admin-volunteers-request-table-panel .MuiTableCell-body {
+  overflow: hidden;
+  max-width: 0;
+  font-size: 0.75rem !important;
+  line-height: 1.2 !important;
+  font-weight: 400;
+}
+
+.admin-volunteers-request .admin-volunteers-request-table-panel .MuiTableCell-body .MuiTypography-root {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.admin-volunteers-request .admin-volunteers-request-table-panel .MuiTableCell-body span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-volunteers-request .admin-volunteers-request-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.admin-volunteers-request .admin-volunteers-request-table {
+  width: 100%;
+  table-layout: fixed;
+  min-width: 1100px;
+}
+
+/* Search bar + pagination controls — match session list sizing */
+.admin-volunteers-request .MuiButton-root {
+  text-transform: none;
+}
+
+@media (max-width: 899px) {
+  .admin-volunteers-request .MuiCard-root {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+/* Update Volunteer Request Status modal — fixed field widths (dialog renders in portal) */
+.admin-volunteers-request-update-form {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-volunteers-request-update-form > .MuiGrid-item {
+  width: 100%;
+  max-width: 100%;
+  flex-basis: 100%;
+}
+
+.admin-volunteers-request-update-form .MuiGrid-item {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.admin-volunteers-request-update-form .MuiFormControl-root {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.admin-volunteers-request-update-form .MuiOutlinedInput-root {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 40px !important;
+  height: auto !important;
+  box-sizing: border-box;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.admin-volunteers-request-update-form .MuiSelect-select {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  line-height: 1.4375 !important;
+  padding-top: 8.5px !important;
+  padding-bottom: 8.5px !important;
+  padding-right: 32px !important;
+}
+
+.admin-volunteers-request-update-form .MuiInputBase-input {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  line-height: 1.4375 !important;
+  padding-top: 8.5px !important;
+  padding-bottom: 8.5px !important;
+}
+
+.admin-volunteers-request-update-form .MuiTooltip-root {
+  width: 100%;
+  max-width: 100%;
+  display: block;
+}
+
+.admin-volunteers-request-update-form .vr-field-chapter {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.admin-volunteers-request-update-form .vr-field-chapter .MuiOutlinedInput-root {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  min-height: 40px !important;
+  height: auto !important;
+}
+
+.admin-volunteers-request-update-form .vr-field-chapter .MuiSelect-select {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  line-height: 1.4375 !important;
+  padding-top: 8.5px !important;
+  padding-bottom: 8.5px !important;
+  padding-left: 14px !important;
+  padding-right: 32px !important;
+}
+
+.admin-volunteers-request-update-form .vr-field-chapter .MuiOutlinedInput-notchedOutline legend {
+  width: 4.85rem !important;
+  max-width: 4.85rem !important;
+  min-width: 4.85rem !important;
+}
+
+.admin-volunteers-request-update-form .vr-field-type .MuiOutlinedInput-notchedOutline legend {
+  width: 2.55rem !important;
+  max-width: 2.55rem !important;
+}
+
+.admin-volunteers-request-update-form .vr-field-class .MuiOutlinedInput-notchedOutline legend {
+  width: 2.85rem !important;
+  max-width: 2.85rem !important;
+}
+
+.admin-volunteers-request-update-form .vr-field-section .MuiOutlinedInput-notchedOutline legend {
+  width: 5.35rem !important;
+  max-width: 5.35rem !important;
+}
+
+.admin-volunteers-request-update-form .vr-field-chapter .MuiOutlinedInput-notchedOutline legend span,
+.admin-volunteers-request-update-form .vr-field-type .MuiOutlinedInput-notchedOutline legend span,
+.admin-volunteers-request-update-form .vr-field-class .MuiOutlinedInput-notchedOutline legend span,
+.admin-volunteers-request-update-form .vr-field-section .MuiOutlinedInput-notchedOutline legend span {
+  padding-left: 4px;
+  padding-right: 4px;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}

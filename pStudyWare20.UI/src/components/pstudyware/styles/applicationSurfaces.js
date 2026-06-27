@@ -483,6 +483,13 @@ export const adminSessionListTableActionLinkSx = {
   "&:hover": { color: "#551a8b" },
 };
 
+export const adminSessionListTableDeleteLinkSx = {
+  ...adminSessionListTableActionLinkSx,
+  color: "#c62828",
+  "&:visited": { color: "#c62828" },
+  "&:hover": { color: "#b71c1c" },
+};
+
 export const adminSessionListEmptyCellSx = {
   ...adminPortalTableFontSx,
   padding: ADMIN_SESSION_LIST_CELL_PADDING,

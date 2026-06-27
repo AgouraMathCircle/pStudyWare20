@@ -5,7 +5,6 @@ import {
   Grid,
   FormControl,
   InputLabel,
-  Select,
   MenuItem,
   Alert,
   Box,
@@ -15,6 +14,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
 import PortalDialog from "../Common/PortalDialog";
+import PortalModalSelect from "../Common/PortalModalSelect";
 
 const CLASS_OPTIONS = [
   { value: "JB", label: "Junior Beginner" },
@@ -496,7 +496,7 @@ const InstructorForm = ({
               sx={{ ...portalModalFieldSx, flex: 1.4, minWidth: 0 }}
             >
               <InputLabel id="instructor-chapter-label">Chapter</InputLabel>
-              <Select
+              <PortalModalSelect
                 labelId="instructor-chapter-label"
                 name="chapterID"
                 value={ensureChapterID(
@@ -522,7 +522,7 @@ const InstructorForm = ({
                 ) : (
                   <MenuItem value="">No chapters available</MenuItem>
                 )}
-              </Select>
+              </PortalModalSelect>
               {errors.chapterID && (
                 <Typography variant="caption" color="error">
                   {errors.chapterID}
@@ -538,7 +538,7 @@ const InstructorForm = ({
               sx={{ ...portalModalFieldSx, flex: 1, minWidth: 0 }}
             >
               <InputLabel>Type</InputLabel>
-              <Select
+              <PortalModalSelect
                 name="instructorType"
                 value={formData.instructorType}
                 onChange={handleChange}
@@ -549,7 +549,7 @@ const InstructorForm = ({
                     {type.label}
                   </MenuItem>
                 ))}
-              </Select>
+              </PortalModalSelect>
               {errors.instructorType && (
                 <Typography variant="caption" color="error">
                   {errors.instructorType}
@@ -565,7 +565,7 @@ const InstructorForm = ({
               sx={{ ...portalModalFieldSx, flex: 1.4, minWidth: 0 }}
             >
               <InputLabel id="instructor-class-label">Class</InputLabel>
-              <Select
+              <PortalModalSelect
                 labelId="instructor-class-label"
                 name="classCode"
                 value={ensureClassCode(formData.classCode)}
@@ -578,7 +578,7 @@ const InstructorForm = ({
                     {classOption.label}
                   </MenuItem>
                 ))}
-              </Select>
+              </PortalModalSelect>
               {errors.classCode && (
                 <Typography variant="caption" color="error">
                   {errors.classCode}
@@ -594,7 +594,7 @@ const InstructorForm = ({
               sx={{ ...portalModalFieldSx, flex: 0.7, minWidth: 0 }}
             >
               <InputLabel>Section</InputLabel>
-              <Select
+              <PortalModalSelect
                 name="section"
                 value={formData.section || "A"}
                 onChange={handleChange}
@@ -605,7 +605,7 @@ const InstructorForm = ({
                     {section.label}
                   </MenuItem>
                 ))}
-              </Select>
+              </PortalModalSelect>
               {errors.section && (
                 <Typography variant="caption" color="error">
                   {errors.section}
@@ -621,7 +621,7 @@ const InstructorForm = ({
               sx={{ ...portalModalFieldSx, flex: 1, minWidth: 0 }}
             >
               <InputLabel>Status</InputLabel>
-              <Select
+              <PortalModalSelect
                 name="memberStatus"
                 value={formData.memberStatus}
                 onChange={handleChange}
@@ -632,7 +632,7 @@ const InstructorForm = ({
                     {status.label}
                   </MenuItem>
                 ))}
-              </Select>
+              </PortalModalSelect>
               {errors.memberStatus && (
                 <Typography variant="caption" color="error">
                   {errors.memberStatus}

@@ -33,6 +33,7 @@ import {
   adminSessionListSearchLabelSx,
   adminSessionListSearchSelectSx,
   adminSessionListTableActionLinkSx,
+  adminSessionListTableDeleteLinkSx,
   adminSessionListTableBodyCellSx,
   adminSessionListTableBodyRowSx,
   adminSessionListTableHeadCellSx,
@@ -209,7 +210,7 @@ const AdminStudentDocumentList = ({
       </Typography>
       <Box
         onClick={() => onDelete(doc)}
-        sx={adminSessionListTableActionLinkSx}
+        sx={adminSessionListTableDeleteLinkSx}
       >
         Delete
       </Box>

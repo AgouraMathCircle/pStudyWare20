@@ -15,12 +15,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Select,
   MenuItem,
   FormControl,
   InputLabel,
-  IconButton,
-  Tooltip,
   Grid,
   Card,
   CardContent,
@@ -31,6 +28,7 @@ import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 import PortalDialog from "../Common/PortalDialog";
+import PortalModalSelect from "../Common/PortalModalSelect";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
 import postMessageService from "../../../services/postMessageService";
@@ -50,6 +48,8 @@ import {
   adminSessionListTableBodyRowSx,
   adminSessionListTableHeadCellSx,
   adminSessionListTableHeadRowSx,
+  adminSessionListTableActionLinkSx,
+  adminSessionListTableDeleteLinkSx,
   adminSessionListTitleSx,
   adminSessionListToolbarButtonSx,
 } from "../styles/applicationSurfaces";
@@ -484,30 +484,23 @@ const PostMessage = () => {
                               align="center"
                               sx={adminSessionListTableBodyCellSx({ action: true })}
                             >
-                              <Tooltip title="Edit">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => openEdit(row)}
-                                  sx={{ padding: "2px" }}
-                                >
-                                  <EditIcon sx={{ fontSize: "1rem" }} />
-                                </IconButton>
-                              </Tooltip>
+                              <Box
+                                onClick={() => openEdit(row)}
+                                sx={adminSessionListTableActionLinkSx}
+                              >
+                                Edit
+                              </Box>
                             </TableCell>
                             <TableCell
                               align="center"
                               sx={adminSessionListTableBodyCellSx({ action: true, isLast: true })}
                             >
-                              <Tooltip title="Delete">
-                                <IconButton
-                                  size="small"
-                                  color="error"
-                                  onClick={() => handleDeleteClick(d.messageID)}
-                                  sx={{ padding: "2px" }}
-                                >
-                                  <DeleteIcon sx={{ fontSize: "1rem" }} />
-                                </IconButton>
-                              </Tooltip>
+                              <Box
+                                onClick={() => handleDeleteClick(d.messageID)}
+                                sx={adminSessionListTableDeleteLinkSx}
+                              >
+                                Delete
+                              </Box>
                             </TableCell>
                           </TableRow>
                         );
@@ -586,14 +579,14 @@ const PostMessage = () => {
             />
             <FormControl fullWidth size="small" sx={portalModalFieldSx}>
               <InputLabel>Active</InputLabel>
-              <Select
+              <PortalModalSelect
                 value={form.active}
                 label="Active"
                 onChange={(e) => setForm((f) => ({ ...f, active: e.target.value }))}
               >
                 <MenuItem value="0">No</MenuItem>
                 <MenuItem value="1">Yes</MenuItem>
-              </Select>
+              </PortalModalSelect>
             </FormControl>
             <Typography variant="caption" color="text.secondary">* Required fields</Typography>
           </Box>

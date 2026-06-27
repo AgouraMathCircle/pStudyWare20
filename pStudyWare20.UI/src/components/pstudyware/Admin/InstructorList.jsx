@@ -32,6 +32,7 @@ import {
   adminSessionListSearchLabelSx,
   adminSessionListSearchSelectSx,
   adminSessionListTableActionLinkSx,
+  adminSessionListTableDeleteLinkSx,
   adminSessionListTableBodyCellSx,
   adminSessionListTableBodyRowSx,
   adminSessionListTableContainerSx,
@@ -67,12 +68,11 @@ const instructorHeaderActionButtonSx = {
   "&:hover": { backgroundColor: "#43a047" },
 };
 
-const instructorDeleteLinkSx = {
-  ...adminSessionListTableActionLinkSx,
-  color: "#c62828",
-  "&:visited": { color: "#c62828" },
-  "&:hover": { color: "#b71c1c" },
-};
+const instructorDeleteLinkSx = adminSessionListTableDeleteLinkSx;
+
+/** Matches AMC_spSelectInstructorList default: ORDER BY Class ASC */
+const DEFAULT_SORT_FIELD = "class";
+const DEFAULT_SORT_ORDER = "asc";
 
 const InstructorList = ({
   instructors,
@@ -87,8 +87,8 @@ const InstructorList = ({
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("");
   const [searchText, setSearchText] = useState("");
-  const [orderBy, setOrderBy] = useState("instructorID");
-  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState(DEFAULT_SORT_FIELD);
+  const [order, setOrder] = useState(DEFAULT_SORT_ORDER);
   const [goToPageInput, setGoToPageInput] = useState("1");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
@@ -241,7 +241,11 @@ const InstructorList = ({
       });
     }
 
-    // Sort
+    // Sort — preserve API order when using the backend default (Class ASC)
+    if (orderBy === DEFAULT_SORT_FIELD && order === DEFAULT_SORT_ORDER) {
+      return filtered;
+    }
+
     const sorted = [...filtered].sort((a, b) => {
       let aValue = a[orderBy];
       let bValue = b[orderBy];

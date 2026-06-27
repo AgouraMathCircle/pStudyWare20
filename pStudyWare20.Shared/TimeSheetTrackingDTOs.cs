@@ -28,6 +28,8 @@ namespace pStudyWare20.Shared
         /// <summary>Legacy grid TotalHours column.</summary>
         public string TotalHours { get; set; } = string.Empty;
         public string TaskDescription { get; set; } = string.Empty;
+        /// <summary>Display row number from AMC_spSelectTimeTracking (not the primary key).</summary>
+        public int MLogID { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
     }

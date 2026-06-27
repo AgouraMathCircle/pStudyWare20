@@ -1,282 +1,266 @@
-/* Volunteer Registration Styles - Matching Legacy Design */
-
+/* pStudyWare20.UI/src/styles/VolunteerRegistration.css */
 .volunteer-registration-container {
+  width: 100%;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
-}
-
-/* Breadcrumbs Section */
-.sc-breadcrumbs {
+  padding: 0;
+  margin: 0;
   position: relative;
-  padding: 50px 0 40px;
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
 }
 
-.breadcrumbs-img {
+/* Breadcrumbs styling */
+.volunteer-registration-container .sc-breadcrumbs {
+  position: relative;
+  padding: 40px 0 20px;
+  overflow: hidden;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.volunteer-registration-container .breadcrumbs-overlay {
+  position: relative;
+}
+
+.volunteer-registration-container .breadcrumbs-overlay::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 1;
+}
+
+.volunteer-registration-container .breadcrumbs-img {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1;
+  z-index: 0;
 }
 
-.breadcrumbs-img img {
+.volunteer-registration-container .breadcrumbs-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.breadcrumbs-text {
-  text-align: center;
+.volunteer-registration-container .breadcrumbs-text {
   position: relative;
-  z-index: 1;
+  z-index: 2;
+  text-align: center;
 }
 
-.page-title {
+.volunteer-registration-container .page-title {
   font-size: 3rem;
-  font-weight: bold;
-  color: white;
+  font-weight: 700;
+  color: #ffffff;
   margin-bottom: 20px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.breadcrumb-nav {
+.volunteer-registration-container .breadcrumbs-text ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
-.breadcrumb-link {
-  color: #4caf50;
+.volunteer-registration-container .breadcrumbs-text li {
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+.volunteer-registration-container .breadcrumbs-text li a {
+  color: #ffd700;
   text-decoration: none;
-  font-weight: 500;
   transition: color 0.3s ease;
 }
 
-.breadcrumb-link:hover {
-  color: #66bb6a;
-  text-decoration: underline;
+.volunteer-registration-container .breadcrumbs-text li a:hover {
+  color: #ffffff;
 }
 
-.breadcrumb-separator {
-  color: #4caf50;
-  font-weight: bold;
-  margin: 0 5px;
+.volunteer-registration-container .breadcrumbs-text li.active {
+  color: #ffffff;
 }
 
-.breadcrumb-current {
-  color: white;
-  font-weight: 500;
-}
-
-/* Main Content */
-.main-content {
-  background: #f8f9fa;
-  padding: 40px 0;
-}
-
-/* Form Styling */
-.MuiPaper-root {
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.MuiCard-root {
-  border: 1px solid #e0e0e0;
+/* Custom form field styles */
+.volunteer-registration-container .MuiTextField-root .MuiOutlinedInput-root,
+.volunteer-registration-container .MuiFormControl-root .MuiOutlinedInput-root {
   border-radius: 8px;
-  transition: box-shadow 0.3s ease;
 }
 
-.MuiCard-root:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+.registration-form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-/* Section Headers */
-.MuiTypography-h5 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 20px;
-  text-align: center;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #e0e0e0;
+.registration-form-layout .parent-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* Form Fields */
-.MuiTextField-root .MuiOutlinedInput-root {
+@media (min-width: 992px) {
+  .registration-form-layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+    row-gap: 16px;
+    align-items: start;
+  }
+
+  .registration-parent-column {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .registration-student-column {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+.registration-signature-column {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.volunteer-registration-container .registration-card {
+  padding: 20px;
+  background-color: #ffffff;
   border-radius: 8px;
-  background-color: #fafafa;
-  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 }
 
-.MuiTextField-root .MuiOutlinedInput-root:hover {
-  background-color: #f5f5f5;
+/* Signature section styling */
+.signature-section {
+  margin-top: 0;
 }
 
-.MuiTextField-root .MuiOutlinedInput-root.Mui-focused {
-  background-color: white;
+.volunteer-registration-container .signature-section.registration-card {
+  padding: 16px 20px;
 }
 
-.MuiFormControl-root .MuiOutlinedInput-root {
-  border-radius: 8px;
-  background-color: #fafafa;
-  transition: all 0.3s ease;
+.volunteer-registration-container .signature-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.MuiFormControl-root .MuiOutlinedInput-root:hover {
-  background-color: #f5f5f5;
+.volunteer-registration-container .signature-section .agreement-text {
+  font-size: 0.875rem;
+  color: #495057;
+  line-height: 1.4;
+  margin: 0 0 8px;
 }
 
-.MuiFormControl-root .MuiOutlinedInput-root.Mui-focused {
-  background-color: white;
+.volunteer-registration-container .signature-section .signature-help-text {
+  font-size: 0.8125rem;
+  color: #6c757d;
+  margin: 4px 0;
+  line-height: 1.35;
 }
 
-/* Labels */
-.MuiInputLabel-root {
-  font-weight: 500;
-  color: #174a10;
+.volunteer-registration-container .signature-section .MuiTextField-root {
+  margin-top: 4px;
+  margin-bottom: 0;
 }
 
-.MuiInputLabel-root.Mui-focused {
+.volunteer-registration-container .signature-section .MuiFormControlLabel-root {
+  margin: 6px 0 0;
+}
+
+/* Checkbox styling */
+.volunteer-registration-container .MuiFormControlLabel-root .MuiCheckbox-root {
   color: #1976d2;
 }
 
-/* Error States */
-.MuiTextField-root .MuiOutlinedInput-root.Mui-error {
-  border-color: #f44336;
-  background-color: #ffebee;
+/* Required field asterisk */
+.volunteer-registration-container .MuiFormLabel-asterisk,
+.volunteer-registration-container .required-asterisk {
+  color: #d32f2f;
 }
 
-.MuiFormControl-root .MuiOutlinedInput-root.Mui-error {
-  border-color: #f44336;
-  background-color: #ffebee;
+/* Error message styling */
+.volunteer-registration-container .MuiFormHelperText-root.Mui-error {
+  color: #d32f2f;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  margin-left: 14px;
 }
 
-.MuiFormHelperText-root.Mui-error {
-  color: #f44336;
-  font-weight: 500;
+/* Focus states */
+.volunteer-registration-container .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #1976d2;
+  border-width: 2px;
 }
 
-/* Submit Button */
-.MuiButton-contained {
-  border-radius: 25px;
-  text-transform: none;
-  font-weight: 600;
-  box-shadow: 0 4px 14px rgba(25, 118, 210, 0.3);
-  transition: all 0.3s ease;
+.volunteer-registration-container .MuiInputLabel-root.Mui-focused {
+  color: #1976d2;
 }
 
-.MuiButton-contained:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+/* Uniform single-line input height (match State field) */
+.volunteer-registration-container
+  .MuiTextField-root:not(.MuiTextField-multiline)
+  .MuiOutlinedInput-root,
+.volunteer-registration-container
+  .MuiFormControl-root
+  .MuiOutlinedInput-root {
+  min-height: 40px;
 }
 
-.MuiButton-contained:disabled {
-  opacity: 0.7;
-  transform: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.volunteer-registration-container
+  .MuiOutlinedInput-root.MuiInputBase-sizeSmall
+  .MuiOutlinedInput-input {
+  padding: 8.5px 14px;
+  box-sizing: border-box;
 }
 
-/* Loading State */
-.MuiCircularProgress-root {
-  color: white;
+.volunteer-registration-container
+  .MuiOutlinedInput-root.MuiInputBase-sizeSmall
+  .MuiSelect-select {
+  padding: 8.5px 32px 8.5px 14px;
+  min-height: auto;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
 }
 
-/* Snackbar */
-.MuiSnackbar-root {
-  z-index: 9999;
+.volunteer-registration-container
+  .signature-section
+  .MuiTextField-root:not(.MuiTextField-multiline)
+  .MuiOutlinedInput-root {
+  min-height: 40px;
 }
 
-.MuiAlert-root {
-  border-radius: 8px;
-  font-weight: 500;
-}
-
-/* Responsive Design */
+/* Responsive adjustments */
 @media (max-width: 960px) {
-  .page-title {
+  .volunteer-registration-container .page-title {
     font-size: 2rem;
   }
 
-  .breadcrumb-nav {
+  .volunteer-registration-container .breadcrumbs-text ul {
     flex-direction: column;
     gap: 5px;
   }
-
-  .MuiCard-root {
-    margin-bottom: 20px;
-  }
 }
 
-@media (max-width: 600px) {
-  .sc-breadcrumbs {
+@media (max-width: 768px) {
+  .volunteer-registration-container .sc-breadcrumbs {
     padding: 30px 0 20px;
   }
 
-  .page-title {
+  .volunteer-registration-container .page-title {
     font-size: 1.5rem;
   }
-
-  .main-content {
-    padding: 20px 0;
-  }
-
-  .MuiPaper-root {
-    margin: 0 10px;
-    padding: 20px;
-  }
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-
-
-/* Animation for form submission */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.MuiPaper-root {
-  animation: fadeIn 0.6s ease-out;
-}
-
-/* Success message styling */
-.MuiAlert-standardSuccess {
-  background-color: #e8f5e8;
-  color: #2e7d32;
-  border: 1px solid #4caf50;
-}
-
-.MuiAlert-standardError {
-  background-color: #ffebee;
-  color: #c62828;
-  border: 1px solid #f44336;
 }

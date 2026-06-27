@@ -357,13 +357,7 @@ const AdminDashboard = () => {
                         flexDirection: "column",
                       }}
                     >
-                      <ToDoList
-                        trackingSummary={userTrackingSummary}
-                        onPublishDocument={handlePublishDocument}
-                        canPublishDocuments={
-                          adminPrivileges.canPublishDocuments
-                        }
-                      />
+                      <ToDoList trackingSummary={userTrackingSummary} />
                     </Box>
                   </Grid>
                   <Grid item xs={12} sm={6} md={3} sx={adminDashboardWidgetColumnSx}>
@@ -403,7 +397,12 @@ const AdminDashboard = () => {
                         flexDirection: "column",
                       }}
                     >
-                      <SystemSupport />
+                      <SystemSupport
+                        onPublishDocument={handlePublishDocument}
+                        canPublishDocuments={
+                          adminPrivileges.canPublishDocuments
+                        }
+                      />
                     </Box>
                   </Grid>
                 </Grid>

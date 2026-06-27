@@ -22,6 +22,7 @@ import {
   Container,
   Card,
   CardContent,
+  Snackbar,
 } from "@mui/material";
 import {
   Download as DownloadIcon,
@@ -34,10 +35,10 @@ import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import PortalDialog from "../Common/PortalDialog";
+import PortalModalSelect from "../Common/PortalModalSelect";
 import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
 import SortableHeader from "../Common/SortableHeader";
 import {
-  ADMIN_SESSION_LIST_CELL_PADDING,
   adminSessionListEmptyCellSx,
   adminSessionListEmptyTextSx,
   adminSessionListFindButtonSx,
@@ -51,6 +52,7 @@ import {
   adminSessionListSearchLabelSx,
   adminSessionListSearchSelectSx,
   adminSessionListTableActionLinkSx,
+  adminSessionListTableDeleteLinkSx,
   adminSessionListTableBodyCellSx,
   adminSessionListTableBodyRowSx,
   adminSessionListTableHeadCellSx,
@@ -58,21 +60,179 @@ import {
   adminSessionListTitleSx,
 } from "../styles/applicationSurfaces";
 
+// Legacy RegistertedStudentList StudentClassInfo:
+// Fname~#Lname~#Class~#Email~#Location~#Section~#ChapterID~#Session
+function parseRegisteredStudentClassInfo(str) {
+  if (!str || typeof str !== "string") return {};
+  const arr = str.split("~#");
+  return {
+    firstName: (arr[0] || "").trim(),
+    lastName: (arr[1] || "").trim(),
+    class: (arr[2] || "").trim(),
+    email: (arr[3] || "").trim(),
+    location: (arr[4] || "").trim(),
+    section: (arr[5] || "").trim(),
+    chapterId: (arr[6] || "").trim(),
+    session: (arr[7] || "").trim(),
+  };
+}
+
+function registeredListLocationCode(parsedLocation, eventLocation) {
+  const code = (parsedLocation || "").trim().toUpperCase();
+  if (code === "I" || code === "O") return code;
+  const display = (eventLocation || "").toString().toLowerCase();
+  if (display.includes("internet") || display === "i" || display === "online") {
+    return "I";
+  }
+  return "O";
+}
+
+function resolveRegisteredChapterId(student, parsed, chapters) {
+  const parsedId = String(parsed.chapterId ?? "").trim();
+  if (parsedId) return parsedId;
+  const chapterName = String(student.chapter ?? "").trim();
+  if (!chapterName || !chapters?.length) return "";
+  const match = chapters.find(
+    (chapter) =>
+      String(chapter.chapterName ?? chapter.ChapterName ?? "").trim() ===
+      chapterName
+  );
+  return match ? String(match.chapterID ?? match.ChapterID ?? "") : "";
+}
+
+function mapSessionOptions(options) {
+  if (!Array.isArray(options) || options.length === 0) {
+    return BASE_SESSION_OPTIONS;
+  }
+  return options
+    .map((option) => ({
+      value: String(option.value ?? option.Value ?? "").trim(),
+      label: String(option.label ?? option.Label ?? option.value ?? option.Value ?? "").trim(),
+    }))
+    .filter((option) => option.value);
+}
+
+const CLASS_OPTIONS = [
+  { value: "JB", label: "Junior Beginner" },
+  { value: "JI", label: "Junior Intermediate" },
+  { value: "JA", label: "Junior Advanced" },
+  { value: "SB", label: "Senior Beginner" },
+  { value: "SI", label: "Senior Intermediate" },
+  { value: "SA", label: "Senior Advanced" },
+  { value: "DS", label: "Data Science" },
+  { value: "AI", label: "Artificial Intelligence" },
+  { value: "GD", label: "Game Development" },
+  { value: "AD", label: "App Development" },
+  { value: "DM", label: "Data Management" },
+  { value: "ST", label: "SAT/PSAT" },
+  { value: "AT", label: "ACT" },
+];
+
+const SECTION_OPTIONS = [
+  { value: "A", label: "A" },
+  { value: "B", label: "B" },
+];
+
+const LOCATION_OPTIONS = [
+  { value: "O", label: "OnSite" },
+  { value: "I", label: "Internet" },
+];
+
+const BASE_SESSION_OPTIONS = [
+  { value: "F2024", label: "Fall 2024" },
+  { value: "S2024", label: "Spring 2024" },
+];
+
+const registeredListDeleteLinkSx = {
+  ...adminSessionListTableDeleteLinkSx,
+};
+
+const registeredStudentIdCellSx = {
+  ...adminSessionListTableBodyCellSx({ ellipsis: true }),
+  width: "6%",
+  maxWidth: 72,
+  whiteSpace: "nowrap",
+};
+
+const registeredStudentIdHeadCellSx = adminSessionListTableHeadCellSx("6%");
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  document.body.removeChild(textarea);
+  return copied;
+}
+
+const RegisteredListCopyCell = ({ value, onCopied }) => {
+  const display =
+    value == null || value === "" ? "—" : String(value).trim() || "—";
+  const canCopy = display !== "—";
+
+  const handleClick = async (event) => {
+    event.stopPropagation();
+    if (!canCopy) return;
+    try {
+      const copied = await copyTextToClipboard(display);
+      if (copied) {
+        onCopied?.(display);
+      }
+    } catch {
+      // ignore copy failures
+    }
+  };
+
+  return (
+    <Tooltip title={canCopy ? `${display} (click to copy)` : display}>
+      <Box
+        component="span"
+        onClick={handleClick}
+        sx={{
+          display: "block",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          maxWidth: "100%",
+          cursor: canCopy ? "pointer" : "default",
+        }}
+      >
+        {display}
+      </Box>
+    </Tooltip>
+  );
+};
+
 const RegisteredStudentList = () => {
   const { user } = useAuth();
 
   // State management
   const [students, setStudents] = useState([]);
   const [chapterLocations, setChapterLocations] = useState([]);
+  const [sessionOptions, setSessionOptions] = useState(BASE_SESSION_OPTIONS);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [updateFormError, setUpdateFormError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("");
   const [searchText, setSearchText] = useState("");
   const [orderBy, setOrderBy] = useState("studentID");
-  const [order, setOrder] = useState("asc");
+  const [order, setOrder] = useState("desc");
   const [goToPageInput, setGoToPageInput] = useState("1");
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState(null);
@@ -98,37 +258,17 @@ const RegisteredStudentList = () => {
 
   const pageSize = 25; // Match original page size
 
-  // Class options (from original ASP.NET page)
-  const classOptions = [
-    { value: "JB", label: "Junior Beginner" },
-    { value: "JI", label: "Junior Intermediate" },
-    { value: "JA", label: "Junior Advanced" },
-    { value: "SB", label: "Senior Beginner" },
-    { value: "SI", label: "Senior Intermediate" },
-    { value: "SA", label: "Senior Advanced" },
-    { value: "DS", label: "Data Science" },
-    { value: "AI", label: "Artificial Intelligence" },
-    { value: "GD", label: "Game Development" },
-    { value: "AD", label: "App Development" },
-    { value: "DM", label: "Data Management" },
-    { value: "ST", label: "SAT/PSAT" },
-    { value: "AT", label: "ACT" },
-  ];
-
-  const sectionOptions = [
-    { value: "A", label: "A" },
-    { value: "B", label: "B" },
-  ];
-
-  const locationOptions = [
-    { value: "O", label: "OnSite" },
-    { value: "I", label: "Internet" },
-  ];
-
-  const sessionOptions = [
-    { value: "F2024", label: "Fall 2024" },
-    { value: "S2024", label: "Spring 2024" },
-  ];
+  const sessionSelectOptions = useMemo(() => {
+    const options = [...sessionOptions];
+    const currentSession = updateFormData.session?.trim();
+    if (
+      currentSession &&
+      !options.some((option) => option.value === currentSession)
+    ) {
+      options.unshift({ value: currentSession, label: currentSession });
+    }
+    return options.length ? options : BASE_SESSION_OPTIONS;
+  }, [sessionOptions, updateFormData.session]);
 
   // Load data on component mount
   useEffect(() => {
@@ -137,15 +277,18 @@ const RegisteredStudentList = () => {
   }, []);
 
   // Fetch dashboard data
-  const fetchData = async () => {
+  const fetchData = async ({ quiet = false } = {}) => {
     try {
-      setLoading(true);
+      if (!quiet) {
+        setLoading(true);
+      }
       setError(null);
       const response = await registeredStudentListService.getDashboardData();
 
       if (response.isSuccess) {
         setStudents(response.studentList || []);
         setChapterLocations(response.chapterLocations || []);
+        setSessionOptions(mapSessionOptions(response.sessionOptions));
       } else {
         setError(response.errorMessage || "Failed to load data");
       }
@@ -153,7 +296,9 @@ const RegisteredStudentList = () => {
       setError(err.message || "An error occurred while loading data");
       console.error("Error fetching data:", err);
     } finally {
-      setLoading(false);
+      if (!quiet) {
+        setLoading(false);
+      }
     }
   };
 
@@ -174,37 +319,74 @@ const RegisteredStudentList = () => {
     }
   };
 
-  // Handle update class button click
+  // Handle update class button click (legacy RegistertedStudentList.aspx UpdateClass)
   const handleUpdateClass = (student) => {
-    // Parse student class info
-    const studentClassInfo = `${student.firstName || ""}~#${
-      student.lastName || ""
-    }~#${student.class || ""}~#${student.emailAddress || ""}~#${
-      student.eventLocation || ""
-    }~#${student.section || ""}~#${student.chapterID || ""}~#${
-      student.eventSession || ""
-    }`;
-    const arrUpdateData = studentClassInfo.split("~#");
+    const parsed = parseRegisteredStudentClassInfo(
+      student.studentClassInfo ?? student.StudentClassInfo ?? ""
+    );
+    const nameParts = (student.studentName || "").trim().split(/\s+/);
+    const chapterId = resolveRegisteredChapterId(
+      student,
+      parsed,
+      chapterLocations
+    );
 
+    setUpdateFormError(null);
     setUpdateFormData({
-      studentId: student.studentID || "",
-      firstName: arrUpdateData[0] || "",
-      lastName: arrUpdateData[1] || "",
-      class: arrUpdateData[2] || "JB",
-      email: arrUpdateData[3] || "",
-      location: arrUpdateData[4] || "O",
-      section: arrUpdateData[5] || "A",
-      chapterId: arrUpdateData[6] || "",
-      session: arrUpdateData[7] || "F2024",
+      studentId: String(student.studentID ?? ""),
+      firstName: parsed.firstName || nameParts[0] || "",
+      lastName: parsed.lastName || nameParts.slice(1).join(" ") || "",
+      class: parsed.class || "JB",
+      email: parsed.email || student.emailAddress || "",
+      location: registeredListLocationCode(parsed.location, student.eventLocation),
+      section: parsed.section || "A",
+      chapterId,
+      session: parsed.session || student.eventSession || sessionOptions[0]?.value || "F2024",
     });
     setShowUpdateForm(true);
   };
 
-  // Handle update form submit
   const handleUpdateSubmit = async () => {
+    if (!updateFormData.studentId || updateFormData.studentId === "0") {
+      setUpdateFormError("Invalid student selected for update.");
+      return;
+    }
+    if (!updateFormData.chapterId) {
+      setUpdateFormError("Please select a chapter.");
+      return;
+    }
+    if (!updateFormData.class || !updateFormData.section || !updateFormData.location) {
+      setUpdateFormError("Class, section, and location are required.");
+      return;
+    }
+    if (!updateFormData.session) {
+      setUpdateFormError("Please select a session.");
+      return;
+    }
+
     try {
-      setLoading(true);
+      setSubmitting(true);
+      setUpdateFormError(null);
       setError(null);
+
+      const classLabel =
+        CLASS_OPTIONS.find((option) => option.value === updateFormData.class)?.label ??
+        updateFormData.class;
+      const chapterName =
+        chapterLocations.find(
+          (chapter) =>
+            String(chapter.chapterID ?? chapter.ChapterID) ===
+            String(updateFormData.chapterId)
+        )?.chapterName ??
+        chapterLocations.find(
+          (chapter) =>
+            String(chapter.chapterID ?? chapter.ChapterID) ===
+            String(updateFormData.chapterId)
+        )?.ChapterName ??
+        "";
+      const locationLabel =
+        LOCATION_OPTIONS.find((option) => option.value === updateFormData.location)
+          ?.label ?? updateFormData.location;
 
       const request = {
         studentId: updateFormData.studentId,
@@ -216,6 +398,9 @@ const RegisteredStudentList = () => {
         location: updateFormData.location,
         session: updateFormData.session,
         email: updateFormData.email,
+        classLabel,
+        chapterName,
+        locationLabel,
       };
 
       const response = await registeredStudentListService.updateStudentClass(
@@ -223,17 +408,32 @@ const RegisteredStudentList = () => {
       );
 
       if (response.isSuccess) {
-        setSuccess(response.message || "Student class updated successfully");
+        const message =
+          response.message || "You have updated the class/location successfully";
+        setSnackbar({
+          open: true,
+          message,
+          severity: "success",
+        });
         setShowUpdateForm(false);
-        fetchData(); // Refresh data
+        await fetchData({ quiet: true });
       } else {
-        setError(response.errorMessage || "Failed to update student class");
+        setUpdateFormError(
+          response.errorMessage || "Failed to update student class"
+        );
       }
     } catch (err) {
-      setError(err.message || "An error occurred while updating student class");
+      const message =
+        err?.code === "ECONNABORTED"
+          ? "The request timed out. Please try again."
+          : err?.response?.data?.errorMessage ??
+            err?.response?.data?.message ??
+            err?.message ??
+            "An error occurred while updating student class";
+      setUpdateFormError(message);
       console.error("Error updating student class:", err);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -343,6 +543,30 @@ const RegisteredStudentList = () => {
     setGoToPageInput("1");
   };
 
+  const handleCellCopy = () => {
+    setSnackbar({
+      open: true,
+      message: "Copied to clipboard",
+      severity: "success",
+    });
+  };
+
+  const formatRegisteredDate = (value) => {
+    if (!value) return "";
+    const date = typeof value === "string" ? new Date(value) : value;
+    return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString();
+  };
+
+  const renderCopyCell = (value, { isLast = false, cellSx } = {}) => (
+    <TableCell
+      sx={
+        cellSx ?? adminSessionListTableBodyCellSx({ ellipsis: true, isLast })
+      }
+    >
+      <RegisteredListCopyCell value={value} onCopied={handleCellCopy} />
+    </TableCell>
+  );
+
   // Filter and sort students
   const filteredAndSortedStudents = useMemo(() => {
     if (!students || students.length === 0) return [];
@@ -413,10 +637,30 @@ const RegisteredStudentList = () => {
       });
     }
 
-    // Sort
+    // Sort (default: Student ID numeric DESC)
     const sorted = [...filtered].sort((a, b) => {
       let aValue = a[orderBy];
       let bValue = b[orderBy];
+
+      if (orderBy === "studentID") {
+        const aNum = Number(aValue);
+        const bNum = Number(bValue);
+        const aValid = !Number.isNaN(aNum);
+        const bValid = !Number.isNaN(bNum);
+        if (aValid && bValid) {
+          return order === "asc" ? aNum - bNum : bNum - aNum;
+        }
+        if (!aValid && !bValid) return 0;
+        return order === "asc" ? (aValid ? -1 : 1) : aValid ? -1 : 1;
+      }
+
+      if (orderBy === "registeredDate") {
+        const aTime = aValue ? new Date(aValue).getTime() : 0;
+        const bTime = bValue ? new Date(bValue).getTime() : 0;
+        if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) {
+          return order === "asc" ? aTime - bTime : bTime - aTime;
+        }
+      }
 
       if (aValue == null) aValue = "";
       if (bValue == null) bValue = "";
@@ -623,9 +867,7 @@ const RegisteredStudentList = () => {
                         >
                           Edit
                         </TableCell>
-                        <TableCell
-                          sx={adminSessionListTableHeadCellSx("4%")}
-                        >
+                        <TableCell sx={adminSessionListTableHeadCellSx("4%")}>
                           Delete
                         </TableCell>
                         <SortableHeader
@@ -634,7 +876,7 @@ const RegisteredStudentList = () => {
                           sortField={orderBy}
                           sortOrder={order}
                           onSort={handleSort}
-                          headCellSx={adminSessionListTableHeadCellSx("10%")}
+                          headCellSx={registeredStudentIdHeadCellSx}
                         />
                         <SortableHeader
                           label="Student Name"
@@ -765,7 +1007,7 @@ const RegisteredStudentList = () => {
                               {privileges.canDeleteStudents ? (
                                 <Box
                                   onClick={() => handleDeleteStudent(student.studentID)}
-                                  sx={adminSessionListTableActionLinkSx}
+                                  sx={registeredListDeleteLinkSx}
                                 >
                                   Delete
                                 </Box>
@@ -773,155 +1015,22 @@ const RegisteredStudentList = () => {
                                 "—"
                               )}
                             </TableCell>
-                            <TableCell sx={adminSessionListTableBodyCellSx()}>
-                              {student.studentID || "—"}
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              <Tooltip title={student.studentName ?? "-"}>
-                                <span>{student.studentName || "-"}</span>
-                              </Tooltip>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              <Tooltip title={student.chapter ?? "-"}>
-                                <span>{student.chapter || "-"}</span>
-                              </Tooltip>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              <Tooltip title={student.class ?? "-"}>
-                                <span>{student.class || "-"}</span>
-                              </Tooltip>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
-                              }}
-                            >
-                              {student.grade || "-"}
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              <Tooltip title={student.school ?? "-"}>
-                                <span>{student.school || "-"}</span>
-                              </Tooltip>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              <Tooltip title={student.parentName ?? "-"}>
-                                <span>{student.parentName || "-"}</span>
-                              </Tooltip>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
-                              }}
-                            >
-                              {student.phoneNumber || "-"}
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              <Tooltip title={student.emailAddress ?? "-"}>
-                                <span>{student.emailAddress || "-"}</span>
-                              </Tooltip>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
-                              }}
-                            >
-                              {student.eventSession || "-"}
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              <Tooltip title={student.eventLocation ?? "-"}>
-                                <span>{student.eventLocation || "-"}</span>
-                              </Tooltip>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
-                              }}
-                            >
-                              {student.registeredDate
-                                ? new Date(student.registeredDate).toLocaleDateString()
-                                : "-"}
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
-                              }}
-                            >
-                              {student.sState || "-"}
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontSize: "0.75rem",
-                                padding: ADMIN_SESSION_LIST_CELL_PADDING,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              <Tooltip title={student.city ?? "-"}>
-                                <span>{student.city || "-"}</span>
-                              </Tooltip>
-                            </TableCell>
+                            {renderCopyCell(student.studentID, {
+                              cellSx: registeredStudentIdCellSx,
+                            })}
+                            {renderCopyCell(student.studentName)}
+                            {renderCopyCell(student.chapter)}
+                            {renderCopyCell(student.class)}
+                            {renderCopyCell(student.grade)}
+                            {renderCopyCell(student.school)}
+                            {renderCopyCell(student.parentName)}
+                            {renderCopyCell(student.phoneNumber)}
+                            {renderCopyCell(student.emailAddress)}
+                            {renderCopyCell(student.eventSession)}
+                            {renderCopyCell(student.eventLocation)}
+                            {renderCopyCell(formatRegisteredDate(student.registeredDate))}
+                            {renderCopyCell(student.sState)}
+                            {renderCopyCell(student.city, { isLast: true })}
                           </TableRow>
                         ))
                       ) : (
@@ -952,9 +1061,9 @@ const RegisteredStudentList = () => {
 
                 <PortalDialog
                   open={showUpdateForm}
-                  onClose={() => !loading && setShowUpdateForm(false)}
+                  onClose={() => !submitting && setShowUpdateForm(false)}
                   maxWidth="sm"
-                  disableClose={loading}
+                  disableClose={submitting}
                   ariaLabelledby="update-class-dialog-title"
                   title="Update Class"
                   icon={<EditIcon sx={{ fontSize: 20 }} />}
@@ -962,27 +1071,35 @@ const RegisteredStudentList = () => {
                     <Button
                       onClick={handleUpdateSubmit}
                       variant="contained"
-                      disabled={loading}
-                      startIcon={loading ? <CircularProgress size={16} color="inherit" /> : null}
+                      disabled={submitting}
+                      startIcon={
+                        submitting ? (
+                          <CircularProgress size={16} color="inherit" />
+                        ) : null
+                      }
                       sx={portalModalSendButtonSx}
                     >
-                      {loading ? "Saving…" : "Submit"}
+                      {submitting ? "Saving…" : "Submit"}
                     </Button>
                   }
                 >
+                  {updateFormError && (
+                    <Alert
+                      severity="error"
+                      onClose={() => setUpdateFormError(null)}
+                      sx={{ mb: 2 }}
+                    >
+                      {updateFormError}
+                    </Alert>
+                  )}
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
                         label="First Name"
                         value={updateFormData.firstName}
-                        onChange={(e) =>
-                          setUpdateFormData({
-                            ...updateFormData,
-                            firstName: e.target.value,
-                          })
-                        }
                         size="small"
+                        InputProps={{ readOnly: true }}
                         sx={portalModalFieldSx}
                       />
                     </Grid>
@@ -991,21 +1108,16 @@ const RegisteredStudentList = () => {
                         fullWidth
                         label="Last Name"
                         value={updateFormData.lastName}
-                        onChange={(e) =>
-                          setUpdateFormData({
-                            ...updateFormData,
-                            lastName: e.target.value,
-                          })
-                        }
                         size="small"
+                        InputProps={{ readOnly: true }}
                         sx={portalModalFieldSx}
                       />
                     </Grid>
                     <Grid item xs={12}>
                       <FormControl fullWidth size="small" sx={portalModalFieldSx}>
                         <InputLabel>Chapter</InputLabel>
-                        <Select
-                          value={updateFormData.chapterId}
+                        <PortalModalSelect
+                          value={String(updateFormData.chapterId ?? "")}
                           label="Chapter"
                           onChange={(e) =>
                             setUpdateFormData({
@@ -1014,21 +1126,25 @@ const RegisteredStudentList = () => {
                             })
                           }
                         >
-                          {chapterLocations.map((chapter) => (
-                            <MenuItem
-                              key={chapter.chapterID}
-                              value={chapter.chapterID}
-                            >
-                              {chapter.chapterName}
-                            </MenuItem>
-                          ))}
-                        </Select>
+                          {chapterLocations.map((chapter) => {
+                            const chapterId = String(
+                              chapter.chapterID ?? chapter.ChapterID ?? ""
+                            );
+                            const chapterName =
+                              chapter.chapterName ?? chapter.ChapterName ?? chapterId;
+                            return (
+                              <MenuItem key={chapterId} value={chapterId}>
+                                {chapterName}
+                              </MenuItem>
+                            );
+                          })}
+                        </PortalModalSelect>
                       </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <FormControl fullWidth size="small" sx={portalModalFieldSx}>
                         <InputLabel>Location</InputLabel>
-                        <Select
+                        <PortalModalSelect
                           value={updateFormData.location}
                           label="Location"
                           onChange={(e) =>
@@ -1038,18 +1154,18 @@ const RegisteredStudentList = () => {
                             })
                           }
                         >
-                          {locationOptions.map((option) => (
+                          {LOCATION_OPTIONS.map((option) => (
                             <MenuItem key={option.value} value={option.value}>
                               {option.label}
                             </MenuItem>
                           ))}
-                        </Select>
+                        </PortalModalSelect>
                       </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <FormControl fullWidth size="small" sx={portalModalFieldSx}>
                         <InputLabel>Session</InputLabel>
-                        <Select
+                        <PortalModalSelect
                           value={updateFormData.session}
                           label="Session"
                           onChange={(e) =>
@@ -1059,18 +1175,18 @@ const RegisteredStudentList = () => {
                             })
                           }
                         >
-                          {sessionOptions.map((option) => (
+                          {sessionSelectOptions.map((option) => (
                             <MenuItem key={option.value} value={option.value}>
                               {option.label}
                             </MenuItem>
                           ))}
-                        </Select>
+                        </PortalModalSelect>
                       </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={8}>
                       <FormControl fullWidth size="small" sx={portalModalFieldSx}>
                         <InputLabel>Class</InputLabel>
-                        <Select
+                        <PortalModalSelect
                           value={updateFormData.class}
                           label="Class"
                           onChange={(e) =>
@@ -1080,18 +1196,18 @@ const RegisteredStudentList = () => {
                             })
                           }
                         >
-                          {classOptions.map((option) => (
+                          {CLASS_OPTIONS.map((option) => (
                             <MenuItem key={option.value} value={option.value}>
                               {option.label}
                             </MenuItem>
                           ))}
-                        </Select>
+                        </PortalModalSelect>
                       </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={4}>
                       <FormControl fullWidth size="small" sx={portalModalFieldSx}>
                         <InputLabel>Section</InputLabel>
-                        <Select
+                        <PortalModalSelect
                           value={updateFormData.section}
                           label="Section"
                           onChange={(e) =>
@@ -1101,12 +1217,12 @@ const RegisteredStudentList = () => {
                             })
                           }
                         >
-                          {sectionOptions.map((option) => (
+                          {SECTION_OPTIONS.map((option) => (
                             <MenuItem key={option.value} value={option.value}>
                               {option.label}
                             </MenuItem>
                           ))}
-                        </Select>
+                        </PortalModalSelect>
                       </FormControl>
                     </Grid>
                   </Grid>
@@ -1128,6 +1244,25 @@ const RegisteredStudentList = () => {
         icon={<DeleteIcon sx={{ fontSize: 20 }} />}
         loading={loading}
       />
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={(event, reason) => {
+          if (reason === "clickaway") return;
+          setSnackbar((s) => ({ ...s, open: false }));
+        }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+          sx={{ width: "100%" }}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

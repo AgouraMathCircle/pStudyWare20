@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
@@ -12,14 +13,17 @@ namespace pStudyWare20.Services.Implementations
     public class RegisteredStudentListService : IRegisteredStudentListService
     {
         private readonly IRegisteredStudentListRepository _registeredStudentListRepository;
-        private readonly IEmailUtility _emailUtility;
         private readonly IConfiguration _configuration;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public RegisteredStudentListService(IRegisteredStudentListRepository registeredStudentListRepository, IEmailUtility emailUtility, IConfiguration configuration)
+        public RegisteredStudentListService(
+            IRegisteredStudentListRepository registeredStudentListRepository,
+            IConfiguration configuration,
+            IServiceScopeFactory serviceScopeFactory)
         {
             _registeredStudentListRepository = registeredStudentListRepository;
-            _emailUtility = emailUtility;
             _configuration = configuration;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         /// <summary>
@@ -54,38 +58,105 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                // Update student class in database
+                if (!int.TryParse(request.StudentId, out var studentId) || studentId <= 0)
+                {
+                    return new UpdateStudentClassResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Invalid student ID."
+                    };
+                }
+
+                if (!int.TryParse(request.ChapterId, out var chapterId) || chapterId <= 0)
+                {
+                    return new UpdateStudentClassResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Invalid chapter."
+                    };
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Class)
+                    || string.IsNullOrWhiteSpace(request.Section)
+                    || string.IsNullOrWhiteSpace(request.Location)
+                    || string.IsNullOrWhiteSpace(request.Session))
+                {
+                    return new UpdateStudentClassResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Class, section, location, and session are required."
+                    };
+                }
+
+                var classCode = NormalizeClassCode(request.Class);
+                var section = request.Section.Trim().ToUpperInvariant();
+                var location = request.Location.Trim().ToUpperInvariant();
+                var session = NormalizeSessionCode(request.Session);
+
+                if (string.IsNullOrEmpty(classCode))
+                {
+                    return new UpdateStudentClassResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Invalid class selected."
+                    };
+                }
+
+                if (location is not ("O" or "I"))
+                {
+                    return new UpdateStudentClassResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Location must be OnSite or Internet."
+                    };
+                }
+
+                if (section is not ("A" or "B"))
+                {
+                    return new UpdateStudentClassResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Section must be A or B."
+                    };
+                }
+
                 await _registeredStudentListRepository.UpdateStudentClassAsync(
                     request.StudentId,
-                    request.Class,
-                    request.Section,
-                    request.ChapterId,
-                    request.Location,
-                    request.Session
+                    classCode,
+                    section,
+                    request.ChapterId.Trim(),
+                    location,
+                    session
                 );
 
-                // Send email notification
-                var adminEmail = _configuration["AdminEmailID"] ?? "admin@agouramathcircle.org";
+                var classLabel = !string.IsNullOrWhiteSpace(request.ClassLabel)
+                    ? request.ClassLabel
+                    : GetClassDisplayLabel(classCode);
+                var chapterName = !string.IsNullOrWhiteSpace(request.ChapterName)
+                    ? request.ChapterName
+                    : request.ChapterId;
+                var locationLabel = !string.IsNullOrWhiteSpace(request.LocationLabel)
+                    ? request.LocationLabel
+                    : GetLocationDisplayLabel(location);
+
+                var adminEmail = _configuration.GetSection("AppSettings")["AdminEmailID"]
+                    ?? _configuration["AdminEmailID"]
+                    ?? "admin@agouramathcircle.org";
                 var subject = "Agoura Math Circle: Your child records has been updated.";
 
                 var emailBody = "We have updated your kid's class information based on your request."
                     + " Here is the information on your new class: " + "<br/>"
                     + " Student Name: " + request.FirstName + " " + request.LastName + "<br/>"
-                    + " Class: " + request.Class + "<br/>"
-                    + " Section: " + request.Section + "<br/>"
-                    + " Location: " + request.ChapterId + "-" + request.Location + "<br/><br/>"
+                    + " Class: " + classLabel + "<br/>"
+                    + " Section: " + section + "<br/>"
+                    + " Location: " + chapterName + "-" + locationLabel + "<br/><br/>"
                     + " If you have any questions with your kid's class/location change, please send a message to us via Message Center." + "<br/><br/>"
-                    + " Regards <br> Agoura Math Circle team<br/> <br/>www.agouramathcircle.org";
+                    + " Regards <br> Agoura Math Circle team<b/> <br/>www.agouramathcircle.org";
 
-                // Determine BCC email based on section
-                var emailBcc = "";
-                if (request.Section == "3")
+                if (!string.IsNullOrWhiteSpace(request.Email))
                 {
-                    emailBcc = "support.ic@agouramathcircle.org";
+                    QueueClassUpdateEmailNotification(request.Email, adminEmail, subject, emailBody);
                 }
-
-                // Send email
-                await _emailUtility.SendEmailAsync(request.Email, adminEmail, subject, emailBody);
 
                 return new UpdateStudentClassResponse
                 {
@@ -101,6 +172,93 @@ namespace pStudyWare20.Services.Implementations
                     ErrorMessage = ex.Message
                 };
             }
+        }
+
+        private static string GetClassDisplayLabel(string classCode)
+        {
+            return (classCode ?? string.Empty).Trim().ToUpperInvariant() switch
+            {
+                "JB" => "Junior Beginner",
+                "JI" => "Junior Intermediate",
+                "JA" => "Junior Advanced",
+                "SB" => "Senior Beginner",
+                "SI" => "Senior Intermediate",
+                "SA" => "Senior Advanced",
+                "DS" => "Data Science",
+                "AI" => "Artificial Intelligence",
+                "GD" => "Game Development",
+                "AD" => "App Development",
+                "DM" => "Data Management",
+                "ST" => "SAT/PSAT",
+                "AT" => "ACT",
+                _ => classCode ?? string.Empty
+            };
+        }
+
+        private static string GetLocationDisplayLabel(string locationCode)
+        {
+            return (locationCode ?? string.Empty).Trim().ToUpperInvariant() switch
+            {
+                "I" => "Internet",
+                _ => "OnSite"
+            };
+        }
+
+        private static string NormalizeClassCode(string? classValue)
+        {
+            var value = (classValue ?? string.Empty).Trim().ToUpperInvariant();
+            if (value.Length == 2)
+            {
+                return value;
+            }
+
+            return value switch
+            {
+                "JUNIOR BEGINNER" or "JB" => "JB",
+                "JUNIOR INTERMEDIATE" or "JI" => "JI",
+                "JUNIOR ADVANCED" or "JA" => "JA",
+                "SENIOR BEGINNER" or "SB" => "SB",
+                "SENIOR INTERMEDIATE" or "SI" => "SI",
+                "SENIOR ADVANCED" or "SA" => "SA",
+                "DATA SCIENCE" or "DS" => "DS",
+                "ARTIFICIAL INTELLIGENCE" or "AI" => "AI",
+                "GAME DEVELOPMENT" or "GD" => "GD",
+                "APP DEVELOPMENT" or "AD" => "AD",
+                "DATA MANAGEMENT" or "DM" => "DM",
+                "SAT/PSAT" or "PSAT/SAT" or "ST" => "ST",
+                "ACT" or "AT" => "AT",
+                _ => value.Length > 2 ? value[..2] : value
+            };
+        }
+
+        private static string NormalizeSessionCode(string? sessionValue)
+        {
+            var value = (sessionValue ?? string.Empty).Trim();
+            return value.Length <= 5 ? value : value[..5];
+        }
+
+        /// <summary>
+        /// Legacy btnSubmit_Click sends email after DB update; do not block the API on SMTP.
+        /// </summary>
+        private void QueueClassUpdateEmailNotification(
+            string recipientEmail,
+            string adminEmail,
+            string subject,
+            string emailBody)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var emailUtility = scope.ServiceProvider.GetRequiredService<IEmailUtility>();
+                    await emailUtility.SendEmailAsync(recipientEmail, adminEmail, subject, emailBody);
+                }
+                catch
+                {
+                    // Email failure must not affect a successful class update.
+                }
+            });
         }
 
         /// <summary>
@@ -235,17 +393,20 @@ namespace pStudyWare20.Services.Implementations
                 // Get student list and chapter locations in parallel
                 var studentListTask = _registeredStudentListRepository.GetRegisteredStudentListAsync(request.Username, "");
                 var chapterLocationsTask = _registeredStudentListRepository.GetChapterLocationsAsync("N");
+                var sessionOptionsTask = _registeredStudentListRepository.GetActiveSessionOptionsAsync();
 
-                await Task.WhenAll(studentListTask, chapterLocationsTask);
+                await Task.WhenAll(studentListTask, chapterLocationsTask, sessionOptionsTask);
 
                 var studentTable = await studentListTask as DataTable;
                 var chapterTable = await chapterLocationsTask as DataTable;
+                var sessionOptions = await sessionOptionsTask;
 
                 return new RegisteredStudentListDashboardResponse
                 {
                     IsSuccess = true,
                     StudentList = studentTable != null ? ConvertDataTableToRowList(studentTable) : new List<Dictionary<string, object?>>(),
-                    ChapterLocations = MapDataTableToChapterLocations(chapterTable)
+                    ChapterLocations = MapDataTableToChapterLocations(chapterTable),
+                    SessionOptions = sessionOptions
                 };
             }
             catch (Exception ex)

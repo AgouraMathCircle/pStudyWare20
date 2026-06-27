@@ -27,6 +27,31 @@ import pageHeaderImg from "../assets/images/about/page-header.jpg";
 import studentService from "../services/studentService";
 import "../styles/StudentRegistration.css";
 
+const SELECT_ITEM_HEIGHT = 36;
+const SELECT_MENU_PADDING = 8;
+
+const createSelectMenuProps = (visibleItems) => ({
+  anchorOrigin: { vertical: "bottom", horizontal: "left" },
+  transformOrigin: { vertical: "top", horizontal: "left" },
+  PaperProps: {
+    sx: {
+      maxHeight: SELECT_ITEM_HEIGHT * visibleItems + SELECT_MENU_PADDING,
+      overflowY: "auto",
+    },
+  },
+  MenuListProps: {
+    sx: {
+      py: 0,
+      "& .MuiMenuItem-root": {
+        minHeight: SELECT_ITEM_HEIGHT,
+      },
+    },
+  },
+});
+
+const registrationSelectMenuProps = createSelectMenuProps(15);
+const countrySelectMenuProps = createSelectMenuProps(10);
+
 // Validation schema
 const validationSchema = yup.object({
   parentFirstName: yup
@@ -115,7 +140,7 @@ const defaultFormValues = {
   parentPhoneNo: "",
   city: "",
   state: "",
-  country: "",
+  country: "US",
   studentFirstName: "",
   studentLastName: "",
   studentEmail: "",
@@ -315,22 +340,20 @@ const StudentRegistration = () => {
           {/* Header */}
           <div
             className="sec-title text-center"
-            style={{ marginBottom: "5px" }}
+            style={{ marginBottom: "2px" }}
           >
             <h3
               className="title"
-              style={{ fontSize: "1.75rem", marginBottom: "10px" }}
+              style={{ fontSize: "1.75rem", marginBottom: "6px" }}
             >
               Register for New Student
             </h3>
           </div>
 
           {/* Important Notice */}
-          <div
-            className="important-notice"
-            style={{ marginBottom: "0px", paddingBottom: "10px" }}
-          >
-            <p style={{ marginBottom: "15px" }}>
+          <div className="row registration-notice-row">
+            <div className="important-notice">
+            <p>
               <span style={{ color: "#d32f2f", fontWeight: "bold" }}>Important:</span>{" "}
               Registration for the Spring 2026 Semester is closed now. We invite
               you to register for our upcoming Fall 2026 Semester. Thank you for
@@ -342,7 +365,7 @@ const StudentRegistration = () => {
                 is for new students only. .
               </span>
             </p>
-            <p style={{ marginBottom: "15px" }}>
+            <p>
               <span style={{ color: "#2e7d32", fontWeight: "bold", fontStyle: "italic" }}>
                 Register Now.
               </span>{" "}
@@ -357,7 +380,7 @@ const StudentRegistration = () => {
               application, we will review and decide based on the availability
               of space and eligibility.
             </p>
-            <p style={{ marginBottom: "0px", color: "#2e7d32" }}>
+            <p className="notice-engineering-text">
               Engineering Circle:Before you apply for Agoura Engineering Circle,
               please review the curriculum and the criteria for eligibility and
               make an informed decision to see if this is the right class for
@@ -367,22 +390,20 @@ const StudentRegistration = () => {
               performance of the student on the exam, we will decide on the
               student's enrollment.
             </p>
+            </div>
           </div>
 
           {/* Main Form */}
           <div className="row">
             <form onSubmit={handleSubmit(onSubmit)} style={{ width: "100%" }}>
-              <div className="row">
+              <div className="registration-form-layout">
                 {/* Parent Information Section */}
-                <div className="col-lg-6 md-mb-30">
+                <div className="registration-parent-column">
                   <div
-                    className="form-section"
+                    className="form-section parent-info-section registration-card"
                     style={{
-                      padding: "20px",
-                      backgroundColor: "#ffffff",
-                      borderRadius: "8px",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                      marginBottom: "30px",
+                      padding: "20px 20px 4px",
+                      marginBottom: "0",
                     }}
                   >
                     <h4
@@ -397,14 +418,7 @@ const StudentRegistration = () => {
                       Parent{" "}
                       <span style={{ color: "#1976d2" }}>Information</span>
                     </h4>
-                    <div
-                      className="form-group-container"
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "16px",
-                      }}
-                    >
+                    <div className="form-group-container parent-form-fields">
                       <Controller
                         name="parentFirstName"
                         control={control}
@@ -412,10 +426,12 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            label="First Name *"
+                            required
+                            label="First Name"
                             error={!!errors.parentFirstName}
                             helperText={errors.parentFirstName?.message}
                             variant="outlined"
+                            size="small"
                             className="form-input-field"
                             sx={{ width: "100%" }}
                           />
@@ -429,10 +445,12 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            label="Last Name *"
+                            required
+                            label="Last Name"
                             error={!!errors.parentLastName}
                             helperText={errors.parentLastName?.message}
                             variant="outlined"
+                            size="small"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -445,11 +463,13 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            label="Email ID *"
+                            required
+                            label="Email ID"
                             type="email"
                             error={!!errors.parentEmail}
                             helperText={errors.parentEmail?.message}
                             variant="outlined"
+                            size="small"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -462,11 +482,13 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            label="Phone (999-999-9999) *"
+                            required
+                            label="Phone (999-999-9999)"
                             placeholder="999-999-9999"
                             error={!!errors.parentPhoneNo}
                             helperText={errors.parentPhoneNo?.message}
                             variant="outlined"
+                            size="small"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -479,10 +501,12 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            label="City *"
+                            required
+                            label="City"
                             error={!!errors.city}
                             helperText={errors.city?.message}
                             variant="outlined"
+                            size="small"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -495,10 +519,12 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            label="State *"
+                            required
+                            label="State"
                             error={!!errors.state}
                             helperText={errors.state?.message}
                             variant="outlined"
+                            size="small"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -510,16 +536,19 @@ const StudentRegistration = () => {
                         render={({ field }) => (
                           <FormControl
                             fullWidth
+                            required
                             variant="outlined"
+                            size="small"
                             error={!!errors.country}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="country-label">Country *</InputLabel>
+                            <InputLabel id="country-label">Country</InputLabel>
                             <Select
                               {...field}
                               labelId="country-label"
                               id="country-select"
-                              label="Country *"
+                              label="Country"
+                              MenuProps={countrySelectMenuProps}
                             >
                               {countries.map((country) => (
                                 <MenuItem
@@ -544,37 +573,33 @@ const StudentRegistration = () => {
                         control={control}
                         render={({ field }) => (
                           <FormControl
-                            component="fieldset"
+                            className="user-name-control"
                             error={!!errors.userName}
-                            sx={{ marginTop: "0px" }}
+                            sx={{ marginTop: 0, marginBottom: 0, width: "100%" }}
                           >
-                            <label
-                              style={{
-                                fontSize: "0.875rem",
-                                fontWeight: "500",
-                                display: "block",
-                                marginBottom: "0px",
-                                paddingBottom: "0px",
-                              }}
-                            >
-                              User Name *
-                            </label>
-                            <RadioGroup
-                              {...field}
-                              row
-                              sx={{ marginTop: "0px", paddingTop: "0px" }}
-                            >
-                              <FormControlLabel
-                                value="P"
-                                control={<Radio />}
-                                label="Parent Email as User Name"
-                              />
-                              <FormControlLabel
-                                value="S"
-                                control={<Radio />}
-                                label="Student Email as User Name"
-                              />
-                            </RadioGroup>
+                            <div className="user-name-row">
+                              <span className="user-name-label">
+                                User Name{" "}
+                                <span className="required-asterisk">*</span>
+                              </span>
+                              <RadioGroup
+                                {...field}
+                                row
+                                className="user-name-radio-group"
+                                sx={{ flexWrap: "nowrap" }}
+                              >
+                                <FormControlLabel
+                                  value="P"
+                                  control={<Radio size="small" />}
+                                  label="Parent Email as User Name"
+                                />
+                                <FormControlLabel
+                                  value="S"
+                                  control={<Radio size="small" />}
+                                  label="Student Email as User Name"
+                                />
+                              </RadioGroup>
+                            </div>
                             {errors.userName && (
                               <FormHelperText>
                                 {errors.userName.message}
@@ -587,15 +612,11 @@ const StudentRegistration = () => {
                   </div>
                 </div>
                 {/* Student Information Section */}
-                <div className="col-lg-6 md-mb-30">
+                <div className="registration-student-column">
                   <div
-                    className="form-section"
+                    className="form-section student-info-section registration-card"
                     style={{
-                      padding: "20px",
-                      backgroundColor: "#ffffff",
-                      borderRadius: "8px",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                      marginBottom: "30px",
+                      marginBottom: "0",
                     }}
                   >
                     <h4
@@ -610,14 +631,7 @@ const StudentRegistration = () => {
                       Student{" "}
                       <span style={{ color: "#1976d2" }}>Information</span>
                     </h4>
-                    <div
-                      className="form-group-container"
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "16px",
-                      }}
-                    >
+                    <div className="form-group-container student-form-fields">
                       <Controller
                         name="studentFirstName"
                         control={control}
@@ -625,10 +639,12 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            label="Student First Name *"
+                            required
+                            label="Student First Name"
                             error={!!errors.studentFirstName}
                             helperText={errors.studentFirstName?.message}
                             variant="outlined"
+                            size="small"
                             className="form-input-field"
                             sx={{ width: "100%" }}
                           />
@@ -642,10 +658,12 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            label="Student Last Name *"
+                            required
+                            label="Student Last Name"
                             error={!!errors.studentLastName}
                             helperText={errors.studentLastName?.message}
                             variant="outlined"
+                            size="small"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -658,16 +676,21 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            label="Student Email ID"
+                            label={
+                              userNameOption === "S"
+                                ? "Student Email ID"
+                                : "Student Email ID (Optional)"
+                            }
                             type="email"
                             error={!!errors.studentEmail}
                             helperText={
                               errors.studentEmail?.message ||
                               (userNameOption === "S"
                                 ? "Required when using student email as username"
-                                : "Optional")
+                                : "")
                             }
                             variant="outlined"
+                            size="small"
                             required={userNameOption === "S"}
                             sx={{ width: "100%" }}
                           />
@@ -681,10 +704,12 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            label="School *"
+                            required
+                            label="School"
                             error={!!errors.studentSchoolName}
                             helperText={errors.studentSchoolName?.message}
                             variant="outlined"
+                            size="small"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -696,16 +721,18 @@ const StudentRegistration = () => {
                         render={({ field }) => (
                           <FormControl
                             fullWidth
+                            required
                             variant="outlined"
+                            size="small"
                             error={!!errors.studentGrade}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="student-grade-label">Grade *</InputLabel>
+                            <InputLabel id="student-grade-label">Grade</InputLabel>
                             <Select
                               {...field}
                               labelId="student-grade-label"
                               id="student-grade-select"
-                              label="Grade *"
+                              label="Grade"
                             >
                               <MenuItem value="0">
                                 <em>--Select--</em>
@@ -731,16 +758,18 @@ const StudentRegistration = () => {
                         render={({ field }) => (
                           <FormControl
                             fullWidth
+                            required
                             variant="outlined"
+                            size="small"
                             error={!!errors.sessionId}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="session-label">Register For *</InputLabel>
+                            <InputLabel id="session-label">Register For</InputLabel>
                             <Select
                               {...field}
                               labelId="session-label"
                               id="session-select"
-                              label="Register For *"
+                              label="Register For"
                             >
                               <MenuItem value="0">
                                 <em>--Select--</em>
@@ -766,16 +795,19 @@ const StudentRegistration = () => {
                         render={({ field }) => (
                           <FormControl
                             fullWidth
+                            required
                             variant="outlined"
+                            size="small"
                             error={!!errors.locationId}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="location-label">Course/Location *</InputLabel>
+                            <InputLabel id="location-label">Course/Location</InputLabel>
                             <Select
                               {...field}
                               labelId="location-label"
                               id="location-select"
-                              label="Course/Location *"
+                              label="Course/Location"
+                              MenuProps={registrationSelectMenuProps}
                             >
                               <MenuItem value={0}>
                                 <em>--Select--</em>
@@ -800,27 +832,15 @@ const StudentRegistration = () => {
               </div>
 
               {/* Signatures and Agreements Section */}
-              <div className="row" style={{ marginTop: "0px" }}>
-                <div className="col-lg-12">
+              <div className="registration-signature-column">
                   <div
-                    className="form-section signature-section"
+                    className="form-section signature-section registration-card"
                     style={{
-                      padding: "20px",
-                      backgroundColor: "#f8f9fa",
-                      borderRadius: "8px",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                       marginTop: "0px",
-                      marginBottom: "30px",
+                      marginBottom: "16px",
                     }}
                   >
-                    <div
-                      className="form-group-container"
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "5px",
-                      }}
-                    >
+                    <div className="form-group-container signature-form-fields">
                       <p className="agreement-text">
                         Pressing the "Submit" button I agree the Agoura Math
                         Circle{" "}
@@ -861,7 +881,8 @@ const StudentRegistration = () => {
                         </button>
                       </p>
                       <p className="signature-help-text">
-                        Please sign the waiver (Liability Signature)* . DO NOT
+                        Please sign the waiver (Liability Signature)
+                        <span className="required-asterisk">*</span>. DO NOT
                         SIGN WITHOUT READING. I HAVE READ THIS ASSUMPTION OF
                         RISK, WAIVER OF LIABILITY AND INDEMNITY AGREEMENT AND
                         AGREE TO ITS TERMS.
@@ -873,11 +894,15 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            label="Liability Signature *"
+                            required
+                            label="Liability Signature"
                             error={!!errors.liabilitySignature}
                             helperText={errors.liabilitySignature?.message}
                             variant="outlined"
+                            size="small"
+                            className="form-input-field"
                             placeholder="Enter your full name"
+                            sx={{ width: "100%" }}
                           />
                         )}
                       />
@@ -896,11 +921,15 @@ const StudentRegistration = () => {
                           <TextField
                             {...field}
                             fullWidth
-                            label="Signature *"
+                            required
+                            label="Signature"
                             error={!!errors.ruleSignature}
                             helperText={errors.ruleSignature?.message}
                             variant="outlined"
+                            size="small"
+                            className="form-input-field"
                             placeholder="Enter your full name"
+                            sx={{ width: "100%" }}
                           />
                         )}
                       />
@@ -940,7 +969,6 @@ const StudentRegistration = () => {
                     </div>
                   </div>
                 </div>
-              </div>
 
               {/* Submit Button */}
               <div className="row">

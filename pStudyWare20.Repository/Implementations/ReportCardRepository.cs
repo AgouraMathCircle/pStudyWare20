@@ -91,7 +91,8 @@ namespace pStudyWare20.Repository.Implementations
                 }
 
                 /// <summary>
-                /// Get report card list — matches ReportCard.aspx.cs BindGridView(): AMC_spReportCard with @Username only.
+                /// Get report card list — matches ReportCard.aspx.cs BindGridView():
+                /// AMC_spReportCard with @Username only; SP orders by ReportCardID DESC (Top 500).
                 /// </summary>
                 public async Task<object> GetReportCardListAsync(string username)
                 {

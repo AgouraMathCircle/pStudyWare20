@@ -76,8 +76,8 @@ namespace pStudyWare20.Services.Implementations
                     Passcode = dataTable.Columns.Contains("Passcode") ? row["Passcode"]?.ToString() ?? "" : "",
                     AdminLogin = dataTable.Columns.Contains("AdminLogin") ? row["AdminLogin"]?.ToString() ?? "" : "",
                     AdminPassCode = dataTable.Columns.Contains("AdminPassCode") ? row["AdminPassCode"]?.ToString() ?? "" : "",
-                    IncludeSection = dataTable.Columns.Contains("IncludeSection") && (row["IncludeSection"]?.ToString() == "True" || row["IncludeSection"]?.ToString() == "1"),
-                    Active = dataTable.Columns.Contains("Active") && (row["Active"]?.ToString() == "True" || row["Active"]?.ToString() == "1"),
+                    IncludeSection = dataTable.Columns.Contains("IncludeSection") && ParseLegacyBool(row["IncludeSection"]),
+                    Active = dataTable.Columns.Contains("Active") && ParseLegacyBool(row["Active"]),
                     MeetingTime = dataTable.Columns.Contains("MeetingTime") ? row["MeetingTime"]?.ToString() ?? "" : "",
                     MeetingDate = dataTable.Columns.Contains("MeetingDate") ? row["MeetingDate"]?.ToString() ?? "" : ""
                 };
@@ -103,6 +103,9 @@ namespace pStudyWare20.Services.Implementations
                     {
                         RowId = Convert.ToInt32(row["RowID"]),
                         ChapterId = row["ChapterID"].ToString() ?? "",
+                        ChapterName = dataTable.Columns.Contains("ChapterName")
+                            ? row["ChapterName"]?.ToString() ?? ""
+                            : "",
                         Class = row["Class"].ToString() ?? "",
                         Section = row["Section"].ToString() ?? "",
                         MeetingProviderUrl = row["MeetingProviderURL"].ToString() ?? "",
@@ -111,11 +114,27 @@ namespace pStudyWare20.Services.Implementations
                         Passcode = row["Passcode"].ToString() ?? "",
                         AdminLogin = row["AdminLogin"].ToString() ?? "",
                         AdminPassCode = row["AdminPassCode"].ToString() ?? "",
-                        IncludeSection = row["IncludeSection"].ToString() == "True",
-                        Active = row["Active"].ToString() == "True",
+                        IncludeSection = ParseLegacyBool(row["IncludeSection"]),
+                        Active = ParseLegacyBool(row["Active"]),
                         MeetingTime = row["MeetingTime"].ToString() ?? "",
                         MeetingDate = row["MeetingDate"].ToString() ?? ""
                     };
+                }
+
+                if (meetingSchedule != null
+                    && string.IsNullOrWhiteSpace(meetingSchedule.ChapterName)
+                    && !string.IsNullOrWhiteSpace(meetingSchedule.ChapterId))
+                {
+                    var chapterLocationsData = await _meetingDetailsRepository.GetChapterLocationsAsync("Y");
+                    if (chapterLocationsData is List<ChapterLocation> chapterLocations)
+                    {
+                        var match = chapterLocations.FirstOrDefault(c =>
+                            string.Equals(c.ChapterID, meetingSchedule.ChapterId, StringComparison.OrdinalIgnoreCase));
+                        if (match != null && !string.IsNullOrWhiteSpace(match.ChapterName))
+                        {
+                            meetingSchedule.ChapterName = match.ChapterName;
+                        }
+                    }
                 }
 
                 return new GetMeetingScheduleResponse
@@ -141,22 +160,32 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
+                var validationError = ValidateUpsertRequest(request);
+                if (validationError != null)
+                {
+                    return new UpsertMeetingScheduleResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = validationError
+                    };
+                }
+
                 var meetingSchedule = new MeetingSchedule
                 {
-                    RowId = Convert.ToInt32(request.RowId),
-                    ChapterId = request.ChapterId,
-                    Class = request.Class,
-                    Section = request.Section,
-                    MeetingProviderUrl = request.MeetingProviderUrl,
-                    MeetingUrl = request.MeetingUrl,
-                    MeetingId = request.MeetingId,
-                    Passcode = request.Passcode,
-                    AdminLogin = request.AdminLogin,
-                    AdminPassCode = request.AdminPassCode,
+                    RowId = int.TryParse(request.RowId, out var rowId) ? rowId : 0,
+                    ChapterId = request.ChapterId?.Trim() ?? "",
+                    Class = string.IsNullOrWhiteSpace(request.Class) ? "JB" : request.Class.Trim(),
+                    Section = string.IsNullOrWhiteSpace(request.Section) ? "A" : request.Section.Trim(),
+                    MeetingProviderUrl = request.MeetingProviderUrl?.Trim() ?? "",
+                    MeetingUrl = request.MeetingUrl?.Trim() ?? "",
+                    MeetingId = request.MeetingId?.Trim() ?? "",
+                    Passcode = request.Passcode?.Trim() ?? "",
+                    AdminLogin = request.AdminLogin?.Trim() ?? "",
+                    AdminPassCode = request.AdminPassCode?.Trim() ?? "",
                     IncludeSection = request.IncludeSection == "1",
                     Active = request.Active == "1",
-                    MeetingTime = request.MeetingTime,
-                    MeetingDate = request.MeetingDate
+                    MeetingTime = string.IsNullOrWhiteSpace(request.MeetingTime) ? "00:00" : request.MeetingTime.Trim(),
+                    MeetingDate = request.MeetingDate?.Trim() ?? ""
                 };
 
                 await _meetingDetailsRepository.UpsertMeetingScheduleAsync(meetingSchedule);
@@ -175,6 +204,76 @@ namespace pStudyWare20.Services.Implementations
                     ErrorMessage = ex.Message
                 };
             }
+        }
+
+        private static string? ValidateUpsertRequest(UpsertMeetingScheduleRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.ChapterId))
+            {
+                return "Chapter is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(request.MeetingDate))
+            {
+                return "Meeting Date is required.";
+            }
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(
+                    request.MeetingDate.Trim(),
+                    @"^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\d\d$"))
+            {
+                return "Please enter (mm/dd/yyyy) format.";
+            }
+
+            if (string.IsNullOrWhiteSpace(request.MeetingProviderUrl))
+            {
+                return "Meeting Provider URL is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(request.MeetingUrl))
+            {
+                return "Meeting URL is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(request.MeetingId))
+            {
+                return "Meeting ID is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Passcode))
+            {
+                return "Passcode is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(request.AdminLogin))
+            {
+                return "Admin Login is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(request.AdminPassCode))
+            {
+                return "Admin PassCode is required.";
+            }
+
+            return null;
+        }
+
+        private static bool ParseLegacyBool(object? value)
+        {
+            if (value == null || value == DBNull.Value)
+            {
+                return false;
+            }
+
+            if (value is bool boolValue)
+            {
+                return boolValue;
+            }
+
+            var text = value.ToString()?.Trim();
+            return text == "1"
+                || text?.Equals("true", StringComparison.OrdinalIgnoreCase) == true
+                || text?.Equals("yes", StringComparison.OrdinalIgnoreCase) == true;
         }
 
         /// <summary>

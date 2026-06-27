@@ -1,5 +1,11 @@
 import api from "./api";
+import config from "../utils/config";
 import { postExcelExport } from "../utils/excelExport";
+
+const REGISTERED_STUDENT_LIST_TIMEOUT = Math.max(
+  config.api.timeout || 10000,
+  60000
+);
 
 /**
  * Service for Registered Student List API calls
@@ -59,6 +65,7 @@ export const getDashboardData = async (username = null) => {
     const params = username ? { username } : {};
     const response = await api.get("/RegisteredStudentList/GetDashboardData", {
       params,
+      timeout: REGISTERED_STUDENT_LIST_TIMEOUT,
     });
     return response.data;
   } catch (error) {
@@ -96,7 +103,8 @@ export const updateStudentClass = async (request) => {
   try {
     const response = await api.post(
       "/RegisteredStudentList/UpdateStudentClass",
-      request
+      request,
+      { timeout: REGISTERED_STUDENT_LIST_TIMEOUT }
     );
     return response.data;
   } catch (error) {

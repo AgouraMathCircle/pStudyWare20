@@ -61,6 +61,15 @@ namespace pStudyWare20.API.Controllers
         {
             try
             {
+                if (request == null)
+                {
+                    return BadRequest(new UpdateStudentClassResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Request body is required."
+                    });
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });

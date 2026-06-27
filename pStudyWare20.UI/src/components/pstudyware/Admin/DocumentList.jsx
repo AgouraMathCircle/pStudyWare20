@@ -20,16 +20,13 @@ import {
 import {
   Add as AddIcon,
   Refresh as RefreshIcon,
-  Visibility as ViewIcon,
-  Download as DownloadIcon,
   Delete as DeleteIcon,
   Publish as PublishIcon,
-  VideoLibrary as VideoIcon,
   Search as SearchIcon,
 } from "@mui/icons-material";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import SortableHeader from "../Common/SortableHeader";
-import { adminPortalTableFontSx } from "../styles/applicationSurfaces";
+import { adminPortalTableFontSx, adminSessionListTableActionLinkSx, adminSessionListTableDeleteLinkSx } from "../styles/applicationSurfaces";
 import {
   sortRows,
   toSortableDate,
@@ -52,6 +49,25 @@ const documentHeadCellSxLast = {
   fontWeight: 600,
   padding: "8px 12px",
 };
+
+const documentActionDividerSx = {
+  fontSize: "0.75rem",
+  color: "text.disabled",
+  userSelect: "none",
+  lineHeight: 1,
+};
+
+const renderDocumentActionLink = (label, onClick, linkSx = {}) => (
+  <Box
+    onClick={onClick}
+    sx={{
+      ...adminSessionListTableActionLinkSx,
+      ...linkSx,
+    }}
+  >
+    {label}
+  </Box>
+);
 
 const getDocumentFieldValue = (doc, field) => {
   switch (field) {
@@ -451,66 +467,50 @@ const DocumentList = ({
                 return (
                   <TableRow key={doc.docID || index} sx={rowStyle} hover>
                     <TableCell sx={documentTableCellSx}>
-                      <Box sx={{ display: "flex", gap: 0.5 }}>
-                        <Tooltip title="View">
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() => onView(doc.docName)}
-                          >
-                            <ViewIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Download">
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() => onDownload(doc.docName)}
-                          >
-                            <DownloadIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        {doc.videoURL && (
-                          <Tooltip title="Watch Video">
-                            <IconButton
-                              size="small"
-                              color="secondary"
-                              onClick={() => onOpenVideo(doc.videoURL)}
-                            >
-                              <VideoIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                        {canPublishDocument && !isPublished && (
-                          <Tooltip title="Publish">
-                            <IconButton
-                              size="small"
-                              color="success"
-                              onClick={() =>
-                                handlePublishClick(
-                                  doc.docID,
-                                  doc.publish,
-                                  doc.docName
-                                )
-                              }
-                            >
-                              <PublishIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                        {canDeleteDocument && (
-                          <Tooltip title="Delete">
-                            <IconButton
-                              size="small"
-                              color="error"
-                              onClick={() =>
-                                handleDeleteClick(doc.docID, doc.docName)
-                              }
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          flexWrap: "nowrap",
+                          gap: 0.5,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {renderDocumentActionLink("View", () => onView(doc.docName))}
+                        <Typography component="span" sx={documentActionDividerSx}>
+                          /
+                        </Typography>
+                        {renderDocumentActionLink("Download", () => onDownload(doc.docName))}
+                        {doc.videoURL ? (
+                          <>
+                            <Typography component="span" sx={documentActionDividerSx}>
+                              /
+                            </Typography>
+                            {renderDocumentActionLink("Video", () => onOpenVideo(doc.videoURL))}
+                          </>
+                        ) : null}
+                        {canPublishDocument && !isPublished ? (
+                          <>
+                            <Typography component="span" sx={documentActionDividerSx}>
+                              /
+                            </Typography>
+                            {renderDocumentActionLink("Publish", () =>
+                              handlePublishClick(doc.docID, doc.publish, doc.docName),
+                            )}
+                          </>
+                        ) : null}
+                        {canDeleteDocument ? (
+                          <>
+                            <Typography component="span" sx={documentActionDividerSx}>
+                              /
+                            </Typography>
+                            {renderDocumentActionLink(
+                              "Delete",
+                              () => handleDeleteClick(doc.docID, doc.docName),
+                              adminSessionListTableDeleteLinkSx,
+                            )}
+                          </>
+                        ) : null}
                       </Box>
                     </TableCell>
                     <TableCell sx={documentTableCellSx}>

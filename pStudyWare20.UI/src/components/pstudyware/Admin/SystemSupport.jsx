@@ -26,9 +26,9 @@ import {
   adminDashboardWidgetTrackingCellSx,
   adminDashboardWidgetTrackingTableSx,
   adminDashboardWidgetTableRowSx,
-} from "../styles/applicationSurfaces";
+} from "../../../styles/applicationSurfaces";
 
-const SystemSupport = () => {
+const SystemSupport = ({ onPublishDocument, canPublishDocuments }) => {
   const navigate = useNavigate();
 
   const supportLinks = [
@@ -87,9 +87,26 @@ const SystemSupport = () => {
       href: "/pstudyware/admin/report-card",
       isReact: true,
     },
+    ...(canPublishDocuments
+      ? [
+          {
+            label: "Publish Class Materials",
+            isAction: true,
+          },
+        ]
+      : []),
+    {
+      label: "User Tracking",
+      href: "/pstudyware/admin/user-tracking",
+      isReact: true,
+    },
   ];
 
   const handleLinkClick = (link) => {
+    if (link.isAction) {
+      onPublishDocument?.(false);
+      return;
+    }
     if (link.isReact) {
       navigate(link.href);
     } else {

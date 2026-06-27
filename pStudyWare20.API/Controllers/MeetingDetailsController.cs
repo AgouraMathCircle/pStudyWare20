@@ -50,11 +50,22 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Upsert meeting schedule request</param>
         /// <returns>Upsert meeting schedule response</returns>
         [HttpPost("UpsertMeetingSchedule")]
-        [Authorize(Roles = "Admin,SystemAdmin")] // Only admins can add/edit meetings
         public async Task<IActionResult> UpsertMeetingSchedule([FromBody] UpsertMeetingScheduleRequest request)
         {
             try
             {
+                // Legacy MeetingDetails.aspx.cs — only SystemAdmin can submit (btnSubmit.Visible)
+                var isSystemAdmin = User.FindFirst(ClaimTypes.Role)?.Value == "SystemAdmin"
+                    || User.FindFirst("SystemAdmin")?.Value == "Y";
+                if (!isSystemAdmin)
+                {
+                    return StatusCode(403, new UpsertMeetingScheduleResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Only system administrators can add or update meeting schedules."
+                    });
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });

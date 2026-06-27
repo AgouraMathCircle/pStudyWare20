@@ -97,6 +97,9 @@ const config = {
   paths: {
     publicDocuments:
       import.meta.env.VITE_PUBLIC_DOCUMENTS_URL || "/pstudyware/Documents/",
+    sessionDocuments:
+      import.meta.env.VITE_SESSION_DOCUMENTS_URL ||
+      "/pstudyware/Documents/Documents_session/",
     studentDocuments: "/pstudyware/Documents/AMC_Student_Docs/",
   },
 
@@ -208,6 +211,25 @@ export const getStudentDocumentUrl = (fileName) => {
     return fileName;
   }
   return `${config.paths.studentDocuments}${fileName}`;
+};
+
+export const getSessionDocumentUrl = (fileName) => {
+  if (!fileName) return "";
+  if (
+    fileName.startsWith("http://") ||
+    fileName.startsWith("https://") ||
+    fileName.startsWith("/")
+  ) {
+    return fileName;
+  }
+  const base = config.paths.sessionDocuments.endsWith("/")
+    ? config.paths.sessionDocuments
+    : `${config.paths.sessionDocuments}/`;
+  const encodedName = fileName
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `${base}${encodedName}`;
 };
 
 // Helper function to get theme color

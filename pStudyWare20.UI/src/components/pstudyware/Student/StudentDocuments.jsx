@@ -15,7 +15,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  IconButton,
   Tooltip,
   Button,
   TextField,
@@ -27,11 +26,9 @@ import {
   Link,
 } from "@mui/material";
 import {
-  Visibility as ViewIcon,
   Delete as DeleteIcon,
   Refresh as RefreshIcon,
   CloudUpload as UploadIcon,
-  Download as DownloadIcon,
   FirstPage as FirstPageIcon,
   KeyboardArrowLeft as PrevPageIcon,
   KeyboardArrowRight as NextPageIcon,
@@ -77,6 +74,7 @@ import {
   adminSessionListSearchLabelSx,
   adminSessionListSearchSelectSx,
   adminSessionListTableActionLinkSx,
+  adminSessionListTableDeleteLinkSx,
   adminSessionListTableBodyCellSx,
   adminSessionListTableBodyRowSx,
   adminSessionListTableHeadCellSx,
@@ -92,6 +90,7 @@ import {
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 import PortalDialog from "../Common/PortalDialog";
+import PortalModalSelect from "../Common/PortalModalSelect";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import PdfViewerModal from "../../common/PdfViewerModal";
 import {
@@ -781,9 +780,18 @@ const StudentDocuments = () => {
         |
       </Typography>
       <Box
+        onClick={() => handleDownload(doc.documentName)}
+        sx={adminSessionListTableActionLinkSx}
+      >
+        Download
+      </Box>
+      <Typography component="span" sx={documentActionDividerSx}>
+        |
+      </Typography>
+      <Box
         onClick={() => !deletingDocument && handleDeleteClick(doc)}
         sx={{
-          ...adminSessionListTableActionLinkSx,
+          ...adminSessionListTableDeleteLinkSx,
           opacity: deletingDocument ? 0.5 : 1,
           pointerEvents: deletingDocument ? "none" : "auto",
         }}
@@ -1017,36 +1025,7 @@ const StudentDocuments = () => {
                                 sx={instructorCellBodySxLast}
                                 align="center"
                               >
-                                <Tooltip title="View/Print">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleView(doc.documentName)}
-                                    sx={{ padding: "2px", color: "#4caf50" }}
-                                  >
-                                    <ViewIcon sx={{ fontSize: "1rem" }} />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Download">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() =>
-                                      handleDownload(doc.documentName)
-                                    }
-                                    sx={{ padding: "2px", color: "#2196f3" }}
-                                  >
-                                    <DownloadIcon sx={{ fontSize: "1rem" }} />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => handleDeleteClick(doc)}
-                                    disabled={deletingDocument}
-                                    sx={{ padding: "2px", color: "#f44336" }}
-                                  >
-                                    <DeleteIcon sx={{ fontSize: "1rem" }} />
-                                  </IconButton>
-                                </Tooltip>
+                                {renderUploadedDocumentActions(doc)}
                               </TableCell>
                             </TableRow>
                           ))
@@ -1369,7 +1348,7 @@ const StudentDocuments = () => {
               disabled={students.length === 0 || uploadSubmitting}
             >
               <InputLabel id="upload-student-name-label">Student Name</InputLabel>
-              <Select
+              <PortalModalSelect
                 labelId="upload-student-name-label"
                 value={selectedStudent}
                 onChange={handleUploadStudentChange}
@@ -1389,7 +1368,7 @@ const StudentDocuments = () => {
                     </MenuItem>
                   ))
                 )}
-              </Select>
+              </PortalModalSelect>
             </FormControl>
           </Box>
 
@@ -1397,7 +1376,7 @@ const StudentDocuments = () => {
             <Typography sx={uploadModalFormLabelSx}>Session</Typography>
             <FormControl fullWidth size="small" sx={portalModalFieldSx}>
               <InputLabel id="upload-session-label">Session</InputLabel>
-              <Select
+              <PortalModalSelect
                 labelId="upload-session-label"
                 value={uploadForm.session}
                 label="Session"
@@ -1421,7 +1400,7 @@ const StudentDocuments = () => {
                     </MenuItem>
                   ))
                 )}
-              </Select>
+              </PortalModalSelect>
             </FormControl>
           </Box>
 
@@ -1429,7 +1408,7 @@ const StudentDocuments = () => {
             <Typography sx={uploadModalFormLabelSx}>Class</Typography>
             <FormControl fullWidth size="small" sx={portalModalFieldSx}>
               <InputLabel id="upload-class-label">Class</InputLabel>
-              <Select
+              <PortalModalSelect
                 labelId="upload-class-label"
                 value={uploadForm.type}
                 onChange={(e) =>
@@ -1439,7 +1418,7 @@ const StudentDocuments = () => {
                 disabled={uploadSubmitting}
               >
                 <MenuItem value="Home Work">Home Work</MenuItem>
-              </Select>
+              </PortalModalSelect>
             </FormControl>
           </Box>
 

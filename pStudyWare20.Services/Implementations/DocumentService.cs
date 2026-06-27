@@ -775,9 +775,13 @@ namespace pStudyWare20.Services.Implementations
 
             foreach (var directory in new[]
             {
+                GetSessionDocsPath(),
                 GetLegacyClassMaterialDocsPath(),
+                GetLegacyWebRootDocumentsPath(),
                 GetRepositoryDocsPath(),
+                ResolvePathFromContentRoot(Path.Combine("..", "pStudayWare", "Documents", "Documents_session")),
                 ResolvePathFromContentRoot(Path.Combine("..", "pStudayWare", "Documents")),
+                ResolvePathFromContentRoot(Path.Combine("..", "pStudyWare20.UI", "public", "pstudyware", "Documents", "Documents_session")),
                 ResolvePathFromContentRoot(Path.Combine("..", "pStudyWare20.UI", "public", "pstudyware", "Documents")),
             })
             {
@@ -796,7 +800,27 @@ namespace pStudyWare20.Services.Implementations
         private string GetLegacyClassMaterialDocsPath() =>
             ResolveConfiguredStoragePath(
                 "DocumentStorage:ClassMaterialDocsPath",
-                Path.Combine("pStudyWare", "Documents"));
+                Path.Combine("pStudayWare", "Documents"));
+
+        private string GetSessionDocsPath() =>
+            ResolveConfiguredStoragePath(
+                "DocumentStorage:SessionDocsPath",
+                Path.Combine("pStudayWare", "Documents", "Documents_session"));
+
+        private string GetLegacyWebRootDocumentsPath()
+        {
+            var webRoot = _configuration["DocumentStorage:LegacyWebRootPath"];
+            var relativePath = !string.IsNullOrWhiteSpace(webRoot)
+                ? Path.Combine(webRoot, "Documents")
+                : Path.Combine("pStudayWare", "Documents");
+
+            if (Path.IsPathRooted(relativePath))
+            {
+                return relativePath;
+            }
+
+            return ResolvePathFromContentRoot(relativePath);
+        }
 
         private string ResolveConfiguredStoragePath(string configurationKey, string defaultRelativePath)
         {
@@ -957,15 +981,14 @@ namespace pStudyWare20.Services.Implementations
                 return false;
             }
 
-            var trimmed = documentName.Trim();
+            var trimmed = documentName.Trim().Replace('\\', '/');
             if (trimmed.Contains("..", StringComparison.Ordinal))
             {
                 return false;
             }
 
             var fileName = Path.GetFileName(trimmed);
-            if (string.IsNullOrWhiteSpace(fileName) ||
-                !string.Equals(fileName, trimmed, StringComparison.Ordinal))
+            if (string.IsNullOrWhiteSpace(fileName))
             {
                 return false;
             }
@@ -991,6 +1014,41 @@ namespace pStudyWare20.Services.Implementations
         }
 
         private static string? FindClassMaterialFileOnDisk(string directory, string safeFileName)
+        {
+            var found = FindClassMaterialFileInDirectory(directory, safeFileName);
+            if (found != null)
+            {
+                return found;
+            }
+
+            if (!Directory.Exists(directory))
+            {
+                return null;
+            }
+
+            var sessionSubfolder = Path.Combine(directory, "Documents_session");
+            if (Directory.Exists(sessionSubfolder))
+            {
+                found = FindClassMaterialFileInDirectory(sessionSubfolder, safeFileName);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            foreach (var subDirectory in Directory.EnumerateDirectories(directory))
+            {
+                found = FindClassMaterialFileInDirectory(subDirectory, safeFileName);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
+        }
+
+        private static string? FindClassMaterialFileInDirectory(string directory, string safeFileName)
         {
             foreach (var candidateName in GetCandidateDiskFileNames(safeFileName))
             {

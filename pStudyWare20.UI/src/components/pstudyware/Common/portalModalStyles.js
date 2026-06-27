@@ -15,22 +15,86 @@ export const portalModalPaperSx = {
   borderRadius: 2,
   boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
   overflow: "hidden",
+  width: "100%",
+};
+
+/** Stable grid/form layout inside modals — prevents selects from resizing the dialog. */
+export const portalModalFormLayoutSx = {
+  width: "100%",
+  boxSizing: "border-box",
+  "& .MuiGrid-container": {
+    width: "100%",
+  },
+  "& .MuiGrid-container > .MuiGrid-root": {
+    minWidth: 0,
+    maxWidth: "100%",
+  },
+  "& .MuiGrid-item": {
+    minWidth: 0,
+    maxWidth: "100%",
+  },
+  "& .MuiFormControl-root": {
+    width: "100%",
+    minWidth: 0,
+    maxWidth: "100%",
+  },
 };
 
 export const portalModalFieldSx = {
+  width: "100%",
+  minWidth: 0,
+  maxWidth: "100%",
+  "& .MuiOutlinedInput-root": {
+    width: "100%",
+    maxWidth: "100%",
+  },
   "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
     borderColor: PORTAL_MODAL_PRIMARY,
   },
   "& .MuiInputLabel-root.Mui-focused": {
     color: PORTAL_MODAL_FG,
   },
+  "& .MuiInputBase-input": {
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  "& .MuiSelect-select": {
+    overflow: "hidden !important",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    display: "block",
+    width: "100%",
+    maxWidth: "100%",
+    boxSizing: "border-box",
+  },
+};
+
+/** Red asterisk on MUI required field labels (legacy ForeColor="Red"). */
+export const portalModalRequiredFieldSx = {
+  ...portalModalFieldSx,
+  "& .MuiFormLabel-asterisk": {
+    color: "#d32f2f",
+  },
 };
 
 export const portalModalSendButtonSx = {
   backgroundColor: PORTAL_MODAL_PRIMARY,
+  color: "#FFFFFF",
   textTransform: "none",
   fontSize: "0.875rem",
   "&:hover": { backgroundColor: PORTAL_MODAL_PRIMARY_HOVER },
+};
+
+/** Legacy MeetingDetails.aspx .button — dark green Submit. */
+export const portalModalLegacySubmitButtonSx = {
+  backgroundColor: "#174a10",
+  color: "#FFFFFF",
+  textTransform: "none",
+  fontSize: "0.875rem",
+  minWidth: 100,
+  minHeight: 25,
+  boxShadow: "none",
+  "&:hover": { backgroundColor: "#123d0d", boxShadow: "none" },
 };
 
 export const portalModalClearButtonSx = {
@@ -76,6 +140,25 @@ export const portalModalContentSx = {
   // MUI sets padding-top: 0 on DialogContent after DialogTitle — override explicitly.
   pt: "24px !important",
   overflow: "visible",
+  width: "100%",
+  boxSizing: "border-box",
+  ...portalModalFormLayoutSx,
+};
+
+/** Pass to MUI Select `MenuProps` — scrollable menu, truncated long option labels. */
+export const portalModalSelectMenuProps = {
+  PaperProps: {
+    sx: {
+      maxHeight: 320,
+      maxWidth: "min(100vw - 32px, 480px)",
+      "& .MuiMenuItem-root": {
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        display: "block",
+      },
+    },
+  },
 };
 
 export const portalModalMessageSx = {

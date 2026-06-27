@@ -42,6 +42,7 @@ import {
   adminSessionListSearchLabelSx,
   adminSessionListSearchSelectSx,
   adminSessionListTableActionLinkSx,
+  adminSessionListTableDeleteLinkSx,
   adminSessionListTableBodyCellSx,
   adminSessionListTableBodyRowSx,
   adminSessionListTableContainerSx,
@@ -335,11 +336,12 @@ const InstructorClassMaterialList = ({
     return null;
   };
 
-  const renderActionLink = (label, onClick, disabled = false) => (
+  const renderActionLink = (label, onClick, disabled = false, linkSx = {}) => (
     <Box
       onClick={disabled ? undefined : onClick}
       sx={{
         ...adminSessionListTableActionLinkSx,
+        ...linkSx,
         ...(disabled
           ? { color: "text.disabled", cursor: "not-allowed", pointerEvents: "none" }
           : {}),
@@ -381,6 +383,7 @@ const InstructorClassMaterialList = ({
             "Delete",
             () => handleDeleteClick(doc),
             !getClassMaterialDeleteId(doc),
+            adminSessionListTableDeleteLinkSx,
           )}
         </>
       ) : null}

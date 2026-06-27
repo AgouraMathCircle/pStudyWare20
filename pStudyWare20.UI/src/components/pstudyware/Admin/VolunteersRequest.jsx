@@ -20,7 +20,6 @@ import {
   MenuItem,
   Snackbar,
   Alert,
-  CircularProgress,
   Grid,
   Paper,
 } from "@mui/material";
@@ -31,6 +30,7 @@ import {
   Delete as DeleteIcon,
 } from "@mui/icons-material";
 import PortalDialog from "../Common/PortalDialog";
+import PortalModalSelect from "../Common/PortalModalSelect";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import {
   portalModalFieldSx,
@@ -53,17 +53,18 @@ import {
   adminSessionListSearchLabelSx,
   adminSessionListSearchSelectSx,
   adminSessionListTableActionLinkSx,
+  adminSessionListTableDeleteLinkSx,
   adminSessionListTableBodyCellSx,
   adminSessionListTableBodyRowSx,
-  adminSessionListTableContainerSx,
   adminSessionListTableHeadCellSx,
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
-  adminSessionListToolbarButtonSx,
+  portalHeaderActionButtonSx,
 } from "../styles/applicationSurfaces";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 import studentWaitingListService from "../../../services/studentWaitingListService";
+import "../../../styles/AdminVolunteersRequest.css";
 
 const volunteersRequestPageSx = {
   flex: 1,
@@ -72,6 +73,173 @@ const volunteersRequestPageSx = {
   display: "flex",
   flexDirection: "column",
 };
+
+/** Legacy UpdateClass: name/email display only — not posted to AMC_spUpdateVolunteerStatus. */
+const volunteersRequestReadOnlyFieldSx = {
+  ...portalModalFieldSx,
+  "& .MuiOutlinedInput-root": {
+    width: "100%",
+    maxWidth: "100%",
+    minHeight: 40,
+    height: "auto",
+    display: "flex",
+    alignItems: "center",
+  },
+  "& .MuiInputBase-input": {
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    lineHeight: 1.4375,
+    paddingTop: "8.5px",
+    paddingBottom: "8.5px",
+  },
+  "& .MuiInputBase-root.Mui-disabled": {
+    backgroundColor: "rgba(0, 0, 0, 0.04)",
+  },
+  "& .MuiInputLabel-root.Mui-disabled": {
+    color: "text.secondary",
+  },
+};
+
+/** Truncated selected value — keeps Select width stable when options are long. */
+const volunteersRequestModalSelectDisplaySx = {
+  display: "block",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  width: "100%",
+  maxWidth: "100%",
+  boxSizing: "border-box",
+};
+
+/** Fixed legend width per label — prevents notch/label resize and "Section" clipping to "SE". */
+const volunteersRequestModalSelectLegendWidths = {
+  chapter: "4.85rem",
+  type: "2.55rem",
+  class: "2.85rem",
+  section: "5.35rem",
+};
+
+const volunteersRequestModalSelectFieldSx = (legendKey) => ({
+  ...portalModalFieldSx,
+  width: "100%",
+  minWidth: 0,
+  maxWidth: "100%",
+  "& .MuiOutlinedInput-root": {
+    width: "100%",
+    maxWidth: "100%",
+    minHeight: 40,
+    height: "auto",
+    display: "flex",
+    alignItems: "center",
+  },
+  "& .MuiSelect-select": {
+    ...volunteersRequestModalSelectDisplaySx,
+    lineHeight: 1.4375,
+    paddingTop: "8.5px",
+    paddingBottom: "8.5px",
+    paddingRight: "32px",
+    display: "flex",
+    alignItems: "center",
+  },
+  "& .MuiOutlinedInput-notchedOutline legend": {
+    width: volunteersRequestModalSelectLegendWidths[legendKey],
+    maxWidth: volunteersRequestModalSelectLegendWidths[legendKey],
+  },
+  "& .MuiOutlinedInput-notchedOutline legend span": {
+    paddingLeft: "4px",
+    paddingRight: "4px",
+  },
+});
+
+/** Chapter options are long — lock width so the control never grows; allow full text height inside. */
+const volunteersRequestChapterFieldSx = {
+  ...volunteersRequestModalSelectFieldSx("chapter"),
+  width: "100%",
+  maxWidth: "100%",
+  minWidth: 0,
+  flexShrink: 0,
+  "& .MuiOutlinedInput-root": {
+    width: "100%",
+    maxWidth: "100%",
+    minWidth: "100%",
+    minHeight: 40,
+    height: "auto",
+    boxSizing: "border-box",
+    display: "flex",
+    alignItems: "center",
+  },
+  "& .MuiSelect-select": {
+    ...volunteersRequestModalSelectDisplaySx,
+    width: "100% !important",
+    maxWidth: "100% !important",
+    minWidth: "0 !important",
+    lineHeight: 1.4375,
+    paddingTop: "8.5px !important",
+    paddingBottom: "8.5px !important",
+    paddingLeft: "14px !important",
+    paddingRight: "32px !important",
+    display: "flex !important",
+    alignItems: "center !important",
+  },
+  "& .MuiSelect-icon": {
+    flexShrink: 0,
+  },
+};
+
+const volunteersRequestModalPaperSx = {
+  width: "100%",
+  maxWidth: "520px !important",
+};
+
+const volunteersRequestModalContentSx = {
+  overflow: "hidden",
+  minWidth: 0,
+  width: "100%",
+  maxWidth: "100%",
+  boxSizing: "border-box",
+};
+
+function getVolunteerChapterLabel(chapterID, chapterLocations) {
+  const id = String(chapterID ?? "").trim();
+  if (!id) return "";
+  const match = chapterLocations.find(
+    (ch) => String(ch.chapterID ?? ch.ChapterID ?? "") === id,
+  );
+  if (match) {
+    const name = match.chapterName ?? match.ChapterName ?? "";
+    const loc = match.location ?? match.Location ?? "";
+    return loc ? `${name} - ${loc}` : name;
+  }
+  return `Chapter ${id}`;
+}
+
+function renderVolunteerSelectDisplayValue(label, { placeholder = false } = {}) {
+  const text = label || "\u00a0";
+  return (
+    <Box
+      component="span"
+      sx={{
+        ...volunteersRequestModalSelectDisplaySx,
+        lineHeight: 1.4375,
+        ...(placeholder ? { color: "text.secondary", fontStyle: "italic" } : {}),
+      }}
+      title={label || ""}
+    >
+      {text}
+    </Box>
+  );
+}
+
+function renderVolunteerChapterSelectValue(selected, chapterLocations) {
+  const id = String(selected ?? "").trim();
+  if (!id) {
+    return renderVolunteerSelectDisplayValue("Select chapter", { placeholder: true });
+  }
+  return renderVolunteerSelectDisplayValue(
+    getVolunteerChapterLabel(id, chapterLocations),
+  );
+}
 
 const volunteersRequestColumnWidths = {
   edit: "4%",
@@ -85,10 +253,10 @@ const volunteersRequestColumnWidths = {
   phone: "7%",
   email: "10%",
   city: "6%",
-  enrolledFor: "8%",
-  interestedFor: "8%",
-  requestedDate: "7%",
-  comments: "8%",
+  enrolledFor: "7%",
+  interestedFor: "7%",
+  requestedDate: "6%",
+  comments: "12%",
 };
 
 const TYPE_OPTIONS = [
@@ -114,6 +282,21 @@ const CLASS_OPTIONS = [
   { value: "DM", label: "Data Management" },
 ];
 
+function getVolunteerClassLabel(classCode) {
+  const code = String(classCode ?? "").trim();
+  return CLASS_OPTIONS.find((opt) => opt.value === code)?.label ?? code;
+}
+
+function getVolunteerTypeLabel(typeCode) {
+  const code = String(typeCode ?? "").trim();
+  return TYPE_OPTIONS.find((opt) => opt.value === code)?.label ?? code;
+}
+
+function getVolunteerSectionLabel(sectionCode) {
+  const code = String(sectionCode ?? "").trim().toUpperCase();
+  return code === "B" ? "B" : "A";
+}
+
 // VolunteerInfo format: FirstName~#LastName~#Email~#ChapterID
 function parseVolunteerInfo(str) {
   if (!str || typeof str !== "string") return {};
@@ -126,6 +309,88 @@ function parseVolunteerInfo(str) {
   };
 }
 
+/** Legacy VolunteersRequest.aspx — Type dropdown default + Interest hint. */
+function resolveVolunteerTypeFromInterest(interest) {
+  const text = (interest || "").trim().toLowerCase();
+  if (text.includes("coordinator")) return "C";
+  if (text.includes("primary")) return "P";
+  if (text.includes("secondary")) return "S";
+  return "P";
+}
+
+/** Legacy ddlClass first item (Junior Beginner) when opening UpdateClass. */
+function resolveVolunteerClassCode() {
+  return CLASS_OPTIONS[0]?.value || "JB";
+}
+
+function buildVolunteerUpdateFormFromRow(row) {
+  const parsed = parseVolunteerInfo(row?.volunteerInfo);
+  const nameParts = (row?.volunteerName || "").trim().split(/\s+/);
+  const classCode = resolveVolunteerClassCode();
+  return {
+    firstName: parsed.firstName || nameParts[0] || "",
+    lastName: parsed.lastName || nameParts.slice(1).join(" ") || "",
+    chapterID: String(parsed.chapterID ?? "").trim(),
+    type: resolveVolunteerTypeFromInterest(row?.interest),
+    class: classCode,
+    section: "A",
+  };
+}
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return true;
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  document.body.removeChild(textarea);
+  return copied;
+}
+
+const VolunteersRequestCopyCell = ({ value, onCopied }) => {
+  const display =
+    value == null || value === "" ? "—" : String(value).trim() || "—";
+  const canCopy = display !== "—";
+
+  const handleClick = async (event) => {
+    event.stopPropagation();
+    if (!canCopy) return;
+    try {
+      const copied = await copyTextToClipboard(display);
+      if (copied) {
+        onCopied?.(display);
+      }
+    } catch {
+      // ignore copy failures
+    }
+  };
+
+  return (
+    <Tooltip title={canCopy ? `${display} (click to copy)` : display}>
+      <Box
+        component="span"
+        onClick={handleClick}
+        sx={{
+          display: "block",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          maxWidth: "100%",
+          cursor: canCopy ? "pointer" : "default",
+        }}
+      >
+        {display}
+      </Box>
+    </Tooltip>
+  );
+};
+
 const VolunteersRequest = () => {
   const { user, isAuthenticated } = useAuth();
   const [list, setList] = useState([]);
@@ -134,14 +399,7 @@ const VolunteersRequest = () => {
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    chapterID: "",
-    type: "V",
-    class: "",
-    section: "A",
-  });
+  const [form, setForm] = useState(() => buildVolunteerUpdateFormFromRow(null));
   const [submitting, setSubmitting] = useState(false);
   const [orderBy, setOrderBy] = useState("insertDate");
   const [order, setOrder] = useState("desc");
@@ -150,8 +408,12 @@ const VolunteersRequest = () => {
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("contains");
   const [searchText, setSearchText] = useState("");
-  const pageSize = 10;
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "info" });
+  const pageSize = 25;
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
 
   const username = user?.email || user?.username || "";
 
@@ -162,30 +424,34 @@ const VolunteersRequest = () => {
     }
     setLoading(true);
     try {
-      const res = await volunteersRequestService.getVolunteersRequest({ Username: username });
+      const res = await volunteersRequestService.getVolunteersRequest({
+        Username: username,
+      });
       const data = res?.volunteersRequest ?? res?.VolunteersRequest;
       if (res?.isSuccess && Array.isArray(data)) {
         setList(
-          data.map((row) =>
-            row && typeof row === "object"
-              ? {
-                  volunteerID: row.volunteerID ?? row.VolunteerID,
-                  volunteerName: row.volunteerName ?? row.VolunteerName,
-                  grade: row.grade ?? row.Grade,
-                  location: row.location ?? row.Location,
-                  school: row.school ?? row.School,
-                  phone: row.phone ?? row.Phone,
-                  email: row.email ?? row.Email,
-                  city: row.city ?? row.City,
-                  enrolledSession: row.enrolledSession ?? row.EnrolledSession,
-                  interest: row.interest ?? row.Interest,
-                  status: row.status ?? row.Status,
-                  insertDate: row.insertDate ?? row.InsertDate,
-                  comments: row.comments ?? row.Comments,
-                  volunteerInfo: row.volunteerInfo ?? row.VolunteerInfo,
-                }
-              : null
-          ).filter(Boolean)
+          data
+            .map((row) =>
+              row && typeof row === "object"
+                ? {
+                    volunteerID: row.volunteerID ?? row.VolunteerID,
+                    volunteerName: row.volunteerName ?? row.VolunteerName,
+                    grade: row.grade ?? row.Grade,
+                    location: row.location ?? row.Location,
+                    school: row.school ?? row.School,
+                    phone: row.phone ?? row.Phone,
+                    email: row.email ?? row.Email,
+                    city: row.city ?? row.City,
+                    enrolledSession: row.enrolledSession ?? row.EnrolledSession,
+                    interest: row.interest ?? row.Interest,
+                    status: row.status ?? row.Status,
+                    insertDate: row.insertDate ?? row.InsertDate,
+                    comments: row.comments ?? row.Comments,
+                    volunteerInfo: row.volunteerInfo ?? row.VolunteerInfo,
+                  }
+                : null,
+            )
+            .filter(Boolean),
         );
       } else {
         setList([]);
@@ -194,7 +460,10 @@ const VolunteersRequest = () => {
       console.error("Error loading volunteers request:", err);
       setSnackbar({
         open: true,
-        message: err?.response?.data?.errorMessage ?? err?.message ?? "Error loading list.",
+        message:
+          err?.response?.data?.errorMessage ??
+          err?.message ??
+          "Error loading list.",
         severity: "error",
       });
       setList([]);
@@ -205,7 +474,9 @@ const VolunteersRequest = () => {
 
   const loadChapterLocations = async () => {
     try {
-      const res = await studentWaitingListService.getChapterLocation({ Mode: "N" });
+      const res = await studentWaitingListService.getChapterLocation({
+        Mode: "N",
+      });
       const chapters = res?.chapterLocations ?? res?.ChapterLocations;
       if (res?.isSuccess && Array.isArray(chapters)) {
         setChapterLocations(chapters);
@@ -245,7 +516,9 @@ const VolunteersRequest = () => {
   };
 
   const handlePageChange = (page) => {
-    const totalPages = Math.ceil((filteredAndSortedList?.length || 0) / pageSize);
+    const totalPages = Math.ceil(
+      (filteredAndSortedList?.length || 0) / pageSize,
+    );
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
       setGoToPageInput(String(page));
@@ -254,7 +527,9 @@ const VolunteersRequest = () => {
 
   const handleGoToPage = () => {
     const page = parseInt(goToPageInput, 10);
-    const totalPages = Math.ceil((filteredAndSortedList?.length || 0) / pageSize);
+    const totalPages = Math.ceil(
+      (filteredAndSortedList?.length || 0) / pageSize,
+    );
     if (!isNaN(page) && page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     } else {
@@ -290,7 +565,8 @@ const VolunteersRequest = () => {
         fieldValue = String(fieldValue).toLowerCase();
         const search = searchText.trim().toLowerCase();
         if (searchCriteria === "equals") return fieldValue === search;
-        if (searchCriteria === "starts_with") return fieldValue.startsWith(search);
+        if (searchCriteria === "starts_with")
+          return fieldValue.startsWith(search);
         return fieldValue.includes(search);
       });
     }
@@ -320,7 +596,9 @@ const VolunteersRequest = () => {
       }
       aVal = (aVal ?? "").toString();
       bVal = (bVal ?? "").toString();
-      return order === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      return order === "asc"
+        ? aVal.localeCompare(bVal)
+        : bVal.localeCompare(aVal);
     });
   }, [list, orderBy, order, searchBy, searchCriteria, searchText]);
 
@@ -334,30 +612,14 @@ const VolunteersRequest = () => {
 
   const handleEdit = (row) => {
     setSelectedRow(row);
-    const parsed = parseVolunteerInfo(row.volunteerInfo);
-    const nameParts = (row.volunteerName || "").split(" ");
-    setForm({
-      firstName: parsed.firstName || nameParts[0] || "",
-      lastName: parsed.lastName || nameParts.slice(1).join(" ") || "",
-      chapterID: parsed.chapterID || "",
-      type: "V",
-      class: "",
-      section: "A",
-    });
+    setForm(buildVolunteerUpdateFormFromRow(row));
     setShowUpdateForm(true);
   };
 
   const handleCloseUpdateForm = () => {
     setShowUpdateForm(false);
     setSelectedRow(null);
-    setForm({
-      firstName: "",
-      lastName: "",
-      chapterID: "",
-      type: "V",
-      class: "",
-      section: "A",
-    });
+    setForm(buildVolunteerUpdateFormFromRow(null));
   };
 
   const handleDeleteClick = (row) => {
@@ -373,12 +635,20 @@ const VolunteersRequest = () => {
         RequestID: String(selectedRow.volunteerID),
       });
       if (res?.isSuccess) {
-        setSnackbar({ open: true, message: res.message || "Deleted successfully.", severity: "success" });
+        setSnackbar({
+          open: true,
+          message: res.message || "Deleted successfully.",
+          severity: "success",
+        });
         setDeleteConfirmOpen(false);
         setSelectedRow(null);
         loadList();
       } else {
-        setSnackbar({ open: true, message: res?.errorMessage || "Delete failed.", severity: "error" });
+        setSnackbar({
+          open: true,
+          message: res?.errorMessage || "Delete failed.",
+          severity: "error",
+        });
       }
     } catch (err) {
       setSnackbar({
@@ -393,6 +663,24 @@ const VolunteersRequest = () => {
 
   const handleUpdateSubmit = async () => {
     if (!selectedRow) return;
+
+    if (!form.chapterID) {
+      setSnackbar({
+        open: true,
+        message: "Please select a chapter.",
+        severity: "error",
+      });
+      return;
+    }
+    if (!form.class) {
+      setSnackbar({
+        open: true,
+        message: "Please select a class.",
+        severity: "error",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await volunteersRequestService.updateVolunteerStatus({
@@ -403,11 +691,19 @@ const VolunteersRequest = () => {
         Type: form.type,
       });
       if (res?.isSuccess) {
-        setSnackbar({ open: true, message: res.message || "Volunteer approved successfully.", severity: "success" });
+        setSnackbar({
+          open: true,
+          message: res.message || "Volunteer has approved successfully.",
+          severity: "success",
+        });
         handleCloseUpdateForm();
         loadList();
       } else {
-        setSnackbar({ open: true, message: res?.errorMessage || "Update failed.", severity: "error" });
+        setSnackbar({
+          open: true,
+          message: res?.errorMessage || "Update failed.",
+          severity: "error",
+        });
       }
     } catch (err) {
       setSnackbar({
@@ -423,7 +719,11 @@ const VolunteersRequest = () => {
   const handleExportExcel = async () => {
     try {
       await volunteersRequestService.exportToExcel({ Username: username });
-      setSnackbar({ open: true, message: "Export downloaded.", severity: "success" });
+      setSnackbar({
+        open: true,
+        message: "Export downloaded.",
+        severity: "success",
+      });
     } catch (err) {
       setSnackbar({
         open: true,
@@ -439,8 +739,33 @@ const VolunteersRequest = () => {
     return isNaN(date.getTime()) ? d : date.toLocaleDateString();
   };
 
+  const handleCellCopy = () => {
+    setSnackbar({
+      open: true,
+      message: "Copied to clipboard",
+      severity: "success",
+    });
+  };
+
+  const renderCopyCell = (value, { isLast = false } = {}) => (
+    <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true, isLast })}>
+      <VolunteersRequestCopyCell value={value} onCopied={handleCellCopy} />
+    </TableCell>
+  );
+
+  const selectedVolunteerEmail =
+    selectedRow?.email ||
+    parseVolunteerInfo(selectedRow?.volunteerInfo).email ||
+    "";
+
+  const chapterSelectIds = useMemo(
+    () =>
+      chapterLocations.map((ch) => String(ch.chapterID ?? ch.ChapterID ?? "")),
+    [chapterLocations],
+  );
+
   return (
-    <Box sx={volunteersRequestPageSx}>
+    <Box className="admin-volunteers-request" sx={volunteersRequestPageSx}>
       <AdminHeader user={user} />
       <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
@@ -449,229 +774,394 @@ const VolunteersRequest = () => {
             <Card sx={adminSessionListPanelCardSx}>
               <CardContent sx={adminSessionListPanelContentSx}>
                 <Box sx={adminSessionListHeaderBarSx}>
-                  <Typography variant="subtitle1" sx={adminSessionListTitleSx}>
+                  <Typography
+                    variant="subtitle1"
+                    component="div"
+                    sx={adminSessionListTitleSx}
+                  >
                     Volunteers Request
                   </Typography>
-                  <Box sx={{ display: "flex", gap: 1 }}>
+                  <Box sx={{ display: "flex", gap: 1, flexShrink: 0 }}>
                     <Button
                       variant="contained"
                       color="success"
                       size="small"
                       startIcon={<DownloadIcon />}
                       onClick={handleExportExcel}
-                      sx={adminSessionListToolbarButtonSx}
+                      sx={portalHeaderActionButtonSx}
                     >
                       Export Excel
                     </Button>
                     <Button
-                      variant="outlined"
-                      color="primary"
+                      variant="contained"
+                      color="success"
                       size="small"
                       startIcon={<RefreshIcon />}
                       onClick={loadList}
                       disabled={loading}
-                      sx={adminSessionListToolbarButtonSx}
+                      sx={portalHeaderActionButtonSx}
                     >
                       Refresh
                     </Button>
                   </Box>
                 </Box>
 
-                {loading ? (
-                  <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                    <CircularProgress />
-                  </Box>
-                ) : (
-                  <>
-                    <Box sx={adminSessionListSearchBarSx}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                        <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
-                        <Select
-                          value={searchBy}
-                          onChange={(e) => setSearchBy(e.target.value)}
-                          size="small"
-                          sx={adminSessionListSearchSelectSx}
-                        >
-                          <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
-                            -ALL-
-                          </MenuItem>
-                          <MenuItem value="VOLUNTEER_ID" sx={adminSessionListMenuItemSx}>
-                            #
-                          </MenuItem>
-                          <MenuItem value="NAME" sx={adminSessionListMenuItemSx}>
-                            Name
-                          </MenuItem>
-                          <MenuItem value="EMAIL" sx={adminSessionListMenuItemSx}>
-                            Email
-                          </MenuItem>
-                          <MenuItem value="STATUS" sx={adminSessionListMenuItemSx}>
-                            Status
-                          </MenuItem>
-                          <MenuItem value="SCHOOL" sx={adminSessionListMenuItemSx}>
-                            School
-                          </MenuItem>
-                        </Select>
-                      </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                        <Typography sx={adminSessionListSearchLabelSx}>Criteria:</Typography>
-                        <Select
-                          value={searchCriteria}
-                          onChange={(e) => setSearchCriteria(e.target.value)}
-                          size="small"
-                          sx={adminSessionListSearchSelectSx}
-                        >
-                          <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
-                            Contains
-                          </MenuItem>
-                          <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
-                            Equals
-                          </MenuItem>
-                          <MenuItem value="starts_with" sx={adminSessionListMenuItemSx}>
-                            Starts With
-                          </MenuItem>
-                        </Select>
-                      </Box>
-                      <TextField
+                <Box className="admin-volunteers-request-table-panel">
+                  <Box sx={adminSessionListSearchBarSx}>
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                    >
+                      <Typography sx={adminSessionListSearchLabelSx}>
+                        Search By:
+                      </Typography>
+                      <Select
+                        value={searchBy}
+                        onChange={(e) => setSearchBy(e.target.value)}
                         size="small"
-                        placeholder="Search Text"
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        sx={adminSessionListSearchFieldSx}
-                      />
-                      <Button
-                        variant="contained"
-                        size="small"
-                        onClick={handleSearch}
-                        sx={adminSessionListFindButtonSx}
+                        sx={adminSessionListSearchSelectSx}
                       >
-                        Find
-                      </Button>
+                        <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
+                          -ALL-
+                        </MenuItem>
+                        <MenuItem
+                          value="VOLUNTEER_ID"
+                          sx={adminSessionListMenuItemSx}
+                        >
+                          #
+                        </MenuItem>
+                        <MenuItem value="NAME" sx={adminSessionListMenuItemSx}>
+                          Name
+                        </MenuItem>
+                        <MenuItem value="EMAIL" sx={adminSessionListMenuItemSx}>
+                          Email
+                        </MenuItem>
+                        <MenuItem
+                          value="STATUS"
+                          sx={adminSessionListMenuItemSx}
+                        >
+                          Status
+                        </MenuItem>
+                        <MenuItem
+                          value="SCHOOL"
+                          sx={adminSessionListMenuItemSx}
+                        >
+                          School
+                        </MenuItem>
+                      </Select>
                     </Box>
-
-                    <TableContainer component={Paper} sx={adminSessionListTableContainerSx}>
-                      <Table sx={adminSessionListGridTableSx} size="small">
-                        <TableHead>
-                          <TableRow sx={adminSessionListTableHeadRowSx}>
-                            <TableCell
-                              sx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.edit)}
-                            >
-                              Edit
-                            </TableCell>
-                            <TableCell
-                              sx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.delete)}
-                            >
-                              Delete
-                            </TableCell>
-                            <SortableHeader label="Status" field="status" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.status)} />
-                            <SortableHeader label="#" field="volunteerID" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.id)} />
-                            <SortableHeader label="Volunteer Name" field="volunteerName" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.volunteerName)} />
-                            <SortableHeader label="Grade" field="grade" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.grade)} />
-                            <SortableHeader label="Location" field="location" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.location)} />
-                            <SortableHeader label="School" field="school" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.school)} />
-                            <SortableHeader label="Phone" field="phone" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.phone)} />
-                            <SortableHeader label="Email" field="email" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.email)} />
-                            <SortableHeader label="City" field="city" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.city)} />
-                            <SortableHeader label="Enrolled For" field="enrolledSession" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.enrolledFor)} />
-                            <SortableHeader label="Interested For" field="interest" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.interestedFor)} />
-                            <SortableHeader label="Requested Date" field="insertDate" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.requestedDate)} />
-                            <SortableHeader label="Comments" field="comments" sortField={orderBy} sortOrder={order} onSort={handleSort} headCellSx={adminSessionListTableHeadCellSx(volunteersRequestColumnWidths.comments, true)} />
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {paginatedList.length > 0 ? (
-                            paginatedList.map((row) => (
-                              <TableRow key={row.volunteerID} sx={adminSessionListTableBodyRowSx}>
-                                <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
-                                  <Box onClick={() => handleEdit(row)} sx={adminSessionListTableActionLinkSx}>
-                                    Edit
-                                  </Box>
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
-                                  <Box
-                                    onClick={() => handleDeleteClick(row)}
-                                    sx={adminSessionListTableActionLinkSx}
-                                  >
-                                    Delete
-                                  </Box>
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                  {row.status ?? "—"}
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                  {row.volunteerID ?? "—"}
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-                                  <Tooltip title={row.volunteerName ?? "—"}>
-                                    <span>{row.volunteerName ?? "—"}</span>
-                                  </Tooltip>
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                  {row.grade ?? "—"}
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-                                  <Tooltip title={row.location ?? "—"}>
-                                    <span>{row.location ?? "—"}</span>
-                                  </Tooltip>
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                  {row.school ?? "—"}
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                  {row.phone ?? "—"}
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-                                  <Tooltip title={row.email ?? "—"}>
-                                    <span>{row.email ?? "—"}</span>
-                                  </Tooltip>
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                  {row.city ?? "—"}
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-                                  <Tooltip title={row.enrolledSession ?? "—"}>
-                                    <span>{row.enrolledSession ?? "—"}</span>
-                                  </Tooltip>
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-                                  <Tooltip title={row.interest ?? "—"}>
-                                    <span>{row.interest ?? "—"}</span>
-                                  </Tooltip>
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                  {formatDate(row.insertDate) || "—"}
-                                </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
-                                  {row.comments ?? "—"}
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          ) : (
-                            <TableRow>
-                              <TableCell colSpan={15} align="center" sx={adminSessionListEmptyCellSx}>
-                                <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
-                                  {searchText
-                                    ? "No records found matching your search."
-                                    : "No records found."}
-                                </Typography>
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-
-                    <AdminSessionListPagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      totalRecords={totalRecords}
-                      pageSize={pageSize}
-                      goToPageInput={goToPageInput}
-                      onGoToPageInputChange={setGoToPageInput}
-                      onPageChange={handlePageChange}
-                      onGoToPage={handleGoToPage}
+                    <Box
+                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                    >
+                      <Typography sx={adminSessionListSearchLabelSx}>
+                        Criteria:
+                      </Typography>
+                      <Select
+                        value={searchCriteria}
+                        onChange={(e) => setSearchCriteria(e.target.value)}
+                        size="small"
+                        sx={adminSessionListSearchSelectSx}
+                      >
+                        <MenuItem
+                          value="contains"
+                          sx={adminSessionListMenuItemSx}
+                        >
+                          Contains
+                        </MenuItem>
+                        <MenuItem
+                          value="equals"
+                          sx={adminSessionListMenuItemSx}
+                        >
+                          Equals
+                        </MenuItem>
+                        <MenuItem
+                          value="starts_with"
+                          sx={adminSessionListMenuItemSx}
+                        >
+                          Starts With
+                        </MenuItem>
+                      </Select>
+                    </Box>
+                    <TextField
+                      size="small"
+                      placeholder="Search Text"
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                      sx={adminSessionListSearchFieldSx}
                     />
-                  </>
-                )}
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={handleSearch}
+                      sx={adminSessionListFindButtonSx}
+                    >
+                      Find
+                    </Button>
+                  </Box>
+
+                  <TableContainer
+                    component={Paper}
+                    className="admin-volunteers-request-table-container"
+                    sx={{ width: "100%" }}
+                  >
+                    <Table
+                      className="admin-volunteers-request-table"
+                      sx={adminSessionListGridTableSx}
+                      size="small"
+                    >
+                      <TableHead>
+                        <TableRow sx={adminSessionListTableHeadRowSx}>
+                          <TableCell
+                            sx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.edit,
+                            )}
+                          >
+                            Edit
+                          </TableCell>
+                          <TableCell
+                            sx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.delete,
+                            )}
+                          >
+                            Delete
+                          </TableCell>
+                          <SortableHeader
+                            label="Status"
+                            field="status"
+                            sortField={orderBy}
+                            sortOrder={order}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.status,
+                            )}
+                          />
+                          <SortableHeader
+                            label="#"
+                            field="volunteerID"
+                            sortField={orderBy}
+                            sortOrder={order}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.id,
+                            )}
+                          />
+                          <SortableHeader
+                            label="Volunteer Name"
+                            field="volunteerName"
+                            sortField={orderBy}
+                            sortOrder={order}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.volunteerName,
+                            )}
+                          />
+                          <SortableHeader
+                            label="Grade"
+                            field="grade"
+                            sortField={orderBy}
+                            sortOrder={order}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.grade,
+                            )}
+                          />
+                          <SortableHeader
+                            label="Location"
+                            field="location"
+                            sortField={orderBy}
+                            sortOrder={order}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.location,
+                            )}
+                          />
+                          <SortableHeader
+                            label="School"
+                            field="school"
+                            sortField={orderBy}
+                            sortOrder={order}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.school,
+                            )}
+                          />
+                          <SortableHeader
+                            label="Phone"
+                            field="phone"
+                            sortField={orderBy}
+                            sortOrder={order}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.phone,
+                            )}
+                          />
+                          <SortableHeader
+                            label="Email"
+                            field="email"
+                            sortField={orderBy}
+                            sortOrder={order}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.email,
+                            )}
+                          />
+                          <SortableHeader
+                            label="City"
+                            field="city"
+                            sortField={orderBy}
+                            sortOrder={order}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.city,
+                            )}
+                          />
+                          <SortableHeader
+                            label="Enrolled For"
+                            field="enrolledSession"
+                            sortField={orderBy}
+                            sortOrder={order}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.enrolledFor,
+                            )}
+                          />
+                          <SortableHeader
+                            label="Interested For"
+                            field="interest"
+                            sortField={orderBy}
+                            sortOrder={order}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.interestedFor,
+                            )}
+                          />
+                          <SortableHeader
+                            label="Requested Date"
+                            field="insertDate"
+                            sortField={orderBy}
+                            sortOrder={order}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.requestedDate,
+                            )}
+                          />
+                          <SortableHeader
+                            label="Comments"
+                            field="comments"
+                            sortField={orderBy}
+                            sortOrder={order}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(
+                              volunteersRequestColumnWidths.comments,
+                              true,
+                            )}
+                          />
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {loading ? (
+                          <TableRow>
+                            <TableCell
+                              colSpan={15}
+                              align="center"
+                              sx={adminSessionListEmptyCellSx}
+                            >
+                              <Typography
+                                variant="body2"
+                                color="textSecondary"
+                                sx={adminSessionListEmptyTextSx}
+                              >
+                                Loading...
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        ) : paginatedList.length > 0 ? (
+                          paginatedList.map((row) => (
+                            <TableRow
+                              key={row.volunteerID}
+                              sx={adminSessionListTableBodyRowSx}
+                            >
+                              <TableCell
+                                sx={adminSessionListTableBodyCellSx({
+                                  action: true,
+                                })}
+                              >
+                                <Box
+                                  onClick={() => handleEdit(row)}
+                                  sx={adminSessionListTableActionLinkSx}
+                                >
+                                  Edit
+                                </Box>
+                              </TableCell>
+                              <TableCell
+                                sx={adminSessionListTableBodyCellSx({
+                                  action: true,
+                                })}
+                              >
+                                <Box
+                                  onClick={() => handleDeleteClick(row)}
+                                  sx={adminSessionListTableDeleteLinkSx}
+                                >
+                                  Delete
+                                </Box>
+                              </TableCell>
+                              <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                {row.status ?? "—"}
+                              </TableCell>
+                              <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                {row.volunteerID ?? "—"}
+                              </TableCell>
+                              {renderCopyCell(row.volunteerName)}
+                              {renderCopyCell(row.grade)}
+                              {renderCopyCell(row.location)}
+                              {renderCopyCell(row.school)}
+                              <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                {row.phone ?? "—"}
+                              </TableCell>
+                              {renderCopyCell(row.email)}
+                              {renderCopyCell(row.city)}
+                              {renderCopyCell(row.enrolledSession)}
+                              {renderCopyCell(row.interest)}
+                              <TableCell sx={adminSessionListTableBodyCellSx()}>
+                                {formatDate(row.insertDate) || "—"}
+                              </TableCell>
+                              {renderCopyCell(row.comments, { isLast: true })}
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell
+                              colSpan={15}
+                              align="center"
+                              sx={adminSessionListEmptyCellSx}
+                            >
+                              <Typography
+                                variant="body2"
+                                color="textSecondary"
+                                sx={adminSessionListEmptyTextSx}
+                              >
+                                {searchText
+                                  ? "No records found matching your search."
+                                  : "No records found."}
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+
+                  <AdminSessionListPagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalRecords={totalRecords}
+                    pageSize={pageSize}
+                    goToPageInput={goToPageInput}
+                    onGoToPageInputChange={setGoToPageInput}
+                    onPageChange={handlePageChange}
+                    onGoToPage={handleGoToPage}
+                  />
+                </Box>
               </CardContent>
             </Card>
           </Grid>
@@ -681,10 +1171,12 @@ const VolunteersRequest = () => {
       <PortalDialog
         open={showUpdateForm && !!selectedRow}
         onClose={handleCloseUpdateForm}
-        maxWidth="md"
+        maxWidth="sm"
         disableClose={submitting}
         title="Update Volunteer Request Status"
         icon={<EditIcon sx={{ fontSize: 20 }} />}
+        paperSx={volunteersRequestModalPaperSx}
+        contentSx={volunteersRequestModalContentSx}
         actions={
           <Button
             variant="contained"
@@ -696,43 +1188,88 @@ const VolunteersRequest = () => {
           </Button>
         }
       >
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
+        <Grid
+          container
+          spacing={2}
+          className="admin-volunteers-request-update-form"
+          sx={{ width: "100%", minWidth: 0, maxWidth: "100%", m: 0 }}
+        >
+          <Grid item xs={12} sx={{ minWidth: 0, maxWidth: "100%" }}>
             <TextField
               fullWidth
               size="small"
               label="First Name"
               value={form.firstName}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, firstName: e.target.value }))
-              }
-              sx={portalModalFieldSx}
+              disabled
+              InputLabelProps={{ shrink: true }}
+              sx={volunteersRequestReadOnlyFieldSx}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sx={{ minWidth: 0, maxWidth: "100%" }}>
             <TextField
               fullWidth
               size="small"
               label="Last Name"
               value={form.lastName}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, lastName: e.target.value }))
-              }
-              sx={portalModalFieldSx}
+              disabled
+              InputLabelProps={{ shrink: true }}
+              sx={volunteersRequestReadOnlyFieldSx}
             />
           </Grid>
-          <Grid item xs={12}>
-            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
-              <InputLabel>Chapter</InputLabel>
-              <Select
-                value={form.chapterID}
+          <Grid item xs={12} sx={{ minWidth: 0, maxWidth: "100%" }}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Email"
+              value={selectedVolunteerEmail}
+              disabled
+              InputLabelProps={{ shrink: true }}
+              sx={volunteersRequestReadOnlyFieldSx}
+            />
+          </Grid>
+          <Grid item xs={12} sx={{ minWidth: 0, maxWidth: "100%" }}>
+            <Tooltip
+              title={getVolunteerChapterLabel(form.chapterID, chapterLocations) || "Select chapter"}
+              placement="top-start"
+              enterDelay={400}
+            >
+              <Box sx={{ width: "100%" }}>
+              <FormControl
+                fullWidth
+                size="small"
+                className="vr-field-chapter"
+                sx={volunteersRequestChapterFieldSx}
+              >
+              <InputLabel id="vr-chapter-label" shrink>
+                Chapter
+              </InputLabel>
+              <PortalModalSelect
+                labelId="vr-chapter-label"
+                id="vr-chapter-select"
+                value={String(form.chapterID ?? "")}
                 label="Chapter"
+                displayEmpty
+                disabled={submitting}
+                renderValue={(selected) =>
+                  renderVolunteerChapterSelectValue(selected, chapterLocations)
+                }
                 onChange={(e) =>
                   setForm((f) => ({ ...f, chapterID: e.target.value }))
                 }
               >
+                {!form.chapterID && (
+                  <MenuItem value="">
+                    <em>Select chapter</em>
+                  </MenuItem>
+                )}
+                {form.chapterID &&
+                  !chapterSelectIds.includes(String(form.chapterID)) && (
+                    <MenuItem value={String(form.chapterID)}>
+                      Chapter {form.chapterID}
+                    </MenuItem>
+                  )}
                 {chapterLocations.map((ch) => {
-                  const id = ch.chapterID ?? ch.ChapterID ?? "";
+                  const id = String(ch.chapterID ?? ch.ChapterID ?? "");
                   const name = ch.chapterName ?? ch.ChapterName ?? "";
                   const loc = ch.location ?? ch.Location ?? "";
                   return (
@@ -741,58 +1278,107 @@ const VolunteersRequest = () => {
                     </MenuItem>
                   );
                 })}
-              </Select>
+              </PortalModalSelect>
             </FormControl>
+              </Box>
+            </Tooltip>
           </Grid>
-          <Grid item xs={12}>
-            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
-              <InputLabel>Type</InputLabel>
-              <Select
-                value={form.type}
+          <Grid item xs={12} sx={{ minWidth: 0, maxWidth: "100%" }}>
+            <FormControl
+              fullWidth
+              size="small"
+              className="vr-field-type"
+              sx={volunteersRequestModalSelectFieldSx("type")}
+            >
+              <InputLabel id="vr-type-label" shrink>
+                Type
+              </InputLabel>
+              <PortalModalSelect
+                labelId="vr-type-label"
+                id="vr-type-select"
+                value={form.type || "P"}
                 label="Type"
+                disabled={submitting}
+                renderValue={(selected) =>
+                  renderVolunteerSelectDisplayValue(getVolunteerTypeLabel(selected))
+                }
                 onChange={(e) =>
                   setForm((f) => ({ ...f, type: e.target.value }))
                 }
               >
+                {form.type &&
+                  !TYPE_OPTIONS.some((opt) => opt.value === form.type) && (
+                    <MenuItem value={form.type}>{form.type}</MenuItem>
+                  )}
                 {TYPE_OPTIONS.map((opt) => (
                   <MenuItem key={opt.value} value={opt.value}>
                     {opt.label}
                   </MenuItem>
                 ))}
-              </Select>
+              </PortalModalSelect>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
-              <InputLabel>Class</InputLabel>
-              <Select
-                value={form.class}
+          <Grid item xs={12} sx={{ minWidth: 0, maxWidth: "100%" }}>
+            <FormControl
+              fullWidth
+              size="small"
+              className="vr-field-class"
+              sx={volunteersRequestModalSelectFieldSx("class")}
+            >
+              <InputLabel id="vr-class-label" shrink>
+                Class
+              </InputLabel>
+              <PortalModalSelect
+                labelId="vr-class-label"
+                id="vr-class-select"
+                value={form.class || "JB"}
                 label="Class"
+                disabled={submitting}
+                renderValue={(selected) =>
+                  renderVolunteerSelectDisplayValue(getVolunteerClassLabel(selected))
+                }
                 onChange={(e) =>
                   setForm((f) => ({ ...f, class: e.target.value }))
                 }
               >
+                {form.class &&
+                  !CLASS_OPTIONS.some((opt) => opt.value === form.class) && (
+                    <MenuItem value={form.class}>{form.class}</MenuItem>
+                  )}
                 {CLASS_OPTIONS.map((opt) => (
                   <MenuItem key={opt.value} value={opt.value}>
                     {opt.label}
                   </MenuItem>
                 ))}
-              </Select>
+              </PortalModalSelect>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
-              <InputLabel>Section</InputLabel>
-              <Select
-                value={form.section}
+          <Grid item xs={12} sx={{ minWidth: 0, maxWidth: "100%" }}>
+            <FormControl
+              fullWidth
+              size="small"
+              className="vr-field-section"
+              sx={volunteersRequestModalSelectFieldSx("section")}
+            >
+              <InputLabel id="vr-section-label" shrink>
+                Section
+              </InputLabel>
+              <PortalModalSelect
+                labelId="vr-section-label"
+                id="vr-section-select"
+                value={form.section || "A"}
                 label="Section"
+                disabled={submitting}
+                renderValue={(selected) =>
+                  renderVolunteerSelectDisplayValue(getVolunteerSectionLabel(selected))
+                }
                 onChange={(e) =>
                   setForm((f) => ({ ...f, section: e.target.value }))
                 }
               >
                 <MenuItem value="A">A</MenuItem>
                 <MenuItem value="B">B</MenuItem>
-              </Select>
+              </PortalModalSelect>
             </FormControl>
           </Grid>
         </Grid>
@@ -817,17 +1403,12 @@ const VolunteersRequest = () => {
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
-        onClose={(event, reason) => {
-          if (reason === "clickaway") return;
-          setSnackbar((s) => ({ ...s, open: false }));
-        }}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           severity={snackbar.severity}
           onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-          sx={{ width: "100%" }}
-          variant="filled"
         >
           {snackbar.message}
         </Alert>

@@ -33,13 +33,15 @@
 }
 
 .student-waiting-list .student-waiting-list-table-panel .MuiTableCell-body:not(
-    .student-waiting-list-action-cell
+    .student-waiting-list-edit-cell,
+    .student-waiting-list-delete-cell
   ) {
   overflow: hidden;
   max-width: 0;
 }
 
-.student-waiting-list .student-waiting-list-action-cell {
+.student-waiting-list .student-waiting-list-edit-cell,
+.student-waiting-list .student-waiting-list-delete-cell {
   max-width: none !important;
   overflow: visible !important;
   white-space: nowrap;

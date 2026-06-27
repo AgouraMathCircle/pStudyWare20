@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Button,
   TextField,
-  Select,
   MenuItem,
   FormControl,
   InputLabel,
@@ -17,6 +16,7 @@ import {
   CloudUpload as UploadIcon,
 } from "@mui/icons-material";
 import PortalDialog from "../Common/PortalDialog";
+import PortalModalSelect from "../Common/PortalModalSelect";
 import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
 import documentService from "../../../services/documentService";
 
@@ -333,7 +333,7 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth size="small" sx={portalModalFieldSx}>
             <InputLabel>Description</InputLabel>
-            <Select
+            <PortalModalSelect
               name="description"
               value={formData.description}
               onChange={handleChange}
@@ -344,14 +344,14 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
                   {option}
                 </MenuItem>
               ))}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
         </Grid>
 
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth size="small" sx={portalModalFieldSx}>
             <InputLabel>Session</InputLabel>
-            <Select
+            <PortalModalSelect
               name="session"
               value={formData.session}
               onChange={handleChange}
@@ -362,14 +362,14 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
                   {option}
                 </MenuItem>
               ))}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
         </Grid>
 
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth size="small" sx={portalModalFieldSx}>
             <InputLabel>Class</InputLabel>
-            <Select
+            <PortalModalSelect
               name="class"
               value={formData.class}
               onChange={handleChange}
@@ -380,14 +380,14 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
                   {option.label}
                 </MenuItem>
               ))}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
         </Grid>
 
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth size="small" sx={portalModalFieldSx}>
             <InputLabel>Publish</InputLabel>
-            <Select
+            <PortalModalSelect
               name="publish"
               value={formData.publish}
               onChange={handleChange}
@@ -395,7 +395,7 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
             >
               <MenuItem value="0">No</MenuItem>
               <MenuItem value="1">Yes</MenuItem>
-            </Select>
+            </PortalModalSelect>
           </FormControl>
         </Grid>
       </Grid>

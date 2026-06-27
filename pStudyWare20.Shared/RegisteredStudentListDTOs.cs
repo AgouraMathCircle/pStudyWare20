@@ -60,6 +60,15 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Email")]
         public string Email { get; set; } = string.Empty;
+
+        [Display(Name = "Class Label")]
+        public string ClassLabel { get; set; } = string.Empty;
+
+        [Display(Name = "Chapter Name")]
+        public string ChapterName { get; set; } = string.Empty;
+
+        [Display(Name = "Location Label")]
+        public string LocationLabel { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -193,6 +202,15 @@ namespace pStudyWare20.Shared
     }
 
     /// <summary>
+    /// Session option for update-class dialog (legacy drSession).
+    /// </summary>
+    public class RegisteredStudentSessionOption
+    {
+        public string Value { get; set; } = string.Empty;
+        public string Label { get; set; } = string.Empty;
+    }
+
+    /// <summary>
     /// Model for registered student list dashboard data response
     /// </summary>
     public class RegisteredStudentListDashboardResponse
@@ -208,6 +226,9 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Chapter Locations")]
         public object ChapterLocations { get; set; } = new object();
+
+        [Display(Name = "Session Options")]
+        public List<RegisteredStudentSessionOption> SessionOptions { get; set; } = new List<RegisteredStudentSessionOption>();
     }
 
     /// <summary>

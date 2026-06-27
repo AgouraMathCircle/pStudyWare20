@@ -1,0 +1,9 @@
+-- Current Session Student List (admin dashboard): sort by Student ID descending.
+-- Applies to AMC_spSelectStudentList when @sUserType = 'A' and @Mode = 'D'.
+--
+-- In SSMS, open AMC_spSelectStudentList and change the admin dashboard branch:
+--   Order by TS.[colStudentFName]
+-- to:
+--   Order by TS.[colStudentID] Desc
+--
+-- Or redeploy the procedure from AllDbScripts.sql after this repository change.

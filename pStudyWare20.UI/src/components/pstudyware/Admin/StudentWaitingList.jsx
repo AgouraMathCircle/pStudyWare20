@@ -30,6 +30,7 @@ import {
   Delete as DeleteIcon,
 } from "@mui/icons-material";
 import PortalDialog from "../Common/PortalDialog";
+import PortalModalSelect from "../Common/PortalModalSelect";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import {
   portalModalFieldSx,
@@ -50,6 +51,7 @@ import {
   adminSessionListSearchLabelSx,
   adminSessionListSearchSelectSx,
   adminSessionListTableActionLinkSx,
+  adminSessionListTableDeleteLinkSx,
   adminSessionListTableBodyCellSx,
   adminSessionListTableBodyRowSx,
   adminSessionListTableContainerSx,
@@ -72,7 +74,8 @@ const studentWaitingListPageSx = {
 };
 
 const waitingListColumnWidths = {
-  action: "6%",
+  edit: "4%",
+  delete: "4%",
   status: "5.5%",
   studentId: "4.5%",
   studentName: "8%",
@@ -145,6 +148,46 @@ const WaitingListCopyCell = ({ value, onCopied }) => {
   );
 };
 
+const WaitingListPasswordCell = ({ value, onCopied }) => {
+  const password =
+    value == null || value === "" ? "" : String(value).trim();
+  const canCopy = Boolean(password);
+  const display = canCopy ? "xxx" : "—";
+
+  const handleClick = async (event) => {
+    event.stopPropagation();
+    if (!canCopy) return;
+    try {
+      const copied = await copyTextToClipboard(password);
+      if (copied) {
+        onCopied?.(password);
+      }
+    } catch {
+      // ignore copy failures
+    }
+  };
+
+  return (
+    <Tooltip title={canCopy ? "Click to copy password" : display}>
+      <Box
+        component="span"
+        onClick={handleClick}
+        sx={{
+          display: "block",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          maxWidth: "100%",
+          cursor: canCopy ? "pointer" : "default",
+          letterSpacing: canCopy ? 1 : undefined,
+        }}
+      >
+        {display}
+      </Box>
+    </Tooltip>
+  );
+};
+
 const CLASS_OPTIONS = [
   { value: "JB", label: "Junior Beginner" },
   { value: "JI", label: "Junior Intermediate" },
@@ -169,6 +212,11 @@ const LOCATION_OPTIONS = [
 const STATUS_OPTIONS = [
   { value: "A", label: "Approved" },
   { value: "D", label: "Declined" },
+];
+
+const SESSION_OPTIONS = [
+  { value: "F2024", label: "Fall F2024" },
+  { value: "S2024", label: "Spring 2024" },
 ];
 
 // Parse StudentClassInfo legacy format: Fname E$~# Lname E$~# Class E$~# Email E$~# Sem E$~# Grade E$~# Location E$~# ChapterID E$~# Password
@@ -211,11 +259,65 @@ function getRowPassword(row) {
   return parseStudentClassInfo(row?.studentClassInfo).password || "";
 }
 
-const waitingListDeleteLinkSx = {
-  ...adminSessionListTableActionLinkSx,
-  color: "#c62828",
-  "&:visited": { color: "#c62828" },
-  "&:hover": { color: "#b71c1c" },
+function resolveWaitingListChapterId(row, parsed, chapters) {
+  const parsedId = String(parsed.chapterID ?? "").trim();
+  if (parsedId) return parsedId;
+  const eventLocation = String(row?.eventLocation ?? "").trim();
+  if (!eventLocation || !chapters?.length) return "";
+  const match = chapters.find((chapter) => {
+    const name = String(chapter.chapterName ?? chapter.ChapterName ?? "").trim();
+    const loc = String(chapter.location ?? chapter.Location ?? "").trim();
+    return (
+      eventLocation === name ||
+      eventLocation === `${name} - ${loc}` ||
+      eventLocation.startsWith(`${name} -`)
+    );
+  });
+  return match ? String(match.chapterID ?? match.ChapterID ?? "") : "";
+}
+
+function waitingListClassCode(parsedClass, rowClass) {
+  const code = (parsedClass || rowClass || "").trim();
+  return code || "JB";
+}
+
+function waitingListApplicationStatus(status) {
+  const value = String(status ?? "").trim().toLowerCase();
+  if (value === "d" || value === "declined") return "D";
+  return "A";
+}
+
+function isWaitingListRequestTimeout(err) {
+  return err?.code === "ECONNABORTED" || err?.message?.includes("timeout");
+}
+
+function getWaitingListApiErrorMessage(err, fallback = "Request failed.") {
+  if (isWaitingListRequestTimeout(err)) {
+    return "The request timed out. Please try again.";
+  }
+  const apiErrors = err?.response?.data?.errors;
+  if (apiErrors) {
+    return Object.values(apiErrors).flat().join(" ");
+  }
+  return (
+    err?.response?.data?.errorMessage ||
+    err?.response?.data?.title ||
+    err?.response?.data?.message ||
+    err?.message ||
+    fallback
+  );
+}
+
+const waitingListDeleteLinkSx = adminSessionListTableDeleteLinkSx;
+
+const waitingListReviewDisabledFieldSx = {
+  ...portalModalFieldSx,
+  "& .MuiInputBase-root.Mui-disabled": {
+    backgroundColor: "rgba(0, 0, 0, 0.04)",
+  },
+  "& .MuiInputLabel-root.Mui-disabled": {
+    color: "text.secondary",
+  },
 };
 
 const StudentWaitingList = () => {
@@ -254,6 +356,26 @@ const StudentWaitingList = () => {
   });
 
   const username = user?.email || user?.username || "";
+
+  const sessionSelectOptions = useMemo(() => {
+    const options = [...SESSION_OPTIONS];
+    const currentSession = form.session?.trim();
+    if (
+      currentSession &&
+      !options.some((option) => option.value === currentSession)
+    ) {
+      options.unshift({ value: currentSession, label: currentSession });
+    }
+    return options;
+  }, [form.session]);
+
+  const chapterSelectIds = useMemo(
+    () =>
+      chapterLocations.map((chapter) =>
+        String(chapter.chapterID ?? chapter.ChapterID ?? ""),
+      ),
+    [chapterLocations],
+  );
 
   const loadList = async () => {
     if (!username) {
@@ -473,25 +595,23 @@ const StudentWaitingList = () => {
 
   const totalPages = Math.ceil((filteredAndSortedList?.length || 0) / pageSize);
   const totalRecords = filteredAndSortedList?.length || 0;
+  const isDeclinedReview = form.applicationStatus === "D";
 
   const handleEdit = (row) => {
     setSelectedRow(row);
     const parsed = parseStudentClassInfo(row.studentClassInfo);
-    const classCode = (parsed.class || row.class || "").trim();
-    const chapterID = (parsed.chapterID || "").trim();
+    const nameParts = (row.studentName || "").trim().split(/\s+/);
+    const classCode = waitingListClassCode(parsed.class, row.class);
+    const chapterID = resolveWaitingListChapterId(row, parsed, chapterLocations);
     setForm({
-      firstName:
-        parsed.firstName || (row.studentName || "").split(" ")[0] || "",
-      lastName:
-        parsed.lastName ||
-        (row.studentName || "").split(" ").slice(1).join(" ") ||
-        "",
+      firstName: parsed.firstName || nameParts[0] || "",
+      lastName: parsed.lastName || nameParts.slice(1).join(" ") || "",
       chapterID,
       location: waitingListLocationCode(parsed.location, row.eventLocation),
-      session: parsed.session || row.eventSession || "F2024",
+      session: parsed.session || row.eventSession || SESSION_OPTIONS[0].value,
       class: classCode,
       section: waitingListDefaultSection(classCode, chapterID),
-      applicationStatus: row.applicationStatus === "Declined" ? "D" : "A",
+      applicationStatus: waitingListApplicationStatus(row.applicationStatus),
       reason: "",
     });
     setReviewOpen(true);
@@ -528,7 +648,7 @@ const StudentWaitingList = () => {
     } catch (err) {
       setSnackbar({
         open: true,
-        message: err?.response?.data?.errorMessage || "Delete failed.",
+        message: getWaitingListApiErrorMessage(err, "Delete failed."),
         severity: "error",
       });
     } finally {
@@ -538,6 +658,43 @@ const StudentWaitingList = () => {
 
   const handleReviewSubmit = async () => {
     if (!selectedRow) return;
+
+    if (!form.chapterID) {
+      setSnackbar({
+        open: true,
+        message: "Please select a chapter.",
+        severity: "error",
+      });
+      return;
+    }
+    if (!form.class || !form.section || !form.location) {
+      setSnackbar({
+        open: true,
+        message: "Class, section, and location are required.",
+        severity: "error",
+      });
+      return;
+    }
+    if (!form.session) {
+      setSnackbar({
+        open: true,
+        message: "Please select a session.",
+        severity: "error",
+      });
+      return;
+    }
+    if (form.applicationStatus === "D" && !form.reason.trim()) {
+      setSnackbar({
+        open: true,
+        message: "Please enter a reason when declining an application.",
+        severity: "error",
+      });
+      return;
+    }
+
+    const parsed = parseStudentClassInfo(selectedRow.studentClassInfo);
+    const nameParts = (selectedRow.studentName || "").trim().split(/\s+/);
+
     setSubmitting(true);
     try {
       const res =
@@ -549,14 +706,10 @@ const StudentWaitingList = () => {
           Location: form.location,
           Session: form.session,
           ApplicationStatus: form.applicationStatus,
-          FirstName: form.firstName,
-          LastName: form.lastName,
-          Email:
-            selectedRow.emailAddress ||
-            parseStudentClassInfo(selectedRow.studentClassInfo).email,
-          Password:
-            parseStudentClassInfo(selectedRow.studentClassInfo).password ||
-            selectedRow.password,
+          FirstName: parsed.firstName || nameParts[0] || "",
+          LastName: parsed.lastName || nameParts.slice(1).join(" ") || "",
+          Email: selectedRow.emailAddress || parsed.email || "",
+          Password: parsed.password || selectedRow.password || "",
           Reason: form.reason,
         });
       if (res?.isSuccess) {
@@ -569,18 +722,28 @@ const StudentWaitingList = () => {
         setSelectedRow(null);
         loadList();
       } else {
+        const message = res?.errorMessage || "Update failed.";
         setSnackbar({
           open: true,
-          message: res?.errorMessage || "Update failed.",
+          message,
           severity: "error",
         });
       }
     } catch (err) {
+      const timedOut = isWaitingListRequestTimeout(err);
+      const message = timedOut
+        ? "The request timed out, but your changes may have been saved. Refreshing the list."
+        : getWaitingListApiErrorMessage(err, "Update failed.");
       setSnackbar({
         open: true,
-        message: err?.response?.data?.errorMessage || "Update failed.",
-        severity: "error",
+        message,
+        severity: timedOut ? "warning" : "error",
       });
+      if (timedOut) {
+        setReviewOpen(false);
+        setSelectedRow(null);
+        loadList();
+      }
     } finally {
       setSubmitting(false);
     }
@@ -590,7 +753,7 @@ const StudentWaitingList = () => {
     try {
       await studentWaitingListService.exportToExcel({
         Username: username,
-        Mode: "E",
+        WaitingForOnSite: waitingForOnSite,
       });
       setSnackbar({
         open: true,
@@ -600,7 +763,7 @@ const StudentWaitingList = () => {
     } catch (err) {
       setSnackbar({
         open: true,
-        message: err?.message || "Export failed.",
+        message: getWaitingListApiErrorMessage(err, "Export failed."),
         severity: "error",
       });
     }
@@ -610,7 +773,7 @@ const StudentWaitingList = () => {
     try {
       await studentWaitingListService.exportToCsv({
         Username: username,
-        Mode: "E",
+        WaitingForOnSite: waitingForOnSite,
       });
       setSnackbar({
         open: true,
@@ -620,7 +783,7 @@ const StudentWaitingList = () => {
     } catch (err) {
       setSnackbar({
         open: true,
-        message: err?.message || "CSV export failed.",
+        message: getWaitingListApiErrorMessage(err, "CSV export failed."),
         severity: "error",
       });
     }
@@ -652,6 +815,17 @@ const StudentWaitingList = () => {
       sx={adminSessionListTableBodyCellSx({ ellipsis: true, isLast })}
     >
       <WaitingListCopyCell value={value} onCopied={handleCellCopy} />
+    </TableCell>
+  );
+
+  const passwordCell = (row, isLast = false) => (
+    <TableCell
+      sx={adminSessionListTableBodyCellSx({ ellipsis: true, isLast })}
+    >
+      <WaitingListPasswordCell
+        value={getRowPassword(row)}
+        onCopied={handleCellCopy}
+      />
     </TableCell>
   );
 
@@ -834,10 +1008,16 @@ const StudentWaitingList = () => {
                         <TableHead>
                           <TableRow sx={adminSessionListTableHeadRowSx}>
                             <TableCell
-                              className="student-waiting-list-action-cell"
-                              sx={headCellSx(waitingListColumnWidths.action)}
+                              className="student-waiting-list-edit-cell"
+                              sx={headCellSx(waitingListColumnWidths.edit)}
                             >
-                              Action
+                              Edit
+                            </TableCell>
+                            <TableCell
+                              className="student-waiting-list-delete-cell"
+                              sx={headCellSx(waitingListColumnWidths.delete)}
+                            >
+                              Delete
                             </TableCell>
                             <SortableHeader
                               label="Status"
@@ -979,47 +1159,38 @@ const StudentWaitingList = () => {
                                 sx={adminSessionListTableBodyRowSx}
                               >
                                 <TableCell
-                                  className="student-waiting-list-action-cell"
+                                  className="student-waiting-list-edit-cell"
                                   sx={adminSessionListTableBodyCellSx({
                                     action: true,
                                   })}
                                 >
                                   <Box
                                     component="span"
-                                    sx={{
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      gap: 0.25,
-                                      whiteSpace: "nowrap",
-                                    }}
+                                    onClick={() => handleEdit(row)}
+                                    sx={adminSessionListTableActionLinkSx}
                                   >
+                                    Edit
+                                  </Box>
+                                </TableCell>
+                                <TableCell
+                                  className="student-waiting-list-delete-cell"
+                                  sx={adminSessionListTableBodyCellSx({
+                                    action: true,
+                                  })}
+                                >
+                                  {row.studentID === 0 ? (
+                                    <Box component="span" sx={{ color: "#999" }}>
+                                      Delete
+                                    </Box>
+                                  ) : (
                                     <Box
                                       component="span"
-                                      onClick={() => handleEdit(row)}
-                                      sx={adminSessionListTableActionLinkSx}
+                                      onClick={() => handleDeleteClick(row)}
+                                      sx={waitingListDeleteLinkSx}
                                     >
-                                      Edit
+                                      Delete
                                     </Box>
-                                    <Box component="span" sx={{ color: "#666" }}>
-                                      /
-                                    </Box>
-                                    {row.studentID === 0 ? (
-                                      <Box
-                                        component="span"
-                                        sx={{ color: "#999" }}
-                                      >
-                                        Delete
-                                      </Box>
-                                    ) : (
-                                      <Box
-                                        component="span"
-                                        onClick={() => handleDeleteClick(row)}
-                                        sx={waitingListDeleteLinkSx}
-                                      >
-                                        Delete
-                                      </Box>
-                                    )}
-                                  </Box>
+                                  )}
                                 </TableCell>
                                 {dataCell(row.applicationStatus)}
                                 {dataCell(row.studentID)}
@@ -1033,7 +1204,7 @@ const StudentWaitingList = () => {
                                 {dataCell(row.emailAddress)}
                                 {dataCell(row.eventSession)}
                                 {dataCell(formatDate(row.registeredDate) || null)}
-                                {dataCell(getRowPassword(row))}
+                                {passwordCell(row)}
                                 {dataCell(row.city)}
                                 {dataCell(row.state)}
                                 {dataCell(row.country, true)}
@@ -1042,7 +1213,7 @@ const StudentWaitingList = () => {
                           ) : (
                             <TableRow>
                               <TableCell
-                                colSpan={17}
+                                colSpan={18}
                                 align="center"
                                 sx={adminSessionListEmptyCellSx}
                               >
@@ -1082,7 +1253,11 @@ const StudentWaitingList = () => {
 
       <PortalDialog
         open={reviewOpen}
-        onClose={() => setReviewOpen(false)}
+        onClose={() => {
+          if (!submitting) {
+            setReviewOpen(false);
+          }
+        }}
         maxWidth="sm"
         disableClose={submitting}
         title="Review Application"
@@ -1105,10 +1280,8 @@ const StudentWaitingList = () => {
               size="small"
               label="First Name"
               value={form.firstName}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, firstName: e.target.value }))
-              }
-              sx={portalModalFieldSx}
+              disabled
+              sx={waitingListReviewDisabledFieldSx}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -1117,24 +1290,75 @@ const StudentWaitingList = () => {
               size="small"
               label="Last Name"
               value={form.lastName}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, lastName: e.target.value }))
+              disabled
+              sx={waitingListReviewDisabledFieldSx}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Email"
+              value={
+                selectedRow?.emailAddress ||
+                parseStudentClassInfo(selectedRow?.studentClassInfo).email ||
+                ""
               }
-              sx={portalModalFieldSx}
+              disabled
+              sx={waitingListReviewDisabledFieldSx}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Grade"
+              value={
+                selectedRow?.grade ||
+                parseStudentClassInfo(selectedRow?.studentClassInfo).grade ||
+                ""
+              }
+              disabled
+              sx={waitingListReviewDisabledFieldSx}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Student #"
+              value={selectedRow?.studentID ?? ""}
+              disabled
+              sx={waitingListReviewDisabledFieldSx}
             />
           </Grid>
           <Grid item xs={12}>
             <FormControl fullWidth size="small" sx={portalModalFieldSx}>
               <InputLabel>Chapter</InputLabel>
-              <Select
-                value={form.chapterID}
+              <PortalModalSelect
+                value={String(form.chapterID ?? "")}
                 label="Chapter"
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, chapterID: e.target.value }))
+                  setForm((f) => ({
+                    ...f,
+                    chapterID: e.target.value,
+                    section: waitingListDefaultSection(f.class, e.target.value),
+                  }))
                 }
               >
+                {!form.chapterID && (
+                  <MenuItem value="">
+                    <em>Select chapter</em>
+                  </MenuItem>
+                )}
+                {form.chapterID &&
+                  !chapterSelectIds.includes(String(form.chapterID)) && (
+                    <MenuItem value={String(form.chapterID)}>
+                      Chapter {form.chapterID}
+                    </MenuItem>
+                  )}
                 {chapterLocations.map((ch) => {
-                  const id = ch.chapterID ?? ch.ChapterID ?? "";
+                  const id = String(ch.chapterID ?? ch.ChapterID ?? "");
                   const name = ch.chapterName ?? ch.ChapterName ?? "";
                   const loc = ch.location ?? ch.Location ?? "";
                   return (
@@ -1143,13 +1367,13 @@ const StudentWaitingList = () => {
                     </MenuItem>
                   );
                 })}
-              </Select>
+              </PortalModalSelect>
             </FormControl>
           </Grid>
           <Grid item xs={12}>
             <FormControl fullWidth size="small" sx={portalModalFieldSx}>
               <InputLabel>Location</InputLabel>
-              <Select
+              <PortalModalSelect
                 value={form.location}
                 label="Location"
                 onChange={(e) =>
@@ -1161,73 +1385,91 @@ const StudentWaitingList = () => {
                     {opt.label}
                   </MenuItem>
                 ))}
-              </Select>
+              </PortalModalSelect>
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Session"
-              value={form.session}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, session: e.target.value }))
-              }
-              sx={portalModalFieldSx}
-            />
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel>Session</InputLabel>
+              <PortalModalSelect
+                value={form.session}
+                label="Session"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, session: e.target.value }))
+                }
+              >
+                {sessionSelectOptions.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </PortalModalSelect>
+            </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth size="small" sx={portalModalFieldSx}>
               <InputLabel>Class</InputLabel>
-              <Select
+              <PortalModalSelect
                 value={form.class}
                 label="Class"
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, class: e.target.value }))
+                  setForm((f) => ({
+                    ...f,
+                    class: e.target.value,
+                    section: waitingListDefaultSection(
+                      e.target.value,
+                      f.chapterID,
+                    ),
+                  }))
                 }
               >
+                {form.class &&
+                  !CLASS_OPTIONS.some((opt) => opt.value === form.class) && (
+                    <MenuItem value={form.class}>{form.class}</MenuItem>
+                  )}
                 {CLASS_OPTIONS.map((opt) => (
                   <MenuItem key={opt.value} value={opt.value}>
                     {opt.label}
                   </MenuItem>
                 ))}
-              </Select>
+              </PortalModalSelect>
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+            <FormControl
+              fullWidth
+              size="small"
+              disabled
+              sx={waitingListReviewDisabledFieldSx}
+            >
               <InputLabel>Section</InputLabel>
-              <Select
-                value={form.section}
-                label="Section"
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, section: e.target.value }))
-                }
-              >
+              <PortalModalSelect value={form.section} label="Section" disabled>
                 <MenuItem value="A">A</MenuItem>
                 <MenuItem value="B">B</MenuItem>
-              </Select>
+              </PortalModalSelect>
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth size="small" sx={portalModalFieldSx}>
               <InputLabel>Application Status</InputLabel>
-              <Select
+              <PortalModalSelect
                 value={form.applicationStatus}
                 label="Application Status"
-                onChange={(e) =>
+                onChange={(e) => {
+                  const applicationStatus = e.target.value;
                   setForm((f) => ({
                     ...f,
-                    applicationStatus: e.target.value,
-                  }))
-                }
+                    applicationStatus,
+                    reason: applicationStatus === "D" ? f.reason : "",
+                  }));
+                }}
               >
                 {STATUS_OPTIONS.map((opt) => (
                   <MenuItem key={opt.value} value={opt.value}>
                     {opt.label}
                   </MenuItem>
                 ))}
-              </Select>
+              </PortalModalSelect>
             </FormControl>
           </Grid>
           <Grid item xs={12}>
@@ -1238,10 +1480,20 @@ const StudentWaitingList = () => {
               multiline
               rows={3}
               value={form.reason}
+              disabled={!isDeclinedReview}
+              placeholder={
+                isDeclinedReview
+                  ? "Required when declining an application"
+                  : "Only used when application status is Declined"
+              }
               onChange={(e) =>
                 setForm((f) => ({ ...f, reason: e.target.value }))
               }
-              sx={portalModalFieldSx}
+              sx={
+                isDeclinedReview
+                  ? portalModalFieldSx
+                  : waitingListReviewDisabledFieldSx
+              }
             />
           </Grid>
         </Grid>
