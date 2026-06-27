@@ -14,13 +14,23 @@ import { Download as DownloadIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import volunteerAvailabilityService from "../../../services/volunteerAvailabilityService";
-import InstructorVolunteerAvailabilityGrid from "../Instructor/InstructorVolunteerAvailabilityGrid";
+import AdminVolunteerAvailabilityGrid from "./AdminVolunteerAvailabilityGrid";
 import {
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
   adminSessionListHeaderBarSx,
   adminSessionListTitleSx,
+  portalHeaderActionButtonSx,
 } from "../styles/applicationSurfaces";
+import "../../../styles/AdminVolunteerAvailability.css";
+
+const adminVolunteerAvailabilityPageSx = {
+  flex: 1,
+  minHeight: 0,
+  width: "100%",
+  display: "flex",
+  flexDirection: "column",
+};
 
 const AdminVolunteerAvailability = () => {
   const { user } = useAuth();
@@ -127,18 +137,11 @@ const AdminVolunteerAvailability = () => {
     });
   };
 
-  const exportToolbarButtonSx = {
-    backgroundColor: "#1b4d3e",
-    color: "white",
-    flexShrink: 0,
-    px: 1.5,
-    textTransform: "none",
-    fontWeight: "bold",
-    "&:hover": { backgroundColor: "#143a2e" },
-  };
-
   return (
-    <Box className="volunteer-availability-list" sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <Box
+      className="admin-volunteer-availability"
+      sx={{ ...adminVolunteerAvailabilityPageSx, minHeight: "100vh", bgcolor: "background.default" }}
+    >
       <AdminHeader user={user} />
       <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
@@ -154,33 +157,34 @@ const AdminVolunteerAvailability = () => {
                   >
                     Volunteers Availability List
                   </Typography>
-                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  <Box sx={{ display: "flex", gap: 1, flexShrink: 0 }}>
                     <Button
                       variant="contained"
+                      color="success"
                       size="small"
                       startIcon={<DownloadIcon />}
                       onClick={() => handleExport("excel")}
-                      sx={exportToolbarButtonSx}
+                      sx={portalHeaderActionButtonSx}
                     >
                       Export Excel
                     </Button>
                     <Button
                       variant="contained"
+                      color="success"
                       size="small"
                       startIcon={<DownloadIcon />}
                       onClick={() => handleExport("csv")}
-                      sx={exportToolbarButtonSx}
+                      sx={portalHeaderActionButtonSx}
                     >
                       Export CSV
                     </Button>
                   </Box>
                 </Box>
 
-                <InstructorVolunteerAvailabilityGrid
+                <AdminVolunteerAvailabilityGrid
                   rows={rows}
                   loading={loading}
                   error={error}
-                  hideTitle={true}
                 />
               </CardContent>
             </Card>
@@ -192,7 +196,7 @@ const AdminVolunteerAvailability = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           severity={snackbar.severity}

@@ -71,7 +71,7 @@ import {
 import "../styles/Navbar.css";
 // Import images from src/assets
 import logoImg from "../assets/images/logo.png";
-import portalLogoImg from "../assets/images/Logo.jpg";
+import portalLogoImg from "../assets/images/Logo.jpeg";
 
 const Navbar = ({ usePortalLogo = false }) => {
   const theme = useTheme();

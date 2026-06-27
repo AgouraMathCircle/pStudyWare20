@@ -29,7 +29,7 @@ import {
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
-import config, { getPublicDocumentUrl } from "../../utils/config";
+import config, { getPublicDocumentUrl, getSessionDocumentUrl } from "../../utils/config";
 import documentService from "../../services/documentService";
 
 // react-pdf v10 requires the bundled pdfjs worker (.mjs), not the legacy CDN .min.js URL.
@@ -129,8 +129,40 @@ const PdfViewer = ({
       try {
         let blob;
 
+        const fetchStaticBlob = async (url) => {
+          if (!url) return null;
+          const response = await fetch(url);
+          if (!response.ok) {
+            return null;
+          }
+          const candidate = await response.blob();
+          if (!(await isPdfBlob(candidate))) {
+            return null;
+          }
+          return candidate;
+        };
+
         if (apiEndpoint) {
-          blob = await documentService.fetchDocumentBlob(pdfUrl, apiEndpoint);
+          try {
+            blob = await documentService.fetchDocumentBlob(pdfUrl, apiEndpoint);
+          } catch (apiError) {
+            const staticCandidates = [
+              getSessionDocumentUrl(pdfUrl),
+              getPublicDocumentUrl(pdfUrl),
+              fullPdfUrl,
+            ];
+
+            for (const candidateUrl of staticCandidates) {
+              blob = await fetchStaticBlob(candidateUrl);
+              if (blob) {
+                break;
+              }
+            }
+
+            if (!blob) {
+              throw apiError;
+            }
+          }
         } else if (fullPdfUrl) {
           const response = await fetch(fullPdfUrl);
           if (!response.ok) {

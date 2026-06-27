@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
@@ -11,17 +12,19 @@ namespace pStudyWare20.Services.Implementations
     public class StudentWaitingListService : IStudentWaitingListService
     {
         private readonly IStudentWaitingListRepository _repository;
-        private readonly IEmailUtility _emailUtility;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="repository">IStudentWaitingListRepository</param>
-        /// <param name="emailUtility">IEmailUtility</param>
-        public StudentWaitingListService(IStudentWaitingListRepository repository, IEmailUtility emailUtility)
+        /// <param name="serviceScopeFactory">IServiceScopeFactory</param>
+        public StudentWaitingListService(
+            IStudentWaitingListRepository repository,
+            IServiceScopeFactory serviceScopeFactory)
         {
             _repository = repository;
-            _emailUtility = emailUtility;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         /// <summary>
@@ -67,7 +70,7 @@ namespace pStudyWare20.Services.Implementations
                     });
 
                 if (response.IsSuccess)
-                    await SendEmailNotificationsAsync(request);
+                    QueueReviewEmailNotifications(request);
 
                 return response;
             }
@@ -153,10 +156,17 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                DataTable dataTable = await _repository.GetStudentWaitingListExportTableAsync(
-                    request.Username ?? "",
-                    string.IsNullOrWhiteSpace(request.Mode) ? "E" : request.Mode);
-                if (dataTable.Rows.Count == 0)
+                var exportTable = await GetWaitingListExportTableAsync(request);
+                if (exportTable == null)
+                {
+                    return new ExportExcelResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Failed to load waiting list for export"
+                    };
+                }
+
+                if (exportTable.Rows.Count == 0)
                 {
                     return new ExportExcelResponse
                     {
@@ -169,7 +179,7 @@ namespace pStudyWare20.Services.Implementations
                 {
                     IsSuccess = true,
                     FileName = "StudentWaitingList.xlsx",
-                    FileContent = DataTableExcelExporter.ToXlsxBytes(dataTable, "StudentWaitingList"),
+                    FileContent = DataTableExcelExporter.ToXlsxBytes(exportTable, "StudentWaitingList"),
                     ContentType = DataTableExcelExporter.XlsxContentType,
                     ErrorMessage = ""
                 };
@@ -189,10 +199,17 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                DataTable dataTable = await _repository.GetStudentWaitingListExportTableAsync(
-                    request.Username ?? "",
-                    string.IsNullOrWhiteSpace(request.Mode) ? "E" : request.Mode);
-                if (dataTable.Rows.Count == 0)
+                var exportTable = await GetWaitingListExportTableAsync(request);
+                if (exportTable == null)
+                {
+                    return new ExportExcelResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Failed to load waiting list for export"
+                    };
+                }
+
+                if (exportTable.Rows.Count == 0)
                 {
                     return new ExportExcelResponse
                     {
@@ -205,7 +222,7 @@ namespace pStudyWare20.Services.Implementations
                 {
                     IsSuccess = true,
                     FileName = "StudentWaitingList.csv",
-                    FileContent = DataTableCsvExporter.ToCsvBytes(dataTable),
+                    FileContent = DataTableCsvExporter.ToCsvBytes(exportTable),
                     ContentType = DataTableCsvExporter.CsvContentType,
                     ErrorMessage = ""
                 };
@@ -218,6 +235,67 @@ namespace pStudyWare20.Services.Implementations
                     ErrorMessage = ex.Message
                 };
             }
+        }
+
+        /// <summary>
+        /// Builds export rows from the waiting list grid (password and StudentClassInfo excluded).
+        /// </summary>
+        private async Task<DataTable?> GetWaitingListExportTableAsync(ExportExcelRequest request)
+        {
+            var listResponse = await GetStudentWaitingListAsync(new GetStudentWaitingListRequest
+            {
+                Username = request.Username ?? "",
+                WaitingForOnSite = string.IsNullOrWhiteSpace(request.WaitingForOnSite) ? "N" : request.WaitingForOnSite
+            });
+
+            if (!listResponse.IsSuccess)
+                return null;
+
+            return BuildWaitingListExportTable(listResponse.StudentWaitingList);
+        }
+
+        private static DataTable BuildWaitingListExportTable(IReadOnlyList<StudentWaitingList> students)
+        {
+            var table = new DataTable("StudentWaitingList");
+            table.Columns.Add("Status", typeof(string));
+            table.Columns.Add("Student #", typeof(string));
+            table.Columns.Add("Student Name", typeof(string));
+            table.Columns.Add("Location", typeof(string));
+            table.Columns.Add("Class", typeof(string));
+            table.Columns.Add("Grade", typeof(string));
+            table.Columns.Add("School", typeof(string));
+            table.Columns.Add("Parent", typeof(string));
+            table.Columns.Add("Phone", typeof(string));
+            table.Columns.Add("Email", typeof(string));
+            table.Columns.Add("Session", typeof(string));
+            table.Columns.Add("Registered Date", typeof(string));
+            table.Columns.Add("City", typeof(string));
+            table.Columns.Add("State", typeof(string));
+            table.Columns.Add("Country", typeof(string));
+
+            foreach (var student in students)
+            {
+                table.Rows.Add(
+                    student.ApplicationStatus ?? "",
+                    student.StudentID == 0 ? "" : student.StudentID.ToString(),
+                    student.StudentName ?? "",
+                    student.EventLocation ?? "",
+                    student.Class ?? "",
+                    student.Grade ?? "",
+                    student.School ?? "",
+                    student.ParentName ?? "",
+                    student.PhoneNumber ?? "",
+                    student.EmailAddress ?? "",
+                    student.EventSession ?? "",
+                    student.RegisteredDate == default
+                        ? ""
+                        : student.RegisteredDate.ToString("MM/dd/yyyy"),
+                    student.City ?? "",
+                    student.State ?? "",
+                    student.Country ?? "");
+            }
+
+            return table;
         }
 
         /// <summary>
@@ -235,33 +313,70 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
+        /// Legacy btnSubmit_Click sends email after DB update; do not block the API on SMTP.
+        /// </summary>
+        private void QueueReviewEmailNotifications(UpdateStudentWaitingListStatusRequest request)
+        {
+            var emailRequest = CloneReviewEmailRequest(request);
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var emailUtility = scope.ServiceProvider.GetRequiredService<IEmailUtility>();
+                    await SendEmailNotificationsAsync(emailRequest, emailUtility);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error sending email notifications: {ex.Message}");
+                }
+            });
+        }
+
+        private static UpdateStudentWaitingListStatusRequest CloneReviewEmailRequest(
+            UpdateStudentWaitingListStatusRequest request)
+        {
+            return new UpdateStudentWaitingListStatusRequest
+            {
+                StudentID = request.StudentID,
+                Class = request.Class,
+                Section = request.Section,
+                ChapterID = request.ChapterID,
+                Location = request.Location,
+                Session = request.Session,
+                ApplicationStatus = request.ApplicationStatus,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                Email = request.Email,
+                Password = request.Password,
+                Reason = request.Reason,
+            };
+        }
+
+        /// <summary>
         /// Send email notifications
         /// </summary>
         /// <param name="request">UpdateStudentWaitingListStatusRequest</param>
+        /// <param name="emailUtility">IEmailUtility</param>
         /// <returns>Task</returns>
-        private async Task SendEmailNotificationsAsync(UpdateStudentWaitingListStatusRequest request)
+        private static async Task SendEmailNotificationsAsync(
+            UpdateStudentWaitingListStatusRequest request,
+            IEmailUtility emailUtility)
         {
-            try
-            {
-                // Send email to admin
-                await SendEmailToAdminAsync(request);
-
-                // Send email to parent
-                await SendEmailToParentAsync(request);
-            }
-            catch (Exception ex)
-            {
-                // Log error but don't fail the operation
-                Console.WriteLine($"Error sending email notifications: {ex.Message}");
-            }
+            await SendEmailToAdminAsync(request, emailUtility);
+            await SendEmailToParentAsync(request, emailUtility);
         }
 
         /// <summary>
         /// Send email to admin
         /// </summary>
         /// <param name="request">UpdateStudentWaitingListStatusRequest</param>
+        /// <param name="emailUtility">IEmailUtility</param>
         /// <returns>Task</returns>
-        private async Task SendEmailToAdminAsync(UpdateStudentWaitingListStatusRequest request)
+        private static async Task SendEmailToAdminAsync(
+            UpdateStudentWaitingListStatusRequest request,
+            IEmailUtility emailUtility)
         {
             try
             {
@@ -274,7 +389,7 @@ namespace pStudyWare20.Services.Implementations
                              Location: {request.ChapterID}-{request.Location}<br/><br/>
                              Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                await _emailUtility.SendEmailAsync("admin@agouramathcircle.org", request.Email, subject, body);
+                await emailUtility.SendEmailAsync("admin@agouramathcircle.org", request.Email, subject, body);
             }
             catch (Exception ex)
             {
@@ -286,8 +401,11 @@ namespace pStudyWare20.Services.Implementations
         /// Send email to parent
         /// </summary>
         /// <param name="request">UpdateStudentWaitingListStatusRequest</param>
+        /// <param name="emailUtility">IEmailUtility</param>
         /// <returns>Task</returns>
-        private async Task SendEmailToParentAsync(UpdateStudentWaitingListStatusRequest request)
+        private static async Task SendEmailToParentAsync(
+            UpdateStudentWaitingListStatusRequest request,
+            IEmailUtility emailUtility)
         {
             try
             {
@@ -322,7 +440,7 @@ namespace pStudyWare20.Services.Implementations
                              Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
                 }
 
-                await _emailUtility.SendEmailAsync(request.Email, "admin@agouramathcircle.org", subject, body);
+                await emailUtility.SendEmailAsync(request.Email, "admin@agouramathcircle.org", subject, body);
             }
             catch (Exception ex)
             {

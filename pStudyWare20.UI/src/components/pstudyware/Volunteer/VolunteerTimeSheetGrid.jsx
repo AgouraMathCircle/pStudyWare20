@@ -13,18 +13,19 @@ import {
   TextField,
   Typography,
   InputAdornment,
-  IconButton,
-  Tooltip,
 } from "@mui/material";
 import {
   Search as SearchIcon,
-  Edit as EditIcon,
   DeleteOutline as DeleteIcon,
 } from "@mui/icons-material";
 import timeSheetTrackingService from "../../../services/timeSheetTrackingService";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import SortableHeader from "../Common/SortableHeader";
 import { sortRows, toSortableDate, toSortableNumber } from "../../../utils/tableSort";
+import {
+  adminSessionListTableActionLinkSx,
+  adminSessionListTableDeleteLinkSx,
+} from "../styles/applicationSurfaces";
 
 function formatClock(hour, min, type) {
   if (hour === undefined || hour === null || hour === "") return "—";
@@ -52,9 +53,9 @@ function formatHours(v) {
 }
 
 function rowId(row) {
-  const id = row?.logID ?? row?.LogID ?? row?.mLogID;
-  const n = parseInt(id, 10);
-  return Number.isFinite(n) ? n : null;
+  const raw = row?.logID ?? row?.LogID;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
 const timeSheetHeadCellSx = { fontWeight: 700 };
@@ -246,8 +247,11 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
                 onSort={handleSort}
                 headCellSx={timeSheetHeadCellSx}
               />
-              <TableCell align="center" sx={timeSheetHeadCellSx} colSpan={2}>
-                Actions
+              <TableCell align="center" sx={timeSheetHeadCellSx}>
+                Edit
+              </TableCell>
+              <TableCell align="center" sx={timeSheetHeadCellSx}>
+                Delete
               </TableCell>
             </TableRow>
           </TableHead>
@@ -283,36 +287,29 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
                     <TableCell>{formatDate(row?.createdDate ?? row?.CreatedDate)}</TableCell>
                     <TableCell align="center">
                       {id ? (
-                        <Tooltip title="Edit">
-                          <IconButton
-                            component={RouterLink}
-                            to={`/pstudyware/volunteer/time-sheet?logId=${id}`}
-                            size="small"
-                            color="primary"
-                            aria-label="Edit entry"
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        <Box
+                          component={RouterLink}
+                          to={`/pstudyware/volunteer/time-sheet?logId=${id}`}
+                          sx={adminSessionListTableActionLinkSx}
+                        >
+                          Edit
+                        </Box>
                       ) : (
                         "—"
                       )}
                     </TableCell>
                     <TableCell align="center">
                       {id ? (
-                        <Tooltip title="Delete">
-                          <span>
-                            <IconButton
-                              size="small"
-                              color="error"
-                              aria-label="Delete entry"
-                              disabled={deletingId === id}
-                              onClick={() => handleDeleteClick(id)}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
+                        <Box
+                          onClick={deletingId === id ? undefined : () => handleDeleteClick(id)}
+                          sx={{
+                            ...adminSessionListTableDeleteLinkSx,
+                            opacity: deletingId === id ? 0.5 : 1,
+                            pointerEvents: deletingId === id ? "none" : "auto",
+                          }}
+                        >
+                          Delete
+                        </Box>
                       ) : (
                         "—"
                       )}

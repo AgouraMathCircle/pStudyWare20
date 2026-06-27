@@ -1,0 +1,60 @@
+/* Admin User Tracking — page shell + table panel (pairs with applicationSurfaces sx in JSX) */
+
+.admin-user-tracking {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+  box-sizing: border-box;
+}
+
+/* Prevent global portal card hover lift on this page */
+.admin-user-tracking .MuiCard-root {
+  transition: none !important;
+  transform: none !important;
+}
+
+.admin-user-tracking .MuiCard-root:hover {
+  transform: none !important;
+}
+
+/* Table cell spacing — match Current Session Student List row height */
+.admin-user-tracking .admin-user-tracking-table-panel .MuiTableCell-root {
+  padding: 5px 4px !important;
+  vertical-align: middle;
+}
+
+.admin-user-tracking .admin-user-tracking-table-panel .MuiTableCell-head {
+  background-color: #e8f5e8;
+  overflow: hidden;
+  padding: 7px 4px !important;
+}
+
+.admin-user-tracking .admin-user-tracking-table-panel .MuiTableCell-body {
+  overflow: hidden;
+  max-width: 0;
+}
+
+.admin-user-tracking .admin-user-tracking-table-container {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.admin-user-tracking .admin-user-tracking-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* Search bar + pagination controls — match session list sizing */
+.admin-user-tracking .MuiButton-root {
+  text-transform: none;
+}
+
+@media (max-width: 899px) {
+  .admin-user-tracking .MuiCard-root {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}

@@ -7,12 +7,12 @@ import {
   Grid,
   InputLabel,
   MenuItem,
-  Select,
   TextField,
   Typography,
 } from "@mui/material";
 import { CloudUpload as UploadIcon } from "@mui/icons-material";
 import PortalDialog from "../Common/PortalDialog";
+import PortalModalSelect from "../Common/PortalModalSelect";
 import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
 
 const REPOSITORY_ALLOWED_EXTENSIONS = [".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"];
@@ -204,7 +204,7 @@ const DocumentRepositoryUploadForm = ({ open, onClose, onSubmit, loading }) => {
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth size="small" sx={portalModalFieldSx}>
             <InputLabel>Description</InputLabel>
-            <Select
+            <PortalModalSelect
               name="description"
               value={formData.description}
               onChange={handleChange}
@@ -215,14 +215,14 @@ const DocumentRepositoryUploadForm = ({ open, onClose, onSubmit, loading }) => {
                   {option}
                 </MenuItem>
               ))}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
         </Grid>
 
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth size="small" sx={portalModalFieldSx}>
             <InputLabel>Session</InputLabel>
-            <Select
+            <PortalModalSelect
               name="session"
               value={formData.session}
               onChange={handleChange}
@@ -233,27 +233,27 @@ const DocumentRepositoryUploadForm = ({ open, onClose, onSubmit, loading }) => {
                   {option}
                 </MenuItem>
               ))}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
         </Grid>
 
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth size="small" sx={portalModalFieldSx}>
             <InputLabel>Class</InputLabel>
-            <Select name="class" value={formData.class} onChange={handleChange} label="Class">
+            <PortalModalSelect name="class" value={formData.class} onChange={handleChange} label="Class">
               {classOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuItem>
               ))}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
         </Grid>
 
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth size="small" sx={portalModalFieldSx}>
             <InputLabel>Publish</InputLabel>
-            <Select
+            <PortalModalSelect
               name="publish"
               value={formData.publish}
               onChange={handleChange}
@@ -261,7 +261,7 @@ const DocumentRepositoryUploadForm = ({ open, onClose, onSubmit, loading }) => {
             >
               <MenuItem value="0">No</MenuItem>
               <MenuItem value="1">Yes</MenuItem>
-            </Select>
+            </PortalModalSelect>
           </FormControl>
         </Grid>
       </Grid>

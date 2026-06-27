@@ -21,7 +21,6 @@ import {
   TextField,
   Checkbox,
   FormControlLabel,
-  IconButton,
   Tooltip,
   Grid,
   Card,
@@ -40,6 +39,7 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import PortalDialog from "../Common/PortalDialog";
+import PortalModalSelect from "../Common/PortalModalSelect";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import {
   portalModalFieldSx,
@@ -79,6 +79,7 @@ import {
   adminSessionListSearchLabelSx,
   adminSessionListSearchSelectSx,
   adminSessionListTableActionLinkSx,
+  adminSessionListTableDeleteLinkSx,
   adminSessionListTableBodyCellSx,
   adminSessionListTableBodyRowSx,
   adminSessionListTableContainerSx,
@@ -145,24 +146,6 @@ const formatLegacyExamDate = (value) => {
 const formatExamDateValue = (value) => formatLegacyExamDate(value);
 const formatReportCardDate = (value) => formatLegacyExamDate(value);
 
-const matchesReportDateFilter = (examDate, filterDate) => {
-  if (!filterDate || filterDate === ALL_FILTER_VALUE) return true;
-  const rowDate = formatLegacyExamDate(examDate);
-  const filter = formatLegacyExamDate(filterDate);
-  return (
-    rowDate === filter ||
-    String(examDate ?? "").trim() === String(filterDate).trim()
-  );
-};
-
-const matchesClassFilter = (group, filterClass) => {
-  if (!filterClass || filterClass === ALL_FILTER_VALUE) return true;
-  return (
-    String(group ?? "").trim().toLowerCase() ===
-    String(filterClass).trim().toLowerCase()
-  );
-};
-
 const resolveReportCardId = (value) => {
   if (value == null || value === "") return "";
   return String(value);
@@ -181,7 +164,7 @@ const resolveClassSelectValue = (group, classList) => {
       "text",
       "Text",
       "value",
-      "Value"
+      "Value",
     );
     if (name && (name.trim() === raw || name.trim() === expanded)) {
       return name;
@@ -204,7 +187,7 @@ const resolveExamScheduleValue = (examDate, examDateList) => {
       "mExamDate",
       "MExamDate",
       "value",
-      "Value"
+      "Value",
     );
     if (!value) continue;
     const valueText = String(value).trim();
@@ -226,7 +209,7 @@ const classListIncludesValue = (classList, value) =>
       "text",
       "Text",
       "value",
-      "Value"
+      "Value",
     );
     return name && name.trim() === String(value).trim();
   });
@@ -241,7 +224,7 @@ const examDateListIncludesValue = (examDateList, value) =>
       "mExamDate",
       "MExamDate",
       "value",
-      "Value"
+      "Value",
     );
     return (
       scheduleValue &&
@@ -272,16 +255,74 @@ const DEFAULT_ADD_SCORE_FORM = {
 };
 
 const ADD_SCORE_ROWS = [
-  { label: "Quiz", totalKey: "quizTotal", receivedKey: "quizReceived", commentsKey: "quizComments" },
-  { label: "Class Test", totalKey: "classTestTotal", receivedKey: "classTestReceived", commentsKey: "classTestComments" },
-  { label: "Home Work", totalKey: "homeWorkTotal", receivedKey: "homeWorkReceived", commentsKey: "homeWorkComments" },
-  { label: "Final Exam", totalKey: "finalExamTotal", receivedKey: "finalExamReceived", commentsKey: "finalExamComments" },
-  { label: "Placement Test", totalKey: "placementTestTotal", receivedKey: "placementTestReceived", commentsKey: "placementTestComments" },
+  {
+    label: "Quiz",
+    totalKey: "quizTotal",
+    receivedKey: "quizReceived",
+    commentsKey: "quizComments",
+  },
+  {
+    label: "Class Test",
+    totalKey: "classTestTotal",
+    receivedKey: "classTestReceived",
+    commentsKey: "classTestComments",
+  },
+  {
+    label: "Home Work",
+    totalKey: "homeWorkTotal",
+    receivedKey: "homeWorkReceived",
+    commentsKey: "homeWorkComments",
+  },
+  {
+    label: "Final Exam",
+    totalKey: "finalExamTotal",
+    receivedKey: "finalExamReceived",
+    commentsKey: "finalExamComments",
+  },
+  {
+    label: "Placement Test",
+    totalKey: "placementTestTotal",
+    receivedKey: "placementTestReceived",
+    commentsKey: "placementTestComments",
+  },
 ];
 
-const SCORE_UPLOAD_TEMPLATE_URL = "/pstudyware/Documents/AMC_ScoreCard/StudentReportCard.csv";
+const SCORE_UPLOAD_TEMPLATE_URL =
+  "/pstudyware/Documents/AMC_ScoreCard/StudentReportCard.csv";
 
-const ALL_FILTER_VALUE = "ALL";
+const getReportDateOptionValue = (item) =>
+  pickField(
+    item,
+    "mExamDate",
+    "MExamDate",
+    "reportDate",
+    "ReportDate",
+    "value",
+    "Value",
+  ) || "";
+
+const getReportDateOptionLabel = (item) => {
+  const label = pickField(item, "reportDate", "ReportDate");
+  if (label) return label;
+  const value = getReportDateOptionValue(item);
+  return value ? formatReportCardDate(value) : "";
+};
+
+const getClassOptionValue = (item) =>
+  pickField(
+    item,
+    "className",
+    "ClassName",
+    "text",
+    "Text",
+    "value",
+    "Value",
+  ) || "";
+
+/** Legacy ReportCard.aspx / kGrid1 defaults */
+const LEGACY_REPORT_CARD_PAGE_SIZE = 25;
+const LEGACY_REPORT_CARD_DEFAULT_SORT_FIELD = "reportCardId";
+const LEGACY_REPORT_CARD_DEFAULT_SORT_ORDER = "desc";
 
 const DEFAULT_UPLOAD_SCORE_FORM = {
   className: "",
@@ -422,12 +463,7 @@ const ReportCardColGroup = ({ widths }) => (
   </colgroup>
 );
 
-const reportCardDeleteLinkSx = {
-  ...adminSessionListTableActionLinkSx,
-  color: "#c62828",
-  "&:visited": { color: "#c62828" },
-  "&:hover": { color: "#b71c1c" },
-};
+const reportCardDeleteLinkSx = adminSessionListTableDeleteLinkSx;
 
 const AdminReportCard = () => {
   const location = useLocation();
@@ -435,19 +471,17 @@ const AdminReportCard = () => {
   const isAdminView = !hideRoleHeader;
   const { user } = useAuth();
   const username = user?.username || user?.email || "";
-  const pageSize = 20;
+  const pageSize = LEGACY_REPORT_CARD_PAGE_SIZE;
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reportDates, setReportDates] = useState([]);
   const [classList, setClassList] = useState([]);
   const [studentList, setStudentList] = useState([]);
   const [examDateList, setExamDateList] = useState([]);
-  const [selectedReportDate, setSelectedReportDate] = useState(ALL_FILTER_VALUE);
-  const [selectedClass, setSelectedClass] = useState(ALL_FILTER_VALUE);
+  const [selectedReportDate, setSelectedReportDate] = useState("");
+  const [selectedClass, setSelectedClass] = useState("");
   const [semesterReport, setSemesterReport] = useState(false);
-  const [appliedReportDate, setAppliedReportDate] = useState(ALL_FILTER_VALUE);
-  const [appliedClass, setAppliedClass] = useState(ALL_FILTER_VALUE);
-  const [appliedSemesterReport, setAppliedSemesterReport] = useState(false);
+  const [showSummaryMode, setShowSummaryMode] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [addForm, setAddForm] = useState(DEFAULT_ADD_SCORE_FORM);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -480,13 +514,17 @@ const AdminReportCard = () => {
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
-  const [sortField, setSortField] = useState("examDate");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortField, setSortField] = useState(LEGACY_REPORT_CARD_DEFAULT_SORT_FIELD);
+  const [sortOrder, setSortOrder] = useState(LEGACY_REPORT_CARD_DEFAULT_SORT_ORDER);
 
   const handleSort = (field) => {
-    const isAsc = sortField === field && sortOrder === "asc";
-    setSortOrder(isAsc ? "desc" : "asc");
-    setSortField(field);
+    const isSameField = sortField === field;
+    if (!isSameField) {
+      setSortField(field);
+      setSortOrder("desc");
+    } else {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    }
     setCurrentPage(1);
     setGoToPageInput("1");
   };
@@ -516,8 +554,14 @@ const AdminReportCard = () => {
         ...adminSessionListTableBodyCellSx(options),
         whiteSpace: "nowrap",
         width: options.truncate ? reportCardColumnWidths.comments : "auto",
-        maxWidth: options.truncate ? reportCardColumnWidths.comments : undefined,
-        minWidth: options.autoFit ? "max-content" : options.truncate ? 0 : undefined,
+        maxWidth: options.truncate
+          ? reportCardColumnWidths.comments
+          : undefined,
+        minWidth: options.autoFit
+          ? "max-content"
+          : options.truncate
+            ? 0
+            : undefined,
         overflow: options.truncate ? "hidden" : undefined,
         textOverflow: options.truncate ? "ellipsis" : undefined,
         ...(options.align ? { textAlign: options.align } : {}),
@@ -554,66 +598,41 @@ const AdminReportCard = () => {
 
   const renderEditAction = (reportCardId) => {
     if (!canEdit) return "—";
-    if (isAdminView) {
-      return (
-        <Box
-          component="span"
-          onClick={() => openEdit(reportCardId)}
-          sx={adminSessionListTableActionLinkSx}
-        >
-          Edit
-        </Box>
-      );
-    }
     return (
-      <Tooltip title="Edit">
-        <IconButton
-          size="small"
-          onClick={() => openEdit(reportCardId)}
-          sx={{ padding: "2px", color: "#0000ee" }}
-        >
-          <EditIcon sx={{ fontSize: "1rem" }} />
-        </IconButton>
-      </Tooltip>
+      <Box
+        component="span"
+        onClick={() => openEdit(reportCardId)}
+        sx={adminSessionListTableActionLinkSx}
+      >
+        Edit
+      </Box>
     );
   };
 
   const renderDeleteAction = (reportCardId) => {
     if (!canEdit) return "—";
-    if (isAdminView) {
-      return (
-        <Box
-          component="span"
-          onClick={() => handleDeleteClick(reportCardId)}
-          sx={reportCardDeleteLinkSx}
-        >
-          Delete
-        </Box>
-      );
-    }
     return (
-      <Tooltip title="Delete">
-        <IconButton
-          size="small"
-          color="error"
-          onClick={() => handleDeleteClick(reportCardId)}
-          sx={{ padding: "2px" }}
-        >
-          <DeleteIcon sx={{ fontSize: "1rem" }} />
-        </IconButton>
-      </Tooltip>
+      <Box
+        component="span"
+        onClick={() => handleDeleteClick(reportCardId)}
+        sx={reportCardDeleteLinkSx}
+      >
+        Delete
+      </Box>
     );
   };
 
-  const loadList = async () => {
+  const loadList = async ({ showLoading = true } = {}) => {
     if (!username) {
       setLoading(false);
       return;
     }
-    setLoading(true);
+    if (showLoading) {
+      setLoading(true);
+    }
     try {
       const res = await reportCardService.getReportCardList({
-        Username: username,
+        Username: "",
       });
       const raw = res?.reportCardList ?? res?.ReportCardList;
       const data = Array.isArray(raw) ? raw : (raw?.Table ?? raw?.Rows ?? []);
@@ -633,10 +652,20 @@ const AdminReportCard = () => {
         err?.message ??
         "Error loading report cards.";
       setSnackbar({ open: true, message: msg, severity: "error" });
-      setList([]);
+      if (showLoading) {
+        setList([]);
+      }
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
+  };
+
+  const refreshReportCardList = async () => {
+    setCurrentPage(1);
+    setGoToPageInput("1");
+    await loadList({ showLoading: false });
   };
 
   const loadDashboardData = async () => {
@@ -695,7 +724,8 @@ const AdminReportCard = () => {
         });
         setUploadDialogOpen(false);
         setUploadForm({ ...DEFAULT_UPLOAD_SCORE_FORM });
-        loadList();
+        setShowSummaryMode(false);
+        await refreshReportCardList();
       } else {
         setSnackbar({
           open: true,
@@ -706,7 +736,11 @@ const AdminReportCard = () => {
     } catch (err) {
       setSnackbar({
         open: true,
-        message: err?.response?.data?.error ?? err?.response?.data?.message ?? err?.message ?? "Upload failed.",
+        message:
+          err?.response?.data?.error ??
+          err?.response?.data?.message ??
+          err?.message ??
+          "Upload failed.",
         severity: "error",
       });
     } finally {
@@ -752,7 +786,9 @@ const AdminReportCard = () => {
           severity: "success",
         });
         setAddDialogOpen(false);
-        loadList();
+        setAddForm({ ...DEFAULT_ADD_SCORE_FORM });
+        setShowSummaryMode(false);
+        await refreshReportCardList();
       } else {
         setSnackbar({
           open: true,
@@ -770,8 +806,8 @@ const AdminReportCard = () => {
         open: true,
         message:
           status === 403
-            ? serverMessage ?? "You do not have permission to add scores."
-            : serverMessage ?? err?.message ?? "Add score failed.",
+            ? (serverMessage ?? "You do not have permission to add scores.")
+            : (serverMessage ?? err?.message ?? "Add score failed."),
         severity: "error",
       });
     } finally {
@@ -786,15 +822,73 @@ const AdminReportCard = () => {
     } else setLoading(false);
   }, [username]);
 
-  const renderFilterSelectValue = (selected) =>
-    !selected || selected === ALL_FILTER_VALUE ? "All" : selected;
+  useEffect(() => {
+    if (reportDates.length === 0) return;
+    const first = getReportDateOptionValue(reportDates[0]);
+    setSelectedReportDate((current) => {
+      const valid = reportDates.some(
+        (d) => getReportDateOptionValue(d) === current,
+      );
+      return valid && current ? current : first;
+    });
+  }, [reportDates]);
 
-  const handleViewReport = () => {
-    setAppliedReportDate(selectedReportDate);
-    setAppliedClass(selectedClass);
-    setAppliedSemesterReport(semesterReport);
-    setCurrentPage(1);
-    setGoToPageInput("1");
+  useEffect(() => {
+    if (classList.length === 0) return;
+    const first = getClassOptionValue(classList[0]);
+    setSelectedClass((current) => {
+      const valid = classList.some(
+        (c) => getClassOptionValue(c) === current,
+      );
+      return valid && current ? current : first;
+    });
+  }, [classList]);
+
+  const renderReportDateSelectValue = (selected) => {
+    if (!selected) return "";
+    const match = reportDates.find(
+      (d) => getReportDateOptionValue(d) === selected,
+    );
+    return match
+      ? getReportDateOptionLabel(match)
+      : formatReportCardDate(selected);
+  };
+
+  const handleViewReport = async () => {
+    setSubmitting(true);
+    try {
+      const res = await reportCardService.viewReport({
+        Username: "",
+        Class: selectedClass || "",
+        ReportDate: selectedReportDate || "",
+        IsSemesterReport: semesterReport,
+      });
+      const raw = res?.reportData ?? res?.ReportData;
+      const data = Array.isArray(raw) ? raw : (raw?.Table ?? raw?.Rows ?? []);
+      setList(Array.isArray(data) ? data : []);
+      setShowSummaryMode(true);
+      setCurrentPage(1);
+      setGoToPageInput("1");
+      setSnackbar({
+        open: true,
+        message: `Summary report loaded (${Array.isArray(data) ? data.length : 0} records).`,
+        severity: "success",
+      });
+    } catch (err) {
+      const msg =
+        err?.response?.data?.error ??
+        err?.response?.data?.message ??
+        err?.message ??
+        "Failed to load report.";
+      setSnackbar({ open: true, message: msg, severity: "error" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleBackToScoreCardList = async () => {
+    setShowSummaryMode(false);
+    await refreshReportCardList();
   };
 
   const handleExportExcel = async () => {
@@ -868,7 +962,10 @@ const AdminReportCard = () => {
     setSubmitting(true);
     try {
       let res = await reportCardService.getScoreDetails(id);
-      if (res?.isSuccess === false || !(res?.scoreDetails ?? res?.ScoreDetails)) {
+      if (
+        res?.isSuccess === false ||
+        !(res?.scoreDetails ?? res?.ScoreDetails)
+      ) {
         res = await reportCardService.getScoreDetailsById(id);
       }
 
@@ -942,12 +1039,12 @@ const AdminReportCard = () => {
       if (res?.isSuccess !== false) {
         setSnackbar({
           open: true,
-          message:
-            res?.message ?? "Scores have been updated successfully.",
+          message: res?.message ?? "Scores have been updated successfully.",
           severity: "success",
         });
         setEditDialogOpen(false);
-        loadList();
+        setShowSummaryMode(false);
+        await refreshReportCardList();
       } else {
         setSnackbar({
           open: true,
@@ -991,13 +1088,13 @@ const AdminReportCard = () => {
       if (res?.isSuccess !== false) {
         setSnackbar({
           open: true,
-          message:
-            res?.message ?? "Score has been deleted successfully.",
+          message: res?.message ?? "Score has been deleted successfully.",
           severity: "success",
         });
         setDeleteConfirmOpen(false);
         setSelectedScoreId(null);
-        loadList();
+        setShowSummaryMode(false);
+        await refreshReportCardList();
       } else {
         setSnackbar({
           open: true,
@@ -1022,7 +1119,13 @@ const AdminReportCard = () => {
 
   const row = (r) => ({
     reportCardID: resolveReportCardId(
-      pickField(r, "ReportCardID", "reportCardID", "reportCardId", "ReportCardId"),
+      pickField(
+        r,
+        "ReportCardID",
+        "reportCardID",
+        "reportCardId",
+        "ReportCardId",
+      ),
     ),
     studentID: pickField(r, "StudentID", "studentID", "studentId", "StudentId"),
     studentName: pickField(r, "StudentName", "studentName"),
@@ -1041,6 +1144,8 @@ const AdminReportCard = () => {
   const getReportCardListFieldValue = (rawRow, field) => {
     const r = row(rawRow);
     switch (field) {
+      case "reportCardId":
+        return toSortableNumber(r.reportCardID);
       case "studentId":
         return toSortableNumber(r.studentID);
       case "studentName":
@@ -1078,22 +1183,11 @@ const AdminReportCard = () => {
     return fv.includes(s);
   };
 
-  const reportFilteredList = useMemo(() => {
-    return list.filter((r) => {
-      const o = row(r);
-      if (!matchesClassFilter(o.group, appliedClass)) return false;
-      if (!appliedSemesterReport && !matchesReportDateFilter(o.examDate, appliedReportDate)) {
-        return false;
-      }
-      return true;
-    });
-  }, [list, appliedReportDate, appliedClass, appliedSemesterReport]);
-
   const filteredList = useMemo(() => {
-    if (!searchText.trim()) return reportFilteredList;
+    if (!searchText.trim()) return list;
     const search = searchText.trim();
     if (searchBy === "ALL") {
-      return reportFilteredList.filter((r) => {
+      return list.filter((r) => {
         const o = row(r);
         return (
           matchField(o.studentName, search, searchCriteria) ||
@@ -1106,7 +1200,7 @@ const AdminReportCard = () => {
         );
       });
     }
-    return reportFilteredList.filter((r) => {
+    return list.filter((r) => {
       const o = row(r);
       let fieldValue = "";
       switch (searchBy) {
@@ -1136,7 +1230,7 @@ const AdminReportCard = () => {
       }
       return matchField(fieldValue, search, searchCriteria);
     });
-  }, [reportFilteredList, searchText, searchBy, searchCriteria]);
+  }, [list, searchText, searchBy, searchCriteria]);
 
   const sortedList = useMemo(
     () =>
@@ -1236,15 +1330,15 @@ const AdminReportCard = () => {
                       <Select
                         value={selectedReportDate}
                         label="Report Date"
-                        displayEmpty
-                        renderValue={renderFilterSelectValue}
+                        disabled={reportDates.length === 0}
+                        renderValue={renderReportDateSelectValue}
                         onChange={(e) => setSelectedReportDate(e.target.value)}
                       >
-                        <MenuItem value={ALL_FILTER_VALUE}>All</MenuItem>
                         {reportDates.map((d, i) => {
-                          const label = pickField(d, "reportDate", "ReportDate") || String(d);
+                          const value = getReportDateOptionValue(d);
+                          const label = getReportDateOptionLabel(d) || value;
                           return (
-                            <MenuItem key={i} value={label}>
+                            <MenuItem key={i} value={value}>
                               {label}
                             </MenuItem>
                           );
@@ -1256,15 +1350,14 @@ const AdminReportCard = () => {
                       <Select
                         value={selectedClass}
                         label="Class"
-                        displayEmpty
-                        renderValue={renderFilterSelectValue}
+                        disabled={classList.length === 0}
                         onChange={(e) => setSelectedClass(e.target.value)}
                       >
-                        <MenuItem value={ALL_FILTER_VALUE}>All</MenuItem>
                         {classList.map((c, i) => {
-                          const label = pickField(c, "className", "ClassName", "text", "Text", "value", "Value") || String(c);
+                          const value = getClassOptionValue(c);
+                          const label = value || String(c);
                           return (
-                            <MenuItem key={i} value={label}>
+                            <MenuItem key={i} value={value}>
                               {label}
                             </MenuItem>
                           );
@@ -1282,17 +1375,30 @@ const AdminReportCard = () => {
                       }
                       label="Semester"
                     />
-                    <Button
-                      variant="contained"
-                      color="success"
-                      size="small"
-                      startIcon={<ViewReportIcon />}
-                      onClick={handleViewReport}
-                      disabled={submitting}
-                      sx={toolbarButtonSx}
-                    >
-                      View Score Card Summary Report
-                    </Button>
+                    {!showSummaryMode ? (
+                      <Button
+                        variant="contained"
+                        color="success"
+                        size="small"
+                        startIcon={<ViewReportIcon />}
+                        onClick={handleViewReport}
+                        disabled={submitting}
+                        sx={toolbarButtonSx}
+                      >
+                        View Score Card Summary Report
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="contained"
+                        color="success"
+                        size="small"
+                        onClick={handleBackToScoreCardList}
+                        disabled={submitting}
+                        sx={toolbarButtonSx}
+                      >
+                        Back to Score Card List
+                      </Button>
+                    )}
                     <Button
                       variant="contained"
                       color="success"
@@ -1340,7 +1446,7 @@ const AdminReportCard = () => {
                     </Button>
                   </Box>
 
-                  {loading ? (
+                  {loading && list.length === 0 ? (
                     <Box
                       sx={{ display: "flex", justifyContent: "center", py: 4 }}
                     >
@@ -1566,7 +1672,7 @@ const AdminReportCard = () => {
                       </Box>
 
                       <Box sx={adminReportCardTableWrapSx}>
-                      <TableContainer
+                        <TableContainer
                           component={Paper}
                           sx={
                             isAdminView
@@ -1918,9 +2024,7 @@ const AdminReportCard = () => {
             onClick={handleUpdateScore}
             disabled={submitting}
             startIcon={
-              submitting ? (
-                <CircularProgress size={16} color="inherit" />
-              ) : null
+              submitting ? <CircularProgress size={16} color="inherit" /> : null
             }
             sx={portalModalSendButtonSx}
           >
@@ -1939,7 +2043,7 @@ const AdminReportCard = () => {
           />
           <FormControl size="small" fullWidth sx={portalModalFieldSx}>
             <InputLabel>Class</InputLabel>
-            <Select
+            <PortalModalSelect
               value={editForm.group}
               label="Class"
               onChange={(e) =>
@@ -1951,18 +2055,27 @@ const AdminReportCard = () => {
                   <MenuItem value={editForm.group}>{editForm.group}</MenuItem>
                 )}
               {classList.map((c, i) => {
-                const label = pickField(c, "className", "ClassName", "text", "Text", "value", "Value") || String(c);
+                const label =
+                  pickField(
+                    c,
+                    "className",
+                    "ClassName",
+                    "text",
+                    "Text",
+                    "value",
+                    "Value",
+                  ) || String(c);
                 return (
                   <MenuItem key={i} value={label}>
                     {label}
                   </MenuItem>
                 );
               })}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
           <FormControl size="small" fullWidth sx={portalModalFieldSx}>
             <InputLabel>Exam/Session Date</InputLabel>
-            <Select
+            <PortalModalSelect
               value={editForm.examDate}
               label="Exam/Session Date"
               onChange={(e) =>
@@ -1971,22 +2084,41 @@ const AdminReportCard = () => {
             >
               {editForm.examDate &&
                 !examDateListIncludesValue(examDateList, editForm.examDate) && (
-                  <MenuItem value={editForm.examDate}>{editForm.examDate}</MenuItem>
+                  <MenuItem value={editForm.examDate}>
+                    {editForm.examDate}
+                  </MenuItem>
                 )}
               {examDateList.map((d, i) => {
-                const value = pickField(d, "displayValue", "DisplayValue", "mExamDate", "MExamDate", "value", "Value");
-                const label = pickField(d, "session", "Session", "reportDate", "ReportDate", "text", "Text") || value;
+                const value = pickField(
+                  d,
+                  "displayValue",
+                  "DisplayValue",
+                  "mExamDate",
+                  "MExamDate",
+                  "value",
+                  "Value",
+                );
+                const label =
+                  pickField(
+                    d,
+                    "session",
+                    "Session",
+                    "reportDate",
+                    "ReportDate",
+                    "text",
+                    "Text",
+                  ) || value;
                 return (
                   <MenuItem key={i} value={value || label}>
                     {label}
                   </MenuItem>
                 );
               })}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
           <FormControl size="small" fullWidth sx={portalModalFieldSx}>
             <InputLabel>Exam Type</InputLabel>
-            <Select
+            <PortalModalSelect
               value={editForm.examType}
               label="Exam Type"
               onChange={(e) =>
@@ -1998,7 +2130,7 @@ const AdminReportCard = () => {
                   {t}
                 </MenuItem>
               ))}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
           <TextField
             label="Total Score"
@@ -2063,9 +2195,7 @@ const AdminReportCard = () => {
             onClick={handleAddScore}
             disabled={submitting}
             startIcon={
-              submitting ? (
-                <CircularProgress size={16} color="inherit" />
-              ) : null
+              submitting ? <CircularProgress size={16} color="inherit" /> : null
             }
             sx={portalModalSendButtonSx}
           >
@@ -2076,7 +2206,7 @@ const AdminReportCard = () => {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <FormControl size="small" fullWidth sx={portalModalFieldSx}>
             <InputLabel>Student Name</InputLabel>
-            <Select
+            <PortalModalSelect
               value={addForm.studentId}
               label="Student Name"
               onChange={(e) =>
@@ -2084,7 +2214,13 @@ const AdminReportCard = () => {
               }
             >
               {studentList.map((s, i) => {
-                const id = pickField(s, "studentID", "StudentID", "studentId", "StudentId");
+                const id = pickField(
+                  s,
+                  "studentID",
+                  "StudentID",
+                  "studentId",
+                  "StudentId",
+                );
                 const name = pickField(s, "studentName", "StudentName");
                 return (
                   <MenuItem key={i} value={String(id)}>
@@ -2092,11 +2228,11 @@ const AdminReportCard = () => {
                   </MenuItem>
                 );
               })}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
           <FormControl size="small" fullWidth sx={portalModalFieldSx}>
             <InputLabel>Class</InputLabel>
-            <Select
+            <PortalModalSelect
               value={addForm.className}
               label="Class"
               onChange={(e) =>
@@ -2104,18 +2240,27 @@ const AdminReportCard = () => {
               }
             >
               {classList.map((c, i) => {
-                const label = pickField(c, "className", "ClassName", "text", "Text", "value", "Value") || String(c);
+                const label =
+                  pickField(
+                    c,
+                    "className",
+                    "ClassName",
+                    "text",
+                    "Text",
+                    "value",
+                    "Value",
+                  ) || String(c);
                 return (
                   <MenuItem key={i} value={label}>
                     {label}
                   </MenuItem>
                 );
               })}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
           <FormControl size="small" fullWidth sx={portalModalFieldSx}>
             <InputLabel>Exam/Session Date</InputLabel>
-            <Select
+            <PortalModalSelect
               value={addForm.examDate}
               label="Exam/Session Date"
               onChange={(e) =>
@@ -2123,15 +2268,32 @@ const AdminReportCard = () => {
               }
             >
               {examDateList.map((d, i) => {
-                const value = pickField(d, "displayValue", "DisplayValue", "mExamDate", "MExamDate", "value", "Value");
-                const label = pickField(d, "session", "Session", "reportDate", "ReportDate", "text", "Text") || value;
+                const value = pickField(
+                  d,
+                  "displayValue",
+                  "DisplayValue",
+                  "mExamDate",
+                  "MExamDate",
+                  "value",
+                  "Value",
+                );
+                const label =
+                  pickField(
+                    d,
+                    "session",
+                    "Session",
+                    "reportDate",
+                    "ReportDate",
+                    "text",
+                    "Text",
+                  ) || value;
                 return (
                   <MenuItem key={i} value={value || label}>
                     {label}
                   </MenuItem>
                 );
               })}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
 
           <Table size="small" sx={{ border: "1px solid #ccc", mt: 1 }}>
@@ -2139,7 +2301,9 @@ const AdminReportCard = () => {
               <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
                 <TableCell sx={{ fontSize: "0.75rem" }}>Type</TableCell>
                 <TableCell sx={{ fontSize: "0.75rem" }}>Total Score</TableCell>
-                <TableCell sx={{ fontSize: "0.75rem" }}>Received Score</TableCell>
+                <TableCell sx={{ fontSize: "0.75rem" }}>
+                  Received Score
+                </TableCell>
                 <TableCell sx={{ fontSize: "0.75rem" }}>Comments</TableCell>
               </TableRow>
             </TableHead>
@@ -2155,7 +2319,10 @@ const AdminReportCard = () => {
                       type="number"
                       value={addForm[row.totalKey]}
                       onChange={(e) =>
-                        setAddForm((f) => ({ ...f, [row.totalKey]: e.target.value }))
+                        setAddForm((f) => ({
+                          ...f,
+                          [row.totalKey]: e.target.value,
+                        }))
                       }
                       sx={{ width: 72, ...portalModalFieldSx }}
                     />
@@ -2166,7 +2333,10 @@ const AdminReportCard = () => {
                       type="number"
                       value={addForm[row.receivedKey]}
                       onChange={(e) =>
-                        setAddForm((f) => ({ ...f, [row.receivedKey]: e.target.value }))
+                        setAddForm((f) => ({
+                          ...f,
+                          [row.receivedKey]: e.target.value,
+                        }))
                       }
                       sx={{ width: 72, ...portalModalFieldSx }}
                     />
@@ -2178,7 +2348,10 @@ const AdminReportCard = () => {
                       minRows={1}
                       value={addForm[row.commentsKey]}
                       onChange={(e) =>
-                        setAddForm((f) => ({ ...f, [row.commentsKey]: e.target.value }))
+                        setAddForm((f) => ({
+                          ...f,
+                          [row.commentsKey]: e.target.value,
+                        }))
                       }
                       fullWidth
                       sx={portalModalFieldSx}
@@ -2204,9 +2377,7 @@ const AdminReportCard = () => {
             onClick={handleUploadScore}
             disabled={submitting}
             startIcon={
-              submitting ? (
-                <CircularProgress size={16} color="inherit" />
-              ) : null
+              submitting ? <CircularProgress size={16} color="inherit" /> : null
             }
             sx={portalModalSendButtonSx}
           >
@@ -2229,7 +2400,7 @@ const AdminReportCard = () => {
           </Typography>
           <FormControl size="small" fullWidth sx={portalModalFieldSx}>
             <InputLabel>Class</InputLabel>
-            <Select
+            <PortalModalSelect
               value={uploadForm.className}
               label="Class"
               onChange={(e) =>
@@ -2237,18 +2408,27 @@ const AdminReportCard = () => {
               }
             >
               {classList.map((c, i) => {
-                const label = pickField(c, "className", "ClassName", "text", "Text", "value", "Value") || String(c);
+                const label =
+                  pickField(
+                    c,
+                    "className",
+                    "ClassName",
+                    "text",
+                    "Text",
+                    "value",
+                    "Value",
+                  ) || String(c);
                 return (
                   <MenuItem key={i} value={label}>
                     {label}
                   </MenuItem>
                 );
               })}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
           <FormControl size="small" fullWidth sx={portalModalFieldSx}>
             <InputLabel>Exam Date</InputLabel>
-            <Select
+            <PortalModalSelect
               value={uploadForm.examDate}
               label="Exam Date"
               onChange={(e) =>
@@ -2256,18 +2436,44 @@ const AdminReportCard = () => {
               }
             >
               {examDateList.map((d, i) => {
-                const value = pickField(d, "displayValue", "DisplayValue", "mExamDate", "MExamDate", "value", "Value");
-                const label = pickField(d, "session", "Session", "reportDate", "ReportDate", "text", "Text") || value;
+                const value = pickField(
+                  d,
+                  "displayValue",
+                  "DisplayValue",
+                  "mExamDate",
+                  "MExamDate",
+                  "value",
+                  "Value",
+                );
+                const label =
+                  pickField(
+                    d,
+                    "session",
+                    "Session",
+                    "reportDate",
+                    "ReportDate",
+                    "text",
+                    "Text",
+                  ) || value;
                 return (
                   <MenuItem key={i} value={value || label}>
                     {label}
                   </MenuItem>
                 );
               })}
-            </Select>
+            </PortalModalSelect>
           </FormControl>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center" }}>
-            <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>Total Score</Typography>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 2,
+              alignItems: "center",
+            }}
+          >
+            <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>
+              Total Score
+            </Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
               <Typography sx={{ fontSize: "0.75rem" }}>Quiz</Typography>
               <TextField
@@ -2287,7 +2493,10 @@ const AdminReportCard = () => {
                 type="number"
                 value={uploadForm.classWorkTotal}
                 onChange={(e) =>
-                  setUploadForm((f) => ({ ...f, classWorkTotal: e.target.value }))
+                  setUploadForm((f) => ({
+                    ...f,
+                    classWorkTotal: e.target.value,
+                  }))
                 }
                 sx={{ width: 64, ...portalModalFieldSx }}
               />
@@ -2299,14 +2508,19 @@ const AdminReportCard = () => {
                 type="number"
                 value={uploadForm.homeWorkTotal}
                 onChange={(e) =>
-                  setUploadForm((f) => ({ ...f, homeWorkTotal: e.target.value }))
+                  setUploadForm((f) => ({
+                    ...f,
+                    homeWorkTotal: e.target.value,
+                  }))
                 }
                 sx={{ width: 64, ...portalModalFieldSx }}
               />
             </Box>
           </Box>
           <Box>
-            <Typography sx={{ fontSize: "0.875rem", mb: 0.5 }}>Select File Name</Typography>
+            <Typography sx={{ fontSize: "0.875rem", mb: 0.5 }}>
+              Select File Name
+            </Typography>
             <input
               ref={uploadFileInputRef}
               type="file"
@@ -2317,7 +2531,14 @@ const AdminReportCard = () => {
                 setUploadForm((f) => ({ ...f, file }));
               }}
             />
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                flexWrap: "wrap",
+              }}
+            >
               <Button
                 variant="outlined"
                 size="small"

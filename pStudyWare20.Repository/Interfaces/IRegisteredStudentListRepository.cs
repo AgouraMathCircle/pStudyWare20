@@ -48,5 +48,10 @@ namespace pStudyWare20.Repository.Interfaces
         /// <param name="mode">Mode parameter</param>
         /// <returns>Student list data for export</returns>
         Task<object> GetStudentListForExportAsync(string username, string mode);
+
+        /// <summary>
+        /// Get active semester session codes for update-class dialog.
+        /// </summary>
+        Task<List<RegisteredStudentSessionOption>> GetActiveSessionOptionsAsync();
     }
 }

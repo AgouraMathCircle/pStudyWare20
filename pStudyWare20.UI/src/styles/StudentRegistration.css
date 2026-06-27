@@ -137,17 +137,150 @@
 }
 
 /* Custom form field styles */
-.MuiTextField-root .MuiOutlinedInput-root {
+.student-registration-container .MuiTextField-root .MuiOutlinedInput-root,
+.student-registration-container .MuiFormControl-root .MuiOutlinedInput-root {
   border-radius: 8px;
+  min-height: 40px;
 }
 
-.MuiFormControl-root .MuiOutlinedInput-root {
-  border-radius: 8px;
+.student-registration-container .MuiOutlinedInput-input.MuiInputBase-inputSizeSmall,
+.student-registration-container .MuiSelect-select.MuiInputBase-inputSizeSmall {
+  padding: 8.5px 14px;
+  box-sizing: border-box;
+}
+
+.student-registration-container .MuiSelect-select {
+  padding: 8.5px 14px;
+  min-height: 1.4375em;
+  display: flex;
+  align-items: center;
+}
+
+.registration-form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.registration-form-layout .parent-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.registration-form-layout .student-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.registration-form-layout .parent-form-fields .user-name-control {
+  margin-top: -2px;
+}
+
+@media (min-width: 992px) {
+  .registration-form-layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+    row-gap: 16px;
+    align-items: start;
+  }
+
+  .registration-parent-column {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .registration-student-column {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+.registration-signature-column {
+  width: 100%;
+  margin-top: 12px;
 }
 
 /* Radio group styling */
-.MuiFormControl-root .MuiRadioGroup-root {
+.student-registration-container .MuiFormControl-root:not(.user-name-control) .MuiRadioGroup-root {
   margin-top: 8px;
+}
+
+.student-registration-container .user-name-control {
+  width: 100%;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.student-registration-container .user-name-control.MuiFormControl-root {
+  display: block;
+  margin-bottom: 0;
+}
+
+.student-registration-container .user-name-control .MuiFormHelperText-root {
+  margin-top: 2px;
+  margin-bottom: 0;
+}
+
+.student-registration-container .user-name-row {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.student-registration-container .user-name-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  margin: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.student-registration-container .user-name-control .user-name-radio-group {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.student-registration-container .user-name-control .MuiRadioGroup-root {
+  margin-top: 0;
+  flex-wrap: nowrap;
+}
+
+.student-registration-container .user-name-control .MuiFormControlLabel-root {
+  margin: 0 10px 0 0;
+  white-space: nowrap;
+}
+
+.student-registration-container .user-name-control .MuiFormControlLabel-label {
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.student-registration-container .user-name-control .MuiRadio-root {
+  padding: 4px;
+}
+
+@media (max-width: 480px) {
+  .student-registration-container .user-name-row {
+    flex-wrap: wrap;
+  }
+
+  .student-registration-container .user-name-control .user-name-radio-group {
+    flex-wrap: wrap;
+  }
 }
 
 .MuiFormControlLabel-root {
@@ -166,21 +299,85 @@
 }
 
 /* Important notice styling */
-.important-notice {
+.student-registration-container .registration-notice-row {
+  margin-bottom: 10px;
+}
+
+.student-registration-container .registration-notice-row .important-notice {
+  flex: 0 0 100%;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.student-registration-container .important-notice {
   background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
   border-left: 4px solid #f39c12;
-  padding: 20px;
-  margin-bottom: 30px;
+  padding: 16px 18px;
+  margin-bottom: 0;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+.student-registration-container .important-notice p {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  margin: 0 0 8px;
+}
+
+.student-registration-container .important-notice p:last-child {
+  margin-bottom: 0;
+}
+
+.student-registration-container .important-notice .notice-engineering-text {
+  color: #2e7d32;
+}
+
+.student-registration-container .registration-card {
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
 }
 
 /* Signature section styling */
 .signature-section {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
-  margin-top: 20px;
+  margin-top: 0;
+}
+
+.student-registration-container .signature-section.registration-card {
+  padding: 16px 20px;
+}
+
+.student-registration-container .signature-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.student-registration-container .signature-section .agreement-text {
+  font-size: 0.875rem;
+  color: #495057;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+
+.student-registration-container .signature-section .signature-help-text {
+  font-size: 0.8125rem;
+  color: #6c757d;
+  margin: 4px 0;
+  line-height: 1.35;
+}
+
+.student-registration-container .signature-section .MuiTextField-root {
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+.student-registration-container .signature-section .MuiFormControlLabel-root {
+  margin: 6px 0 0;
 }
 
 .signature-field {
@@ -242,6 +439,12 @@
   }
 }
 
+/* Required field asterisk */
+.student-registration-container .MuiFormLabel-asterisk,
+.student-registration-container .required-asterisk {
+  color: #d32f2f;
+}
+
 /* Error message styling */
 .MuiFormHelperText-root.Mui-error {
   color: #d32f2f;
@@ -254,11 +457,6 @@
 .MuiAlert-root {
   border-radius: 8px;
   margin-bottom: 20px;
-}
-
-/* Custom scrollbar for select dropdowns */
-.MuiSelect-select {
-  padding: 12px 14px;
 }
 
 /* Focus states */

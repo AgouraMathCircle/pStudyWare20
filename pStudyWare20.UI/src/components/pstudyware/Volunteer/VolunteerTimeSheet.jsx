@@ -15,6 +15,7 @@ import {
 import { ArrowBack as BackIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import timeSheetTrackingService from "../../../services/timeSheetTrackingService";
+import { resolveTimeFieldsFromEntry } from "../../../utils/timeSheetClockParse";
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
 const MINS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
@@ -76,13 +77,24 @@ const VolunteerTimeSheet = () => {
           return;
         }
         setTaskName(entry.taskName ?? entry.TaskName ?? "");
-        setVolunteerDate(toDateInputValue(entry.volunteerDate ?? entry.VolunteerDate) || toDateInputValue(new Date()));
-        setStartHour(String(entry.startHour ?? entry.StartHour ?? "9"));
-        setStartMin(String(entry.startMin ?? entry.StartMin ?? "00").padStart(2, "0"));
-        setStartType(entry.startType ?? entry.StartType ?? "AM");
-        setEndHour(String(entry.endHour ?? entry.EndHour ?? "5"));
-        setEndMin(String(entry.endMin ?? entry.EndMin ?? "00").padStart(2, "0"));
-        setEndType(entry.endType ?? entry.EndType ?? "PM");
+        const volunteerRaw = entry.volunteerDate ?? entry.VolunteerDate;
+        setVolunteerDate(
+          toDateInputValue(volunteerRaw) ||
+            (() => {
+              const m = String(volunteerRaw ?? "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+              if (!m) return "";
+              return `${m[3]}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`;
+            })() ||
+            toDateInputValue(new Date()),
+        );
+        const startFields = resolveTimeFieldsFromEntry(entry, "start");
+        const endFields = resolveTimeFieldsFromEntry(entry, "end");
+        setStartHour(startFields.hour.replace(/^0/, "") || startFields.hour);
+        setStartMin(startFields.min);
+        setStartType(startFields.type);
+        setEndHour(endFields.hour.replace(/^0/, "") || endFields.hour);
+        setEndMin(endFields.min);
+        setEndType(endFields.type);
         setTaskDescription(entry.taskDescription ?? entry.TaskDescription ?? "");
       } catch (e) {
         if (!cancelled) {

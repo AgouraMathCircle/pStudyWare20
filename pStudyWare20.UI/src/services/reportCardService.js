@@ -59,6 +59,12 @@ const reportCardService = {
         request.Group ??
         request.className ??
         "",
+      group:
+        request.group ??
+        request.Group ??
+        request.className ??
+        request.class ??
+        "",
       examDate: request.examDate ?? request.ExamDate ?? "",
       quizTotalScore: String(
         request.quizTotalScore ?? request.QuizTotalScore ?? request.quizTotal ?? "10"

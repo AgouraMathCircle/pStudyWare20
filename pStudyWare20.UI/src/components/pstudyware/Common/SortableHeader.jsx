@@ -52,6 +52,7 @@ const SortableHeader = ({
           gap: 0.25,
           width: "100%",
           minWidth: 0,
+          justifyContent: align === "right" ? "flex-end" : align === "center" ? "center" : "flex-start",
           ...adminPortalTableFontSx,
           color: active ? "#1b5e20" : "#2e7d32",
           fontWeight: active ? 600 : 400,
@@ -63,7 +64,7 @@ const SortableHeader = ({
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
-            flex: "1 1 auto",
+            flex: align === "right" || align === "center" ? "0 1 auto" : "1 1 auto",
             minWidth: 0,
           }}
         >

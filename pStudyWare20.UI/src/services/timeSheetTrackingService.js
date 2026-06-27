@@ -18,7 +18,11 @@ const timeSheetTrackingService = {
     return response.data;
   },
   deleteTimeSheetTracking: async (request) => {
-    const response = await api.post(`${BASE}/DeleteTimeSheetTracking`, request);
+    const logId = Number(request?.logID ?? request?.LogID);
+    if (!Number.isFinite(logId) || logId <= 0) {
+      throw new Error("A valid log ID is required to delete this entry.");
+    }
+    const response = await api.post(`${BASE}/DeleteTimeSheetTracking`, { logID: logId });
     return response.data;
   },
   upsertTimeSheetTracking: async (request) => {

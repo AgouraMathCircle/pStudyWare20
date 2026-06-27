@@ -29,7 +29,9 @@ namespace pStudyWare20.Services.Implementations
                 return new SpecialEventsRegistrationListResponse
                 {
                     IsSuccess = true,
-                    SpecialEventsRegistrationList = specialEventsRegistrationList
+                    SpecialEventsRegistrationList = specialEventsRegistrationList is DataTable dt
+                        ? ConvertDataTableToRowList(dt)
+                        : specialEventsRegistrationList
                 };
             }
             catch (Exception ex)
@@ -115,7 +117,9 @@ namespace pStudyWare20.Services.Implementations
                 return new SpecialEventsRegistrationDashboardResponse
                 {
                     IsSuccess = true,
-                    SpecialEventsRegistrationList = specialEventsRegistrationList
+                    SpecialEventsRegistrationList = specialEventsRegistrationList is DataTable dt
+                        ? ConvertDataTableToRowList(dt)
+                        : specialEventsRegistrationList
                 };
             }
             catch (Exception ex)
@@ -168,6 +172,38 @@ namespace pStudyWare20.Services.Implementations
                     ErrorMessage = ex.Message
                 };
             }
+        }
+
+        /// <summary>
+        /// System.Text.Json cannot serialize DataTable. Convert to row dictionaries with camelCase keys.
+        /// </summary>
+        private static List<Dictionary<string, object?>> ConvertDataTableToRowList(DataTable? table)
+        {
+            var list = new List<Dictionary<string, object?>>();
+            if (table == null || table.Rows.Count == 0)
+                return list;
+
+            foreach (DataRow row in table.Rows)
+            {
+                var dict = new Dictionary<string, object?>();
+                foreach (DataColumn col in table.Columns)
+                {
+                    var key = ToCamelCaseColumnName(col.ColumnName);
+                    dict[key] = row[col] == DBNull.Value ? null : row[col];
+                }
+                list.Add(dict);
+            }
+
+            return list;
+        }
+
+        private static string ToCamelCaseColumnName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return name;
+            if (name.Length == 1)
+                return name.ToLowerInvariant();
+            return char.ToLowerInvariant(name[0]) + name.Substring(1);
         }
 
     }

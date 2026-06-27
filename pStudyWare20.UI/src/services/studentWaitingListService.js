@@ -1,8 +1,15 @@
 import api from "./api";
+import config from "../utils/config";
 import { postExcelExport } from "../utils/excelExport";
 import { postCsvExport } from "../utils/csvExport";
 
 const BASE = "/StudentWaitingList";
+
+/** DB update + parent/admin emails can exceed the default 10s axios timeout. */
+const STUDENT_WAITING_LIST_TIMEOUT = Math.max(
+  config.api.timeout || 10000,
+  120000,
+);
 
 const studentWaitingListService = {
   /**
@@ -10,7 +17,9 @@ const studentWaitingListService = {
    * @param {object} request - { WaitingForOnSite: "N"|"Y", Username: string }
    */
   getStudentWaitingList: async (request) => {
-    const response = await api.post(`${BASE}/GetStudentWaitingList`, request);
+    const response = await api.post(`${BASE}/GetStudentWaitingList`, request, {
+      timeout: STUDENT_WAITING_LIST_TIMEOUT,
+    });
     return response.data;
   },
 
@@ -21,7 +30,8 @@ const studentWaitingListService = {
   updateStudentWaitingListStatus: async (request) => {
     const response = await api.post(
       `${BASE}/UpdateStudentWaitingListStatus`,
-      request
+      request,
+      { timeout: STUDENT_WAITING_LIST_TIMEOUT },
     );
     return response.data;
   },
@@ -31,7 +41,9 @@ const studentWaitingListService = {
    * @param {object} request - { StudentId: string }
    */
   deleteStudent: async (request) => {
-    const response = await api.post(`${BASE}/DeleteStudent`, request);
+    const response = await api.post(`${BASE}/DeleteStudent`, request, {
+      timeout: STUDENT_WAITING_LIST_TIMEOUT,
+    });
     return response.data;
   },
 
@@ -55,28 +67,30 @@ const studentWaitingListService = {
 
   /**
    * Export waiting list to Excel (.xlsx).
-   * @param {object} request - { Username: string, Mode?: string }
+   * @param {object} request - { Username: string, WaitingForOnSite?: "N"|"Y" }
    */
   exportToExcel: async (request) => {
     const fileName = await postExcelExport(
       api,
       `${BASE}/ExportToExcel`,
       request,
-      "StudentWaitingList.xlsx"
+      "StudentWaitingList.xlsx",
+      { timeout: STUDENT_WAITING_LIST_TIMEOUT },
     );
     return { isSuccess: true, fileName };
   },
 
   /**
    * Export waiting list to CSV.
-   * @param {object} request - { Username: string, Mode?: string }
+   * @param {object} request - { Username: string, WaitingForOnSite?: "N"|"Y" }
    */
   exportToCsv: async (request) => {
     const fileName = await postCsvExport(
       api,
       `${BASE}/ExportToCsv`,
       request,
-      "StudentWaitingList.csv"
+      "StudentWaitingList.csv",
+      { timeout: STUDENT_WAITING_LIST_TIMEOUT },
     );
     return { isSuccess: true, fileName };
   },

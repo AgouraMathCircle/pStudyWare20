@@ -2,6 +2,8 @@ using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
 using System.Data;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace pStudyWare20.Services.Implementations
 {
@@ -88,6 +90,15 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
+                if (request.LogID <= 0)
+                {
+                    return new DeleteTimeSheetTrackingResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "A valid log ID is required to delete this entry."
+                    };
+                }
+
                 await _timeSheetTrackingRepository.DeleteTimeSheetTrackingAsync(request.LogID);
 
                 return new DeleteTimeSheetTrackingResponse
@@ -290,7 +301,9 @@ namespace pStudyWare20.Services.Implementations
             {
                 try
                 {
-                    var logIdVal = GetValue(row, table, "mLogID", "LogID", "LogId");
+                    // mLogID is a display row number from AMC_spSelectTimeTracking — use LogID for edit/delete.
+                    var logIdVal = GetValue(row, table, "LogID", "LogId");
+                    var rowNumVal = GetValue(row, table, "mLogID");
                     var dateVal = GetValue(row, table, "DateVolunteer", "VolunteerDate");
                     var createdVal = GetValue(row, table, "CreatedDate");
                     var modifiedVal = GetValue(row, table, "ModifiedDate");
@@ -298,6 +311,7 @@ namespace pStudyWare20.Services.Implementations
                     var entry = new TimeSheetTrackingEntry
                     {
                         LogID = logIdVal != null && logIdVal != DBNull.Value ? Convert.ToInt32(logIdVal) : 0,
+                        MLogID = rowNumVal != null && rowNumVal != DBNull.Value ? Convert.ToInt32(rowNumVal) : 0,
                         Username = GetValue(row, table, "Username", "UserName")?.ToString() ?? "",
                         Name = GetValue(row, table, "Name", "VolunteerName")?.ToString() ?? "",
                         TaskName = GetValue(row, table, "TaskName")?.ToString() ?? "",
@@ -315,6 +329,7 @@ namespace pStudyWare20.Services.Implementations
                         CreatedDate = createdVal != null && createdVal != DBNull.Value ? Convert.ToDateTime(createdVal) : null,
                         ModifiedDate = modifiedVal != null && modifiedVal != DBNull.Value ? Convert.ToDateTime(modifiedVal) : null
                     };
+                    PopulateClockPartsFromFormattedStrings(entry);
                     entries.Add(entry);
                 }
                 catch
@@ -324,6 +339,107 @@ namespace pStudyWare20.Services.Implementations
             }
 
             return entries;
+        }
+
+        /// <summary>
+        /// AMC_spSelectTimeTracking returns StartTime/EndTime as formatted strings — split for edit form dropdowns.
+        /// </summary>
+        private static void PopulateClockPartsFromFormattedStrings(TimeSheetTrackingEntry entry)
+        {
+            if (string.IsNullOrWhiteSpace(entry.StartHour))
+            {
+                var (hour, min, type) = ParseLegacyClockString(entry.StartTime);
+                if (!string.IsNullOrEmpty(hour))
+                {
+                    entry.StartHour = hour;
+                    entry.StartMin = min;
+                    entry.StartType = type;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(entry.EndHour))
+            {
+                var (hour, min, type) = ParseLegacyClockString(entry.EndTime);
+                if (!string.IsNullOrEmpty(hour))
+                {
+                    entry.EndHour = hour;
+                    entry.EndMin = min;
+                    entry.EndType = type;
+                }
+            }
+        }
+
+        private static (string Hour, string Min, string Type) ParseLegacyClockString(string? clock)
+        {
+            if (string.IsNullOrWhiteSpace(clock))
+                return ("", "", "");
+
+            var s = clock.Trim();
+
+            var match = Regex.Match(s, @"^(\d{1,2}):(\d{2})\s*(AM|PM)$", RegexOptions.IgnoreCase);
+            if (match.Success)
+            {
+                return (
+                    Pad2Clock(match.Groups[1].Value),
+                    SnapMinuteToLegacyOption(match.Groups[2].Value),
+                    match.Groups[3].Value.ToUpperInvariant()
+                );
+            }
+
+            match = Regex.Match(s, @"^(\d{1,2}):(\d{2})(?::\d{2})?$");
+            if (match.Success && int.TryParse(match.Groups[1].Value, out var hour24))
+            {
+                var min = SnapMinuteToLegacyOption(match.Groups[2].Value);
+                var type = hour24 >= 12 ? "PM" : "AM";
+                if (hour24 == 0) hour24 = 12;
+                else if (hour24 > 12) hour24 -= 12;
+                return (Pad2Clock(hour24), min, type);
+            }
+
+            if (TimeSpan.TryParse(s, CultureInfo.InvariantCulture, out var ts))
+            {
+                var tsHour = ts.Hours;
+                var tsType = tsHour >= 12 ? "PM" : "AM";
+                var tsDisplayHour = tsHour == 0 ? 12 : tsHour > 12 ? tsHour - 12 : tsHour;
+                return (Pad2Clock(tsDisplayHour), SnapMinuteToLegacyOption(ts.Minutes), tsType);
+            }
+
+            if (DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var dt))
+            {
+                var dtHour = dt.Hour;
+                var dtType = dtHour >= 12 ? "PM" : "AM";
+                var dtDisplayHour = dtHour == 0 ? 12 : dtHour > 12 ? dtHour - 12 : dtHour;
+                return (Pad2Clock(dtDisplayHour), SnapMinuteToLegacyOption(dt.Minute), dtType);
+            }
+
+            return ("", "", "");
+        }
+
+        private static string Pad2Clock(object value)
+        {
+            if (value == null) return "00";
+            if (value is int i) return i.ToString("D2", CultureInfo.InvariantCulture);
+            return int.TryParse(value.ToString(), out var n)
+                ? n.ToString("D2", CultureInfo.InvariantCulture)
+                : value.ToString() ?? "00";
+        }
+
+        private static string SnapMinuteToLegacyOption(object value)
+        {
+            if (!int.TryParse(value?.ToString(), out var minutes))
+                return "00";
+
+            int[] allowed = { 0, 15, 30, 45 };
+            if (Array.IndexOf(allowed, minutes) >= 0)
+                return minutes.ToString("D2", CultureInfo.InvariantCulture);
+
+            var closest = allowed[0];
+            foreach (var option in allowed)
+            {
+                if (Math.Abs(option - minutes) < Math.Abs(closest - minutes))
+                    closest = option;
+            }
+            return closest.ToString("D2", CultureInfo.InvariantCulture);
         }
     }
 }

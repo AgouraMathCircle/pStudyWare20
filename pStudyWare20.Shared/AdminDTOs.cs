@@ -53,6 +53,9 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Mode")]
         public string Mode { get; set; } = "D";
+
+        [Display(Name = "Waiting For OnSite")]
+        public string WaitingForOnSite { get; set; } = "N";
     }
 
     /// <summary>

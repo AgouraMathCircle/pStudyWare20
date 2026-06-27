@@ -56,12 +56,12 @@ const DocumentsRepository = () => {
         return true;
       }
 
-      showMessage(
+        showMessage(
         response?.errorMessage ||
           response?.ErrorMessage ||
           "Failed to load documents",
-        "error",
-      );
+          "error",
+        );
       return false;
     } catch (error) {
       console.error("Error loading documents:", error);
@@ -143,12 +143,12 @@ const DocumentsRepository = () => {
         return { ...response, isSuccess: true };
       }
 
-      showMessage(
+        showMessage(
         response?.errorMessage ||
           response?.ErrorMessage ||
           "Failed to upload document",
-        "error",
-      );
+          "error",
+        );
       return { ...response, isSuccess: false };
     } catch (error) {
       console.error("Error uploading document:", error);
@@ -203,9 +203,9 @@ const DocumentsRepository = () => {
   }
 
   if (!isAuthenticated || !user) {
-    return (
-      <Box>
-        <AdminHeader user={user} />
+  return (
+    <Box>
+      <AdminHeader user={user} />
         <AdminRoleHeaderSpacer />
         <Box
           sx={{
@@ -219,7 +219,7 @@ const DocumentsRepository = () => {
             Access denied. Please log in to view documents.
           </Alert>
         </Box>
-      </Box>
+        </Box>
     );
   }
 
@@ -227,12 +227,12 @@ const DocumentsRepository = () => {
     <Box>
       <AdminHeader user={user} />
       <AdminRoleHeaderSpacer />
-      <Container maxWidth="xl" sx={{ mb: 4 }}>
+        <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+            <Grid item xs={12}>
             <Card sx={adminSessionListPanelCardSx}>
               <CardContent
-                sx={{
+                  sx={{
                   ...adminSessionListPanelContentSx,
                   pt: 1,
                   "&:last-child": { pb: 1.5 },
@@ -249,9 +249,9 @@ const DocumentsRepository = () => {
                 />
               </CardContent>
             </Card>
+            </Grid>
           </Grid>
-        </Grid>
-      </Container>
+        </Container>
 
       <DocumentRepositoryUploadForm
         open={uploadFormOpen}

@@ -22,20 +22,14 @@ import {
   FormControl,
   InputLabel,
   Select,
-  IconButton,
-  Tooltip,
 } from "@mui/material";
 import {
-  Refresh as RefreshIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
-  FirstPage as FirstPageIcon,
-  KeyboardArrowLeft as PrevPageIcon,
-  KeyboardArrowRight as NextPageIcon,
-  LastPage as LastPageIcon,
 } from "@mui/icons-material";
 import PortalDialog from "../Common/PortalDialog";
+import PortalModalSelect from "../Common/PortalModalSelect";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import {
   portalModalFieldSx,
@@ -43,6 +37,7 @@ import {
 } from "../Common/portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
+import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 import timeSheetTrackingService from "../../../services/timeSheetTrackingService";
 import {
@@ -51,10 +46,32 @@ import {
   toSortableNumber,
 } from "../../../utils/tableSort";
 import {
-  APPLICATION_ADMIN_TITLE_COLOR,
-  PORTAL_CARD_BOX_SHADOW,
-  portalCardAntiLiftSx,
+  pad2,
+  resolveTimeFieldsFromEntry,
+} from "../../../utils/timeSheetClockParse";
+import {
+  adminSessionListEmptyCellSx,
+  adminSessionListEmptyTextSx,
+  adminSessionListFindButtonSx,
+  adminSessionListGridTableSx,
+  adminSessionListHeaderBarSx,
+  adminSessionListMenuItemSx,
+  adminSessionListPanelCardSx,
+  adminSessionListPanelContentSx,
+  adminSessionListSearchBarSx,
+  adminSessionListSearchFieldSx,
+  adminSessionListSearchLabelSx,
+  adminSessionListSearchSelectSx,
+  adminSessionListTableBodyCellSx,
+  adminSessionListTableBodyRowSx,
+  adminSessionListTableHeadCellSx,
+  adminSessionListTableHeadRowSx,
+  adminSessionListTableActionLinkSx,
+  adminSessionListTableDeleteLinkSx,
+  adminSessionListTitleSx,
+  portalHeaderActionButtonSx,
 } from "../styles/applicationSurfaces";
+import "../../../styles/AdminTimeSheetTracking.css";
 
 const timeSheetTrackingPageSx = {
   flex: 1,
@@ -64,7 +81,102 @@ const timeSheetTrackingPageSx = {
   flexDirection: "column",
 };
 
-const cellPadding = "0 8px";
+const timeSheetColumnWidths = {
+  logID: "5%",
+  name: "12%",
+  taskName: "14%",
+  volunteerDate: "10%",
+  startTime: "11%",
+  endTime: "11%",
+  totalHours: "8%",
+  createdDate: "11%",
+  edit: "7%",
+  delete: "7%",
+};
+
+const timeSheetDeleteLinkSx = adminSessionListTableDeleteLinkSx;
+
+const timeSheetModalTimeRowSx = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr 0.85fr",
+  gap: 0.75,
+  width: "100%",
+  maxWidth: "100%",
+};
+
+const timeSheetModalInputHeight = 32;
+
+const timeSheetModalTimeSelectSx = {
+  ...portalModalFieldSx,
+  width: "100%",
+  minWidth: 0,
+  "& .MuiOutlinedInput-root": {
+    height: timeSheetModalInputHeight,
+    width: "100%",
+  },
+  "& .MuiSelect-select": {
+    height: `${timeSheetModalInputHeight}px !important`,
+    minHeight: `${timeSheetModalInputHeight}px !important`,
+    fontSize: "0.8125rem",
+    display: "flex",
+    alignItems: "center",
+    boxSizing: "border-box",
+    py: "0 !important",
+    overflow: "hidden !important",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+};
+
+const timeSheetModalStackSx = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 1.25,
+  width: "100%",
+};
+
+const timeSheetTaskDetailsSx = {
+  ...portalModalFieldSx,
+  "& .MuiOutlinedInput-root": {
+    minHeight: 72,
+    alignItems: "flex-start",
+  },
+  "& .MuiInputBase-inputMultiline": {
+    minHeight: "56px !important",
+    fontSize: "0.8125rem",
+  },
+};
+
+function isApiSuccess(res) {
+  return res?.isSuccess === true || res?.IsSuccess === true;
+}
+
+/** Real AMC_tblTimeTracking.LogID — never use mLogID (display row number). */
+function resolveTimeSheetLogId(row) {
+  const raw = row?.logID ?? row?.LogID;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function resolveTimeSheetRowNumber(row) {
+  const raw = row?.mLogID ?? row?.MLogID;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function extractApiError(err, fallback = "Save failed.") {
+  const data = err?.response?.data;
+  if (Array.isArray(data?.errors) && data.errors.length > 0) {
+    return data.errors.join(" ");
+  }
+  return (
+    data?.errorMessage ??
+    data?.ErrorMessage ??
+    data?.message ??
+    err?.message ??
+    fallback
+  );
+}
 
 /** Legacy TimeSheetTracking.aspx — ddlTaskName */
 const TASK_OPTIONS = [
@@ -111,12 +223,6 @@ function toDateInputValue(isoOrDate) {
   }
 }
 
-function pad2(v) {
-  const s = String(v ?? "").trim();
-  if (!s) return "00";
-  return s.padStart(2, "0");
-}
-
 function displayStartEnd(row) {
   const st =
     row.startTime ??
@@ -139,7 +245,7 @@ function rowSearchFieldValues(row) {
   const vd = row.volunteerDate ?? row.VolunteerDate;
   const cd = row.createdDate ?? row.CreatedDate;
   return [
-    String(row.logID ?? row.LogID ?? row.mLogID ?? ""),
+    String(resolveTimeSheetLogId(row) ?? resolveTimeSheetRowNumber(row) ?? ""),
     String(row.name ?? row.Name ?? ""),
     String(row.taskName ?? row.TaskName ?? ""),
     vd ? new Date(vd).toLocaleDateString() : "",
@@ -161,7 +267,7 @@ function matchesCriteria(fieldValue, searchCriteria, searchLower) {
 function getTimeSheetFieldValue(row, field) {
   switch (field) {
     case "logID":
-      return toSortableNumber(row.logID ?? row.LogID ?? row.mLogID);
+      return toSortableNumber(resolveTimeSheetLogId(row) ?? resolveTimeSheetRowNumber(row));
     case "name":
       return row.name ?? row.Name ?? "";
     case "taskName":
@@ -184,15 +290,6 @@ function getTimeSheetFieldValue(row, field) {
       return "";
   }
 }
-
-const timeSheetHeadCellSx = (width, isLast = false) => ({
-  fontWeight: 400,
-  borderRight: isLast ? undefined : "1px solid #4caf50",
-  width,
-  fontSize: "0.75rem",
-  padding: cellPadding,
-  whiteSpace: isLast ? "nowrap" : undefined,
-});
 
 const TimeSheetTracking = () => {
   const { user } = useAuth();
@@ -308,7 +405,7 @@ const TimeSheetTracking = () => {
       const cd = row.createdDate ?? row.CreatedDate;
       switch (searchBy) {
         case "LOG_ID":
-          fieldValue = String(row.logID ?? row.LogID ?? row.mLogID ?? "");
+          fieldValue = String(resolveTimeSheetLogId(row) ?? resolveTimeSheetRowNumber(row) ?? "");
           break;
         case "NAME":
           fieldValue = row.name ?? row.Name ?? "";
@@ -347,7 +444,7 @@ const TimeSheetTracking = () => {
   );
 
   const totalRecords = sortedList.length;
-  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
+  const totalPages = Math.ceil(totalRecords / pageSize) || 0;
   const paginatedList = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return sortedList.slice(start, start + pageSize);
@@ -372,7 +469,7 @@ const TimeSheetTracking = () => {
   }, [searchBy, searchCriteria, searchText, list.length]);
 
   useEffect(() => {
-    if (currentPage > totalPages) {
+    if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages);
       setGoToPageInput(String(totalPages));
     }
@@ -413,15 +510,22 @@ const TimeSheetTracking = () => {
   };
 
   const openEdit = async (row) => {
-    const logId = row.logID ?? row.LogID ?? row.mLogID;
-    if (!logId) return;
+    const logId = resolveTimeSheetLogId(row);
+    if (!logId) {
+      setSnackbar({
+        open: true,
+        message: "Cannot edit: missing entry ID.",
+        severity: "error",
+      });
+      return;
+    }
     setEditingLogId(logId);
     setFormOpen(true);
     setFormLoading(true);
     try {
       const res = await timeSheetTrackingService.getTimeSheetForEdit(logId, username);
       const entry = res?.timeSheetEntry ?? res?.TimeSheetEntry;
-      if (!res?.isSuccess || !entry) {
+      if (!isApiSuccess(res) || !entry) {
         setSnackbar({
           open: true,
           message: res?.errorMessage ?? "Could not load entry.",
@@ -431,16 +535,24 @@ const TimeSheetTracking = () => {
         return;
       }
       setTaskName(entry.taskName ?? entry.TaskName ?? TASK_OPTIONS[0]);
+      const volunteerRaw = entry.volunteerDate ?? entry.VolunteerDate;
       setVolunteerDate(
-        toDateInputValue(entry.volunteerDate ?? entry.VolunteerDate) ||
+        toDateInputValue(volunteerRaw) ||
+          (() => {
+            const m = String(volunteerRaw ?? "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (!m) return "";
+            return `${m[3]}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`;
+          })() ||
           toDateInputValue(new Date()),
       );
-      setStartHour(pad2(entry.startHour ?? entry.StartHour ?? "09"));
-      setStartMin(pad2(entry.startMin ?? entry.StartMin ?? "00"));
-      setStartType(entry.startType ?? entry.StartType ?? "AM");
-      setEndHour(pad2(entry.endHour ?? entry.EndHour ?? "05"));
-      setEndMin(pad2(entry.endMin ?? entry.EndMin ?? "00"));
-      setEndType(entry.endType ?? entry.EndType ?? "PM");
+      const startFields = resolveTimeFieldsFromEntry(entry, "start");
+      const endFields = resolveTimeFieldsFromEntry(entry, "end");
+      setStartHour(startFields.hour);
+      setStartMin(startFields.min);
+      setStartType(startFields.type);
+      setEndHour(endFields.hour);
+      setEndMin(endFields.min);
+      setEndType(endFields.type);
       setTaskDescription(entry.taskDescription ?? entry.TaskDescription ?? "");
     } catch (e) {
       setSnackbar({
@@ -465,19 +577,37 @@ const TimeSheetTracking = () => {
       setSnackbar({ open: true, message: "You must be signed in.", severity: "error" });
       return;
     }
+    if (!taskName?.trim()) {
+      setSnackbar({ open: true, message: "Please select a task name.", severity: "error" });
+      return;
+    }
     if (!volunteerDate) {
       setSnackbar({ open: true, message: "Please choose a volunteer date.", severity: "error" });
       return;
     }
-    const sh = pad2(startHour || "09");
-    const sm = pad2(startMin || "00");
-    const eh = pad2(endHour || "05");
-    const em = pad2(endMin || "00");
+    if (!startHour || !startMin || !startType) {
+      setSnackbar({ open: true, message: "Please complete the start time.", severity: "error" });
+      return;
+    }
+    if (!endHour || !endMin || !endType) {
+      setSnackbar({ open: true, message: "Please complete the end time.", severity: "error" });
+      return;
+    }
+
+    const sh = pad2(startHour);
+    const sm = pad2(startMin);
+    const eh = pad2(endHour);
+    const em = pad2(endMin);
     const parts = volunteerDate.split("-").map((x) => parseInt(x, 10));
     const volunteerDateObj =
       parts.length === 3 && parts.every((n) => Number.isFinite(n))
         ? new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0, 0)
         : new Date(volunteerDate);
+
+    if (Number.isNaN(volunteerDateObj.getTime())) {
+      setSnackbar({ open: true, message: "Please enter a valid volunteer date.", severity: "error" });
+      return;
+    }
 
     setSaving(true);
     try {
@@ -495,10 +625,10 @@ const TimeSheetTracking = () => {
         logID: editingLogId && editingLogId > 0 ? editingLogId : null,
       };
       const res = await timeSheetTrackingService.upsertTimeSheetTracking(payload);
-      if (res?.isSuccess === false) {
+      if (!isApiSuccess(res)) {
         setSnackbar({
           open: true,
-          message: res?.errorMessage ?? res?.message ?? "Save failed.",
+          message: res?.errorMessage ?? res?.ErrorMessage ?? res?.message ?? res?.Message ?? "Save failed.",
           severity: "error",
         });
         return;
@@ -516,7 +646,7 @@ const TimeSheetTracking = () => {
     } catch (err) {
       setSnackbar({
         open: true,
-        message: err?.response?.data?.message ?? err?.message ?? "Save failed.",
+        message: extractApiError(err),
         severity: "error",
       });
     } finally {
@@ -525,8 +655,15 @@ const TimeSheetTracking = () => {
   };
 
   const confirmDelete = (row) => {
-    const logId = row.logID ?? row.LogID;
-    if (!logId) return;
+    const logId = resolveTimeSheetLogId(row);
+    if (!logId) {
+      setSnackbar({
+        open: true,
+        message: "Cannot delete: missing entry ID.",
+        severity: "error",
+      });
+      return;
+    }
     setDeleteLogId(logId);
     setDeleteOpen(true);
   };
@@ -535,19 +672,19 @@ const TimeSheetTracking = () => {
     if (!deleteLogId) return;
     try {
       const res = await timeSheetTrackingService.deleteTimeSheetTracking({
-        logID: deleteLogId,
+        logID: Number(deleteLogId),
       });
-      if (res?.isSuccess === false) {
+      if (!isApiSuccess(res)) {
         setSnackbar({
           open: true,
-          message: res?.errorMessage ?? "Delete failed.",
+          message: res?.errorMessage ?? res?.ErrorMessage ?? res?.message ?? "Delete failed.",
           severity: "error",
         });
         return;
       }
       setSnackbar({
         open: true,
-        message: res?.message ?? "Entry has been deleted successfully",
+        message: res?.message ?? res?.Message ?? "Entry has been deleted successfully",
         severity: "success",
       });
       setDeleteOpen(false);
@@ -556,179 +693,94 @@ const TimeSheetTracking = () => {
     } catch (err) {
       setSnackbar({
         open: true,
-        message: err?.response?.data?.message ?? err?.message ?? "Delete failed.",
+        message: extractApiError(err, "Delete failed."),
         severity: "error",
       });
     }
   };
 
   return (
-    <Box sx={timeSheetTrackingPageSx}>
+    <Box className="admin-time-sheet-tracking" sx={timeSheetTrackingPageSx}>
       <AdminHeader user={user} />
       <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Card
-              sx={{
-                backgroundColor: "white",
-                borderRadius: 2,
-                boxShadow: PORTAL_CARD_BOX_SHADOW,
-                overflow: "hidden",
-                ...portalCardAntiLiftSx,
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <Box
-                  sx={{
-                    mb: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 2,
-                  }}
-                >
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      fontWeight: 600,
-                      color: APPLICATION_ADMIN_TITLE_COLOR,
-                      fontSize: "1rem",
-                    }}
-                  >
+            <Card sx={adminSessionListPanelCardSx}>
+              <CardContent sx={adminSessionListPanelContentSx}>
+                <Box sx={adminSessionListHeaderBarSx}>
+                  <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
                     My Time Sheet
                   </Typography>
-                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      size="small"
-                      onClick={openAdd}
-                      sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
-                    >
-                      Enter Time Sheet
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      size="small"
-                      startIcon={<RefreshIcon />}
-                      onClick={loadList}
-                      disabled={loading}
-                      sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
-                    >
-                      Refresh
-                    </Button>
-                  </Box>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    size="small"
+                    startIcon={<AddIcon />}
+                    onClick={openAdd}
+                    sx={portalHeaderActionButtonSx}
+                  >
+                    Enter Time Sheet
+                  </Button>
                 </Box>
 
-                {!loading && (
-                  <Box
-                    sx={{
-                      backgroundColor: "#4caf50",
-                      p: 0.5,
-                      borderRadius: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                    >
-                      <Typography
-                        sx={{
-                          color: "white",
-                          fontSize: "0.75rem",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        Search By:
-                      </Typography>
+                <Box className="admin-time-sheet-tracking-table-panel">
+                  <Box sx={adminSessionListSearchBarSx}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
                       <Select
                         value={searchBy}
                         onChange={(e) => setSearchBy(e.target.value)}
                         size="small"
-                        sx={{
-                          color: "white",
-                          fontSize: "0.75rem",
-                          minWidth: 120,
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "white",
-                          },
-                          "& .MuiSelect-icon": { color: "white" },
-                        }}
+                        sx={adminSessionListSearchSelectSx}
                       >
-                        <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
+                        <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
                           -ALL-
                         </MenuItem>
-                        <MenuItem value="LOG_ID" sx={{ fontSize: "0.75rem" }}>
+                        <MenuItem value="LOG_ID" sx={adminSessionListMenuItemSx}>
                           #
                         </MenuItem>
-                        <MenuItem value="NAME" sx={{ fontSize: "0.75rem" }}>
+                        <MenuItem value="NAME" sx={adminSessionListMenuItemSx}>
                           Name
                         </MenuItem>
-                        <MenuItem value="TASK" sx={{ fontSize: "0.75rem" }}>
+                        <MenuItem value="TASK" sx={adminSessionListMenuItemSx}>
                           Task Name
                         </MenuItem>
-                        <MenuItem value="DATE" sx={{ fontSize: "0.75rem" }}>
+                        <MenuItem value="DATE" sx={adminSessionListMenuItemSx}>
                           Date Volunteer
                         </MenuItem>
-                        <MenuItem value="START" sx={{ fontSize: "0.75rem" }}>
+                        <MenuItem value="START" sx={adminSessionListMenuItemSx}>
                           Start Time
                         </MenuItem>
-                        <MenuItem value="END" sx={{ fontSize: "0.75rem" }}>
+                        <MenuItem value="END" sx={adminSessionListMenuItemSx}>
                           End Time
                         </MenuItem>
-                        <MenuItem value="HOURS" sx={{ fontSize: "0.75rem" }}>
+                        <MenuItem value="HOURS" sx={adminSessionListMenuItemSx}>
                           Total Hours
                         </MenuItem>
-                        <MenuItem value="CREATED" sx={{ fontSize: "0.75rem" }}>
+                        <MenuItem value="CREATED" sx={adminSessionListMenuItemSx}>
                           Created Date
                         </MenuItem>
-                        <MenuItem value="DESCRIPTION" sx={{ fontSize: "0.75rem" }}>
+                        <MenuItem value="DESCRIPTION" sx={adminSessionListMenuItemSx}>
                           Task Details
                         </MenuItem>
                       </Select>
                     </Box>
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                    >
-                      <Typography
-                        sx={{
-                          color: "white",
-                          fontSize: "0.75rem",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        Criteria:
-                      </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <Typography sx={adminSessionListSearchLabelSx}>Criteria:</Typography>
                       <Select
                         value={searchCriteria}
                         onChange={(e) => setSearchCriteria(e.target.value)}
                         size="small"
-                        sx={{
-                          color: "white",
-                          fontSize: "0.75rem",
-                          minWidth: 100,
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: "white",
-                          },
-                          "& .MuiSelect-icon": { color: "white" },
-                        }}
+                        sx={adminSessionListSearchSelectSx}
                       >
-                        <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
+                        <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
                           Contains
                         </MenuItem>
-                        <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
+                        <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
                           Equals
                         </MenuItem>
-                        <MenuItem
-                          value="starts_with"
-                          sx={{ fontSize: "0.75rem" }}
-                        >
+                        <MenuItem value="starts_with" sx={adminSessionListMenuItemSx}>
                           Starts With
                         </MenuItem>
                       </Select>
@@ -738,347 +790,197 @@ const TimeSheetTracking = () => {
                       placeholder="Search Text"
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") handleSearch();
-                      }}
-                      sx={{
-                        minWidth: 150,
-                        flex: 1,
-                        maxWidth: 280,
-                        "& .MuiOutlinedInput-root": {
-                          backgroundColor: "white",
-                          fontSize: "0.75rem",
-                        },
-                      }}
+                      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                      sx={adminSessionListSearchFieldSx}
                     />
                     <Button
                       variant="contained"
                       size="small"
                       onClick={handleSearch}
-                      sx={{
-                        backgroundColor: "white",
-                        color: "#4caf50",
-                        fontSize: "0.75rem",
-                        textTransform: "none",
-                        minHeight: 32,
-                        py: 0,
-                        px: 1,
-                        "&:hover": { backgroundColor: "#f5f5f5" },
-                      }}
+                      sx={adminSessionListFindButtonSx}
                     >
                       Find
                     </Button>
                   </Box>
-                )}
 
-                {loading ? (
-                  <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                    <CircularProgress />
-                  </Box>
-                ) : (
-                  <>
-                    <TableContainer component={Paper} sx={{ width: "100%", mt: 1 }}>
-                      <Table
-                        sx={{
-                          width: "100%",
-                          tableLayout: "fixed",
-                          "& .MuiTableCell-root": {
-                            paddingTop: 0,
-                            paddingBottom: 0,
-                          },
-                        }}
-                        size="small"
-                      >
-                        <TableHead>
-                          <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
-                            <SortableHeader label="#" field="logID" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("5%")} />
-                            <SortableHeader label="Name" field="name" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("12%")} />
-                            <SortableHeader label="Task Name" field="taskName" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("14%")} />
-                            <SortableHeader label="Date Volunteer" field="volunteerDate" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("10%")} />
-                            <SortableHeader label="Start Time" field="startTime" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("11%")} />
-                            <SortableHeader label="End Time" field="endTime" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("11%")} />
-                            <SortableHeader label="Total Hours" field="totalHours" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("8%")} />
-                            <SortableHeader label="Created Date" field="createdDate" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={timeSheetHeadCellSx("11%")} />
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                borderRight: "1px solid #4caf50",
-                                width: "7%",
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              Edit
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                fontWeight: 400,
-                                fontSize: "0.75rem",
-                                padding: cellPadding,
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              Delete
+                  <TableContainer
+                    component={Paper}
+                    className="admin-time-sheet-tracking-table-container"
+                    sx={{ width: "100%" }}
+                  >
+                    <Table
+                      className="admin-time-sheet-tracking-table"
+                      sx={adminSessionListGridTableSx}
+                      size="small"
+                    >
+                      <TableHead>
+                        <TableRow sx={adminSessionListTableHeadRowSx}>
+                          <SortableHeader
+                            label="#"
+                            field="logID"
+                            sortField={sortField}
+                            sortOrder={sortOrder}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.logID)}
+                          />
+                          <SortableHeader
+                            label="Name"
+                            field="name"
+                            sortField={sortField}
+                            sortOrder={sortOrder}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.name)}
+                          />
+                          <SortableHeader
+                            label="Task Name"
+                            field="taskName"
+                            sortField={sortField}
+                            sortOrder={sortOrder}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.taskName)}
+                          />
+                          <SortableHeader
+                            label="Date Volunteer"
+                            field="volunteerDate"
+                            sortField={sortField}
+                            sortOrder={sortOrder}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.volunteerDate)}
+                          />
+                          <SortableHeader
+                            label="Start Time"
+                            field="startTime"
+                            sortField={sortField}
+                            sortOrder={sortOrder}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.startTime)}
+                          />
+                          <SortableHeader
+                            label="End Time"
+                            field="endTime"
+                            sortField={sortField}
+                            sortOrder={sortOrder}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.endTime)}
+                          />
+                          <SortableHeader
+                            label="Total Hours"
+                            field="totalHours"
+                            sortField={sortField}
+                            sortOrder={sortOrder}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.totalHours)}
+                          />
+                          <SortableHeader
+                            label="Created Date"
+                            field="createdDate"
+                            sortField={sortField}
+                            sortOrder={sortOrder}
+                            onSort={handleSort}
+                            headCellSx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.createdDate)}
+                          />
+                          <TableCell
+                            sx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.edit)}
+                          >
+                            Edit
+                          </TableCell>
+                          <TableCell
+                            sx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.delete, true)}
+                          >
+                            Delete
+                          </TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {loading ? (
+                          <TableRow>
+                            <TableCell colSpan={10} align="center" sx={adminSessionListEmptyCellSx}>
+                              <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
+                                Loading...
+                              </Typography>
                             </TableCell>
                           </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {paginatedList.length === 0 ? (
-                            <TableRow>
-                              <TableCell
-                                colSpan={10}
-                                align="center"
-                                sx={{
-                                  fontSize: "0.75rem",
-                                  padding: cellPadding,
-                                  py: 3,
-                                }}
+                        ) : paginatedList.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={10} align="center" sx={adminSessionListEmptyCellSx}>
+                              <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
+                                {searchText.trim()
+                                  ? "No records found matching your search."
+                                  : "No entries found."}
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          paginatedList.map((row, idx) => {
+                            const globalIdx = (currentPage - 1) * pageSize + idx + 1;
+                            const vd = row.volunteerDate ?? row.VolunteerDate;
+                            const cd = row.createdDate ?? row.CreatedDate;
+                            const { start, end } = displayStartEnd(row);
+                            const th = row.totalHours ?? row.TotalHours ?? "—";
+                            return (
+                              <TableRow
+                                key={resolveTimeSheetLogId(row) ?? `row-${idx}`}
+                                sx={adminSessionListTableBodyRowSx}
                               >
-                                <Typography
-                                  variant="body2"
-                                  color="textSecondary"
-                                  sx={{ fontSize: "0.75rem" }}
+                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                                  {globalIdx}
+                                </TableCell>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                                  {row.name ?? row.Name ?? "—"}
+                                </TableCell>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                                  {row.taskName ?? row.TaskName ?? ""}
+                                </TableCell>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                                  {vd ? new Date(vd).toLocaleDateString() : ""}
+                                </TableCell>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                                  {start}
+                                </TableCell>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                                  {end}
+                                </TableCell>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                                  {th}
+                                </TableCell>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                                  {cd ? new Date(cd).toLocaleString() : "—"}
+                                </TableCell>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
+                                  <Box
+                                    onClick={() => openEdit(row)}
+                                    sx={adminSessionListTableActionLinkSx}
+                                  >
+                                    Edit
+                                  </Box>
+                                </TableCell>
+                                <TableCell
+                                  className="time-sheet-delete-cell"
+                                  sx={adminSessionListTableBodyCellSx({ isLast: true, action: true })}
                                 >
-                                  {searchText.trim()
-                                    ? "No records found matching your search."
-                                    : "No entries found."}
-                                </Typography>
-                              </TableCell>
-                            </TableRow>
-                          ) : (
-                            paginatedList.map((row, idx) => {
-                              const globalIdx = (currentPage - 1) * pageSize + idx + 1;
-                              const vd = row.volunteerDate ?? row.VolunteerDate;
-                              const cd = row.createdDate ?? row.CreatedDate;
-                              const { start, end } = displayStartEnd(row);
-                              const th = row.totalHours ?? row.TotalHours ?? "—";
-                              return (
-                                <TableRow
-                                  key={row.logID ?? row.LogID ?? row.mLogID ?? idx}
-                                >
-                                  <TableCell
-                                    sx={{
-                                      borderRight: "1px solid #4caf50",
-                                      fontSize: "0.75rem",
-                                      padding: cellPadding,
-                                    }}
-                                  >
-                                    {globalIdx}
-                                  </TableCell>
-                                  <TableCell
-                                    sx={{
-                                      borderRight: "1px solid #4caf50",
-                                      fontSize: "0.75rem",
-                                      padding: cellPadding,
-                                    }}
-                                  >
-                                    {row.name ?? row.Name ?? "—"}
-                                  </TableCell>
-                                  <TableCell
-                                    sx={{
-                                      borderRight: "1px solid #4caf50",
-                                      fontSize: "0.75rem",
-                                      padding: cellPadding,
-                                    }}
-                                  >
-                                    {row.taskName ?? row.TaskName ?? ""}
-                                  </TableCell>
-                                  <TableCell
-                                    sx={{
-                                      borderRight: "1px solid #4caf50",
-                                      fontSize: "0.75rem",
-                                      padding: cellPadding,
-                                    }}
-                                  >
-                                    {vd
-                                      ? new Date(vd).toLocaleDateString()
-                                      : ""}
-                                  </TableCell>
-                                  <TableCell
-                                    sx={{
-                                      borderRight: "1px solid #4caf50",
-                                      fontSize: "0.75rem",
-                                      padding: cellPadding,
-                                    }}
-                                  >
-                                    {start}
-                                  </TableCell>
-                                  <TableCell
-                                    sx={{
-                                      borderRight: "1px solid #4caf50",
-                                      fontSize: "0.75rem",
-                                      padding: cellPadding,
-                                    }}
-                                  >
-                                    {end}
-                                  </TableCell>
-                                  <TableCell
-                                    sx={{
-                                      borderRight: "1px solid #4caf50",
-                                      fontSize: "0.75rem",
-                                      padding: cellPadding,
-                                    }}
-                                  >
-                                    {th}
-                                  </TableCell>
-                                  <TableCell
-                                    sx={{
-                                      borderRight: "1px solid #4caf50",
-                                      fontSize: "0.75rem",
-                                      padding: cellPadding,
-                                    }}
-                                  >
-                                    {cd
-                                      ? new Date(cd).toLocaleString()
-                                      : "—"}
-                                  </TableCell>
-                                  <TableCell
-                                    sx={{
-                                      borderRight: "1px solid #4caf50",
-                                      fontSize: "0.75rem",
-                                      padding: cellPadding,
-                                      verticalAlign: "middle",
-                                    }}
-                                  >
-                                    <Tooltip title="Edit">
-                                      <IconButton
-                                        size="small"
-                                        onClick={() => openEdit(row)}
-                                        sx={{ padding: "2px" }}
-                                      >
-                                        <EditIcon sx={{ fontSize: "1rem" }} />
-                                      </IconButton>
-                                    </Tooltip>
-                                  </TableCell>
-                                  <TableCell
-                                    sx={{
-                                      fontSize: "0.75rem",
-                                      padding: cellPadding,
-                                      verticalAlign: "middle",
-                                    }}
-                                  >
-                                    <Tooltip title="Delete">
-                                      <IconButton
-                                        size="small"
-                                        color="error"
-                                        onClick={() => confirmDelete(row)}
-                                        sx={{ padding: "2px" }}
-                                      >
-                                        <DeleteIcon sx={{ fontSize: "1rem" }} />
-                                      </IconButton>
-                                    </Tooltip>
-                                  </TableCell>
-                                </TableRow>
-                              );
-                            })
-                          )}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
+                                  <Box onClick={() => confirmDelete(row)} sx={timeSheetDeleteLinkSx}>
+                                    Delete
+                                  </Box>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
 
-                    <Box
-                      sx={{
-                        backgroundColor: "#4caf50",
-                        p: 0.5,
-                        borderRadius: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        flexWrap: "wrap",
-                        gap: 1,
-                        mt: 1,
-                      }}
-                    >
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.25 }}
-                      >
-                        <IconButton
-                          size="small"
-                          sx={{ color: "white", padding: "2px" }}
-                          onClick={() => handlePageChange(1)}
-                          disabled={currentPage === 1}
-                        >
-                          <FirstPageIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          sx={{ color: "white", padding: "2px" }}
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          disabled={currentPage === 1}
-                        >
-                          <PrevPageIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          sx={{ color: "white", padding: "2px" }}
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          disabled={currentPage === totalPages}
-                        >
-                          <NextPageIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          sx={{ color: "white", padding: "2px" }}
-                          onClick={() => handlePageChange(totalPages)}
-                          disabled={currentPage === totalPages}
-                        >
-                          <LastPageIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                      <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                        Page(s): {currentPage} of {totalPages}
-                      </Typography>
-                      <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                        Record(s):{" "}
-                        {totalRecords > 0
-                          ? `${(currentPage - 1) * pageSize + 1} - ${Math.min(currentPage * pageSize, totalRecords)}`
-                          : "0"}{" "}
-                        of {totalRecords}
-                      </Typography>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.25 }}
-                      >
-                        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
-                          Go to Page:
-                        </Typography>
-                        <TextField
-                          size="small"
-                          type="number"
-                          value={goToPageInput}
-                          onChange={(e) => setGoToPageInput(e.target.value)}
-                          onKeyPress={(e) => {
-                            if (e.key === "Enter") handleGoToPage();
-                          }}
-                          sx={{
-                            width: 56,
-                            "& .MuiOutlinedInput-root": {
-                              backgroundColor: "white",
-                              fontSize: "0.75rem",
-                            },
-                          }}
-                          inputProps={{ min: 1, max: totalPages }}
-                        />
-                        <Button
-                          size="small"
-                          variant="contained"
-                          onClick={handleGoToPage}
-                          sx={{
-                            backgroundColor: "white",
-                            color: "#4caf50",
-                            fontSize: "0.75rem",
-                            minHeight: 32,
-                            py: 0,
-                            px: 0.75,
-                            "&:hover": { backgroundColor: "#f5f5f5" },
-                          }}
-                        >
-                          Go
-                        </Button>
-                      </Box>
-                    </Box>
-                  </>
-                )}
+                  <AdminSessionListPagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalRecords={totalRecords}
+                    pageSize={pageSize}
+                    goToPageInput={goToPageInput}
+                    onGoToPageInputChange={setGoToPageInput}
+                    onPageChange={handlePageChange}
+                    onGoToPage={handleGoToPage}
+                  />
+                </Box>
               </CardContent>
             </Card>
           </Grid>
@@ -1088,8 +990,9 @@ const TimeSheetTracking = () => {
       <PortalDialog
         open={formOpen}
         onClose={closeForm}
-        maxWidth="sm"
+        maxWidth="xs"
         disableClose={saving}
+        contentSx={{ px: 2, pt: "16px !important", pb: 1.5 }}
         title={editingLogId ? "Update Time Sheet" : "Add Time Sheet"}
         icon={
           editingLogId ? (
@@ -1114,145 +1017,163 @@ const TimeSheetTracking = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <FormControl fullWidth size="small" sx={portalModalFieldSx}>
-                <InputLabel>Task Name</InputLabel>
-                <Select
-                  label="Task Name"
-                  value={taskName}
-                  onChange={(e) => setTaskName(e.target.value)}
+          <Box className="time-sheet-modal-form" sx={timeSheetModalStackSx}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel id="time-sheet-task-name" shrink>
+                Task Name
+              </InputLabel>
+              <PortalModalSelect
+                labelId="time-sheet-task-name"
+                label="Task Name"
+                value={taskName}
+                onChange={(e) => setTaskName(e.target.value)}
+              >
+                {TASK_OPTIONS.map((t) => (
+                  <MenuItem key={t} value={t}>
+                    {t}
+                  </MenuItem>
+                ))}
+              </PortalModalSelect>
+            </FormControl>
+
+            <TextField
+              fullWidth
+              size="small"
+              label="Volunteer Date"
+              type="date"
+              value={volunteerDate}
+              onChange={(e) => setVolunteerDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              sx={portalModalFieldSx}
+            />
+
+            <Box className="time-sheet-modal-time-row" sx={timeSheetModalTimeRowSx}>
+              <FormControl fullWidth size="small" sx={timeSheetModalTimeSelectSx}>
+                <InputLabel id="time-sheet-start-hour" shrink>
+                  Start Hour
+                </InputLabel>
+                <PortalModalSelect
+                  labelId="time-sheet-start-hour"
+                  label="Start Hour"
+                  value={startHour}
+                  onChange={(e) => setStartHour(e.target.value)}
+                  inputProps={{ "aria-label": "Start hour" }}
                 >
-                  {TASK_OPTIONS.map((t) => (
-                    <MenuItem key={t} value={t}>
-                      {t}
+                  {HOUR_OPTIONS.map((o, i) => (
+                    <MenuItem key={`sh-${i}-${o.label}`} value={o.value}>
+                      {o.label}
                     </MenuItem>
                   ))}
-                </Select>
+                </PortalModalSelect>
               </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Volunteer Date"
-                type="date"
-                value={volunteerDate}
-                onChange={(e) => setVolunteerDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                sx={portalModalFieldSx}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="caption" color="text.secondary">
-                Start Time
-              </Typography>
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
-                <FormControl size="small" sx={{ minWidth: 100, ...portalModalFieldSx }}>
-                  <InputLabel>Hour</InputLabel>
-                  <Select
-                    label="Hour"
-                    value={startHour}
-                    onChange={(e) => setStartHour(e.target.value)}
-                  >
-                    {HOUR_OPTIONS.map((o, i) => (
-                      <MenuItem key={`sh-${i}-${o.label}`} value={o.value}>
-                        {o.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControl size="small" sx={{ minWidth: 100, ...portalModalFieldSx }}>
-                  <InputLabel>Min</InputLabel>
-                  <Select
-                    label="Min"
-                    value={startMin}
-                    onChange={(e) => setStartMin(e.target.value)}
-                  >
-                    {MIN_OPTIONS.map((o, i) => (
-                      <MenuItem key={`sm-${i}`} value={o.value}>
-                        {o.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControl size="small" sx={{ minWidth: 80, ...portalModalFieldSx }}>
-                  <InputLabel />
-                  <Select
-                    value={startType}
-                    onChange={(e) => setStartType(e.target.value)}
-                    displayEmpty
-                  >
-                    {AMPM_OPTIONS.map((a) => (
-                      <MenuItem key={a} value={a}>
-                        {a}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="caption" color="text.secondary">
-                End Time
-              </Typography>
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
-                <FormControl size="small" sx={{ minWidth: 100, ...portalModalFieldSx }}>
-                  <InputLabel>Hour</InputLabel>
-                  <Select
-                    label="Hour"
-                    value={endHour}
-                    onChange={(e) => setEndHour(e.target.value)}
-                  >
-                    {HOUR_OPTIONS.map((o, i) => (
-                      <MenuItem key={`eh-${i}-${o.label}`} value={o.value}>
-                        {o.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControl size="small" sx={{ minWidth: 100, ...portalModalFieldSx }}>
-                  <InputLabel>Min</InputLabel>
-                  <Select
-                    label="Min"
-                    value={endMin}
-                    onChange={(e) => setEndMin(e.target.value)}
-                  >
-                    {MIN_OPTIONS.map((o, i) => (
-                      <MenuItem key={`em-${i}`} value={o.value}>
-                        {o.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControl size="small" sx={{ minWidth: 80, ...portalModalFieldSx }}>
-                  <Select
-                    value={endType}
-                    onChange={(e) => setEndType(e.target.value)}
-                    displayEmpty
-                  >
-                    {AMPM_OPTIONS.map((a) => (
-                      <MenuItem key={a} value={a}>
-                        {a}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Task Details"
-                multiline
-                minRows={3}
-                value={taskDescription}
-                onChange={(e) => setTaskDescription(e.target.value)}
-                sx={portalModalFieldSx}
-              />
-            </Grid>
-          </Grid>
+              <FormControl fullWidth size="small" sx={timeSheetModalTimeSelectSx}>
+                <InputLabel id="time-sheet-start-min" shrink>
+                  Start Min
+                </InputLabel>
+                <PortalModalSelect
+                  labelId="time-sheet-start-min"
+                  label="Start Min"
+                  value={startMin}
+                  onChange={(e) => setStartMin(e.target.value)}
+                  inputProps={{ "aria-label": "Start minutes" }}
+                >
+                  {MIN_OPTIONS.map((o, i) => (
+                    <MenuItem key={`sm-${i}`} value={o.value}>
+                      {o.label}
+                    </MenuItem>
+                  ))}
+                </PortalModalSelect>
+              </FormControl>
+              <FormControl fullWidth size="small" sx={timeSheetModalTimeSelectSx}>
+                <InputLabel id="time-sheet-start-ampm" shrink>
+                  Start AM/PM
+                </InputLabel>
+                <PortalModalSelect
+                  labelId="time-sheet-start-ampm"
+                  label="Start AM/PM"
+                  value={startType}
+                  onChange={(e) => setStartType(e.target.value)}
+                  inputProps={{ "aria-label": "Start AM or PM" }}
+                >
+                  {AMPM_OPTIONS.map((a) => (
+                    <MenuItem key={a} value={a}>
+                      {a}
+                    </MenuItem>
+                  ))}
+                </PortalModalSelect>
+              </FormControl>
+            </Box>
+
+            <Box className="time-sheet-modal-time-row" sx={timeSheetModalTimeRowSx}>
+              <FormControl fullWidth size="small" sx={timeSheetModalTimeSelectSx}>
+                <InputLabel id="time-sheet-end-hour" shrink>
+                  End Hour
+                </InputLabel>
+                <PortalModalSelect
+                  labelId="time-sheet-end-hour"
+                  label="End Hour"
+                  value={endHour}
+                  onChange={(e) => setEndHour(e.target.value)}
+                  inputProps={{ "aria-label": "End hour" }}
+                >
+                  {HOUR_OPTIONS.map((o, i) => (
+                    <MenuItem key={`eh-${i}-${o.label}`} value={o.value}>
+                      {o.label}
+                    </MenuItem>
+                  ))}
+                </PortalModalSelect>
+              </FormControl>
+              <FormControl fullWidth size="small" sx={timeSheetModalTimeSelectSx}>
+                <InputLabel id="time-sheet-end-min" shrink>
+                  End Min
+                </InputLabel>
+                <PortalModalSelect
+                  labelId="time-sheet-end-min"
+                  label="End Min"
+                  value={endMin}
+                  onChange={(e) => setEndMin(e.target.value)}
+                  inputProps={{ "aria-label": "End minutes" }}
+                >
+                  {MIN_OPTIONS.map((o, i) => (
+                    <MenuItem key={`em-${i}`} value={o.value}>
+                      {o.label}
+                    </MenuItem>
+                  ))}
+                </PortalModalSelect>
+              </FormControl>
+              <FormControl fullWidth size="small" sx={timeSheetModalTimeSelectSx}>
+                <InputLabel id="time-sheet-end-ampm" shrink>
+                  End AM/PM
+                </InputLabel>
+                <PortalModalSelect
+                  labelId="time-sheet-end-ampm"
+                  label="End AM/PM"
+                  value={endType}
+                  onChange={(e) => setEndType(e.target.value)}
+                  inputProps={{ "aria-label": "End AM or PM" }}
+                >
+                  {AMPM_OPTIONS.map((a) => (
+                    <MenuItem key={a} value={a}>
+                      {a}
+                    </MenuItem>
+                  ))}
+                </PortalModalSelect>
+              </FormControl>
+            </Box>
+
+            <TextField
+              className="time-sheet-task-details-field"
+              fullWidth
+              size="small"
+              label="Task Details"
+              multiline
+              minRows={3}
+              value={taskDescription}
+              onChange={(e) => setTaskDescription(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              sx={timeSheetTaskDetailsSx}
+            />
+          </Box>
         )}
       </PortalDialog>
 

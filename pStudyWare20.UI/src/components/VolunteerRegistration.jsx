@@ -1,28 +1,18 @@
 import React, { useState, useEffect } from "react";
 import {
-  Container,
-  Grid,
-  Card,
-  CardContent,
-  Typography,
   TextField,
-  Button,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   FormHelperText,
-  Box,
-  Paper,
-  Breadcrumbs,
-  Divider,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   IconButton,
   Checkbox,
   FormControlLabel,
+  Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useForm, Controller } from "react-hook-form";
@@ -30,11 +20,37 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import volunteerService from "../services/volunteerService";
+import studentService from "../services/studentService";
 import "../styles/VolunteerRegistration.css";
-// Import images from src/assets
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
 
-// Validation schema
+const SELECT_ITEM_HEIGHT = 36;
+const SELECT_MENU_PADDING = 8;
+
+const createSelectMenuProps = (visibleItems) => ({
+  anchorOrigin: { vertical: "bottom", horizontal: "left" },
+  transformOrigin: { vertical: "top", horizontal: "left" },
+  PaperProps: {
+    sx: {
+      maxHeight: SELECT_ITEM_HEIGHT * visibleItems + SELECT_MENU_PADDING,
+      overflowY: "auto",
+    },
+  },
+  MenuListProps: {
+    sx: {
+      py: 0,
+      "& .MuiMenuItem-root": {
+        minHeight: SELECT_ITEM_HEIGHT,
+      },
+    },
+  },
+});
+
+const registrationSelectMenuProps = createSelectMenuProps(15);
+const countrySelectMenuProps = createSelectMenuProps(10);
+
+const ABOUT_YOURSELF_MAX_CHARS = 500;
+
 const validationSchema = yup.object({
   firstName: yup
     .string()
@@ -82,7 +98,10 @@ const validationSchema = yup.object({
     .notOneOf(["0"], "Please select an area of interest"),
   aboutyourself: yup
     .string()
-    .max(500, "About yourself must be less than 500 characters"),
+    .max(
+      ABOUT_YOURSELF_MAX_CHARS,
+      `About yourself must be ${ABOUT_YOURSELF_MAX_CHARS} characters or less`,
+    ),
   liabilitySignature: yup
     .string()
     .required("Liability signature is required")
@@ -93,6 +112,25 @@ const validationSchema = yup.object({
     .min(2, "Please enter your full name"),
   picturePermission: yup.boolean(),
 });
+
+const defaultFormValues = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phoneNo: "",
+  city: "",
+  state: "",
+  country: "US",
+  schoolName: "",
+  grade: "",
+  sessionId: "",
+  locationId: 0,
+  interestedFor: "0",
+  aboutyourself: "",
+  liabilitySignature: "",
+  ruleSignature: "",
+  picturePermission: true,
+};
 
 const VolunteerRegistration = () => {
   const navigate = useNavigate();
@@ -118,27 +156,9 @@ const VolunteerRegistration = () => {
     reset,
   } = useForm({
     resolver: yupResolver(validationSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phoneNo: "",
-      city: "",
-      state: "",
-      country: "",
-      schoolName: "",
-      grade: "",
-      sessionId: "",
-      locationId: 0,
-      interestedFor: "0",
-      aboutyourself: "",
-      liabilitySignature: "",
-      ruleSignature: "",
-      picturePermission: true,
-    },
+    defaultValues: defaultFormValues,
   });
 
-  // Load dropdown data
   useEffect(() => {
     const loadDropdownData = async () => {
       try {
@@ -153,7 +173,7 @@ const VolunteerRegistration = () => {
           volunteerService.getSessions(),
           volunteerService.getGrades(),
           volunteerService.getInterestedOptions(),
-          volunteerService.getCountries(),
+          studentService.getCountries(),
         ]);
 
         setLocations(locationsData);
@@ -185,12 +205,11 @@ const VolunteerRegistration = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  // Auto-hide snackbar after 6 seconds
   useEffect(() => {
     if (snackbar.open) {
       const timer = setTimeout(() => {
         setSnackbar((prev) => ({ ...prev, open: false }));
-      }, 6000);
+      }, 5000);
       return () => clearTimeout(timer);
     }
   }, [snackbar.open]);
@@ -198,7 +217,6 @@ const VolunteerRegistration = () => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      // Prepare the data for API submission - matching the DTO structure
       const volunteerData = {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -218,17 +236,15 @@ const VolunteerRegistration = () => {
         picturePermission: data.picturePermission,
       };
 
-      const response = await volunteerService.registerVolunteer(volunteerData);
+      await volunteerService.registerVolunteer(volunteerData);
 
       showSnackbar(
         "Volunteer registration submitted successfully! We will contact you soon.",
         "success",
       );
 
-      // Reset form after successful submission
       reset();
 
-      // Optionally redirect after a delay
       setTimeout(() => {
         navigate("/");
       }, 2000);
@@ -245,11 +261,8 @@ const VolunteerRegistration = () => {
 
   return (
     <div className="volunteer-registration-container">
-      {/* Breadcrumbs */}
-      <div
-        className="sc-breadcrumbs breadcrumbs-overlay"
-        style={{ "--page-header-bg": `url(${pageHeaderImg})` }}
-      >
+      {/* Breadcrumbs Section */}
+      <div className="sc-breadcrumbs breadcrumbs-overlay">
         <div className="breadcrumbs-img">
           <img src={pageHeaderImg} alt="Breadcrumbs Image" />
         </div>
@@ -272,22 +285,35 @@ const VolunteerRegistration = () => {
       </div>
 
       {/* Main Content Section */}
-      <div className="sc-about pt-80 pb-70 md-pt-40">
+      <div
+        className="sc-about"
+        style={{ paddingTop: "20px", paddingBottom: "35px" }}
+      >
         <div className="container">
+          {/* Header */}
+          <div
+            className="sec-title text-center"
+            style={{ marginBottom: "2px" }}
+          >
+            <h3
+              className="title"
+              style={{ fontSize: "1.75rem", marginBottom: "6px" }}
+            >
+              Register for New Volunteer
+            </h3>
+          </div>
+
           {/* Main Form */}
           <div className="row">
             <form onSubmit={handleSubmit(onSubmit)} style={{ width: "100%" }}>
-              <div className="row">
+              <div className="registration-form-layout">
                 {/* Personal Information Section */}
-                <div className="col-lg-6 md-mb-30">
+                <div className="registration-parent-column">
                   <div
-                    className="form-section"
+                    className="form-section parent-info-section registration-card"
                     style={{
-                      padding: "20px",
-                      backgroundColor: "#ffffff",
-                      borderRadius: "8px",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                      marginBottom: "20px",
+                      padding: "20px 20px 4px",
+                      marginBottom: "0",
                     }}
                   >
                     <h4
@@ -302,24 +328,21 @@ const VolunteerRegistration = () => {
                       Personal{" "}
                       <span style={{ color: "#1976d2" }}>Information</span>
                     </h4>
-                    <div
-                      className="form-group-container"
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "16px",
-                      }}
-                    >
+                    <div className="form-group-container parent-form-fields">
                       <Controller
                         name="firstName"
                         control={control}
                         render={({ field }) => (
                           <TextField
                             {...field}
-                            label="First Name *"
+                            fullWidth
+                            required
+                            label="First Name"
                             error={!!errors.firstName}
                             helperText={errors.firstName?.message}
                             variant="outlined"
+                            size="small"
+                            className="form-input-field"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -331,10 +354,13 @@ const VolunteerRegistration = () => {
                         render={({ field }) => (
                           <TextField
                             {...field}
-                            label="Last Name *"
+                            fullWidth
+                            required
+                            label="Last Name"
                             error={!!errors.lastName}
                             helperText={errors.lastName?.message}
                             variant="outlined"
+                            size="small"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -346,11 +372,14 @@ const VolunteerRegistration = () => {
                         render={({ field }) => (
                           <TextField
                             {...field}
-                            label="Email ID *"
+                            fullWidth
+                            required
+                            label="Email ID"
                             type="email"
                             error={!!errors.email}
                             helperText={errors.email?.message}
                             variant="outlined"
+                            size="small"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -362,11 +391,14 @@ const VolunteerRegistration = () => {
                         render={({ field }) => (
                           <TextField
                             {...field}
-                            label="Phone (999-999-9999) *"
+                            fullWidth
+                            required
+                            label="Phone (999-999-9999)"
                             placeholder="999-999-9999"
                             error={!!errors.phoneNo}
                             helperText={errors.phoneNo?.message}
                             variant="outlined"
+                            size="small"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -378,10 +410,13 @@ const VolunteerRegistration = () => {
                         render={({ field }) => (
                           <TextField
                             {...field}
-                            label="City *"
+                            fullWidth
+                            required
+                            label="City"
                             error={!!errors.city}
                             helperText={errors.city?.message}
                             variant="outlined"
+                            size="small"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -393,10 +428,13 @@ const VolunteerRegistration = () => {
                         render={({ field }) => (
                           <TextField
                             {...field}
-                            label="State *"
+                            fullWidth
+                            required
+                            label="State"
                             error={!!errors.state}
                             helperText={errors.state?.message}
                             variant="outlined"
+                            size="small"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -407,16 +445,20 @@ const VolunteerRegistration = () => {
                         control={control}
                         render={({ field }) => (
                           <FormControl
+                            fullWidth
+                            required
                             variant="outlined"
+                            size="small"
                             error={!!errors.country}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="country-label">Country *</InputLabel>
+                            <InputLabel id="country-label">Country</InputLabel>
                             <Select
                               {...field}
                               labelId="country-label"
                               id="country-select"
-                              label="Country *"
+                              label="Country"
+                              MenuProps={countrySelectMenuProps}
                             >
                               {countries.map((country) => (
                                 <MenuItem
@@ -440,15 +482,11 @@ const VolunteerRegistration = () => {
                 </div>
 
                 {/* Educational Information Section */}
-                <div className="col-lg-6 md-mb-30">
+                <div className="registration-student-column">
                   <div
-                    className="form-section"
+                    className="form-section student-info-section registration-card"
                     style={{
-                      padding: "20px",
-                      backgroundColor: "#ffffff",
-                      borderRadius: "8px",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                      marginBottom: "20px",
+                      marginBottom: "0",
                     }}
                   >
                     <h4
@@ -468,7 +506,7 @@ const VolunteerRegistration = () => {
                       style={{
                         display: "flex",
                         flexDirection: "column",
-                        gap: "16px",
+                        gap: "12px",
                       }}
                     >
                       <Controller
@@ -477,10 +515,14 @@ const VolunteerRegistration = () => {
                         render={({ field }) => (
                           <TextField
                             {...field}
-                            label="School/University *"
+                            fullWidth
+                            required
+                            label="School/University"
                             error={!!errors.schoolName}
                             helperText={errors.schoolName?.message}
                             variant="outlined"
+                            size="small"
+                            className="form-input-field"
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -491,16 +533,19 @@ const VolunteerRegistration = () => {
                         control={control}
                         render={({ field }) => (
                           <FormControl
+                            fullWidth
+                            required
                             variant="outlined"
+                            size="small"
                             error={!!errors.grade}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="grade-label">Grade/Degree *</InputLabel>
+                            <InputLabel id="grade-label">Grade/Degree</InputLabel>
                             <Select
                               {...field}
                               labelId="grade-label"
                               id="grade-select"
-                              label="Grade/Degree *"
+                              label="Grade/Degree"
                             >
                               {grades.map((grade) => (
                                 <MenuItem key={grade.value} value={grade.value}>
@@ -522,16 +567,19 @@ const VolunteerRegistration = () => {
                         control={control}
                         render={({ field }) => (
                           <FormControl
+                            fullWidth
+                            required
                             variant="outlined"
+                            size="small"
                             error={!!errors.sessionId}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="session-label">Register For *</InputLabel>
+                            <InputLabel id="session-label">Register For</InputLabel>
                             <Select
                               {...field}
                               labelId="session-label"
                               id="session-select"
-                              label="Register For *"
+                              label="Register For"
                             >
                               {sessions.map((session) => (
                                 <MenuItem key={session.id} value={session.id}>
@@ -553,16 +601,20 @@ const VolunteerRegistration = () => {
                         control={control}
                         render={({ field }) => (
                           <FormControl
+                            fullWidth
+                            required
                             variant="outlined"
+                            size="small"
                             error={!!errors.locationId}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="location-label">Course/Location *</InputLabel>
+                            <InputLabel id="location-label">Course/Location</InputLabel>
                             <Select
                               {...field}
                               labelId="location-label"
                               id="location-select"
-                              label="Course/Location *"
+                              label="Course/Location"
+                              MenuProps={registrationSelectMenuProps}
                             >
                               <MenuItem value={0}>
                                 <em>--Select--</em>
@@ -587,16 +639,19 @@ const VolunteerRegistration = () => {
                         control={control}
                         render={({ field }) => (
                           <FormControl
+                            fullWidth
+                            required
                             variant="outlined"
+                            size="small"
                             error={!!errors.interestedFor}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="interested-label">Interested For *</InputLabel>
+                            <InputLabel id="interested-label">Interested For</InputLabel>
                             <Select
                               {...field}
                               labelId="interested-label"
                               id="interested-select"
-                              label="Interested For *"
+                              label="Interested For"
                             >
                               <MenuItem value="0">
                                 <em>--Select--</em>
@@ -622,16 +677,31 @@ const VolunteerRegistration = () => {
                       <Controller
                         name="aboutyourself"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field: { onChange, value, ...field } }) => (
                           <TextField
                             {...field}
-                            label="About Yourself (Achievements, Merits, etc)"
+                            value={value}
+                            onChange={(event) => {
+                              onChange(
+                                event.target.value.slice(0, ABOUT_YOURSELF_MAX_CHARS),
+                              );
+                            }}
+                            fullWidth
+                            label={`About Yourself (Achievements, Merits, etc) (${(value ?? "").length}/${ABOUT_YOURSELF_MAX_CHARS} characters)`}
                             multiline
-                            rows={4}
+                            rows={3}
+                            inputProps={{ maxLength: ABOUT_YOURSELF_MAX_CHARS }}
                             error={!!errors.aboutyourself}
-                            helperText={errors.aboutyourself?.message}
+                            helperText={errors.aboutyourself?.message || ""}
+                            FormHelperTextProps={{
+                              sx: {
+                                display: errors.aboutyourself?.message ? "block" : "none",
+                                margin: 0,
+                              },
+                            }}
                             variant="outlined"
-                            placeholder="Tell us about your achievements, merits, and any additional information..."
+                            size="small"
+                            placeholder="Tell us about your achievements, merits, and additional information..."
                             sx={{ width: "100%" }}
                           />
                         )}
@@ -639,139 +709,147 @@ const VolunteerRegistration = () => {
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Signatures and Agreements Section */}
-                <div className="col-lg-12" style={{ marginTop: "20px" }}>
+              {/* Signatures and Agreements Section */}
+              <div className="registration-signature-column">
                   <div
-                    className="form-section signature-section"
+                    className="form-section signature-section registration-card"
                     style={{
-                      padding: "20px",
-                      backgroundColor: "#ffffff",
-                      borderRadius: "8px",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                      marginBottom: "20px",
+                      marginTop: "0px",
+                      marginBottom: "16px",
                     }}
                   >
-                    <div
-                      className="form-group-container"
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "16px",
-                      }}
-                    >
-                      <p className="agreement-text" style={{ marginBottom: "5px" }}>
-                        Pressing the "Submit" button I agree the Agoura Math Circle{" "}
-                        <button
-                          type="button"
-                          onClick={() => setTermsOpen(true)}
-                          style={{
-                            backgroundColor: "#53b50a",
-                            color: "#ffffff",
-                            border: "none",
-                            padding: "4px 12px",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "0.875rem",
-                            fontWeight: "500",
-                            margin: "0 2px",
-                          }}
-                        >
-                          Terms
-                        </button>{" "}
-                        and{" "}
-                        <button
-                          type="button"
-                          onClick={() => setRulesOpen(true)}
-                          style={{
-                            backgroundColor: "#53b50a",
-                            color: "#ffffff",
-                            border: "none",
-                            padding: "4px 12px",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "0.875rem",
-                            fontWeight: "500",
-                            margin: "0 2px",
-                          }}
-                        >
-                          Rules
-                        </button>
-                      </p>
-                      
-                      <p className="signature-help-text" style={{ fontSize: "0.875rem", color: "#666", marginBottom: "0" }}>
-                        Please sign the waiver (Liability Signature)* . DO NOT SIGN WITHOUT READING. I HAVE READ THIS ASSUMPTION OF RISK, WAIVER OF LIABILITY AND INDEMNITY AGREEMENT AND AGREE TO ITS TERMS.
-                      </p>
-                      
-                      <Controller
-                        name="liabilitySignature"
-                        control={control}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            fullWidth
-                            label="Liability Signature *"
-                            error={!!errors.liabilitySignature}
-                            helperText={errors.liabilitySignature?.message}
-                            variant="outlined"
-                            placeholder="Enter your full name"
-                          />
-                        )}
-                      />
-                      
-                      <p className="signature-help-text" style={{ fontSize: "0.875rem", color: "#666", marginBottom: "0" }}>
-                        By printing your name in the box and pressing the submit button, I acknowledge that I have read and am electronically signing the Waiver of Liability, Assumption of Risk and Indemnity Agreement on behalf of myself or my dependent minor participant.
-                      </p>
+                    <div className="form-group-container signature-form-fields">
+                    <p className="agreement-text">
+                      Pressing the "Submit" button I agree the Agoura Math
+                      Circle{" "}
+                      <button
+                        type="button"
+                        onClick={() => setTermsOpen(true)}
+                        style={{
+                          backgroundColor: "#53b50a",
+                          color: "#ffffff",
+                          border: "none",
+                          padding: "4px 12px",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "0.875rem",
+                          fontWeight: "500",
+                          margin: "0 2px",
+                        }}
+                      >
+                        Terms
+                      </button>{" "}
+                      and{" "}
+                      <button
+                        type="button"
+                        onClick={() => setRulesOpen(true)}
+                        style={{
+                          backgroundColor: "#53b50a",
+                          color: "#ffffff",
+                          border: "none",
+                          padding: "4px 12px",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "0.875rem",
+                          fontWeight: "500",
+                          margin: "0 2px",
+                        }}
+                      >
+                        Rules
+                      </button>
+                    </p>
+                    <p className="signature-help-text">
+                      Please sign the waiver (Liability Signature)
+                      <span className="required-asterisk">*</span>. DO NOT
+                      SIGN WITHOUT READING. I HAVE READ THIS ASSUMPTION OF
+                      RISK, WAIVER OF LIABILITY AND INDEMNITY AGREEMENT AND
+                      AGREE TO ITS TERMS.
+                    </p>
+                    <Controller
+                      name="liabilitySignature"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          required
+                          label="Liability Signature"
+                          error={!!errors.liabilitySignature}
+                          helperText={errors.liabilitySignature?.message}
+                          variant="outlined"
+                          size="small"
+                          placeholder="Enter your full name"
+                          sx={{ width: "100%" }}
+                        />
+                      )}
+                    />
+                    <p className="signature-help-text">
+                      By printing your name in the box and pressing the submit
+                      button, I acknowledge that I have read and am
+                      electronically signing the Waiver of Liability,
+                      Assumption of Risk and Indemnity Agreement on behalf of
+                      myself or my dependent minor participant.
+                    </p>
 
-                      <Controller
-                        name="ruleSignature"
-                        control={control}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            fullWidth
-                            label="Signature *"
-                            error={!!errors.ruleSignature}
-                            helperText={errors.ruleSignature?.message}
-                            variant="outlined"
-                            placeholder="Enter your full name"
-                          />
-                        )}
-                      />
-                      
-                      <p className="signature-help-text" style={{ fontSize: "0.875rem", color: "#666", marginBottom: "0" }}>
-                        By printing your name in the box and pressing the submit button, I acknowledge that I have read and am electronically signing the Agoura Math Circle Rules and Expectations on behalf of myself or my dependent minor participant.
-                      </p>
-                      
-                      <p className="signature-help-text" style={{ fontSize: "0.875rem", color: "#666", marginBottom: "0" }}>
-                        Occasionally, we take pictures at AMC meetings, which may be used for publicity purposes [e.g.: posted on our web site or used in a brochure about AMC.] Do you give us permission to include you in such photographs?
-                      </p>
-                      
-                      <Controller
-                        name="picturePermission"
-                        control={control}
-                        render={({ field }) => (
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                {...field}
-                                checked={field.value}
-                                color="primary"
-                              />
-                            }
-                            label={
-                              <span style={{ fontSize: "0.875rem" }}>
-                                I give permission to use the pictures/videos.
-                              </span>
-                            }
-                          />
-                        )}
-                      />
-                    </div>
+                    <Controller
+                      name="ruleSignature"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          required
+                          label="Signature"
+                          error={!!errors.ruleSignature}
+                          helperText={errors.ruleSignature?.message}
+                          variant="outlined"
+                          size="small"
+                          placeholder="Enter your full name"
+                          sx={{ width: "100%" }}
+                        />
+                      )}
+                    />
+                    <p className="signature-help-text">
+                      By printing your name in the box and pressing the submit
+                      button, I acknowledge that I have read and am
+                      electronically signing the Agoura Math Circle Rules and
+                      Expectations on behalf of myself or my dependent minor
+                      participant.
+                    </p>
+                    <p className="signature-help-text">
+                      Occasionally, we take pictures at AMC meetings, which
+                      may be used for publicity purposes [e.g.: posted on our
+                      web site or used in a brochure about AMC.] Do you give
+                      us permission to include you in such photographs?
+                    </p>
+                    <Controller
+                      name="picturePermission"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              {...field}
+                              checked={field.value}
+                              color="primary"
+                            />
+                          }
+                          label={
+                            <span style={{ fontSize: "0.875rem" }}>
+                              I give permission to use the pictures/videos.
+                            </span>
+                          }
+                        />
+                      )}
+                    />
                   </div>
                 </div>
+              </div>
 
-                {/* Submit Button */}
+              {/* Submit Button */}
+              <div className="row">
                 <div
                   className="col-lg-12 text-center"
                   style={{ marginTop: "10px", marginBottom: "10px" }}
@@ -791,7 +869,7 @@ const VolunteerRegistration = () => {
                         : submitButtonHover
                           ? "#4a7c59"
                           : "#53b50a",
-                      color: "#ffffff",
+                      color: loading ? "#53b50a" : "#ffffff",
                       border: "none",
                       borderRadius: "25px",
                       cursor: loading ? "not-allowed" : "pointer",
@@ -805,7 +883,7 @@ const VolunteerRegistration = () => {
             </form>
           </div>
 
-          {/* Success/Error Snackbar - Custom fixed div so it appears above navbar */}
+          {/* Success/Error Snackbar */}
           {snackbar.open && (
             <div
               style={{
@@ -814,38 +892,36 @@ const VolunteerRegistration = () => {
                 left: "50%",
                 transform: "translateX(-50%)",
                 zIndex: 99999,
-                minWidth: "200px",
-                maxWidth: "400px",
-                padding: "12px 16px",
+                minWidth: "150px",
+                maxWidth: "250px",
+                padding: "6px 8px",
                 backgroundColor:
-                  snackbar.severity === "error" ? "#d32f2f" : "#1976d2",
+                  snackbar.severity === "error" ? "#f44336" : "#1976d2",
                 color: "#ffffff",
-                borderRadius: "8px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+                borderRadius: "2px",
+                boxShadow: "0 2px 3px rgba(0,0,0,0.3)",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "flex-start",
-                fontSize: "0.875rem",
-                lineHeight: "1.4",
+                fontSize: "0.75rem",
+                lineHeight: "1.3",
               }}
             >
-              <span style={{ flex: 1, paddingRight: "12px" }}>
+              <span style={{ flex: 1, paddingRight: "5px" }}>
                 {snackbar.message}
               </span>
               <button
                 type="button"
                 onClick={handleCloseSnackbar}
-                aria-label="Close"
                 style={{
                   background: "none",
                   border: "none",
                   color: "#ffffff",
-                  fontSize: "20px",
+                  fontSize: "16px",
                   cursor: "pointer",
                   padding: "0",
                   lineHeight: "1",
                   flexShrink: 0,
-                  opacity: 0.9,
                 }}
               >
                 ×

@@ -5,6 +5,7 @@ using pStudyWare20.Shared;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.Linq;
 
 namespace pStudyWare20.Services.Implementations
 {
@@ -33,11 +34,16 @@ namespace pStudyWare20.Services.Implementations
             {
                 var username = await ResolvePortalUsernameAsync(request.Username);
                 var reportCardList = await _reportCardRepository.GetReportCardListAsync(username);
+                var rows = ConvertToJsonSafeObject(reportCardList);
+                if (rows is List<Dictionary<string, object?>> rowList)
+                {
+                    rows = SortReportCardListLegacy(rowList);
+                }
 
                 return new ReportCardListResponse
                 {
                     IsSuccess = true,
-                    ReportCardList = ConvertToJsonSafeObject(reportCardList)
+                    ReportCardList = rows
                 };
             }
             catch (Exception ex)
@@ -164,6 +170,54 @@ namespace pStudyWare20.Services.Implementations
             }
 
             return list;
+        }
+
+        /// <summary>
+        /// Legacy AMC_spReportCard and kGrid default order: ReportCardID descending (newest first).
+        /// </summary>
+        private static List<Dictionary<string, object?>> SortReportCardListLegacy(
+            List<Dictionary<string, object?>> rows)
+        {
+            return rows
+                .OrderByDescending(GetReportCardIdValue)
+                .ToList();
+        }
+
+        private static long GetReportCardIdValue(Dictionary<string, object?> row)
+        {
+            foreach (var pair in row)
+            {
+                if (!pair.Key.Equals("ReportCardID", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (pair.Value == null || pair.Value == DBNull.Value)
+                {
+                    return 0;
+                }
+
+                if (pair.Value is long longValue)
+                {
+                    return longValue;
+                }
+
+                if (pair.Value is int intValue)
+                {
+                    return intValue;
+                }
+
+                if (long.TryParse(
+                        Convert.ToString(pair.Value, CultureInfo.InvariantCulture),
+                        NumberStyles.Integer,
+                        CultureInfo.InvariantCulture,
+                        out var parsed))
+                {
+                    return parsed;
+                }
+            }
+
+            return 0;
         }
 
         private async Task<string> ResolvePortalUsernameAsync(string? identifier)

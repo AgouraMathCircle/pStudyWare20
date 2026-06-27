@@ -34,6 +34,32 @@ export const adminDashboardWidgetTitleSx = {
   lineHeight: 1.2,
 };
 
+/** Underlined text links in admin dashboard widgets (To Do List, System Support). */
+export const adminDashboardQuickLinkSx = {
+  display: "inline",
+  fontSize: "0.875rem",
+  fontWeight: 400,
+  color: "#0000ee",
+  textDecoration: "underline",
+  cursor: "pointer",
+  m: 0,
+  p: 0,
+  lineHeight: 1.15,
+  background: "none",
+  border: "none",
+  borderRadius: 0,
+  boxShadow: "none",
+  textTransform: "none",
+  minHeight: "unset",
+  minWidth: "unset",
+  "&:visited": { color: "#551a8b" },
+  "&:hover": {
+    color: "#551a8b",
+    textDecoration: "underline",
+    background: "none",
+  },
+};
+
 /** Top-row admin dashboard cards — content height (no stretch gap at bottom). */
 export const adminDashboardWidgetCardSx = {
   height: "auto",
@@ -118,6 +144,25 @@ export const adminDashboardWidgetTrackingHeaderCellSx = {
   background: "linear-gradient(180deg, #8fd14f 0%, #54b50a 100%)",
   borderRight: "1px solid #ffffff",
   borderBottom: "none",
+};
+
+/** To Do user-tracking summary body cells — extra compact (legacy kGrid ~200×75). */
+export const adminDashboardWidgetTrackingCellSx = {
+  fontSize: "0.75rem",
+  fontWeight: 400,
+  lineHeight: 1.2,
+  padding: "1px 4px",
+  border: ADMIN_DASHBOARD_WIDGET_TABLE_BORDER,
+};
+
+export const adminDashboardWidgetTrackingTableSx = {
+  width: "100%",
+  tableLayout: "fixed",
+  borderCollapse: "collapse",
+  border: ADMIN_DASHBOARD_WIDGET_TABLE_BORDER,
+  "& .MuiTableCell-root": {
+    border: ADMIN_DASHBOARD_WIDGET_TABLE_BORDER,
+  },
 };
 
 /** Alternating / hover rows for dashboard widget tables and lists. */

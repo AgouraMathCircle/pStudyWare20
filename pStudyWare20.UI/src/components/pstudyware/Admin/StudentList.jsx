@@ -66,7 +66,7 @@ const StudentList = ({
   const [searchCriteria, setSearchCriteria] = useState("");
   const [searchText, setSearchText] = useState("");
   const [orderBy, setOrderBy] = useState("studentID");
-  const [order, setOrder] = useState("asc");
+  const [order, setOrder] = useState("desc");
   const [goToPageInput, setGoToPageInput] = useState("1");
   const { openUpdateProfile } = useUpdateProfileModal();
 

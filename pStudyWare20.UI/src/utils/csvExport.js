@@ -83,11 +83,13 @@ export async function postCsvExport(
   apiClient,
   url,
   request,
-  defaultFilename = "export.csv"
+  defaultFilename = "export.csv",
+  config = {},
 ) {
   try {
     const response = await apiClient.post(url, request, {
       responseType: "blob",
+      ...config,
     });
     return await downloadCsvFromResponse(response, defaultFilename);
   } catch (error) {

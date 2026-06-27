@@ -92,11 +92,13 @@ export async function postExcelExport(
   apiClient,
   url,
   request,
-  defaultFilename = "export.xlsx"
+  defaultFilename = "export.xlsx",
+  config = {},
 ) {
   try {
     const response = await apiClient.post(url, request, {
       responseType: "blob",
+      ...config,
     });
     return await downloadExcelFromResponse(response, defaultFilename);
   } catch (error) {

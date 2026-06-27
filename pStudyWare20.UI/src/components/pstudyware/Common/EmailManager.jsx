@@ -53,6 +53,7 @@ import {
 } from "../../../utils/tableSort";
 import SortableHeader from "./SortableHeader";
 import AppConfirmDialog from "./AppConfirmDialog";
+import PortalModalSelect from "./PortalModalSelect";
 import {
   portalPaperAntiLiftSx,
   APPLICATION_SURFACE_BG,
@@ -70,6 +71,7 @@ import {
   adminSessionListSearchLabelSx,
   adminSessionListSearchSelectSx,
   adminSessionListTableActionLinkSx,
+  adminSessionListTableDeleteLinkSx,
   adminSessionListTableBodyCellSx,
   adminSessionListTableBodyRowSx,
   adminSessionListTableContainerSx,
@@ -1375,7 +1377,7 @@ useSessionListTableUi
                           <Box
                             component="span"
                             onClick={() => handleDeleteMessage(message)}
-                            sx={adminSessionListTableActionLinkSx}
+                            sx={adminSessionListTableDeleteLinkSx}
                           >
                             Delete
                           </Box>
@@ -1703,7 +1705,7 @@ useSessionListTableUi
                     error={!!composeRecipientFieldError}
                   >
                     <InputLabel>Send To (Class)</InputLabel>
-                    <Select
+                    <PortalModalSelect
                       value={selectedClass}
                       onChange={(e) => setSelectedClass(e.target.value)}
                       label="Send To (Class)"
@@ -1717,7 +1719,7 @@ useSessionListTableUi
                           {group.text}
                         </MenuItem>
                       ))}
-                    </Select>
+                    </PortalModalSelect>
                     {composeRecipientFieldError && (
                       <Typography
                         variant="caption"
@@ -1738,7 +1740,7 @@ useSessionListTableUi
                     <InputLabel>
                       {memberType === "S" ? "From" : "Send To (Student)"}
                     </InputLabel>
-                    <Select
+                    <PortalModalSelect
                       value={selectedStudent}
                       onChange={(e) => setSelectedStudent(e.target.value)}
                       label={memberType === "S" ? "From" : "Send To (Student)"}
@@ -1754,7 +1756,7 @@ useSessionListTableUi
                           {student.text}
                         </MenuItem>
                       ))}
-                    </Select>
+                    </PortalModalSelect>
                     {composeRecipientFieldError && (
                       <Typography
                         variant="caption"

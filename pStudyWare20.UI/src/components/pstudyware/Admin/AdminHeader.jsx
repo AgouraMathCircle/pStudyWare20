@@ -77,7 +77,7 @@ const AdminHeader = ({ user }) => {
                 lineHeight: 1,
               }}
             >
-              Admin
+              System Administrator
             </Typography>
           </Box>
 

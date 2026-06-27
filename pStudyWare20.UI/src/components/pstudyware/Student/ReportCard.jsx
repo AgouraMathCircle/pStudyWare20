@@ -81,10 +81,20 @@ const reportCardColumnWidths = {
   comments: "16%",
 };
 
+const LEGACY_REPORT_CARD_PAGE_SIZE = 25;
+const LEGACY_REPORT_CARD_DEFAULT_SORT_FIELD = "reportCardId";
+const LEGACY_REPORT_CARD_DEFAULT_SORT_ORDER = "desc";
+
 const normalizeReportEntries = (data) => {
   if (!data) return [];
   const rows = Array.isArray(data) ? data : [data];
   return rows.map((entry) => ({
+    reportCardID:
+      entry.reportCardID ??
+      entry.ReportCardID ??
+      entry.reportCardId ??
+      entry.ReportCardId ??
+      "",
     studentName: entry.studentName ?? entry.StudentName ?? "",
     group: entry.group ?? entry.Group ?? entry.class ?? entry.Class ?? "",
     semester: entry.semester ?? entry.Semester ?? entry.session ?? entry.Session ?? "",
@@ -113,6 +123,8 @@ const formatDate = (value) =>
 
 const getReportCardFieldValue = (report, field) => {
   switch (field) {
+    case "reportCardId":
+      return toSortableNumber(report.reportCardID);
     case "studentName":
       return report.studentName ?? "";
     case "class":
@@ -159,15 +171,19 @@ const ReportCard = ({
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
   const [goToPageInput, setGoToPageInput] = useState("1");
-  const [sortField, setSortField] = useState("examDate");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortField, setSortField] = useState(LEGACY_REPORT_CARD_DEFAULT_SORT_FIELD);
+  const [sortOrder, setSortOrder] = useState(LEGACY_REPORT_CARD_DEFAULT_SORT_ORDER);
 
-  const pageSize = 25;
+  const pageSize = LEGACY_REPORT_CARD_PAGE_SIZE;
 
   const handleSort = (field) => {
-    const isAsc = sortField === field && sortOrder === "asc";
-    setSortOrder(isAsc ? "desc" : "asc");
-    setSortField(field);
+    const isSameField = sortField === field;
+    if (!isSameField) {
+      setSortField(field);
+      setSortOrder("desc");
+    } else {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    }
     setCurrentPage(1);
     setGoToPageInput("1");
   };
