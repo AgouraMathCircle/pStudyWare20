@@ -584,7 +584,7 @@ const StudentScore = () => {
                     component="div"
                     sx={updateScorePageTitleSx}
                   >
-                    Update Score
+                    {/* Update Score */}
                   </Typography>
 
                   {successMessage && (

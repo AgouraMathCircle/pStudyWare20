@@ -7,12 +7,14 @@ import {
   Link,
   CircularProgress,
   Alert,
+  Tooltip,
+  IconButton,
 } from "@mui/material";
 import {
-  VideoCall as VideoCallIcon,
   AccessTime as AccessTimeIcon,
   VpnKey as VpnKeyIcon,
   MeetingRoom as MeetingRoomIcon,
+  ContentCopy as ContentCopyIcon,
 } from "@mui/icons-material";
 import meetingDetailsService from "../../../services/meetingDetailsService";
 import {
@@ -21,6 +23,16 @@ import {
   adminSessionListHeaderBarSx,
   adminSessionListTitleSx,
 } from "../styles/applicationSurfaces";
+
+const ZoomIcon = ({ className }) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={className}
+    fill="currentColor"
+  >
+    <path d="M21 7.156l-3.375 2.531v-2.187c0-1.406-1.125-2.5-2.531-2.5h-11.25c-1.406 0-2.531 1.094-2.531 2.5v9c0 1.406 1.125 2.5 2.531 2.5h11.25c1.406 0 2.531-1.094 2.531-2.5v-2.188l3.375 2.531c0.688 0.5 1.5 0 1.5-0.844v-7.656c0-0.844-0.813-1.344-1.5-0.844z" />
+  </svg>
+);
 
 const sectionTitle = "Meeting Schedule";
 
@@ -116,6 +128,13 @@ const StudentMeetingSchedule = ({
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [copiedText, setCopiedText] = useState("");
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(text);
+    setTimeout(() => setCopiedText(""), 2000);
+  };
 
   // Helper to get property value (handles both camelCase and PascalCase)
   const getProp = (obj, propName) => {
@@ -257,17 +276,45 @@ const StudentMeetingSchedule = ({
                 {(meetingID || passcode) && (
                   <Box className="meeting-meta">
                     {meetingID && (
-                      <Box className="meeting-detail-row">
-                        <MeetingRoomIcon sx={{ fontSize: 15 }} />
-                        <span className="meeting-detail-label">ID</span>
+                      <Box className="meeting-detail-row" sx={{ display: "flex", alignItems: "center" }}>
+                        <MeetingRoomIcon sx={{ fontSize: 15, mr: 0.5 }} />
+                        <span className="meeting-detail-label" style={{ marginRight: "4px" }}>ID</span>
                         <span className="meeting-detail-value">{meetingID}</span>
+                        <Tooltip title={copiedText === String(meetingID) ? "Copied!" : "Copy ID"} placement="top">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleCopy(String(meetingID))}
+                            sx={{
+                              p: 0.25,
+                              ml: 0.5,
+                              color: "#2e7d32",
+                              "&:hover": { backgroundColor: "rgba(46, 125, 50, 0.1)" },
+                            }}
+                          >
+                            <ContentCopyIcon sx={{ fontSize: 11 }} />
+                          </IconButton>
+                        </Tooltip>
                       </Box>
                     )}
                     {passcode && (
-                      <Box className="meeting-detail-row">
-                        <VpnKeyIcon sx={{ fontSize: 15 }} />
-                        <span className="meeting-detail-label">Passcode</span>
+                      <Box className="meeting-detail-row" sx={{ display: "flex", alignItems: "center" }}>
+                        <VpnKeyIcon sx={{ fontSize: 15, mr: 0.5 }} />
+                        <span className="meeting-detail-label" style={{ marginRight: "4px" }}>Passcode</span>
                         <span className="meeting-detail-value">{passcode}</span>
+                        <Tooltip title={copiedText === String(passcode) ? "Copied!" : "Copy Passcode"} placement="top">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleCopy(String(passcode))}
+                            sx={{
+                              p: 0.25,
+                              ml: 0.5,
+                              color: "#2e7d32",
+                              "&:hover": { backgroundColor: "rgba(46, 125, 50, 0.1)" },
+                            }}
+                          >
+                            <ContentCopyIcon sx={{ fontSize: 11 }} />
+                          </IconButton>
+                        </Tooltip>
                       </Box>
                     )}
                   </Box>
@@ -280,7 +327,7 @@ const StudentMeetingSchedule = ({
                   className="meeting-join-btn"
                   underline="none"
                 >
-                  <VideoCallIcon sx={{ fontSize: 16 }} />
+                  <ZoomIcon className="zoom-icon" />
                   Launch
                 </Link>
               </Box>

@@ -13,6 +13,7 @@ import {
   Select,
   MenuItem,
   Button,
+  Tooltip,
 } from "@mui/material";
 import studentDashboardService from "../../../services/studentDashboardService";
 import { useUpdateProfileModal } from "../../../contexts/UpdateProfileModalContext";
@@ -316,37 +317,66 @@ const StudentProfile = ({ username, chapterId }) => {
             {student.studentID ?? "—"}
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {student.studentName || "—"}
+            <Tooltip title={student.studentName || ""} disableHoverListener={!student.studentName}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {student.studentName || "—"}
+              </Box>
+            </Tooltip>
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {student.program || "—"}
+            <Tooltip title={student.program || ""} disableHoverListener={!student.program}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {student.program || "—"}
+              </Box>
+            </Tooltip>
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {student.class || "—"}
+            <Tooltip title={student.class || ""} disableHoverListener={!student.class}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {student.class || "—"}
+              </Box>
+            </Tooltip>
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx()}>
             {student.grade || "—"}
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {student.school || "—"}
+            <Tooltip title={student.school || ""} disableHoverListener={!student.school}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {student.school || "—"}
+              </Box>
+            </Tooltip>
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {student.parentName || "—"}
+            <Tooltip title={student.parentName || ""} disableHoverListener={!student.parentName}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {student.parentName || "—"}
+              </Box>
+            </Tooltip>
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx()}>
             {student.phone || "—"}
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {student.email ||
-              student.parentEmail ||
-              student.studentEmail ||
-              "—"}
+            <Tooltip title={student.email || student.parentEmail || student.studentEmail || ""} disableHoverListener={!(student.email || student.parentEmail || student.studentEmail)}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {student.email || student.parentEmail || student.studentEmail || "—"}
+              </Box>
+            </Tooltip>
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {student.eventSession || "—"}
+            <Tooltip title={student.eventSession || ""} disableHoverListener={!student.eventSession}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {student.eventSession || "—"}
+              </Box>
+            </Tooltip>
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true, ellipsis: true })}>
-            {student.eventLocation || "—"}
+            <Tooltip title={student.eventLocation || ""} disableHoverListener={!student.eventLocation}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {student.eventLocation || "—"}
+              </Box>
+            </Tooltip>
           </TableCell>
         </TableRow>
       ));

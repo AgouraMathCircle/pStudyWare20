@@ -110,7 +110,7 @@ const SubscribeYouTube = () => {
           </Typography>
           <Button
             variant="contained"
-            href="https://www.youtube.com/c/AgouraMathCircle"
+            href="https://www.youtube.com/c/AgouraMathCircle/videos"
             endIcon={<ArrowForwardIcon />}
             sx={{
               backgroundColor: "#53b50a",

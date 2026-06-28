@@ -308,17 +308,13 @@ const StudentDashboard = () => {
       <StudentRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sx={{ pb: "0 !important" }}>
-            <Card sx={panelCardSx}>
-              <CardContent sx={panelContentSx}>
-                <DashboardMessages
-                  username={username}
-                  chapterId={chapterId}
-                  dashboardMessages={dashboardMessages}
-                  loading={dashboardMessagesLoading}
-                />
-              </CardContent>
-            </Card>
+          <Grid item xs={12} sx={{ pb: "8px !important" }}>
+            <DashboardMessages
+              username={username}
+              chapterId={chapterId}
+              dashboardMessages={dashboardMessages}
+              loading={dashboardMessagesLoading}
+            />
           </Grid>
 
           <Grid item xs={12} sx={{ pt: "0 !important" }}>

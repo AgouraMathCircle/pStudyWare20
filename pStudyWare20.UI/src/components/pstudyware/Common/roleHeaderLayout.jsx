@@ -12,10 +12,13 @@ export const ROLE_HEADER_HEIGHT_VARS = {
 };
 
 export function createRoleHeaderSpacer(heightVar, className, fallbackPx = 30) {
+  // We use position: sticky so the header stays in the normal document flow.
+  // However, we return a small 24px spacer to maintain a visual gap 
+  // between the sticky header and the dashboard content cards below it.
   const RoleHeaderSpacer = () => (
     <Box
       className={className}
-      sx={{ height: `var(${heightVar}, ${fallbackPx}px)`, flexShrink: 0 }}
+      sx={{ height: 14, flexShrink: 0 }}
       aria-hidden
     />
   );
@@ -59,13 +62,14 @@ export function compactRoleHeaderBarSx(borderBottomColor) {
   };
 }
 
-/** Published by Navbar when portal logo is active. */
 export function publishPortalNavbarBottom(element) {
   if (!element) return;
-  const bottom = element.getBoundingClientRect().bottom;
+  // Use offsetHeight because the Navbar sticks to top: 0,
+  // so its bottom boundary when sticky is exactly its height.
+  const height = element.offsetHeight || 32;
   document.documentElement.style.setProperty(
     PORTAL_NAVBAR_BOTTOM_VAR,
-    `${bottom}px`,
+    `${height}px`,
   );
 }
 
@@ -73,10 +77,10 @@ export function clearPortalNavbarBottom() {
   document.documentElement.style.removeProperty(PORTAL_NAVBAR_BOTTOM_VAR);
 }
 
-/** Fixed role header position — flush under portal navbar via CSS variable. */
+/** Sticky role header position — perfectly stacks under portal navbar via CSS variable. */
 export function fixedRoleHeaderPositionSx(theme) {
   return {
-    position: "fixed",
+    position: "sticky",
     top: `var(${PORTAL_NAVBAR_BOTTOM_VAR}, 32px)`,
     left: 0,
     right: 0,

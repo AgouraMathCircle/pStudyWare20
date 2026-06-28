@@ -201,7 +201,6 @@ export const authenticatedPortalShellSx = {
   flex: 1,
   minHeight: 0,
   width: "100%",
-  overflowY: "auto",
   backgroundSize: "cover",
   backgroundPosition: "center",
   backgroundRepeat: "no-repeat",

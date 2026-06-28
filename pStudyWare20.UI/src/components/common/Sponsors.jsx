@@ -10,16 +10,15 @@ import client5Img from "../../assets/images/clients/clients-5.png";
 import client6Img from "../../assets/images/clients/clients-6.png";
 import client7Img from "../../assets/images/clients/clients-7.png";
 import client8Img from "../../assets/images/clients/clients-8.png";
+import client9Img from "../../assets/images/clients/clients-9.png";
 
 const SPONSORS = [
   { image: client1Img, alt: "Alapio", link: "https://www.alapio.org" },
   { image: client3Img, alt: "", link: null },
-  { image: client4Img, alt: "", link: "https://nextphase-recruiting.com" },
   { image: client5Img, alt: "", link: null },
   { image: client6Img, alt: "", link: "http://springinfoservices.com" },
-  { image: client7Img, alt: "", link: "https://www.camreal.com" },
   { image: client8Img, alt: "Bits informatics", link: "https://bitsi.in" },
-  { image: client2Img, alt: "", link: null },
+  { image: client9Img, alt: "Rita & Dipak Savani Family", link: null },
 ];
 
 const AUTOPLAY_MS = 5000;
@@ -30,7 +29,7 @@ const Sponsors = ({ variant }) => {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
-  const itemsPerSlide = isMobile ? 1 : 5;
+  const itemsPerSlide = isMobile ? 2 : 6;
   const totalSlides = useMemo(
     () => Math.ceil(SPONSORS.length / itemsPerSlide),
     [itemsPerSlide]
@@ -97,8 +96,8 @@ const Sponsors = ({ variant }) => {
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
-                  width: 180,
-                  height: 100,
+                  width: 270,
+                  height: 150,
                 }}
               >
                 {sponsor.link ? (

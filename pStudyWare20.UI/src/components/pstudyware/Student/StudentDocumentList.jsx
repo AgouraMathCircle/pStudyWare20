@@ -13,6 +13,7 @@ import {
   MenuItem,
   Paper,
   Button,
+  Tooltip,
 } from "@mui/material";
 import PdfViewerModal from "../../common/PdfViewerModal";
 import config from "../../../utils/config";
@@ -61,6 +62,36 @@ const actionDividerSx = {
   color: "text.disabled",
   userSelect: "none",
   lineHeight: 1,
+};
+
+const studentDocumentListSearchBarOverrideSx = {
+  ...adminSessionListSearchBarSx,
+  backgroundColor: "#f7fbf7",
+  border: "1px solid #c8e6c9",
+  boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+};
+
+const studentDocumentListSearchLabelOverrideSx = {
+  ...adminSessionListSearchLabelSx,
+  color: "#1b5e20",
+};
+
+const studentDocumentListSearchSelectOverrideSx = {
+  ...adminSessionListSearchSelectSx,
+  color: "#1b5e20",
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#a5d6a7",
+  },
+  "& .MuiSelect-icon": {
+    color: "#1b5e20",
+  },
+};
+
+const studentDocumentListFindButtonOverrideSx = {
+  ...adminSessionListFindButtonSx,
+  backgroundColor: "#4caf50",
+  color: "white",
+  "&:hover": { backgroundColor: "#43a047" },
 };
 
 const getClassMaterialFieldValue = (doc, field) => {
@@ -276,19 +307,39 @@ const StudentDocumentList = ({
         </TableCell>
         <TableCell sx={adminSessionListTableBodyCellSx()}>{doc.docID ?? "—"}</TableCell>
         <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-          {doc.class || "—"}
+          <Tooltip title={doc.class || ""} disableHoverListener={!doc.class}>
+            <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {doc.class || "—"}
+            </Box>
+          </Tooltip>
         </TableCell>
         <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-          {doc.topics || "—"}
+          <Tooltip title={doc.topics || ""} disableHoverListener={!doc.topics}>
+            <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {doc.topics || "—"}
+            </Box>
+          </Tooltip>
         </TableCell>
         <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-          {doc.description || "—"}
+          <Tooltip title={doc.description || ""} disableHoverListener={!doc.description}>
+            <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {doc.description || "—"}
+            </Box>
+          </Tooltip>
         </TableCell>
         <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-          {doc.docName || "—"}
+          <Tooltip title={doc.docName || ""} disableHoverListener={!doc.docName}>
+            <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {doc.docName || "—"}
+            </Box>
+          </Tooltip>
         </TableCell>
         <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-          {doc.session || "—"}
+          <Tooltip title={doc.session || ""} disableHoverListener={!doc.session}>
+            <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {doc.session || "—"}
+            </Box>
+          </Tooltip>
         </TableCell>
         <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
           {formatDate(doc.uploadedDate)}
@@ -305,27 +356,40 @@ const StudentDocumentList = ({
         </Typography>
       </Box>
 
-      <Typography component="div" sx={{ ...studentPortalIntroTextSx, mb: 1 }}>
-        {" - Watch Lecture Notes Video "}
-        <a
-          href="https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/videos"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={studentPortalLinkSx}
-        >
-          Agoura Math Circle YouTube Channel
-        </a>
-        {" Note: Subscription is required for all students. Please subscribe, it will help us to upload more videos."}
-      </Typography>
+      <Box
+        sx={{
+          mb: 2,
+          p: 2,
+          borderRadius: 2,
+          border: "1px solid #f44336",
+          backgroundColor: "#ffebee",
+          color: "#b71c1c",
+        }}
+      >
+        <Typography component="div" sx={{ fontWeight: 600, mb: 0.5 }}>
+          Watch Lecture Notes Video
+        </Typography>
+        <Typography component="div" sx={{ color: "#b71c1c" }}>
+          <a
+            href="https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/videos"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={studentPortalLinkSx}
+          >
+            Agoura Math Circle YouTube Channel
+          </a>
+          {" — Subscription is required for all students. Please subscribe, it will help us to upload more videos."}
+        </Typography>
+      </Box>
 
-      <Box sx={adminSessionListSearchBarSx}>
+      <Box sx={studentDocumentListSearchBarOverrideSx}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
+          <Typography sx={studentDocumentListSearchLabelOverrideSx}>Search By:</Typography>
           <Select
             value={searchBy}
             onChange={(e) => setSearchBy(e.target.value)}
             size="small"
-            sx={adminSessionListSearchSelectSx}
+            sx={studentDocumentListSearchSelectOverrideSx}
             disabled={loading}
           >
             <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
@@ -350,12 +414,12 @@ const StudentDocumentList = ({
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography sx={adminSessionListSearchLabelSx}>Criteria:</Typography>
+          <Typography sx={studentDocumentListSearchLabelOverrideSx}>Criteria:</Typography>
           <Select
             value={searchCriteria}
             onChange={(e) => setSearchCriteria(e.target.value)}
             size="small"
-            sx={adminSessionListSearchSelectSx}
+            sx={studentDocumentListSearchSelectOverrideSx}
             disabled={loading}
           >
             <MenuItem value="" sx={adminSessionListMenuItemSx}>
@@ -386,7 +450,7 @@ const StudentDocumentList = ({
           variant="contained"
           size="small"
           onClick={handleSearch}
-          sx={adminSessionListFindButtonSx}
+          sx={studentDocumentListFindButtonOverrideSx}
           disabled={loading}
         >
           Find
