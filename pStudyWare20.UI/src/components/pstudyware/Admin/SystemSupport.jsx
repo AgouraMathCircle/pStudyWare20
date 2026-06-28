@@ -74,17 +74,12 @@ const SystemSupport = ({ onPublishDocument, canPublishDocuments }) => {
     },
     {
       label: "Update Donor Details",
-      href: "../Pstudyware/DonorDetails.aspx",
-      isReact: false,
+      href: "/pstudyware/admin/donor-details",
+      isReact: true,
     },
     {
       label: "Post Message",
       href: "/pstudyware/admin/post-message",
-      isReact: true,
-    },
-    {
-      label: "Report Card",
-      href: "/pstudyware/admin/report-card",
       isReact: true,
     },
     ...(canPublishDocuments

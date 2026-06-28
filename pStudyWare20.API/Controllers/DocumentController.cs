@@ -92,6 +92,38 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
+        /// Unpublish a document (set Active=0 in DB).
+        /// Uses <c>AMC_spPublishDocuments</c> with <c>@Active = 0</c>.
+        /// </summary>
+        [HttpPost("UnpublishDocument")]
+        [ProducesResponseType(typeof(ResponseDetails), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ResponseDetails>> UnpublishDocument(
+            [FromBody] PublishDocument publishDocument,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!ModelState.IsValid)
+                return BadRequestValidation();
+
+            try
+            {
+                var response = await _documentService.UnpublishDocumentAsync(publishDocument).ConfigureAwait(false);
+                return Ok(response);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UnpublishDocument failed for DocID {DocId}.", publishDocument.docID);
+                return StatusCode(StatusCodes.Status500InternalServerError, ErrorBody("An error occurred while unpublishing the document.", ex));
+            }
+        }
+
+        /// <summary>
         /// Admin / instructor class material grid (all documents for user).
         /// Legacy: <c>Documents.aspx.cs</c> <c>BindGridView()</c> → <c>AMC_spDocuments</c> with <c>@Username</c> (session username).
         /// </summary>

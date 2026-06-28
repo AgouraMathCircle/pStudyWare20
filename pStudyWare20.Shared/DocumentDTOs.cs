@@ -9,6 +9,20 @@ namespace pStudyWare20.Shared
     {
         [Display(Name = "Document ID")]
         public int docID { get; set; }
+
+        /// <summary>1 = publish (Active=1), 0 = unpublish (Active=0). Defaults to publish for legacy callers.</summary>
+        [Display(Name = "Active")]
+        public int active { get; set; } = 1;
+
+        /// <summary>Used to resolve table mDocID when legacy grid returns DocumentID=0 for published rows.</summary>
+        [Display(Name = "Document Name")]
+        public string docName { get; set; } = string.Empty;
+
+        [Display(Name = "Session")]
+        public string session { get; set; } = string.Empty;
+
+        [Display(Name = "Description")]
+        public string description { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -154,8 +168,8 @@ namespace pStudyWare20.Shared
         public int DocID { get; set; }
 
         /// <summary>
-        /// Real table key for AMC_spDeleteDocuments / AMC_spPublishDocuments (0 when published).
-        /// Legacy grid column DocumentID; display row number is <see cref="DocID"/> (mDocID).
+        /// Real table key (mDocID) for AMC_spDeleteDocuments / AMC_spPublishDocuments.
+        /// Display row number is <see cref="DocID"/> (row number from AMC_spDocuments).
         /// </summary>
         [Display(Name = "Repository Document ID")]
         public int DocumentID { get; set; }

@@ -22,6 +22,11 @@ namespace pStudyWare20.Repository.Interfaces
         Task<string> PublishDocumentAsync(PublishDocument request);
 
         /// <summary>
+        /// Resolve AMC_tblDocuments.mDocID when legacy grid hides DocumentID for published rows.
+        /// </summary>
+        Task<int> ResolveClassMaterialTableIdAsync(string docName, string session, string description);
+
+        /// <summary>
         /// Get documents repository list using stored procedure
         /// </summary>
         /// <param name="request">Document repository list request</param>

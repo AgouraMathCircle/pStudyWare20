@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Cors;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
+using System.Security.Claims;
 
 namespace pStudyWare20.API.Controllers
 {
@@ -21,6 +22,12 @@ namespace pStudyWare20.API.Controllers
             _logger = logger;
         }
 
+        private string? GetChapterId() =>
+            User.FindFirst("chapterID")?.Value
+            ?? User.FindFirst("ChapterID")?.Value
+            ?? Request.Query["chapterID"].FirstOrDefault()
+            ?? Request.Query["chapterId"].FirstOrDefault();
+
         /// <summary>
         /// Get current semester lookup (AMC_spSelectSemesterLookup). Any authenticated user (legacy: session required).
         /// </summary>
@@ -29,7 +36,7 @@ namespace pStudyWare20.API.Controllers
         {
             try
             {
-                var chapter = chapterID ?? Request.Query["chapterId"].FirstOrDefault();
+                var chapter = chapterID ?? GetChapterId();
                 var response = await _semesterLookupService.GetSemesterLookupAsync(chapter);
                 if (!response.IsSuccess)
                     return StatusCode(500, new { message = response.ErrorMessage });
@@ -61,6 +68,8 @@ namespace pStudyWare20.API.Controllers
                         errors = errors
                     });
                 }
+
+                request.ChapterID = request.ChapterID ?? GetChapterId() ?? "";
 
                 var response = await _semesterLookupService.UpdateSemesterLookupAsync(request);
                 if (!response.IsSuccess)

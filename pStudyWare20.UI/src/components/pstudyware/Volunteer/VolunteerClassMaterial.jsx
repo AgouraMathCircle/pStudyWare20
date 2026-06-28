@@ -14,10 +14,12 @@ import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
 import StudentDocumentList from "../Student/StudentDocumentList";
 import VolunteerHeader, { VolunteerRoleHeaderSpacer } from "./VolunteerHeader";
+import PdfViewerModal from "../../common/PdfViewerModal";
 import {
-  PORTAL_CARD_BOX_SHADOW,
-  portalCardAntiLiftSx,
+  adminSessionListPanelCardSx,
+  adminSessionListPanelContentSx,
 } from "../styles/applicationSurfaces";
+import "../../../styles/StudentClassMaterial.css";
 
 const VolunteerClassMaterial = () => {
   const { user, isAuthenticated } = useAuth();
@@ -96,30 +98,6 @@ const VolunteerClassMaterial = () => {
     }
   };
 
-  const handleRefresh = async () => {
-    try {
-      setLoading(true);
-      const response = await documentService.getDocumentsList(
-        user.email || user.username
-      );
-
-      if (response.isSuccess) {
-        const publishedDocuments = (response.documents || []).filter(
-          (doc) => `${doc.publish || ""}`.toUpperCase() === "Y"
-        );
-        setDocuments(publishedDocuments);
-        showMessage("Class materials refreshed!", "success");
-      } else {
-        showMessage(response.errorMessage || "Failed to refresh class materials", "error");
-      }
-    } catch (err) {
-      console.error("Error refreshing class materials:", err);
-      showMessage("Error refreshing class materials.", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (loading) {
     return (
       <Box
@@ -156,36 +134,38 @@ const VolunteerClassMaterial = () => {
   }
 
   return (
-    <Box>
+    <Box className="student-class-material">
       <VolunteerHeader user={user} />
       <VolunteerRoleHeaderSpacer />
-      <Container maxWidth="xl" sx={{ mb: 4, pt: 2 }}>
+      <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Card
-              sx={{
-                backgroundColor: "white",
-                borderRadius: 2,
-                boxShadow: PORTAL_CARD_BOX_SHADOW,
-                overflow: "hidden",
-                ...portalCardAntiLiftSx,
-              }}
-            >
-              <CardContent sx={{ p: 0 }}>
+            <Card sx={adminSessionListPanelCardSx}>
+              <CardContent
+                sx={{
+                  ...adminSessionListPanelContentSx,
+                  pt: 1,
+                  "&:last-child": { pb: 1.5 },
+                }}
+              >
                 <StudentDocumentList
                   documents={documents}
-                  onRefresh={handleRefresh}
                   onView={handleView}
                   onDownload={handleDownload}
                   onOpenVideo={handleOpenVideo}
-                  selectedPdf={selectedPdf}
-                  onClosePdfViewer={handleClosePdfViewer}
                 />
               </CardContent>
             </Card>
           </Grid>
         </Grid>
       </Container>
+
+      <PdfViewerModal
+        open={Boolean(selectedPdf)}
+        pdfUrl={selectedPdf}
+        pdfName={selectedPdf}
+        onClose={handleClosePdfViewer}
+      />
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

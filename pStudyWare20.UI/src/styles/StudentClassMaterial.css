@@ -1,0 +1,113 @@
+/* Student Class Material — aligned with Admin class material page */
+
+.student-class-material {
+  min-height: 100%;
+  width: 100%;
+  background-color: transparent;
+  box-sizing: border-box;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.student-class-material > .MuiContainer-root {
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.student-class-material .MuiCard-root {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.student-class-material .MuiCard-root:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.student-class-material .MuiCardContent-root {
+  padding: 8px 8px 0;
+}
+
+.student-class-material .MuiTableCell-root {
+  padding: 8px 12px;
+}
+
+.student-class-material .MuiTableCell-head {
+  font-weight: 600;
+  background-color: #f0f0f0;
+  border-bottom: 2px solid #ddd;
+}
+
+.student-class-material .MuiTableRow-root:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.student-class-material .MuiButton-root {
+  text-transform: none;
+  font-weight: 500;
+}
+
+.student-class-material .MuiTableContainer-root::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.student-class-material .MuiTableContainer-root::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.student-class-material .MuiTableContainer-root::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.student-class-material .MuiTableContainer-root::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.student-class-material .MuiGrid-container {
+  margin-top: 0;
+}
+
+.student-class-material a {
+  color: #007bff;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+.student-class-material a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+@keyframes studentClassMaterialFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.student-class-material .MuiCard-root {
+  animation: studentClassMaterialFadeIn 0.3s ease-in-out;
+}
+
+@media print {
+  .student-class-material .MuiButton-root,
+  .student-class-material .MuiTextField-root {
+    display: none;
+  }
+
+  .student-class-material .MuiCard-root {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+
+  .student-class-material .MuiTableContainer-root {
+    max-height: none !important;
+  }
+}

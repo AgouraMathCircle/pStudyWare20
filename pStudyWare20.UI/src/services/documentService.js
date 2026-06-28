@@ -159,6 +159,7 @@ const documentService = {
         "/Document/PublishDocument",
         {
           docID,
+          active: 1,
         },
         {
           timeout: 30000, // 30 seconds for publish operations
@@ -167,6 +168,37 @@ const documentService = {
       return response.data;
     } catch (error) {
       console.error("Error publishing document:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Unpublish document (set Active=0)
+   * @param {Object|number} payload - Document table ID or { docID, docName, session, description }
+   * @returns {Promise<Object>} Unpublish response
+   */
+  unpublishDocument: async (payload) => {
+    try {
+      const data =
+        typeof payload === "object" && payload !== null
+          ? payload
+          : { docID: payload };
+      const response = await api.post(
+        "/Document/UnpublishDocument",
+        {
+          docID: data.docID ?? 0,
+          docName: data.docName ?? "",
+          session: data.session ?? "",
+          description: data.description ?? "",
+          active: 0,
+        },
+        {
+          timeout: 30000,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error unpublishing document:", error);
       throw error;
     }
   },
@@ -816,12 +848,28 @@ export const getDocumentApiList = (response) => {
 export const getRepositoryDocumentName = (doc) =>
   doc?.docName ?? doc?.mDocName ?? doc?.DocName ?? "";
 
-/** AMC_spDeleteDocuments @DocID = DocumentID (table key), not display row mDocID. */
+/** AMC_spDeleteDocuments / AMC_spPublishDocuments @DocID = DocumentID (table mDocID). */
 export const getClassMaterialDeleteId = (doc) => {
-  const id = doc?.documentID ?? doc?.DocumentID;
+  const id =
+    doc?.tableDocID ??
+    doc?.TableDocID ??
+    doc?.documentID ??
+    doc?.DocumentID;
   const parsed = Number(id);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 };
+
+/** Payload for publish/unpublish/delete SP calls (handles published rows with DocumentID=0). */
+export const getClassMaterialActionPayload = (doc) => ({
+  docID: getClassMaterialDeleteId(doc),
+  docName: doc?.docName ?? doc?.DocName ?? "",
+  session: doc?.session ?? doc?.Session ?? "",
+  description: doc?.description ?? doc?.Description ?? "",
+});
+
+/** True when document is published (Active=1 / Status=Y). */
+export const isClassMaterialPublished = (doc) =>
+  `${doc?.publish ?? doc?.Publish ?? ""}`.trim().toUpperCase() === "Y";
 
 /** AMC_spDeleteDocuments @DocID = API documentID (table mDocID), not display row docID. */
 export const getStudentDocumentDeleteId = (doc) => {

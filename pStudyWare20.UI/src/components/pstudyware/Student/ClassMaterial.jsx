@@ -4,6 +4,8 @@ import {
   Box,
   Alert,
   Snackbar,
+  Typography,
+  CircularProgress,
   Grid,
   Card,
   CardContent,
@@ -12,10 +14,12 @@ import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
 import StudentDocumentList from "./StudentDocumentList";
 import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
+import PdfViewerModal from "../../common/PdfViewerModal";
 import {
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
 } from "../styles/applicationSurfaces";
+import "../../../styles/StudentClassMaterial.css";
 
 const ClassMaterial = () => {
   const { user, isAuthenticated } = useAuth();
@@ -23,14 +27,28 @@ const ClassMaterial = () => {
   const [documents, setDocuments] = useState([]);
   const [selectedPdf, setSelectedPdf] = useState(null);
 
-  // Global message state
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "info",
   });
 
-  // Load document data
+  const loadPublishedDocuments = async (username) => {
+    const response = await documentService.getDocumentsList(username);
+    if (response.isSuccess) {
+      const publishedDocuments = (response.documents || []).filter(
+        (doc) => doc.publish?.toUpperCase() === "Y",
+      );
+      setDocuments(publishedDocuments);
+      return true;
+    }
+    showMessage(
+      response.errorMessage || "Failed to load class materials",
+      "error",
+    );
+    return false;
+  };
+
   useEffect(() => {
     const loadDocuments = async () => {
       if (!isAuthenticated || !user) {
@@ -39,32 +57,12 @@ const ClassMaterial = () => {
 
       try {
         setLoading(true);
-        console.log("ClassMaterial: Fetching document data");
-
-        // Get documents list
-        const response = await documentService.getDocumentsList(
-          user.email || user.username
-        );
-
-        console.log("ClassMaterial: Document data response", response);
-
-        if (response.isSuccess) {
-          // Filter to show only published documents for students
-          const publishedDocuments = (response.documents || []).filter(
-            (doc) => doc.publish?.toUpperCase() === "Y"
-          );
-          setDocuments(publishedDocuments);
-        } else {
-          showMessage(
-            response.errorMessage || "Failed to load class materials",
-            "error"
-          );
-        }
+        await loadPublishedDocuments(user.email || user.username);
       } catch (err) {
         console.error("Error fetching class materials:", err);
         showMessage(
           "Error loading class materials. Please refresh the page.",
-          "error"
+          "error",
         );
       } finally {
         setLoading(false);
@@ -74,7 +72,6 @@ const ClassMaterial = () => {
     loadDocuments();
   }, [isAuthenticated, user]);
 
-  // Helper function to show messages
   const showMessage = (message, severity = "info") => {
     setSnackbar({
       open: true,
@@ -83,7 +80,6 @@ const ClassMaterial = () => {
     });
   };
 
-  // Helper function to close snackbar
   const handleCloseSnackbar = (event, reason) => {
     if (reason === "clickaway") {
       return;
@@ -91,17 +87,14 @@ const ClassMaterial = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Handle view document - open PDF viewer below table
   const handleView = (docName) => {
     setSelectedPdf(docName);
   };
 
-  // Handle close PDF viewer
   const handleClosePdfViewer = () => {
     setSelectedPdf(null);
   };
 
-  // Handle download document via API (avoids SPA/static path issues)
   const handleDownload = async (docName) => {
     try {
       await documentService.downloadClassMaterial(docName);
@@ -109,12 +102,11 @@ const ClassMaterial = () => {
       console.error("Error downloading class material:", err);
       showMessage(
         err?.message || "Unable to download document. Please try again.",
-        "error"
+        "error",
       );
     }
   };
 
-  // Handle open video
   const handleOpenVideo = (videoURL) => {
     if (videoURL) {
       documentService.openVideo(videoURL);
@@ -123,36 +115,26 @@ const ClassMaterial = () => {
     }
   };
 
-  // Handle refresh data
-  const handleRefresh = async () => {
-    try {
-      setLoading(true);
-      const response = await documentService.getDocumentsList(
-        user.email || user.username
-      );
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "400px",
+          gap: 2,
+        }}
+      >
+        <CircularProgress size={60} />
+        <Typography variant="h6" color="textSecondary">
+          Loading Class Materials...
+        </Typography>
+      </Box>
+    );
+  }
 
-      if (response.isSuccess) {
-        // Filter to show only published documents for students
-        const publishedDocuments = (response.documents || []).filter(
-          (doc) => doc.publish?.toUpperCase() === "Y"
-        );
-        setDocuments(publishedDocuments);
-        showMessage("Class materials refreshed!", "success");
-      } else {
-        showMessage(
-          response.errorMessage || "Failed to refresh class materials",
-          "error"
-        );
-      }
-    } catch (err) {
-      console.error("Error refreshing class materials:", err);
-      showMessage("Error refreshing class materials.", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Check authentication
   if (!isAuthenticated || !user) {
     return (
       <Box
@@ -171,7 +153,7 @@ const ClassMaterial = () => {
   }
 
   return (
-    <Box className="student-dashboard">
+    <Box className="student-class-material">
       <StudentHeader user={user} />
       <StudentRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
@@ -187,13 +169,9 @@ const ClassMaterial = () => {
               >
                 <StudentDocumentList
                   documents={documents}
-                  loading={loading}
-                  onRefresh={handleRefresh}
                   onView={handleView}
                   onDownload={handleDownload}
                   onOpenVideo={handleOpenVideo}
-                  selectedPdf={selectedPdf}
-                  onClosePdfViewer={handleClosePdfViewer}
                 />
               </CardContent>
             </Card>
@@ -201,7 +179,13 @@ const ClassMaterial = () => {
         </Grid>
       </Container>
 
-      {/* Global Snackbar for Success/Error Messages */}
+      <PdfViewerModal
+        open={Boolean(selectedPdf)}
+        pdfUrl={selectedPdf}
+        pdfName={selectedPdf}
+        onClose={handleClosePdfViewer}
+      />
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

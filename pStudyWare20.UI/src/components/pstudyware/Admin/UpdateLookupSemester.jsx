@@ -88,11 +88,19 @@ const emptyForm = {
   volunteerAvailability: "N",
 };
 
+const normalizeYn = (value) =>
+  String(value ?? "")
+    .trim()
+    .toUpperCase() === "Y"
+    ? "Y"
+    : "N";
+
 const UpdateLookupSemester = () => {
   const { user } = useAuth();
   const chapterID =
     user?.chapterID?.toString() ||
     user?.ChapterID?.toString() ||
+    user?.chapterId?.toString() ||
     "";
 
   const [loading, setLoading] = useState(true);
@@ -107,12 +115,14 @@ const UpdateLookupSemester = () => {
     setError(null);
     try {
       const res = await semesterLookupService.getSemesterLookup(chapterID);
-      if (!res.isSuccess) {
-        setError(res.errorMessage || "Failed to load semester lookup.");
+      if (!(res.isSuccess ?? res.IsSuccess)) {
+        setError(
+          res.errorMessage || res.ErrorMessage || "Failed to load semester lookup.",
+        );
         return;
       }
-      setCanUpdate(res.canUpdate === true);
-      const L = res.lookup || {};
+      setCanUpdate(res.canUpdate === true || res.CanUpdate === true);
+      const L = res.lookup || res.Lookup || {};
       setForm({
         semester: L.semester ?? "",
         lastSemester: L.lastSemester ?? "",
@@ -127,9 +137,11 @@ const UpdateLookupSemester = () => {
         sbTotalSpace: L.sbTotalSpace ?? "",
         siTotalSpace: L.siTotalSpace ?? "",
         saTotalSpace: L.saTotalSpace ?? "",
-        currentExamDate: L.currentExamDate ?? "",
-        currentExamDueTime: L.currentExamDueTime ?? "",
-        volunteerAvailability: L.volunteerAvailability ?? "N",
+        currentExamDate: L.currentExamDate ?? L.CurrentExamDate ?? "",
+        currentExamDueTime: L.currentExamDueTime ?? L.CurrentExamDueTime ?? "",
+        volunteerAvailability: normalizeYn(
+          L.volunteerAvailability ?? L.VolunteerAvailability,
+        ),
       });
     } catch (e) {
       setError(
@@ -176,15 +188,17 @@ const UpdateLookupSemester = () => {
         saTotalSpace: form.saTotalSpace,
         currentExamDate: form.currentExamDate,
         currentExamDueTime: form.currentExamDueTime,
-        volunteerAvailability: form.volunteerAvailability,
+        volunteerAvailability: normalizeYn(form.volunteerAvailability),
         chapterID,
       };
       const res = await semesterLookupService.updateSemesterLookup(payload);
-      if (!res.isSuccess) {
-        setError(res.errorMessage || "Update failed.");
+      if (!(res.isSuccess ?? res.IsSuccess)) {
+        setError(res.errorMessage || res.ErrorMessage || "Update failed.");
         return;
       }
-      setSuccess(res.message || "Semester lookup updated successfully.");
+      setSuccess(
+        res.message || res.Message || "Semester lookup updated successfully.",
+      );
       await load();
     } catch (e) {
       const status = e.response?.status;
@@ -192,11 +206,16 @@ const UpdateLookupSemester = () => {
       if (status === 403) {
         setError(data?.errorMessage || "You do not have permission to update.");
       } else {
-        const errorDetails = data?.errors && Array.isArray(data.errors)
-          ? `: ${data.errors.join(", ")}`
-          : "";
+        const errorDetails =
+          data?.errors && Array.isArray(data.errors)
+            ? `: ${data.errors.join(", ")}`
+            : "";
         setError(
-          (data?.message || data?.error || data?.errorMessage || e.message || "Update failed.") + errorDetails
+          (data?.message ||
+            data?.error ||
+            data?.errorMessage ||
+            e.message ||
+            "Update failed.") + errorDetails,
         );
       }
     } finally {
@@ -267,416 +286,446 @@ const UpdateLookupSemester = () => {
                   )}
 
                   {loading ? (
-                    <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                    <Box
+                      sx={{ display: "flex", justifyContent: "center", py: 4 }}
+                    >
                       <CircularProgress />
                     </Box>
                   ) : (
                     <>
-                    <TableContainer sx={lookupTableContainerSx}>
-                      <Table size="small" sx={{ tableLayout: "fixed" }}>
-                        <TableBody>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Current Semester
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.semester}
-                                onChange={handleChange("semester")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                inputProps={{ maxLength: 5 }}
-                                sx={lookupFieldSx}
-                              />
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Last Semester
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.lastSemester}
-                                onChange={handleChange("lastSemester")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                inputProps={{ maxLength: 5 }}
-                                sx={lookupFieldSx}
-                              />
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Starting Date
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.startingDate}
-                                onChange={handleChange("startingDate")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                inputProps={{ maxLength: 20 }}
-                                placeholder="e.g. MM/dd/yyyy"
-                                sx={lookupFieldSx}
-                              />
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Registration Start Date
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.regStartDate}
-                                onChange={handleChange("regStartDate")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                inputProps={{ maxLength: 20 }}
-                                sx={lookupFieldSx}
-                              />
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Registration Close Date
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.regCloseDate}
-                                onChange={handleChange("regCloseDate")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                inputProps={{ maxLength: 20 }}
-                                sx={lookupFieldSx}
-                              />
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Registration Status
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                fullWidth
-                                select
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.registrationStatus}
-                                onChange={handleChange("registrationStatus")}
-                                disabled={!canUpdate || saving}
-                                sx={lookupFieldSx}
+                      <TableContainer sx={lookupTableContainerSx}>
+                        <Table size="small" sx={{ tableLayout: "fixed" }}>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
                               >
-                                <MenuItem value="O">Open</MenuItem>
-                                <MenuItem value="C">Close</MenuItem>
-                              </TextField>
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Volunteer Availability
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                fullWidth
-                                select
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.volunteerAvailability}
-                                onChange={handleChange("volunteerAvailability")}
-                                disabled={!canUpdate || saving}
-                                sx={lookupFieldSx}
+                                Current Semester
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.semester}
+                                  onChange={handleChange("semester")}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  inputProps={{ maxLength: 5 }}
+                                  sx={lookupFieldSx}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
                               >
-                                <MenuItem value="Y">Open (Yes)</MenuItem>
-                                <MenuItem value="N">Close (No)</MenuItem>
-                              </TextField>
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Display Documents From
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.displayDocumentsFrom}
-                                onChange={handleChange("displayDocumentsFrom")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                sx={lookupFieldSx}
-                              />
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Total Space Junior Beginner
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.jbTotalSpace}
-                                onChange={handleChange("jbTotalSpace")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                inputProps={{ maxLength: 5 }}
-                                sx={{ ...lookupFieldSx, width: 108, maxWidth: "100%" }}
-                              />
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Total Space Junior Intermediate
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.jiTotalSpace}
-                                onChange={handleChange("jiTotalSpace")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                inputProps={{ maxLength: 5 }}
-                                sx={{ ...lookupFieldSx, width: 108, maxWidth: "100%" }}
-                              />
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Total Space Junior Advanced
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.jaTotalSpace}
-                                onChange={handleChange("jaTotalSpace")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                inputProps={{ maxLength: 5 }}
-                                sx={{ ...lookupFieldSx, width: 108, maxWidth: "100%" }}
-                              />
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Total Space Senior Beginner
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.sbTotalSpace}
-                                onChange={handleChange("sbTotalSpace")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                inputProps={{ maxLength: 5 }}
-                                sx={{ ...lookupFieldSx, width: 108, maxWidth: "100%" }}
-                              />
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Total Space Senior Intermediate
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.siTotalSpace}
-                                onChange={handleChange("siTotalSpace")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                inputProps={{ maxLength: 5 }}
-                                sx={{ ...lookupFieldSx, width: 108, maxWidth: "100%" }}
-                              />
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Total Space Senior Advanced
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.saTotalSpace}
-                                onChange={handleChange("saTotalSpace")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                inputProps={{ maxLength: 5 }}
-                                sx={{ ...lookupFieldSx, width: 108, maxWidth: "100%" }}
-                              />
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Current Exam Date
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.currentExamDate}
-                                onChange={handleChange("currentExamDate")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                inputProps={{ maxLength: 10 }}
-                                sx={lookupFieldSx}
-                              />
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell
-                              component="th"
-                              scope="row"
-                              sx={lookupLabelCellSx}
-                            >
-                              Current Exam Due Time
-                            </TableCell>
-                            <TableCell sx={lookupInputCellSx}>
-                              <TextField
-                                fullWidth
-                                size="small"
-                                variant="outlined"
-                                hiddenLabel
-                                value={form.currentExamDueTime}
-                                onChange={handleChange("currentExamDueTime")}
-                                disabled={saving}
-                                InputProps={{ readOnly: fieldReadOnly }}
-                                inputProps={{ maxLength: 25 }}
-                                sx={lookupFieldSx}
-                              />
-                            </TableCell>
-                          </TableRow>
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                    <Box
-                      sx={{
-                        mt: 2,
-                        display: "flex",
-                        justifyContent: "center",
-                        flexWrap: "wrap",
-                        gap: 1,
-                      }}
-                    >
-                      <Button
-                        type="button"
-                        variant="outlined"
-                        color="primary"
-                        size="small"
-                        startIcon={<RefreshIcon />}
-                        onClick={load}
-                        disabled={loading || saving}
-                        sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                                Last Semester
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.lastSemester}
+                                  onChange={handleChange("lastSemester")}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  inputProps={{ maxLength: 5 }}
+                                  sx={lookupFieldSx}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Starting Date
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.startingDate}
+                                  onChange={handleChange("startingDate")}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  inputProps={{ maxLength: 20 }}
+                                  placeholder="e.g. MM/dd/yyyy"
+                                  sx={lookupFieldSx}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Registration Start Date
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.regStartDate}
+                                  onChange={handleChange("regStartDate")}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  inputProps={{ maxLength: 20 }}
+                                  sx={lookupFieldSx}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Registration Close Date
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.regCloseDate}
+                                  onChange={handleChange("regCloseDate")}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  inputProps={{ maxLength: 20 }}
+                                  sx={lookupFieldSx}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Registration Status
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  fullWidth
+                                  select
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.registrationStatus}
+                                  onChange={handleChange("registrationStatus")}
+                                  disabled={!canUpdate || saving}
+                                  sx={lookupFieldSx}
+                                >
+                                  <MenuItem value="O">Open</MenuItem>
+                                  <MenuItem value="C">Close</MenuItem>
+                                </TextField>
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Volunteer Availability
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  fullWidth
+                                  select
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.volunteerAvailability}
+                                  onChange={handleChange(
+                                    "volunteerAvailability",
+                                  )}
+                                  disabled={!canUpdate || saving}
+                                  sx={lookupFieldSx}
+                                >
+                                  <MenuItem value="Y">Open (Yes)</MenuItem>
+                                  <MenuItem value="N">Close (No)</MenuItem>
+                                </TextField>
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Display Documents From
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.displayDocumentsFrom}
+                                  onChange={handleChange(
+                                    "displayDocumentsFrom",
+                                  )}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  sx={lookupFieldSx}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Total Space Junior Beginner
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.jbTotalSpace}
+                                  onChange={handleChange("jbTotalSpace")}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  inputProps={{ maxLength: 5 }}
+                                  sx={{
+                                    ...lookupFieldSx,
+                                    width: 108,
+                                    maxWidth: "100%",
+                                  }}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Total Space Junior Intermediate
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.jiTotalSpace}
+                                  onChange={handleChange("jiTotalSpace")}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  inputProps={{ maxLength: 5 }}
+                                  sx={{
+                                    ...lookupFieldSx,
+                                    width: 108,
+                                    maxWidth: "100%",
+                                  }}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Total Space Junior Advanced
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.jaTotalSpace}
+                                  onChange={handleChange("jaTotalSpace")}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  inputProps={{ maxLength: 5 }}
+                                  sx={{
+                                    ...lookupFieldSx,
+                                    width: 108,
+                                    maxWidth: "100%",
+                                  }}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Total Space Senior Beginner
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.sbTotalSpace}
+                                  onChange={handleChange("sbTotalSpace")}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  inputProps={{ maxLength: 5 }}
+                                  sx={{
+                                    ...lookupFieldSx,
+                                    width: 108,
+                                    maxWidth: "100%",
+                                  }}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Total Space Senior Intermediate
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.siTotalSpace}
+                                  onChange={handleChange("siTotalSpace")}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  inputProps={{ maxLength: 5 }}
+                                  sx={{
+                                    ...lookupFieldSx,
+                                    width: 108,
+                                    maxWidth: "100%",
+                                  }}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Total Space Senior Advanced
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.saTotalSpace}
+                                  onChange={handleChange("saTotalSpace")}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  inputProps={{ maxLength: 5 }}
+                                  sx={{
+                                    ...lookupFieldSx,
+                                    width: 108,
+                                    maxWidth: "100%",
+                                  }}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Current Exam Date
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.currentExamDate}
+                                  onChange={handleChange("currentExamDate")}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  inputProps={{ maxLength: 10 }}
+                                  sx={lookupFieldSx}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Current Exam Due Time
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  fullWidth
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.currentExamDueTime}
+                                  onChange={handleChange("currentExamDueTime")}
+                                  disabled={saving}
+                                  InputProps={{ readOnly: fieldReadOnly }}
+                                  inputProps={{ maxLength: 25 }}
+                                  sx={lookupFieldSx}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                      <Box
+                        sx={{
+                          mt: 2,
+                          display: "flex",
+                          justifyContent: "center",
+                          flexWrap: "wrap",
+                          gap: 1,
+                        }}
                       >
-                        Refresh
-                      </Button>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        color="success"
-                        size="small"
-                        startIcon={<SaveIcon />}
-                        disabled={!canUpdate || saving}
-                        sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
-                      >
-                        {saving ? "Saving…" : "Submit"}
-                      </Button>
-                    </Box>
+                        <Button
+                          type="button"
+                          variant="outlined"
+                          color="primary"
+                          size="small"
+                          startIcon={<RefreshIcon />}
+                          onClick={load}
+                          disabled={loading || saving}
+                          sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                        >
+                          Refresh
+                        </Button>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          startIcon={<SaveIcon />}
+                          disabled={!canUpdate || saving}
+                          sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
+                        >
+                          {saving ? "Saving…" : "Submit"}
+                        </Button>
+                      </Box>
                     </>
                   )}
                 </Box>

@@ -67,6 +67,7 @@ namespace pStudyWare20.Repository.Implementations
                 };
 
                 command.Parameters.Add(new SqlParameter("@DocID", request.docID));
+                command.Parameters.Add(new SqlParameter("@Active", request.active));
 
                 var dataTable = new DataTable();
                 using var adapter = new SqlDataAdapter(command);
@@ -77,6 +78,43 @@ namespace pStudyWare20.Repository.Implementations
             catch (Exception ex)
             {
                 throw new Exception($"Error publishing document: {ex.Message}", ex);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<int> ResolveClassMaterialTableIdAsync(string docName, string session, string description)
+        {
+            if (string.IsNullOrWhiteSpace(docName))
+                return 0;
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                const string sql = @"
+SELECT TOP 1 mDocID
+FROM dbo.AMC_tblDocuments WITH (NOLOCK)
+WHERE mDocType = 'P'
+  AND mDocName = @DocName
+  AND mSession = @Session
+  AND mDescription = @Description
+ORDER BY mDocID DESC";
+
+                using var command = new SqlCommand(sql, connection);
+                command.Parameters.Add(new SqlParameter("@DocName", docName.Trim()));
+                command.Parameters.Add(new SqlParameter("@Session", session?.Trim() ?? ""));
+                command.Parameters.Add(new SqlParameter("@Description", description?.Trim() ?? ""));
+
+                var result = await command.ExecuteScalarAsync().ConfigureAwait(false);
+                if (result == null || result == DBNull.Value)
+                    return 0;
+
+                return Convert.ToInt32(result);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error resolving class material document ID: {ex.Message}", ex);
             }
         }
 

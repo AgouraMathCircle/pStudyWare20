@@ -14,11 +14,13 @@ import {
   TextField,
   Select,
   MenuItem,
+  CircularProgress,
 } from "@mui/material";
 import {
   CloudUpload as UploadIcon,
   Delete as DeleteIcon,
   Publish as PublishIcon,
+  Unpublished as UnpublishIcon,
 } from "@mui/icons-material";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
@@ -28,7 +30,7 @@ import {
   toSortableDate,
   toSortableNumber,
 } from "../../../utils/tableSort";
-import { getClassMaterialDeleteId } from "../../../services/documentService";
+import { getClassMaterialDeleteId, isClassMaterialPublished } from "../../../services/documentService";
 import {
   adminSessionListEmptyCellSx,
   adminSessionListEmptyTextSx,
@@ -120,11 +122,13 @@ const AdminDocumentList = ({
   onDownload,
   onDelete,
   onPublish,
+  onUnpublish,
   onOpenVideo,
   onAdd,
   canAddDocument,
   canDeleteDocument,
   canPublishDocument,
+  refreshing = false,
 }) => {
   const safeDocuments = Array.isArray(documents) ? documents : [];
   const [orderBy, setOrderBy] = useState("uploadedDate");
@@ -241,11 +245,18 @@ const AdminDocumentList = ({
       });
       return;
     }
-    if (!getClassMaterialDeleteId(doc)) {
+    if (isClassMaterialPublished(doc)) {
       setAlertDialog({
         open: true,
         message:
-          "You cannot delete this document. Document has posted already.",
+          "You cannot delete this document while it is published. Unpublish it first.",
+      });
+      return;
+    }
+    if (!getClassMaterialDeleteId(doc)) {
+      setAlertDialog({
+        open: true,
+        message: "You cannot delete this document.",
       });
       return;
     }
@@ -253,7 +264,7 @@ const AdminDocumentList = ({
   };
 
   const handlePublishClick = (doc) => {
-    if (doc.publish?.toUpperCase() === "Y") {
+    if (isClassMaterialPublished(doc)) {
       setAlertDialog({
         open: true,
         message:
@@ -262,6 +273,17 @@ const AdminDocumentList = ({
       return;
     }
     setConfirmDialog({ open: true, type: "publish", doc });
+  };
+
+  const handleUnpublishClick = (doc) => {
+    if (!isClassMaterialPublished(doc)) {
+      setAlertDialog({
+        open: true,
+        message: "This document is not published.",
+      });
+      return;
+    }
+    setConfirmDialog({ open: true, type: "unpublish", doc });
   };
 
   const handleConfirmDialogClose = () => {
@@ -278,6 +300,8 @@ const AdminDocumentList = ({
       onDelete(getClassMaterialDeleteId(doc), doc.docName);
     } else if (type === "publish") {
       onPublish(getClassMaterialDeleteId(doc));
+    } else if (type === "unpublish") {
+      onUnpublish(doc);
     }
   };
 
@@ -299,6 +323,15 @@ const AdminDocumentList = ({
         confirmLabel: "Publish",
         confirmColor: "primary",
         icon: <PublishIcon sx={{ fontSize: 20 }} />,
+      };
+    }
+    if (type === "unpublish") {
+      return {
+        title: "Unpublish Document",
+        message: `Are you sure you want to unpublish "${doc?.docName}"? Students will no longer see this document.`,
+        confirmLabel: "Unpublish",
+        confirmColor: "warning",
+        icon: <UnpublishIcon sx={{ fontSize: 20 }} />,
       };
     }
     return null;
@@ -335,7 +368,9 @@ const AdminDocumentList = ({
   );
 
   const renderDocumentActions = (doc) => {
-    const canDeleteRow = canDeleteDocument && Boolean(getClassMaterialDeleteId(doc));
+    const published = isClassMaterialPublished(doc);
+    const canDeleteRow =
+      canDeleteDocument && !published && Boolean(getClassMaterialDeleteId(doc));
     return (
       <Box
         sx={{
@@ -524,7 +559,23 @@ const AdminDocumentList = ({
         </Button>
       </Box>
 
-      <TableContainer component={Paper} sx={{ width: "100%" }}>
+      <Box sx={{ position: "relative", width: "100%" }}>
+        {refreshing ? (
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: "rgba(255, 255, 255, 0.65)",
+            }}
+          >
+            <CircularProgress size={32} />
+          </Box>
+        ) : null}
+        <TableContainer component={Paper} sx={{ width: "100%" }}>
         <Table sx={adminSessionListGridTableSx} size="small">
           <TableHead>
             <TableRow sx={adminSessionListTableHeadRowSx}>
@@ -602,7 +653,7 @@ const AdminDocumentList = ({
           <TableBody>
             {paginatedDocuments.length > 0 ? (
               paginatedDocuments.map((doc, index) => {
-                const isPublished = doc.publish?.toUpperCase() === "Y";
+                const isPublished = isClassMaterialPublished(doc);
                 return (
                   <TableRow
                     key={doc.docID || index}
@@ -660,17 +711,23 @@ const AdminDocumentList = ({
                       }}
                     >
                       {isPublished ? (
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          sx={{
-                            fontSize: "0.75rem",
-                            fontWeight: 700,
-                            color: "#2e7d32",
-                          }}
-                        >
-                          Published
-                        </Typography>
+                        canPublishDocument ? (
+                          renderActionLink("Unpublish", () =>
+                            handleUnpublishClick(doc),
+                          )
+                        ) : (
+                          <Typography
+                            component="span"
+                            variant="body2"
+                            sx={{
+                              fontSize: "0.75rem",
+                              fontWeight: 700,
+                              color: "#2e7d32",
+                            }}
+                          >
+                            Published
+                          </Typography>
+                        )
                       ) : canPublishDocument ? (
                         renderActionLink("Publish", () => handlePublishClick(doc))
                       ) : (
@@ -693,7 +750,8 @@ const AdminDocumentList = ({
             )}
           </TableBody>
         </Table>
-      </TableContainer>
+        </TableContainer>
+      </Box>
 
       <AdminSessionListPagination
         currentPage={currentPage}

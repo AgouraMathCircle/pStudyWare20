@@ -66,9 +66,40 @@ namespace pStudyWare20.Services.Implementations
         /// </summary>
         public async Task<ResponseDetails> PublishDocumentAsync(PublishDocument publishDocument)
         {
+            publishDocument.active = 1;
+            return await SetDocumentPublishStateAsync(publishDocument).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Unpublish document (set Active=0 via AMC_spPublishDocuments).
+        /// </summary>
+        public async Task<ResponseDetails> UnpublishDocumentAsync(PublishDocument publishDocument)
+        {
+            publishDocument.active = 0;
+            return await SetDocumentPublishStateAsync(publishDocument).ConfigureAwait(false);
+        }
+
+        private async Task<ResponseDetails> SetDocumentPublishStateAsync(PublishDocument publishDocument)
+        {
             var responseDetails = new ResponseDetails();
             try
             {
+                if (publishDocument.docID <= 0)
+                {
+                    publishDocument.docID = await _documentRepository.ResolveClassMaterialTableIdAsync(
+                        publishDocument.docName,
+                        publishDocument.session,
+                        publishDocument.description).ConfigureAwait(false);
+                }
+
+                if (publishDocument.docID <= 0)
+                {
+                    responseDetails.isSuccess = false;
+                    responseDetails.ErrorMessage = "Unable to resolve document ID for publish state change.";
+                    responseDetails.Message = "";
+                    return responseDetails;
+                }
+
                 var result = await _documentRepository.PublishDocumentAsync(publishDocument).ConfigureAwait(false);
                 responseDetails.isSuccess = true;
                 responseDetails.ErrorMessage = "";
@@ -105,7 +136,9 @@ namespace pStudyWare20.Services.Implementations
                         documents.Add(new DocumentRepositoryItem
                         {
                             DocID = GetIntValue(row, "mDocID") ?? GetIntValue(row, "DocID") ?? 0,
-                            DocumentID = GetIntValue(row, "DocumentID") ?? 0,
+                            DocumentID = GetIntValue(row, "TableDocID")
+                                ?? GetIntValue(row, "DocumentID")
+                                ?? 0,
                             Topics = GetStringValue(row, "Topics"),
                             DocName = StripGuidPrefixFromFileName(GetStringValue(row, "mDocName")),
                             Description = GetStringValue(row, "Description"),
@@ -157,7 +190,9 @@ namespace pStudyWare20.Services.Implementations
                         documents.Add(new DocumentRepositoryItem
                         {
                             DocID = GetIntValue(row, "mDocID") ?? GetIntValue(row, "DocID") ?? 0,
-                            DocumentID = GetIntValue(row, "DocumentID") ?? 0,
+                            DocumentID = GetIntValue(row, "TableDocID")
+                                ?? GetIntValue(row, "DocumentID")
+                                ?? 0,
                             Topics = GetStringValue(row, "Topics"),
                             DocName = StripGuidPrefixFromFileName(GetStringValue(row, "mDocName")),
                             Description = GetStringValue(row, "Description"),

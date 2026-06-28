@@ -409,7 +409,7 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sx={{ pt: "8px !important" }}>
+          <Grid item xs={12} id="admin-student-list" sx={{ pt: "8px !important" }}>
             <Card sx={panelCardSx}>
               <CardContent sx={{ px: 1.5, pt: 1.5, pb: 0 }}>
                 <StudentList

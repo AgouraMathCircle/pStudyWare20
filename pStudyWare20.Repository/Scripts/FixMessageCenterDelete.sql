@@ -1,5 +1,5 @@
 -- Soft-delete message center rows as archived (Status='A') so inbox queries hide them.
--- Run against your AMC database if AMC_spUpdateAddEmailTracking still sets Status='V' on delete.
+-- Run again if AMC_spUpdateAddEmailTracking still sets Status='V' on delete.
 
 IF OBJECT_ID(N'dbo.AMC_spUpdateAddEmailTracking', N'P') IS NOT NULL
 BEGIN

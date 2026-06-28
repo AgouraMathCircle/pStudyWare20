@@ -34,5 +34,6 @@ export { default as SpecialEventsRegistration } from "./SpecialEventsRegistratio
 export { default as PostMessage } from "./PostMessage";
 export { default as UploadAnswerKey } from "./UploadAnswerKey";
 export { default as UpdateLookupSemester } from "./UpdateLookupSemester";
+export { default as DonorDetails } from "./DonorDetails";
 export { default as AdminReportCard } from "./AdminReportCard";
 export { default as AdminUserTracking } from "./AdminUserTracking";

@@ -23,7 +23,6 @@ import {
 } from "@mui/material";
 import {
   Download as DownloadIcon,
-  Delete as DeleteIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
@@ -498,7 +497,9 @@ const SpecialEventsRegistration = () => {
                               sx={adminSessionListTableHeadCellSx(
                                 columnWidths.delete,
                               )}
-                            />
+                            >
+                              Action
+                            </TableCell>
                           )}
                           <SortableHeader
                             label="#"
@@ -641,18 +642,16 @@ const SpecialEventsRegistration = () => {
                                     action: true,
                                   })}
                                 >
-                                  <Tooltip title="Delete">
-                                    <Box
-                                      component="span"
-                                      onClick={() =>
-                                        setDeleteTarget(row.registerID)
-                                      }
-                                      sx={adminSessionListTableDeleteLinkSx}
-                                      aria-label="Delete registration"
-                                    >
-                                      <DeleteIcon sx={{ fontSize: "1rem" }} />
-                                    </Box>
-                                  </Tooltip>
+                                  <Box
+                                    component="span"
+                                    onClick={() =>
+                                      setDeleteTarget(row.registerID)
+                                    }
+                                    sx={adminSessionListTableDeleteLinkSx}
+                                    aria-label="Delete registration"
+                                  >
+                                    Delete
+                                  </Box>
                                 </TableCell>
                               )}
                               <TableCell
