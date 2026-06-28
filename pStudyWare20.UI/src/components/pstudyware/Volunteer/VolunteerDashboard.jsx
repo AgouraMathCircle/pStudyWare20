@@ -183,30 +183,30 @@ const VolunteerDashboard = () => {
     boxShadow: PORTAL_CARD_BOX_SHADOW,
     overflow: "hidden",
     boxSizing: "border-box",
-    pl: "35px",
-    pr: "35px",
+    pl: "16px",
+    pr: "16px",
     ...portalCardAntiLiftSx,
   };
 
   const panelContentSx = {
-    px: { xs: 0.5, sm: 1.5 },
+    px: { xs: 0.5, sm: 1 },
     pt: 1,
     pb: 0,
-    "&:last-child": { pb: 1.5 },
+    "&:last-child": { pb: 1 },
   };
 
   const statItems = [
-    {
-      label: "Total volunteer hours",
-      value: (summary.totalVolunteerHours ?? 0).toFixed(2),
-      icon: <HoursIcon fontSize="small" />,
-      accent: "#43a047",
-    },
     {
       label: "Entries logged",
       value: summary.totalEntries ?? 0,
       icon: <EntriesIcon fontSize="small" />,
       accent: "#66bb6a",
+    },
+    {
+      label: "Total volunteer hours",
+      value: (summary.totalVolunteerHours ?? 0).toFixed(2),
+      icon: <HoursIcon fontSize="small" />,
+      accent: "#43a047",
     },
     {
       label: "Most frequent task",
@@ -220,153 +220,151 @@ const VolunteerDashboard = () => {
     <Container maxWidth="xl" sx={{ pb: 4 }}>
       <Grid container spacing={2.5}>
         <Grid item xs={12} sx={{ width: "100%", pb: "0 !important" }}>
-          <Card sx={panelCardSx} className="dashboard-messages-panel">
-            <CardContent sx={panelContentSx}>
-              <DashboardMessages
-                username={username}
-                chapterId={chapterId}
-                dashboardMessages={dashboardMessages}
-                loading={messagesLoading}
-              />
-            </CardContent>
-          </Card>
+          <DashboardMessages
+            username={username}
+            chapterId={chapterId}
+            dashboardMessages={dashboardMessages}
+            loading={messagesLoading}
+          />
         </Grid>
-
-        {showVolunteerAvailability && (
-          <Grid item xs={12} sx={{ width: "100%" }}>
-            <Card
-              sx={{
-                ...panelCardSx,
-                borderTop: "4px solid #43a047",
-              }}
-            >
-              <CardContent sx={{ ...panelContentSx, "&:last-child": { pb: 2 } }}>
-                <VolunteerAvailability embedded={true} />
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
-
-        <Grid item xs={12} sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 2 }}>
-          <Card sx={panelCardSx}>
-            <CardContent sx={{ ...panelContentSx, "&:last-child": { pb: 2 } }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 2,
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  mb: 2,
-                  borderBottom: "1px solid #dcebdc",
-                  pb: 1.75,
-                }}
-              >
-                <Box sx={{ minWidth: 0 }}>
-                  <Chip
-                    label="Volunteer dashboard"
-                    size="small"
-                    sx={{
-                      mb: 0.75,
-                      bgcolor: "#e8f5e9",
-                      color: "#1b5e20",
-                      fontWeight: 700,
-                    }}
-                  />
-                  <Typography
-                    variant="h5"
-                    component="h1"
-                    sx={{ fontWeight: 800, color: "#1b5e20", letterSpacing: 0 }}
-                  >
-                    Time sheet entry
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    Track tutoring, grading, operations, and other volunteer work in one place.
-                  </Typography>
-                </Box>
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  component={RouterLink}
-                  to="/pstudyware/volunteer/time-sheet"
+        <Grid item xs={12} sx={{ width: "100%", pt: "0 !important" }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, width: "100%", alignItems: "stretch", mt: -1.5 }}>
+            {showVolunteerAvailability && (
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Card
                   sx={{
-                    backgroundColor: "#43a047",
-                    "&:hover": {
-                      backgroundColor: "#2e7d32",
-                    },
-                    textTransform: "none",
-                    fontWeight: 700,
-                    borderRadius: 1.5,
-                    px: 2.25,
-                    py: 1,
-                    boxShadow: "0 8px 18px rgba(67, 160, 71, 0.24)",
+                    ...panelCardSx,
+                    borderTop: "4px solid #43a047",
+                    height: "100%"
                   }}
                 >
-                  Log hours
-                </Button>
+                  <CardContent sx={{ ...panelContentSx, "&:last-child": { pb: 2 } }}>
+                    <VolunteerAvailability embedded={true} />
+                  </CardContent>
+                </Card>
               </Box>
+            )}
 
-              <Grid container spacing={2}>
-                {statItems.map((item) => (
-                  <Grid item xs={12} md={4} key={item.label}>
-                    <Paper
+            <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+              <Card sx={{ ...panelCardSx, height: "100%" }}>
+                <CardContent sx={{ ...panelContentSx, "&:last-child": { pb: 2 }, height: "100%", display: "flex", flexDirection: "column" }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 1,
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      mb: 0.5,
+                      borderBottom: "1px solid #dcebdc",
+                      pb: 0.5,
+                    }}
+                  >
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
+                        variant="subtitle1"
+                        component="h1"
+                        sx={{ fontWeight: 800, color: "#1b5e20", letterSpacing: 0, lineHeight: 1.2 }}
+                      >
+                        Time sheet entry
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0 }}>
+                        Track tutoring, grading, operations, and other volunteer work in one place.
+                      </Typography>
+                    </Box>
+
+                    <Button
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      component={RouterLink}
+                      to="/pstudyware/volunteer/time-sheet"
                       sx={{
-                        p: 2.25,
-                        height: "100%",
-                        border: "1px solid #dfe9df",
-                        borderLeft: `4px solid ${item.accent}`,
-                        borderRadius: 2,
-                        boxShadow: "none",
-                        background: "linear-gradient(180deg, #ffffff 0%, #fbfffb 100%)",
-                        display: "flex",
-                        gap: 1.5,
-                        alignItems: "flex-start",
+                        backgroundColor: "#43a047",
+                        "&:hover": {
+                          backgroundColor: "#2e7d32",
+                        },
+                        textTransform: "none",
+                        fontWeight: 700,
+                        borderRadius: 1.5,
+                        px: 1.5,
+                        py: 0.5,
+                        boxShadow: "0 4px 10px rgba(67, 160, 71, 0.2)",
                       }}
                     >
-                      <Box
-                        sx={{
-                          width: 34,
-                          height: 34,
-                          borderRadius: "50%",
-                          bgcolor: "#e8f5e9",
-                          color: item.accent,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                        }}
-                      >
-                        {item.icon}
-                      </Box>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700 }}>
-                          {item.label}
-                        </Typography>
-                        <Typography
-                          variant={item.label === "Most frequent task" ? "body1" : "h5"}
+                      Log hours
+                    </Button>
+                  </Box>
+
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, flex: 1 }}>
+                    {statItems.map((item) => (
+                      <Box key={item.label}>
+                        <Paper
                           sx={{
-                            fontWeight: 800,
-                            color: "#2d2d2d",
-                            mt: 0.5,
-                            overflowWrap: "anywhere",
+                            p: 0.75,
+                            height: "100%",
+                            border: "1px solid #dfe9df",
+                            borderLeft: `4px solid ${item.accent}`,
+                            borderRadius: 2,
+                            boxShadow: "none",
+                            background: "linear-gradient(180deg, #ffffff 0%, #fbfffb 100%)",
+                            display: "flex",
+                            gap: 0.75,
+                            alignItems: "flex-start",
                           }}
                         >
-                          {item.value}
-                        </Typography>
+                          <Box
+                            sx={{
+                              width: 24,
+                              height: 24,
+                              borderRadius: "50%",
+                              bgcolor: "#e8f5e9",
+                              color: item.accent,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {item.icon}
+                          </Box>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700 }}>
+                              {item.label}
+                            </Typography>
+                            <Typography
+                              variant={item.label === "Most frequent task" ? "caption" : "subtitle2"}
+                              sx={{
+                                fontWeight: 800,
+                                color: "#2d2d2d",
+                                mt: 0,
+                                lineHeight: 1.2,
+                                overflowWrap: "anywhere",
+                              }}
+                            >
+                              {item.value}
+                            </Typography>
+                          </Box>
+                        </Paper>
                       </Box>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </Card>
+                    ))}
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
+          </Box>
 
-          <VolunteerTimeSheetGrid
-            rows={entries}
-            loading={listLoading}
-            error={listError}
-            onEntriesChanged={loadDashboard}
-          />
+          <Box sx={{ width: "100%", mt: 3 }}>
+            <Card sx={panelCardSx}>
+              <CardContent sx={{ ...panelContentSx, p: 0, "&:last-child": { pb: 0 } }}>
+                <VolunteerTimeSheetGrid
+                  rows={entries}
+                  loading={listLoading}
+                  error={listError}
+                  onEntriesChanged={loadDashboard}
+                />
+              </CardContent>
+            </Card>
+          </Box>
         </Grid>
       </Grid>
     </Container>

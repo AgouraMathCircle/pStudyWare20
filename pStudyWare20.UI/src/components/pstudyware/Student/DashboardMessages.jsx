@@ -9,6 +9,7 @@ import {
   CircularProgress,
   Grid,
   Link,
+  Button,
 } from "@mui/material";
 import {
   Warning as WarningIcon,
@@ -21,7 +22,7 @@ import PdfViewerModal from "../../common/PdfViewerModal";
 
 const IMPORTANT_NOTICE_LINKS = [
   {
-    label: "Subscribe and Watch all the Lectures Notes Video",
+    label: "Subscribe and Watch all the Lectures Video",
     href: "https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/featured",
     external: true,
     color: "#1976d2",
@@ -37,13 +38,10 @@ const IMPORTANT_NOTICE_LINKS = [
 ];
 
 const importantNoticeLinkSx = (color) => ({
-  display: "block",
   color,
-  fontSize: "0.875rem",
+  fontSize: "0.75rem",
   fontWeight: 500,
-  lineHeight: 1.4,
-  m: 0,
-  p: 0,
+  lineHeight: 1.3,
   textDecoration: "none",
   textAlign: "left",
   "&:hover": {
@@ -65,9 +63,9 @@ const messageCardBaseSx = {
   boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
   position: "relative",
   overflow: "hidden",
+  minHeight: 140,
   height: "100%",
   width: "100%",
-  minHeight: 280,
   display: "flex",
   flexDirection: "column",
   transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -86,10 +84,13 @@ const messageCardContentSx = {
   flexDirection: "column",
   width: "100%",
   flexGrow: 1,
+  height: "100%",
+  overflow: "hidden",
 };
 
 const messageCardBodySx = {
   color: "#333",
+  fontSize: "0.8rem",
   lineHeight: 1.45,
   wordWrap: "break-word",
   overflowWrap: "break-word",
@@ -112,6 +113,8 @@ const compactMessageCardContentSx = {
   flexDirection: "column",
   width: "100%",
   flexGrow: 1,
+  height: "100%",
+  overflow: "hidden",
 };
 
 const compactMessageCardHeaderSx = {
@@ -125,6 +128,7 @@ const DashboardMessages = ({
   dashboardMessages: propsDashboardMessages,
   loading: propsLoading,
   compact = false,
+  timeSheetUrl = "",
 }) => {
   const isControlled = propsDashboardMessages != null;
   const [internalMessages, setInternalMessages] = useState({
@@ -231,26 +235,21 @@ const DashboardMessages = ({
                 <Box sx={cardHeaderSx}>
                   <Typography
                     variant="h6"
-                    sx={{ fontWeight: 700, color: "#111111", fontSize: "0.95rem" }}
+                    sx={{ fontWeight: 700, color: "#111111", fontSize: "0.85rem" }}
                   >
                     Important Notice
                   </Typography>
                   <WarningIcon sx={{ color: "#e53935", fontSize: 22 }} />
                 </Box>
-                {dashboardMessages.importantNotice && (
-                  <Typography variant="body2" sx={{ ...messageCardBodySx, color: "#333333", mb: 1.25 }}>
-                    {dashboardMessages.importantNotice}
-                  </Typography>
-                )}
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 0.75,
-                    mt: dashboardMessages.importantNotice ? 0.25 : 0,
-                  }}
-                >
-                  {IMPORTANT_NOTICE_LINKS.map((item) => {
+                
+                <Box sx={{ overflowY: "auto", flexGrow: 1, mb: 1, pr: 0.5, display: "flex", flexDirection: "column", gap: 0.75 }}>
+                  {dashboardMessages.importantNotice && (
+                    <Typography variant="body2" sx={{ ...messageCardBodySx, color: "#333333" }}>
+                      {dashboardMessages.importantNotice}
+                    </Typography>
+                  )}
+                  <Box sx={{ display: "block", lineHeight: 1.3 }}>
+                    {IMPORTANT_NOTICE_LINKS.map((item, index) => {
                     const linkContent = (
                       <span>
                         {item.prefix && (
@@ -264,7 +263,7 @@ const DashboardMessages = ({
                       </span>
                     );
 
-                    return item.isPdf ? (
+                    const linkElement = item.isPdf ? (
                       <Link
                         key={item.href}
                         component="button"
@@ -274,7 +273,9 @@ const DashboardMessages = ({
                           border: "none",
                           background: "none",
                           padding: 0,
+                          margin: 0,
                           cursor: "pointer",
+                          display: "inline",
                         }}
                       >
                         {linkContent}
@@ -285,7 +286,10 @@ const DashboardMessages = ({
                         href={item.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        sx={importantNoticeLinkSx(item.color)}
+                        sx={{
+                          ...importantNoticeLinkSx(item.color),
+                          display: "inline"
+                        }}
                       >
                         {linkContent}
                       </Link>
@@ -294,18 +298,25 @@ const DashboardMessages = ({
                         key={item.href}
                         component={RouterLink}
                         to={item.href}
-                        sx={importantNoticeLinkSx(item.color)}
+                        sx={{
+                          ...importantNoticeLinkSx(item.color),
+                          display: "inline"
+                        }}
                       >
                         {linkContent}
                       </Link>
                     );
+                    
+                    return (
+                      <React.Fragment key={item.href}>
+                        {linkElement}
+                        {index < IMPORTANT_NOTICE_LINKS.length - 1 && (
+                          <span style={{ margin: "0 4px", color: "#ccc" }}>|</span>
+                        )}
+                      </React.Fragment>
+                    );
                   })}
-                </Box>
-
-                <Box sx={{ mt: "auto", pt: 1, borderTop: "1px solid #ffebee", display: "flex", justifyContent: "flex-end" }}>
-                  <Typography variant="caption" sx={{ color: "#c62828", fontWeight: 600, fontSize: "0.7rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                    General Alerts
-                  </Typography>
+                  </Box>
                 </Box>
               </CardContent>
             </Card>
@@ -325,19 +336,15 @@ const DashboardMessages = ({
                 <Box sx={cardHeaderSx}>
                   <Typography
                     variant="h6"
-                    sx={{ fontWeight: 700, color: "#111111", fontSize: "0.95rem" }}
+                    sx={{ fontWeight: 700, color: "#111111", fontSize: "0.85rem" }}
                   >
                     Math Circle
                   </Typography>
                   <InfoIcon sx={{ color: "#1e88e5", fontSize: 22 }} />
                 </Box>
-                <Typography variant="body2" sx={{ ...messageCardBodySx, color: "#333333" }}>
-                  {dashboardMessages.announcement}
-                </Typography>
-
-                <Box sx={{ mt: "auto", pt: 1, borderTop: "1px solid #e3f2fd", display: "flex", justifyContent: "flex-end" }}>
-                  <Typography variant="caption" sx={{ color: "#1565c0", fontWeight: 600, fontSize: "0.7rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                    Math Program
+                <Box sx={{ overflowY: "auto", flexGrow: 1, mb: 1, pr: 0.5 }}>
+                  <Typography variant="body2" sx={{ ...messageCardBodySx, color: "#333333" }}>
+                    {dashboardMessages.announcement}
                   </Typography>
                 </Box>
               </CardContent>
@@ -358,19 +365,15 @@ const DashboardMessages = ({
                 <Box sx={cardHeaderSx}>
                   <Typography
                     variant="h6"
-                    sx={{ fontWeight: 700, color: "#111111", fontSize: "0.95rem" }}
+                    sx={{ fontWeight: 700, color: "#111111", fontSize: "0.85rem" }}
                   >
                     Engineering Circle
                   </Typography>
                   <EmojiEventsIcon sx={{ color: "#43a047", fontSize: 22 }} />
                 </Box>
-                <Typography variant="body2" sx={{ ...messageCardBodySx, color: "#333333" }}>
-                  {dashboardMessages.competitions}
-                </Typography>
-
-                <Box sx={{ mt: "auto", pt: 1, borderTop: "1px solid #e8f5e9", display: "flex", justifyContent: "flex-end" }}>
-                  <Typography variant="caption" sx={{ color: "#2e7d32", fontWeight: 600, fontSize: "0.7rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                    Engineering Program
+                <Box sx={{ overflowY: "auto", flexGrow: 1, mb: 1, pr: 0.5 }}>
+                  <Typography variant="body2" sx={{ ...messageCardBodySx, color: "#333333" }}>
+                    {dashboardMessages.competitions}
                   </Typography>
                 </Box>
               </CardContent>
@@ -391,21 +394,30 @@ const DashboardMessages = ({
                 <Box sx={cardHeaderSx}>
                   <Typography
                     variant="h6"
-                    sx={{ fontWeight: 700, color: "#6a1b9a", fontSize: "0.95rem" }}
+                    sx={{ fontWeight: 700, color: "#6a1b9a", fontSize: "0.85rem" }}
                   >
                     Test Preparation
                   </Typography>
                   <ChecklistIcon sx={{ color: "#8e24aa", fontSize: 22 }} />
                 </Box>
-                <Typography variant="body2" sx={{ ...messageCardBodySx, color: "#333333" }}>
-                  {dashboardMessages.todoList}
-                </Typography>
-
-                <Box sx={{ mt: "auto", pt: 1, borderTop: "1px solid #f3e5f5", display: "flex", justifyContent: "flex-end" }}>
-                  <Typography variant="caption" sx={{ color: "#6a1b9a", fontWeight: 600, fontSize: "0.7rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                    Test Prep Program
+                <Box sx={{ overflowY: "auto", flexGrow: 1, mb: 1, pr: 0.5 }}>
+                  <Typography variant="body2" sx={{ ...messageCardBodySx, color: "#333333" }}>
+                    {dashboardMessages.todoList}
                   </Typography>
                 </Box>
+                {timeSheetUrl && (
+                  <Box sx={{ mt: "auto", pt: 1, borderTop: "1px solid #e1bee7" }}>
+                    <Button
+                      component={RouterLink}
+                      to={timeSheetUrl}
+                      variant="text"
+                      size="small"
+                      sx={{ color: "#6a1b9a", fontWeight: "bold", textTransform: "none", p: 0 }}
+                    >
+                      Add time sheet
+                    </Button>
+                  </Box>
+                )}
               </CardContent>
             </Card>
           </Grid>

@@ -103,7 +103,7 @@ const TestPreparation = () => {
         <Box className="breadcrumbs-text white-color">
           <Typography
             variant="h1"
-            className="page-title"
+            className="white-title page-title"
             sx={{
               fontSize: { xs: "2.5rem", md: "3.5rem" },
               fontWeight: 700,
@@ -946,4 +946,3 @@ const TestPreparation = () => {
 };
 
 export default TestPreparation;
-

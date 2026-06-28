@@ -241,36 +241,45 @@ const InstructorDashboard = () => {
     <Box className="instructor-dashboard">
       <Container {...instructorPortalContentContainerProps} sx={{ mb: 4, pt: 0, mt: 0 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sx={{ pb: "0 !important", mb: "-4px !important" }}>
-            <Card sx={instructorDashboardPanelCardSx} className="dashboard-messages-panel">
-              <CardContent sx={instructorDashboardMessagesPanelContentSx}>
-                <DashboardMessages
-                  username={username}
-                  chapterId={chapterId}
-                  dashboardMessages={dashboardMessages}
-                  loading={messagesLoading}
-                />
-              </CardContent>
-            </Card>
+          <Grid item xs={12} sx={{ pb: "0 !important" }}>
+            <DashboardMessages
+              username={username}
+              chapterId={chapterId}
+              dashboardMessages={dashboardMessages}
+              loading={messagesLoading}
+              timeSheetUrl="/pstudyware/instructor/time-sheet"
+            />
           </Grid>
-           {/* Right Column: Own Volunteer Availability Form */}
-          {showVolunteerAvailability && (
-            <Grid item xs={12} md={4} sx={{ pt: "0 !important" }}>
-              <Card sx={instructorDashboardPanelCardSx}>
-                <CardContent sx={instructorDashboardPanelContentSx}>
-                  <VolunteerAvailability embedded={true} />
-                </CardContent>
-              </Card>
+          {/* Top Row: Volunteer Availability and Meeting Schedule */}
+          {showVolunteerAvailability ? (
+            <>
+              <Grid item xs={12} md={6} sx={{ pt: "0 !important" }}>
+                <Card sx={{ ...instructorDashboardPanelCardSx, height: "100%" }}>
+                  <CardContent sx={instructorDashboardPanelContentSx}>
+                    <VolunteerAvailability embedded={true} />
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6} sx={{ pt: "0 !important" }}>
+                <StudentMeetingSchedule
+                  username={username}
+                  panelCardSx={{ ...instructorDashboardPanelCardSx, height: "100%" }}
+                  sectionTitleSx={instructorDashboardMeetingTitleSx}
+                />
+              </Grid>
+            </>
+          ) : (
+            <Grid item xs={12} sx={{ pt: "0 !important" }}>
+              <StudentMeetingSchedule
+                username={username}
+                panelCardSx={instructorDashboardPanelCardSx}
+                sectionTitleSx={instructorDashboardMeetingTitleSx}
+              />
             </Grid>
           )}
 
-          {/* Left Column: Stats & Logged Hours / Schedules */}
-          <Grid item xs={12} md={showVolunteerAvailability ? 8 : 12} sx={{ display: "flex", flexDirection: "column", gap: 3, pt: "0 !important" }}>
-            <StudentMeetingSchedule
-              username={username}
-              panelCardSx={instructorDashboardPanelCardSx}
-              sectionTitleSx={instructorDashboardMeetingTitleSx}
-            />
+          {/* Bottom Row: Grids */}
+          <Grid item xs={12} sx={{ display: "flex", flexDirection: "column", gap: 3, pt: "0 !important" }}>
 
             <Card sx={instructorDashboardPanelCardSx}>
               <CardContent sx={instructorDashboardPanelContentSx}>

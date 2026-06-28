@@ -1,5 +1,15 @@
 /* EngineeringCircle Component Styles */
 
+
+.white-title.white-title.page-title {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ffffff !important;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+
 .engineering-circle-container {
   min-height: 100vh;
   background: #ffffff;

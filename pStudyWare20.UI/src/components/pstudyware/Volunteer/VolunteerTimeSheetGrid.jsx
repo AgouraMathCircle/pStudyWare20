@@ -21,6 +21,7 @@ import {
 import timeSheetTrackingService from "../../../services/timeSheetTrackingService";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import SortableHeader from "../Common/SortableHeader";
+import { useAuth } from "../../../contexts/AuthContext";
 import { sortRows, toSortableDate, toSortableNumber } from "../../../utils/tableSort";
 import {
   adminSessionListTableActionLinkSx,
@@ -83,6 +84,7 @@ const getTimeSheetFieldValue = (row, field) => {
  * My Time Sheet — Volunteer_Dashboard.aspx kGrid columns (AMC_spSelectTimeTracking).
  */
 const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEntriesChanged }) => {
+  const { user } = useAuth();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [search, setSearch] = useState("");
@@ -289,7 +291,7 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
                       {id ? (
                         <Box
                           component={RouterLink}
-                          to={`/pstudyware/volunteer/time-sheet?logId=${id}`}
+                          to={`${user?.role === "Volunteer" ? "/pstudyware/volunteer/time-sheet" : "/pstudyware/instructor/time-sheet"}?logId=${id}`}
                           sx={adminSessionListTableActionLinkSx}
                         >
                           Edit

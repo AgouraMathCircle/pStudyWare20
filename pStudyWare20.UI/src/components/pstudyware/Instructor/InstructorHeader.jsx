@@ -20,9 +20,11 @@ const instructorRoleHeaderBarSx = compactRoleHeaderBarSx("#90caf9");
 
 const InstructorHeader = ({ user }) => {
   const headerRef = useRef(null);
-  const memberType = user?.memberType?.toUpperCase();
-  const roleLabel = memberType === "C" ? "Coordinator" : "Instructor";
-  const welcomeFallback = memberType === "C" ? "Coordinator" : "Instructor";
+  const memberType = user?.memberType?.toUpperCase() || "";
+  const userRole = user?.role?.toUpperCase() || "";
+  const isCoordinator = memberType === "C" || memberType === "COORDINATOR" || userRole.includes("COORDINATOR");
+  const roleLabel = isCoordinator ? "Coordinator" : "Instructor";
+  const welcomeFallback = isCoordinator ? "Coordinator" : "Instructor";
   const dateTime = formatRoleHeaderLoginDateTime(user?.loginAt);
   const { fixedSx } = useFixedRoleHeaderLayout(
     headerRef,
