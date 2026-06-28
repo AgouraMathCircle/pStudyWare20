@@ -100,7 +100,7 @@ const EngineeringCircle = () => {
         <Box className="breadcrumbs-text white-color">
           <Typography
             variant="h1"
-            className="page-title"
+            className="white-title page-title"
             sx={{
               fontSize: { xs: "2.5rem", md: "3.5rem" },
               fontWeight: 700,
@@ -124,7 +124,7 @@ const EngineeringCircle = () => {
               <Button
                 onClick={() => handleNavigation("/")}
                 sx={{
-                  color: "white",
+                  color: "#53b50a",
                   textDecoration: "underline",
                   p: 0,
                   minWidth: "auto",
@@ -136,12 +136,12 @@ const EngineeringCircle = () => {
               </Button>
             </Box>
             <Box component="li" sx={{ display: "inline-block" }}>
-              <Typography component="span" sx={{ color: "white" }}>
+              <Typography component="span" sx={{ color: "#53b50a" }}>
                 About Us &gt;
               </Typography>
             </Box>
             <Box component="li" sx={{ display: "inline-block" }}>
-              <Typography component="span" sx={{ color: "white" }}>
+              <Typography component="span" sx={{ color: "#53b50a" }}>
                 Engineering Circle
               </Typography>
             </Box>
@@ -917,7 +917,7 @@ const EngineeringCircle = () => {
                     textAlign: { xs: "center", md: "left" },
                   }}
                 >
-                  INTRODUCTION TO MOBILE APP DEVELOPMENT
+                  ENGINEERING DESIGN & 3D MODELING
                 </Typography>
 
                 <Box sx={{ textAlign: { xs: "center", md: "left" } }}>

@@ -361,15 +361,15 @@ const StudentDocumentList = ({
           mb: 2,
           p: 2,
           borderRadius: 2,
-          border: "1px solid #f44336",
-          backgroundColor: "#ffebee",
-          color: "#b71c1c",
+          border: "1px solid #c8e6c9",
+          backgroundColor: "#e8f5e9",
+          color: "#1b5e20",
         }}
       >
-        <Typography component="div" sx={{ fontWeight: 600, mb: 0.5 }}>
-          Watch Lecture Notes Video
-        </Typography>
-        <Typography component="div" sx={{ color: "#b71c1c" }}>
+        <Typography component="div" sx={{ color: "#1b5e20" }}>
+          <span style={{ fontWeight: 600, marginRight: '8px' }}>
+            Watch Lecture Notes Video:
+          </span>
           <a
             href="https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/videos"
             target="_blank"

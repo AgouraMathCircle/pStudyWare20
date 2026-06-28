@@ -224,7 +224,7 @@ const VolunteerAvailability = ({ embedded = false }) => {
     <Box
       component={embedded ? "section" : Paper}
       sx={{
-        p: embedded ? { xs: 1, sm: 1.5 } : { xs: 2, sm: 3 },
+        p: embedded ? { xs: 0.5, sm: 1 } : { xs: 2, sm: 3 },
         height: "100%",
         borderTop: embedded ? undefined : "4px solid #43a047",
         backgroundColor: embedded ? "transparent" : undefined,
@@ -247,7 +247,7 @@ const VolunteerAvailability = ({ embedded = false }) => {
       {!embedded && (
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
           <AvailabilityIcon color="success" />
-          <Typography variant={embedded ? "h6" : "h5"} component="h1">
+          <Typography variant={embedded ? "subtitle1" : "h5"} component="h1">
             Volunteer Availability
           </Typography>
         </Box>
@@ -260,15 +260,15 @@ const VolunteerAvailability = ({ embedded = false }) => {
             flexWrap: "wrap",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 1.5,
-            mb: 2,
+            gap: 1,
+            mb: 1.5,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, minWidth: 0 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
             <Box
               sx={{
-                width: 38,
-                height: 38,
+                width: 32,
+                height: 32,
                 borderRadius: "50%",
                 bgcolor: "#e8f5e9",
                 color: "#2e7d32",
@@ -281,10 +281,10 @@ const VolunteerAvailability = ({ embedded = false }) => {
               <AvailabilityIcon fontSize="small" />
             </Box>
             <Box sx={{ minWidth: 0 }}>
-              <Typography variant="h6" component="h2" sx={{ fontWeight: 800, color: "#1b5e20" }}>
+              <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 800, color: "#1b5e20", lineHeight: 1.2 }}>
                 Volunteer Availability
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="caption" color="text.secondary">
                 Confirm your availability for the upcoming session.
               </Typography>
             </Box>
@@ -306,8 +306,8 @@ const VolunteerAvailability = ({ embedded = false }) => {
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1.7fr) minmax(300px, 0.8fr)" },
-              gap: { xs: 2, lg: 3 },
+              gridTemplateColumns: embedded ? "1fr" : { xs: "1fr", lg: "minmax(0, 1.7fr) minmax(300px, 0.8fr)" },
+              gap: embedded ? 1 : { xs: 2, lg: 3 },
               alignItems: "stretch",
             }}
           >
@@ -315,13 +315,13 @@ const VolunteerAvailability = ({ embedded = false }) => {
               sx={{
                 display: "grid",
                 gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
-                gap: 1.5,
+                gap: 1,
                 alignContent: "start",
               }}
             >
               <Box
                 sx={{
-                  p: 1.5,
+                  p: 0.75,
                   border: "1px solid #dfe9df",
                   borderRadius: 2,
                   bgcolor: "#fbfffb",
@@ -330,13 +330,13 @@ const VolunteerAvailability = ({ embedded = false }) => {
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
                   Session
                 </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
                   {sessionNumber ?? "-"}
                 </Typography>
               </Box>
               <Box
                 sx={{
-                  p: 1.5,
+                  p: 0.75,
                   border: "1px solid #dfe9df",
                   borderRadius: 2,
                   bgcolor: "#fbfffb",
@@ -345,7 +345,7 @@ const VolunteerAvailability = ({ embedded = false }) => {
                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
                   Are you volunteering?
                 </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
                   {isAvailable === "true" ? "Yes" : "No"}
                 </Typography>
               </Box>
@@ -356,9 +356,9 @@ const VolunteerAvailability = ({ embedded = false }) => {
                 <Typography
                   variant="body2"
                   sx={{
-                    mt: 0.75,
-                    p: 1.75,
-                    minHeight: 70,
+                    mt: 0.5,
+                    p: 0.75,
+                    minHeight: 28,
                     bgcolor: "#f5faf5",
                     border: "1px solid #dfe9df",
                     borderRadius: 2,
@@ -372,21 +372,21 @@ const VolunteerAvailability = ({ embedded = false }) => {
 
             <Box
               sx={{
-                p: 2,
+                p: 0.75,
                 borderRadius: 2,
                 bgcolor: "#f7fbf7",
                 border: "1px solid #dfe9df",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
-                gap: 2,
+                gap: 1,
               }}
             >
-              <Alert severity="success" sx={{ m: 0 }}>
+              <Alert severity="success" sx={{ m: 0, py: 0, px: 1 }}>
                 Your volunteer availability has been submitted.
               </Alert>
               <Box>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                   Need to change your response? Edit and resubmit before the session starts.
                 </Typography>
                 <Button
@@ -397,6 +397,7 @@ const VolunteerAvailability = ({ embedded = false }) => {
                   variant="contained"
                   startIcon={<EditIcon />}
                   fullWidth
+                  size="small"
                   sx={{
                     bgcolor: "#43a047",
                     fontWeight: 700,

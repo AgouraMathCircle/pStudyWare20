@@ -13,6 +13,7 @@ import {
   TextField,
   Typography,
   CircularProgress,
+  Snackbar,
 } from "@mui/material";
 import {
   ArrowBack as BackIcon,
@@ -23,6 +24,8 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import timeSheetTrackingService from "../../../services/timeSheetTrackingService";
+import volunteerDashboardService from "../../../services/volunteerDashboardService";
+import VolunteerTimeSheetGrid from "./VolunteerTimeSheetGrid";
 import { resolveTimeFieldsFromEntry } from "../../../utils/timeSheetClockParse";
 
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
@@ -65,6 +68,7 @@ const VolunteerTimeSheet = () => {
   const [loading, setLoading] = useState(!!isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState("");
   const [taskName, setTaskName] = useState("");
   const [volunteerDate, setVolunteerDate] = useState(() => toDateInputValue(new Date()));
   const [startHour, setStartHour] = useState("9");
@@ -83,6 +87,37 @@ const VolunteerTimeSheet = () => {
     if (diff <= 0) return null;
     return diff / 60;
   }, [startHour, startMin, startType, endHour, endMin, endType]);
+
+  const [entries, setEntries] = useState([]);
+  const [listLoading, setListLoading] = useState(false);
+  const [listError, setListError] = useState(null);
+
+  const loadEntries = React.useCallback(async () => {
+    if (!username) return;
+    setListError(null);
+    setListLoading(true);
+    try {
+      const res = await volunteerDashboardService.getDashboardData(username);
+      const list = res?.timeTrackingEntries ?? res?.TimeTrackingEntries ?? [];
+      if (res?.isSuccess !== false && Array.isArray(list)) {
+        setEntries(list);
+      } else {
+        setEntries([]);
+        setListError(res?.errorMessage || res?.message || "Could not load time sheet.");
+      }
+    } catch (e) {
+      setListError(e?.message || "Failed to load time sheet.");
+      setEntries([]);
+    } finally {
+      setListLoading(false);
+    }
+  }, [username]);
+
+  useEffect(() => {
+    if (username) {
+      loadEntries();
+    }
+  }, [username, loadEntries]);
 
   useEffect(() => {
     if (!isEdit || !username) {
@@ -180,7 +215,25 @@ const VolunteerTimeSheet = () => {
         setError(res?.errorMessage || res?.message || "Save failed.");
         return;
       }
-      navigate("/pstudyware/volunteer/dashboard", { replace: true });
+      
+      setSuccessMsg("Your entry was successfully saved.");
+      loadEntries();
+      
+      if (isEdit) {
+        const addModePath = user?.role === "Volunteer" 
+          ? "/pstudyware/volunteer/time-sheet" 
+          : "/pstudyware/instructor/time-sheet";
+        navigate(addModePath, { replace: true });
+      } else {
+        setTaskName("");
+        setTaskDescription("");
+        setStartHour("9");
+        setStartMin("00");
+        setStartType("AM");
+        setEndHour("5");
+        setEndMin("00");
+        setEndType("PM");
+      }
     } catch (err) {
       setError(err?.response?.data?.message ?? err?.message ?? "Save failed.");
     } finally {
@@ -235,11 +288,15 @@ const VolunteerTimeSheet = () => {
     lineHeight: 1,
   };
 
+  const dashboardPath = user?.role === "Volunteer" 
+    ? "/pstudyware/volunteer/dashboard" 
+    : "/pstudyware/instructor/dashboard";
+
   return (
     <Container maxWidth="lg" sx={{ py: 2, pb: 4 }}>
       <Button
         component={RouterLink}
-        to="/pstudyware/volunteer/dashboard"
+        to={dashboardPath}
         startIcon={<BackIcon />}
         sx={{
           mb: 2,
@@ -569,6 +626,26 @@ const VolunteerTimeSheet = () => {
         )}
         </Box>
       </Paper>
+
+      <Box sx={{ mt: 3 }}>
+        <VolunteerTimeSheetGrid
+          rows={entries}
+          loading={listLoading}
+          error={listError}
+          onEntriesChanged={loadEntries}
+        />
+      </Box>
+
+      <Snackbar
+        open={!!successMsg}
+        autoHideDuration={4000}
+        onClose={() => setSuccessMsg("")}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert onClose={() => setSuccessMsg("")} severity="success" sx={{ width: "100%", fontWeight: "bold" }}>
+          {successMsg}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

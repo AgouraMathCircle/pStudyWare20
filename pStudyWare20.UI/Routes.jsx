@@ -860,6 +860,7 @@ const AppRoutes = () => {
               <Route path="report-card" element={<AdminReportCard />} />
               <Route path="message-center" element={<EmailManager />} />
               <Route path="update-password" element={<UpdatePassword />} />
+              <Route path="time-sheet" element={<VolunteerTimeSheet />} />
             </Route>
 
             {/* Volunteer Routes */}
