@@ -31,6 +31,11 @@ import {
 } from "../styles/applicationSurfaces";
 import "../../../styles/InstructorDashboard.css";
 
+const canShowVolunteerAvailability = (user) => {
+  const flag = user?.volunteerAvailability ?? user?.VolunteerAvailability ?? "N";
+  return String(flag).trim().toUpperCase() === "Y";
+};
+
 const InstructorDashboard = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -63,8 +68,8 @@ const InstructorDashboard = () => {
   );
 
   const showVolunteerAvailability = useMemo(
-    () => user?.volunteerAvailability === "Y" || user?.VolunteerAvailability === "Y",
-    [user?.volunteerAvailability, user?.VolunteerAvailability]
+    () => canShowVolunteerAvailability(user),
+    [user]
   );
 
   useEffect(() => {
@@ -244,11 +249,20 @@ const InstructorDashboard = () => {
                   chapterId={chapterId}
                   dashboardMessages={dashboardMessages}
                   loading={messagesLoading}
-                  compact
                 />
               </CardContent>
             </Card>
           </Grid>
+           {/* Right Column: Own Volunteer Availability Form */}
+          {showVolunteerAvailability && (
+            <Grid item xs={12} md={4} sx={{ pt: "0 !important" }}>
+              <Card sx={instructorDashboardPanelCardSx}>
+                <CardContent sx={instructorDashboardPanelContentSx}>
+                  <VolunteerAvailability embedded={true} />
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
 
           {/* Left Column: Stats & Logged Hours / Schedules */}
           <Grid item xs={12} md={showVolunteerAvailability ? 8 : 12} sx={{ display: "flex", flexDirection: "column", gap: 3, pt: "0 !important" }}>
@@ -281,16 +295,6 @@ const InstructorDashboard = () => {
             </Card>
           </Grid>
 
-          {/* Right Column: Own Volunteer Availability Form */}
-          {showVolunteerAvailability && (
-            <Grid item xs={12} md={4} sx={{ pt: "0 !important" }}>
-              <Card sx={instructorDashboardPanelCardSx}>
-                <CardContent sx={instructorDashboardPanelContentSx}>
-                  <VolunteerAvailability embedded={true} />
-                </CardContent>
-              </Card>
-            </Grid>
-          )}
         </Grid>
       </Container>
     </Box>

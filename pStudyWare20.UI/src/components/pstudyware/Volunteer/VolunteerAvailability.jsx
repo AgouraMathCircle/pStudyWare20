@@ -4,7 +4,9 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   Container,
+  Divider,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -18,6 +20,7 @@ import {
 import {
   ArrowBack as BackIcon,
   EventAvailable as AvailabilityIcon,
+  Edit as EditIcon,
   Send as SendIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -52,8 +55,17 @@ const formatSemesterForDb = (sem) => {
   return trimmed.substring(0, 5);
 };
 
+const shouldShowVolunteerAvailability = (user) => {
+  const flag = user?.volunteerAvailability ?? user?.VolunteerAvailability ?? "N";
+  return String(flag).trim().toUpperCase() === "Y";
+};
+
 const VolunteerAvailability = ({ embedded = false }) => {
   const { user } = useAuth();
+  const showAvailability = useMemo(
+    () => shouldShowVolunteerAvailability(user),
+    [user]
+  );
   const username = useMemo(
     () => user?.email || user?.username || "",
     [user?.email, user?.username]
@@ -77,7 +89,7 @@ const VolunteerAvailability = ({ embedded = false }) => {
 
   // Load existing availability if available
   useEffect(() => {
-    if (!user || hasLoadedAvailability || loadAvailabilityRequestedRef.current) return;
+    if (!showAvailability || !user || hasLoadedAvailability || loadAvailabilityRequestedRef.current) return;
 
     loadAvailabilityRequestedRef.current = true;
 
@@ -122,7 +134,7 @@ const VolunteerAvailability = ({ embedded = false }) => {
         }
 
         setHasLoadedAvailability(true);
-      } catch (err) {
+      } catch {
         console.log(
           "No existing availability found. Starting with a fresh form."
         );
@@ -133,7 +145,11 @@ const VolunteerAvailability = ({ embedded = false }) => {
     };
 
     loadExistingAvailability();
-  }, [user]);
+  }, [user, hasLoadedAvailability, showAvailability]);
+
+  if (!showAvailability) {
+    return null;
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -208,11 +224,13 @@ const VolunteerAvailability = ({ embedded = false }) => {
     <Box
       component={embedded ? "section" : Paper}
       sx={{
-        p: { xs: 2, sm: 3 },
+        p: embedded ? { xs: 1, sm: 1.5 } : { xs: 2, sm: 3 },
         height: "100%",
         borderTop: embedded ? undefined : "4px solid #43a047",
         backgroundColor: embedded ? "transparent" : undefined,
         boxShadow: embedded ? "none" : undefined,
+        width: "100%",
+        boxSizing: "border-box",
       }}
     >
       {!embedded && (
@@ -235,43 +253,161 @@ const VolunteerAvailability = ({ embedded = false }) => {
         </Box>
       )}
 
-      <Box component="form" onSubmit={handleSubmit}>
-        {!loading && hasExistingData && !isEditMode ? (
-          <>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>Session:</strong> {sessionNumber}
+      {embedded && (
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1.5,
+            mb: 2,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, minWidth: 0 }}>
+            <Box
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: "50%",
+                bgcolor: "#e8f5e9",
+                color: "#2e7d32",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <AvailabilityIcon fontSize="small" />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="h6" component="h2" sx={{ fontWeight: 800, color: "#1b5e20" }}>
+                Volunteer Availability
               </Typography>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>Are you volunteering?</strong> {isAvailable === "true" ? "Yes" : "No"}
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 3 }}>
-                <strong>Reason/Comments:</strong>
-                <Typography
-                  variant="body2"
-                  sx={{ mt: 1, p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}
-                >
-                  {reason}
-                </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Confirm your availability for the upcoming session.
               </Typography>
             </Box>
+          </Box>
+          <Chip
+            size="small"
+            label={hasExistingData && !isEditMode ? "Submitted" : "Action needed"}
+            sx={{
+              bgcolor: hasExistingData && !isEditMode ? "#e8f5e9" : "#fff8e1",
+              color: hasExistingData && !isEditMode ? "#1b5e20" : "#8a5d00",
+              fontWeight: 700,
+            }}
+          />
+        </Box>
+      )}
 
-            <Alert severity="success" sx={{ mb: 2 }}>
-              ✓ Your volunteer availability has been submitted.
-            </Alert>
-
-            <Button
-              onClick={() => {
-                setIsEditMode(true);
-                setMessage(null);
+      <Box component="form" onSubmit={handleSubmit}>
+        {!loading && hasExistingData && !isEditMode ? (
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1.7fr) minmax(300px, 0.8fr)" },
+              gap: { xs: 2, lg: 3 },
+              alignItems: "stretch",
+            }}
+          >
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" },
+                gap: 1.5,
+                alignContent: "start",
               }}
-              variant="contained"
-              color="primary"
-              fullWidth={embedded}
             >
-              Edit
-            </Button>
-          </>
+              <Box
+                sx={{
+                  p: 1.5,
+                  border: "1px solid #dfe9df",
+                  borderRadius: 2,
+                  bgcolor: "#fbfffb",
+                }}
+              >
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                  Session
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                  {sessionNumber ?? "-"}
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  p: 1.5,
+                  border: "1px solid #dfe9df",
+                  borderRadius: 2,
+                  bgcolor: "#fbfffb",
+                }}
+              >
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                  Are you volunteering?
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                  {isAvailable === "true" ? "Yes" : "No"}
+                </Typography>
+              </Box>
+              <Box sx={{ gridColumn: { xs: "auto", sm: "1 / -1" } }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                  Reason/Comments
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    mt: 0.75,
+                    p: 1.75,
+                    minHeight: 70,
+                    bgcolor: "#f5faf5",
+                    border: "1px solid #dfe9df",
+                    borderRadius: 2,
+                    color: "#2d2d2d",
+                  }}
+                >
+                  {reason || "-"}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                bgcolor: "#f7fbf7",
+                border: "1px solid #dfe9df",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                gap: 2,
+              }}
+            >
+              <Alert severity="success" sx={{ m: 0 }}>
+                Your volunteer availability has been submitted.
+              </Alert>
+              <Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                  Need to change your response? Edit and resubmit before the session starts.
+                </Typography>
+                <Button
+                  onClick={() => {
+                    setIsEditMode(true);
+                    setMessage(null);
+                  }}
+                  variant="contained"
+                  startIcon={<EditIcon />}
+                  fullWidth
+                  sx={{
+                    bgcolor: "#43a047",
+                    fontWeight: 700,
+                    "&:hover": { bgcolor: "#2e7d32" },
+                  }}
+                >
+                  Edit availability
+                </Button>
+              </Box>
+            </Box>
+          </Box>
         ) : (
           <>
             {loading && (
@@ -280,8 +416,8 @@ const VolunteerAvailability = ({ embedded = false }) => {
               </Alert>
             )}
 
-            <FormControl component="fieldset" sx={{ mb: 2 }} disabled={loading}>
-              <FormLabel sx={{ fontWeight: 700, color: "#0d47a1", mb: 1 }}>
+            <FormControl component="fieldset" sx={{ mb: 2, width: "100%" }} disabled={loading}>
+              <FormLabel sx={{ fontWeight: 800, color: "#1b5e20", mb: 1 }}>
                 Are you volunteering Session {sessionNumber ?? "?"}?
               </FormLabel>
               <RadioGroup
@@ -301,7 +437,12 @@ const VolunteerAvailability = ({ embedded = false }) => {
               onChange={(event) => setReason(event.target.value)}
               fullWidth
               required
-              sx={{ mb: 2 }}
+              sx={{
+                mb: 2,
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#ffffff",
+                },
+              }}
               style={{
                 display: isAvailable === "true" ? "block" : "none",
               }}
@@ -321,7 +462,12 @@ const VolunteerAvailability = ({ embedded = false }) => {
               required
               multiline
               rows={3}
-              sx={{ mb: 2 }}
+              sx={{
+                mb: 2,
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "#ffffff",
+                },
+              }}
               style={{
                 display: isAvailable === "false" ? "block" : "none",
               }}
@@ -339,14 +485,20 @@ const VolunteerAvailability = ({ embedded = false }) => {
               </Alert>
             )}
 
-            <Box sx={{ display: "flex", gap: 1 }}>
+            <Divider sx={{ mb: 2 }} />
+
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
               <Button
                 type="submit"
                 variant="contained"
-                color="success"
                 startIcon={<SendIcon />}
                 disabled={saving || loading}
                 fullWidth={embedded}
+                sx={{
+                  bgcolor: "#43a047",
+                  fontWeight: 700,
+                  "&:hover": { bgcolor: "#2e7d32" },
+                }}
               >
                 {saving ? "Submitting..." : "Submit"}
               </Button>
