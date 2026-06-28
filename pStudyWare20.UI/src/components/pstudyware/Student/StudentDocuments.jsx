@@ -1230,17 +1230,29 @@ const StudentDocuments = () => {
                                   <TableCell
                                     sx={adminSessionListTableBodyCellSx({ ellipsis: true })}
                                   >
-                                    {doc.description || "—"}
+                                    <Tooltip title={doc.description || ""} disableHoverListener={!doc.description}>
+                                      <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {doc.description || "—"}
+                                      </Box>
+                                    </Tooltip>
                                   </TableCell>
                                   <TableCell
                                     sx={adminSessionListTableBodyCellSx({ ellipsis: true })}
                                   >
-                                    {doc.type || "—"}
+                                    <Tooltip title={doc.type || ""} disableHoverListener={!doc.type}>
+                                      <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {doc.type || "—"}
+                                      </Box>
+                                    </Tooltip>
                                   </TableCell>
                                   <TableCell
                                     sx={adminSessionListTableBodyCellSx({ ellipsis: true })}
                                   >
-                                    {doc.documentName || "—"}
+                                    <Tooltip title={doc.documentName || ""} disableHoverListener={!doc.documentName}>
+                                      <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {doc.documentName || "—"}
+                                      </Box>
+                                    </Tooltip>
                                   </TableCell>
                                   <TableCell sx={adminSessionListTableBodyCellSx()}>
                                     {formatDate(doc.insertDate)}

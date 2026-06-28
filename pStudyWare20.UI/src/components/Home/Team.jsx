@@ -71,9 +71,9 @@ const Team = () => {
     },
     {
       id: 6,
-      name: "CHARLIE NICKS",
+      name: "MUGIL SHANMUGAM",
       role: "SENIOR VICE PRESIDENT",
-      image: teamMemberCharlie,
+      image: teamMemberMugil,
     },
     {
       id: 7,
@@ -92,12 +92,6 @@ const Team = () => {
       name: "JOSEPH KEAYS",
       role: "ADVISORY BOARD",
       image: teamMember6,
-    },
-    {
-      id: 10,
-      name: "MUGIL SHANMUGAM",
-      role: "SENIOR VICE PRESIDENT",
-      image: teamMemberMugil,
     },
   ];
 

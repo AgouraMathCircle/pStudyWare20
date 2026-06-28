@@ -7,23 +7,19 @@ import ctaBgImage from "../../assets/images/bg/cta-bg.jpg";
 // Import images from src/assets
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import ctaBgImage2 from "../../assets/images/bg/cta-bg2.jpg";
-import class010 from "../../assets/images/class/010.jpg";
-import class011 from "../../assets/images/class/011.jpg";
-import class001 from "../../assets/images/class/001.jpg";
-import class002 from "../../assets/images/class/002.jpg";
-import class003 from "../../assets/images/class/003.jpg";
-import class004 from "../../assets/images/class/004.jpg";
-import class005 from "../../assets/images/class/005.jpg";
-import class006 from "../../assets/images/class/006.jpg";
-import class007 from "../../assets/images/class/007.jpg";
-import class008 from "../../assets/images/class/008.jpg";
-import class009 from "../../assets/images/class/009.jpg";
+import class000 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 1.jpeg";
+import class001 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 2.jpeg";
+import class002 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 3.jpeg";
+import class003 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 4.jpeg";
+import class004 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 5.jpeg";
+import class005 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 6.jpeg";
+import class006 from "../../assets/images/class/005.jpg";
+import class007 from "../../assets/images/class/006.jpg";
+import class008 from "../../assets/images/class/007.jpg";
 import "../../styles/Home/CtaSection.css";
 
 // Class images for carousel
 const classImages = [
-  class010,
-  class011,
   class001,
   class002,
   class003,
@@ -32,7 +28,6 @@ const classImages = [
   class006,
   class007,
   class008,
-  class009,
 ];
 
 // Keyframe animations
@@ -50,6 +45,7 @@ const fadeInAnimation = keyframes`
 const CtaSection = () => {
   // Duplicate images for seamless continuous loop
   const allClassImages = [
+    ...classImages,
     ...classImages,
     ...classImages,
     ...classImages,
@@ -118,7 +114,7 @@ const CtaSection = () => {
                   className="cta-gallery-track"
                   sx={{
                     display: "flex",
-                    animation: "continuousScroll 20s linear infinite",
+                    animation: "continuousScrollLonger 30s linear infinite",
                     gap: { xs: 1.5, sm: 2, md: 2 },
                     "&:hover": {
                       animationPlayState: "paused",
@@ -148,12 +144,12 @@ const CtaSection = () => {
       {/* CSS Keyframes */}
       <style>
         {`
-          @keyframes continuousScroll {
+          @keyframes continuousScrollLonger {
             0% {
               transform: translateX(0);
             }
             100% {
-              transform: translateX(-50%);
+              transform: translateX(-560%);
             }
           }
         `}

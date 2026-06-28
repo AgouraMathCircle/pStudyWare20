@@ -13,6 +13,7 @@ import {
   Paper,
   Select,
   MenuItem,
+  Tooltip,
 } from "@mui/material";
 import {
   adminSessionListFindButtonSx,
@@ -281,15 +282,53 @@ const StudentScoreScoresGrid = ({ scores = [], loading = false }) => {
               paginatedScores.map((score, index) => (
                 <TableRow key={`${score.studentID}-${score.examType}-${index}`} sx={adminSessionListTableBodyRowSx}>
                   <TableCell sx={adminSessionListTableBodyCellSx()}>{score.studentID ?? "—"}</TableCell>
-                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>{score.studentName || "—"}</TableCell>
-                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>{score.group || "—"}</TableCell>
-                  <TableCell sx={adminSessionListTableBodyCellSx()}>{score.grade || "—"}</TableCell>
-                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>{score.semester || "—"}</TableCell>
-                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>{score.examType || "—"}</TableCell>
-                  <TableCell sx={adminSessionListTableBodyCellSx()}>{formatDate(score.examDate)}</TableCell>
-                  <TableCell sx={adminSessionListTableBodyCellSx()} align="right">{score.totalCredit ?? "—"}</TableCell>
-                  <TableCell sx={adminSessionListTableBodyCellSx()} align="right">{score.receivedCredit ?? "—"}</TableCell>
-                  <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true, ellipsis: true })}>{score.comments || "—"}</TableCell>
+                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                    <Tooltip title={score.studentName || ""} disableHoverListener={!score.studentName}>
+                      <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {score.studentName || "—"}
+                      </Box>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                    <Tooltip title={score.group || ""} disableHoverListener={!score.group}>
+                      <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {score.group || "—"}
+                      </Box>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell sx={adminSessionListTableBodyCellSx()}>
+                    {score.grade || "—"}
+                  </TableCell>
+                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                    <Tooltip title={score.semester || ""} disableHoverListener={!score.semester}>
+                      <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {score.semester || "—"}
+                      </Box>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                    <Tooltip title={score.examType || ""} disableHoverListener={!score.examType}>
+                      <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {score.examType || "—"}
+                      </Box>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell sx={adminSessionListTableBodyCellSx()}>
+                    {formatDate(score.examDate)}
+                  </TableCell>
+                  <TableCell sx={adminSessionListTableBodyCellSx()} align="right">
+                    {score.totalCredit ?? "—"}
+                  </TableCell>
+                  <TableCell sx={adminSessionListTableBodyCellSx()} align="right">
+                    {score.receivedCredit ?? "—"}
+                  </TableCell>
+                  <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true, ellipsis: true })}>
+                    <Tooltip title={score.comments || ""} disableHoverListener={!score.comments}>
+                      <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {score.comments || "—"}
+                      </Box>
+                    </Tooltip>
+                  </TableCell>
                 </TableRow>
               ))
             ) : (

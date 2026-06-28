@@ -897,7 +897,7 @@ useSessionListTableUi
               {!useSessionListTableUi && (
                 <EmailIcon sx={{ mr: 1, verticalAlign: "middle" }} />
               )}
-              Message Center - New Messages
+              Message Center
             </Typography>
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
               <Button

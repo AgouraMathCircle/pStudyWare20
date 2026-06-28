@@ -16,6 +16,7 @@ import {
   MenuItem,
   Button,
   Container,
+  Tooltip,
 } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
 import studentDashboardService from "../../../services/studentDashboardService";
@@ -351,7 +352,7 @@ const ReportCard = ({
     return sortedReports.slice(start, start + pageSize);
   }, [sortedReports, currentPage, pageSize]);
 
-  const title = embedded ? "Last Session - Report Card" : "Report Card";
+  const title = embedded ? "Report Card" : "Report Card";
 
   const renderTableBody = () => {
     if (loading) {
@@ -382,16 +383,32 @@ const ReportCard = ({
       return paginatedReports.map((report, index) => (
         <TableRow key={index} sx={adminSessionListTableBodyRowSx}>
           <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {report.studentName || "—"}
+            <Tooltip title={report.studentName || ""} disableHoverListener={!report.studentName}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {report.studentName || "—"}
+              </Box>
+            </Tooltip>
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {report.group || "—"}
+            <Tooltip title={report.group || ""} disableHoverListener={!report.group}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {report.group || "—"}
+              </Box>
+            </Tooltip>
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {report.semester || "—"}
+            <Tooltip title={report.semester || ""} disableHoverListener={!report.semester}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {report.semester || "—"}
+              </Box>
+            </Tooltip>
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {report.examType || "—"}
+            <Tooltip title={report.examType || ""} disableHoverListener={!report.examType}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {report.examType || "—"}
+              </Box>
+            </Tooltip>
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx()}>
             {formatDate(report.examDate)}
@@ -421,7 +438,11 @@ const ReportCard = ({
             </Typography>
           </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true, ellipsis: true })}>
-            {report.comments || "—"}
+            <Tooltip title={report.comments || ""} disableHoverListener={!report.comments}>
+              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {report.comments || "—"}
+              </Box>
+            </Tooltip>
           </TableCell>
         </TableRow>
       ));

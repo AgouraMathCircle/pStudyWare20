@@ -72,12 +72,22 @@ const VideoGallery = () => {
       id: "thaUk7N8_gk",
       title: "Agoura Math Circle Fest 2026",
     },
+    {
+      id: "oxeDjzvjgQo",
+      title: "Presidents award 2026",
+    },
+    {
+      id: "thaUk7N8_gk",
+      title: "Agoura Math Awards 2026",
+    }
+    
   ];
 
   // Create video pairs for side-by-side display
   const videoPairs = [
-    [videos[0], videos[3]], // First pair: Success Story 1 + Fest 2026
-    [videos[1], videos[2]], // Second pair: Success Story 2 + Success Story 3
+    [videos[0], videos[1]], // First pair: Success Story 1 + Fest 2026
+    [videos[2], videos[3]], // Second pair: Success Story 2 + Success Story 3
+    [videos[4], videos[5]], // Third pair: Student Board 2026 + Awards 2026
   ];
 
   // Auto-advance carousel - cycles through pairs
