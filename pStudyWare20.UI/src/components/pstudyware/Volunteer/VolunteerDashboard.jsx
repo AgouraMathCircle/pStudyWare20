@@ -228,7 +228,7 @@ const VolunteerDashboard = () => {
           />
         </Grid>
         <Grid item xs={12} sx={{ width: "100%", pt: "0 !important" }}>
-          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, width: "100%", alignItems: "stretch", mt: -1.5 }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, width: "100%", alignItems: "stretch", mt: -1.5, zoom: "85%" }}>
             {showVolunteerAvailability && (
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Card

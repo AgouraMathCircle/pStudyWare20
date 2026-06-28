@@ -293,7 +293,7 @@ const VolunteerTimeSheet = () => {
     : "/pstudyware/instructor/dashboard";
 
   return (
-    <Container maxWidth="lg" sx={{ py: 2, pb: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 2, pb: 4, zoom: "65%" }}>
       <Button
         component={RouterLink}
         to={dashboardPath}
@@ -325,7 +325,7 @@ const VolunteerTimeSheet = () => {
             alignItems: "center",
             justifyContent: "space-between",
             borderBottom: "1px solid #dcebdc",
-            bgcolor: "#ffffff",
+            bgcolor: "#f2f9f2",
           }}
         >
           <Box sx={{ minWidth: 0 }}>

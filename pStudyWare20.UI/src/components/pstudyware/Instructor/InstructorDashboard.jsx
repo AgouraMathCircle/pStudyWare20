@@ -45,7 +45,7 @@ const InstructorDashboard = () => {
   const [studentRows, setStudentRows] = useState([]);
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState(null);
-  
+
   const [availabilityRows, setAvailabilityRows] = useState([]);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [availabilityError, setAvailabilityError] = useState(null);
@@ -253,14 +253,14 @@ const InstructorDashboard = () => {
           {/* Top Row: Volunteer Availability and Meeting Schedule */}
           {showVolunteerAvailability ? (
             <>
-              <Grid item xs={12} md={6} sx={{ pt: "0 !important" }}>
+              <Grid item xs={12} md={6} sx={{ pt: "0 !important", zoom: "85%" }}>
                 <Card sx={{ ...instructorDashboardPanelCardSx, height: "100%" }}>
                   <CardContent sx={instructorDashboardPanelContentSx}>
                     <VolunteerAvailability embedded={true} />
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} md={6} sx={{ pt: "0 !important" }}>
+              <Grid item xs={12} md={6} sx={{ pt: "0 !important", zoom: "85%" }}>
                 <StudentMeetingSchedule
                   username={username}
                   panelCardSx={{ ...instructorDashboardPanelCardSx, height: "100%" }}
@@ -269,7 +269,7 @@ const InstructorDashboard = () => {
               </Grid>
             </>
           ) : (
-            <Grid item xs={12} sx={{ pt: "0 !important" }}>
+            <Grid item xs={12} sx={{ pt: "0 !important", zoom: "85%" }}>
               <StudentMeetingSchedule
                 username={username}
                 panelCardSx={instructorDashboardPanelCardSx}
