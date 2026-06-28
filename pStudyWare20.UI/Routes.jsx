@@ -71,6 +71,7 @@ import VolunteersRequest from "./src/components/pstudyware/Admin/VolunteersReque
 import TimeSheetTracking from "./src/components/pstudyware/Admin/TimeSheetTracking";
 import SpecialEventsRegistration from "./src/components/pstudyware/Admin/SpecialEventsRegistration";
 import PostMessage from "./src/components/pstudyware/Admin/PostMessage";
+import DonorDetails from "./src/components/pstudyware/Admin/DonorDetails";
 import UploadAnswerKey from "./src/components/pstudyware/Admin/UploadAnswerKey";
 import UpdateLookupSemester from "./src/components/pstudyware/Admin/UpdateLookupSemester";
 import AdminReportCard from "./src/components/pstudyware/Admin/AdminReportCard";
@@ -610,6 +611,46 @@ const AppRoutes = () => {
                 >
                   <PostMessage />
                 </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/donor-details"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <DonorDetails />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/donor-details"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <DonorDetails />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/Pstudyware/DonorDetails.aspx"
+              element={
+                <Navigate to="/pstudyware/admin/donor-details" replace />
+              }
+            />
+            <Route
+              path="/pstudyware/DonorDetails.aspx"
+              element={
+                <Navigate to="/pstudyware/admin/donor-details" replace />
+              }
+            />
+            <Route
+              path="/DonorDetails.aspx"
+              element={
+                <Navigate to="/pstudyware/admin/donor-details" replace />
               }
             />
             <Route
