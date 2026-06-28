@@ -22,6 +22,13 @@ class AuthService {
 
       if (token) {
         const loginAt = new Date().toISOString();
+        const volunteerAvailability = String(
+          response.data?.volunteerAvailability ??
+            response.data?.VolunteerAvailability ??
+            "N",
+        )
+          .trim()
+          .toUpperCase();
         const userDataToStore = {
           token,
           userId,
@@ -30,6 +37,8 @@ class AuthService {
           expiresAt,
           loginAt,
           ...userData,
+          volunteerAvailability,
+          VolunteerAvailability: volunteerAvailability,
         };
 
         console.log("Storing user data:", {

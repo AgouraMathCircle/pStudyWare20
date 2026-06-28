@@ -16,7 +16,7 @@ import {
 
 export { VolunteerRoleHeaderSpacer };
 
-const volunteerRoleHeaderBarSx = compactRoleHeaderBarSx("#e1bee7");
+const volunteerRoleHeaderBarSx = compactRoleHeaderBarSx("#c8e6c9");
 
 const VolunteerHeader = ({ user }) => {
   const headerRef = useRef(null);
@@ -56,12 +56,12 @@ const VolunteerHeader = ({ user }) => {
                 width: 24,
                 height: 24,
                 borderRadius: "8px",
-                backgroundColor: "#5e35b1",
+                backgroundColor: "#2e7d32",
                 color: "#fff",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 2px 8px rgba(94, 53, 177, 0.28)",
+                boxShadow: "0 2px 8px rgba(46, 125, 50, 0.28)",
                 flexShrink: 0,
               }}
             >
@@ -71,7 +71,7 @@ const VolunteerHeader = ({ user }) => {
               sx={{
                 fontWeight: 700,
                 fontSize: "0.875rem",
-                color: "#4527a0",
+                color: "#1b5e20",
                 letterSpacing: "-0.01em",
                 lineHeight: 1,
               }}
@@ -89,13 +89,13 @@ const VolunteerHeader = ({ user }) => {
                 px: { xs: 0.75, sm: 1 },
                 py: 0.25,
                 borderRadius: "999px",
-                border: "1px solid #7e57c2",
-                boxShadow: "0 1px 3px rgba(94, 53, 177, 0.1)",
+                border: "1px solid #43a047",
+                boxShadow: "0 1px 3px rgba(46, 125, 50, 0.1)",
               }}
             >
               <Typography
                 sx={{
-                  color: "#4527a0",
+                  color: "#1b5e20",
                   fontWeight: 600,
                   fontSize: "0.75rem",
                   lineHeight: 1,
@@ -106,24 +106,24 @@ const VolunteerHeader = ({ user }) => {
               </Typography>
             </Box>
 
-            <PortalHeaderMessageControls user={user} color="#4527a0" />
+            <PortalHeaderMessageControls user={user} color="#1b5e20" />
 
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
                 gap: 0.5,
-                backgroundColor: "#f3e5f5",
+                backgroundColor: "#e8f5e9",
                 px: { xs: 0.75, sm: 1 },
                 py: 0.25,
                 borderRadius: "999px",
-                border: "1px solid #e1bee7",
+                border: "1px solid #c8e6c9",
               }}
             >
-              <CalendarIcon sx={{ fontSize: 14, color: "#8e24aa" }} />
+              <CalendarIcon sx={{ fontSize: 14, color: "#2e7d32" }} />
               <Typography
                 sx={{
-                  color: "#6a1b9a",
+                  color: "#1b5e20",
                   fontWeight: 600,
                   fontSize: "0.75rem",
                   lineHeight: 1,

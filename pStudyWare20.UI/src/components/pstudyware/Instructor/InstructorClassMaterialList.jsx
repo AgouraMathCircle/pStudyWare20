@@ -12,6 +12,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import {
@@ -336,20 +337,39 @@ const InstructorClassMaterialList = ({
     return null;
   };
 
-  const renderActionLink = (label, onClick, disabled = false, linkSx = {}) => (
-    <Box
-      onClick={disabled ? undefined : onClick}
-      sx={{
-        ...adminSessionListTableActionLinkSx,
-        ...linkSx,
-        ...(disabled
-          ? { color: "text.disabled", cursor: "not-allowed", pointerEvents: "none" }
-          : {}),
-      }}
-    >
-      {label}
-    </Box>
+  const renderActionLink = (
+    label,
+    onClick,
+    disabled = false,
+    linkSx = {},
+    tooltip = label,
+  ) => (
+    <Tooltip title={tooltip} arrow>
+      <Box
+        component="span"
+        onClick={disabled ? undefined : onClick}
+        sx={{
+          ...adminSessionListTableActionLinkSx,
+          ...linkSx,
+          display: "inline-flex",
+          ...(disabled ? { color: "text.disabled", cursor: "not-allowed" } : {}),
+        }}
+      >
+        {label}
+      </Box>
+    </Tooltip>
   );
+
+  const renderEllipsisCell = (value, options = {}) => {
+    const display = value || "—";
+    return (
+      <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true, ...options })}>
+        <Tooltip title={display} arrow>
+          <span>{display}</span>
+        </Tooltip>
+      </TableCell>
+    );
+  };
 
   const renderDocumentActions = (doc) => (
     <Box
@@ -361,17 +381,35 @@ const InstructorClassMaterialList = ({
         whiteSpace: "nowrap",
       }}
     >
-      {renderActionLink("View", () => onView(doc.docName))}
+      {renderActionLink(
+        "View",
+        () => onView(doc.docName),
+        false,
+        {},
+        `View ${doc.docName || "document"}`,
+      )}
       <Typography component="span" sx={actionDividerSx}>
         /
       </Typography>
-      {renderActionLink("Download", () => onDownload(doc.docName))}
+      {renderActionLink(
+        "Download",
+        () => onDownload(doc.docName),
+        false,
+        {},
+        `Download ${doc.docName || "document"}`,
+      )}
       {doc.videoURL ? (
         <>
           <Typography component="span" sx={actionDividerSx}>
             /
           </Typography>
-          {renderActionLink("Video", () => onOpenVideo(doc.videoURL))}
+          {renderActionLink(
+            "Video",
+            () => onOpenVideo(doc.videoURL),
+            false,
+            {},
+            "Open lecture video",
+          )}
         </>
       ) : null}
       {canDeleteDocument ? (
@@ -384,6 +422,9 @@ const InstructorClassMaterialList = ({
             () => handleDeleteClick(doc),
             !getClassMaterialDeleteId(doc),
             adminSessionListTableDeleteLinkSx,
+            getClassMaterialDeleteId(doc)
+              ? `Delete ${doc.docName || "document"}`
+              : "Published documents cannot be deleted",
           )}
         </>
       ) : null}
@@ -392,7 +433,13 @@ const InstructorClassMaterialList = ({
           <Typography component="span" sx={actionDividerSx}>
             /
           </Typography>
-          {renderActionLink("Publish", () => handlePublishClick(doc))}
+          {renderActionLink(
+            "Publish",
+            () => handlePublishClick(doc),
+            false,
+            {},
+            `Publish ${doc.docName || "document"}`,
+          )}
         </>
       ) : null}
     </Box>
@@ -450,21 +497,11 @@ const InstructorClassMaterialList = ({
           <TableCell sx={adminSessionListTableBodyCellSx()}>
             {doc.docID ?? "—"}
           </TableCell>
-          <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {doc.classVal || "—"}
-          </TableCell>
-          <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {doc.topics || "—"}
-          </TableCell>
-          <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {doc.description || "—"}
-          </TableCell>
-          <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {doc.docName || "—"}
-          </TableCell>
-          <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            {doc.session || "—"}
-          </TableCell>
+          {renderEllipsisCell(doc.classVal)}
+          {renderEllipsisCell(doc.topics)}
+          {renderEllipsisCell(doc.description)}
+          {renderEllipsisCell(doc.docName)}
+          {renderEllipsisCell(doc.session)}
           <TableCell sx={adminSessionListTableBodyCellSx()}>
             {formatDate(doc.uploadedDate)}
           </TableCell>
