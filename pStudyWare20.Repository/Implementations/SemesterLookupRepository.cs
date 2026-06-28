@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Shared;
 using System.Data;
+using System.Globalization;
 
 namespace pStudyWare20.Repository.Implementations
 {
@@ -62,21 +63,20 @@ namespace pStudyWare20.Repository.Implementations
 
                 command.Parameters.Add(new SqlParameter("@semester", request.Semester ?? (object)DBNull.Value));
                 command.Parameters.Add(new SqlParameter("@LastSemester", request.LastSemester ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@StartingDate", CleanDate(request.StartingDate) ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@RegStartDate", CleanDate(request.RegStartDate) ?? (object)DBNull.Value));
-                // Legacy .aspx.cs used "@RegCloseDate " with trailing space; most DBs use @RegCloseDate.
-                command.Parameters.Add(new SqlParameter("@RegCloseDate", CleanDate(request.RegCloseDate) ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@StartingDate", ToDbDateTime(request.StartingDate)));
+                command.Parameters.Add(new SqlParameter("@RegStartDate", ToDbDateTime(request.RegStartDate)));
+                command.Parameters.Add(new SqlParameter("@RegCloseDate", ToDbDateTime(request.RegCloseDate)));
                 command.Parameters.Add(new SqlParameter("@RegistrationStatus", request.RegistrationStatus ?? "O"));
-                command.Parameters.Add(new SqlParameter("@DisplayDocumentsFrom", request.DisplayDocumentsFrom ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@JBTotalSpace", request.JbTotalSpace ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@JITotalSpace", request.JiTotalSpace ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@JATotalSpace", request.JaTotalSpace ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@SBTotalSpace", request.SbTotalSpace ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@SITotalSpace", request.SiTotalSpace ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@SATotalSpace", request.SaTotalSpace ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@CurrentExamDate", CleanDate(request.CurrentExamDate) ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@CurrentExamDueTime", CleanDate(request.CurrentExamDueTime) ?? (object)DBNull.Value));
-                command.Parameters.Add(new SqlParameter("@VolunteerAvailability", request.VolunteerAvailability ?? "N"));
+                command.Parameters.Add(new SqlParameter("@DisplayDocumentsFrom", ToDbInt(request.DisplayDocumentsFrom)));
+                command.Parameters.Add(new SqlParameter("@JBTotalSpace", ToDbInt(request.JbTotalSpace)));
+                command.Parameters.Add(new SqlParameter("@JITotalSpace", ToDbInt(request.JiTotalSpace)));
+                command.Parameters.Add(new SqlParameter("@JATotalSpace", ToDbInt(request.JaTotalSpace)));
+                command.Parameters.Add(new SqlParameter("@SBTotalSpace", ToDbInt(request.SbTotalSpace)));
+                command.Parameters.Add(new SqlParameter("@SITotalSpace", ToDbInt(request.SiTotalSpace)));
+                command.Parameters.Add(new SqlParameter("@SATotalSpace", ToDbInt(request.SaTotalSpace)));
+                command.Parameters.Add(new SqlParameter("@CurrentExamDate", ToDbDate(request.CurrentExamDate)));
+                command.Parameters.Add(new SqlParameter("@CurrentExamDueTime", ToDbDateTime(request.CurrentExamDueTime)));
+                command.Parameters.Add(new SqlParameter("@VolunteerAvailability", ToYnFlag(request.VolunteerAvailability)));
 
                 await command.ExecuteNonQueryAsync();
             }
@@ -86,10 +86,51 @@ namespace pStudyWare20.Repository.Implementations
             }
         }
 
-        private static string? CleanDate(string? input)
+        private static string? CleanInput(string? input)
         {
             if (input == null) return null;
             return input.Replace('\u202F', ' ').Replace('\u00A0', ' ').Trim();
+        }
+
+        private static object ToYnFlag(string? value)
+        {
+            var cleaned = CleanInput(value)?.ToUpperInvariant();
+            return cleaned == "Y" ? "Y" : "N";
+        }
+
+        private static object ToDbInt(string? value)
+        {
+            var cleaned = CleanInput(value);
+            if (string.IsNullOrEmpty(cleaned)) return DBNull.Value;
+            return int.TryParse(cleaned, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n)
+                ? n
+                : DBNull.Value;
+        }
+
+        private static object ToDbDate(string? value)
+        {
+            var cleaned = CleanInput(value);
+            if (string.IsNullOrEmpty(cleaned)) return DBNull.Value;
+            if (DateTime.TryParse(cleaned, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt)
+                || DateTime.TryParse(cleaned, CultureInfo.CurrentCulture, DateTimeStyles.None, out dt))
+            {
+                return dt.Date;
+            }
+
+            return cleaned;
+        }
+
+        private static object ToDbDateTime(string? value)
+        {
+            var cleaned = CleanInput(value);
+            if (string.IsNullOrEmpty(cleaned)) return DBNull.Value;
+            if (DateTime.TryParse(cleaned, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt)
+                || DateTime.TryParse(cleaned, CultureInfo.CurrentCulture, DateTimeStyles.None, out dt))
+            {
+                return dt;
+            }
+
+            return cleaned;
         }
     }
 }

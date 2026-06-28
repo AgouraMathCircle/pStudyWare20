@@ -102,9 +102,12 @@ namespace pStudyWare20.Services.Implementations
                 SaTotalSpace = Cell(row, "SATotalSpace", "saTotalSpace"),
                 CurrentExamDate = Cell(row, "CurrentExamDate", "currentExamDate"),
                 CurrentExamDueTime = Cell(row, "CurrentExamDueTime", "currentExamDueTime"),
-                VolunteerAvailability = Cell(row, "VolunteerAvailability", "volunteerAvailability")
+                VolunteerAvailability = NormalizeYn(Cell(row, "VolunteerAvailability", "volunteerAvailability"))
             };
         }
+
+        private static string NormalizeYn(string value) =>
+            string.Equals(value?.Trim(), "Y", StringComparison.OrdinalIgnoreCase) ? "Y" : "N";
 
         private static string Cell(DataRow row, params string[] names)
         {

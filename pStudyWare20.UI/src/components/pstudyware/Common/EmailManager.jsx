@@ -109,6 +109,42 @@ const parseLegacyEmailInfoName = (message) => {
   return isLegacyPlaceholderName(name) ? "" : name;
 };
 
+/** Admin inbox grid: student id, name, and class/location parsed from SP SendFrom. */
+const parseAdminMessageFromParts = (message) => {
+  const studentId = String(message?.sendBy ?? message?.SendBy ?? "").trim();
+  const sendFrom = String(message?.sendFrom ?? message?.SendFrom ?? "").trim();
+
+  if (!studentId && !sendFrom) {
+    return null;
+  }
+
+  const match = sendFrom.match(/^(.+?)\s+-\s+\S+\s+\((.+)\)$/);
+  if (match) {
+    return {
+      studentId,
+      studentName: match[1].trim(),
+      classLocation: match[2].trim(),
+    };
+  }
+
+  return {
+    studentId,
+    studentName: "",
+    classLocation: sendFrom || "",
+  };
+};
+
+const getAdminFromDisplayText = (message) => {
+  const parts = parseAdminMessageFromParts(message);
+  if (!parts) {
+    return "";
+  }
+
+  return [parts.studentId, parts.studentName, parts.classLocation]
+    .filter(Boolean)
+    .join(" - ");
+};
+
 /** Admin reply/view: legacy uses Emailinfo SendFrom (raw username), not Name ('0'). */
 const getAdminReplyRecipientDisplay = (message) =>
   message?.senderUsername ||
@@ -167,6 +203,15 @@ const messageTableCellBaseSx = {
   fontSize: "0.75rem",
   padding: "3px 5px",
   borderRight: "1px solid #4caf50",
+};
+
+const adminMessageFromCellSx = {
+  textAlign: "left",
+  "& .MuiTooltip-root, & > span": {
+    display: "block",
+    width: "100%",
+    textAlign: "left",
+  },
 };
 
 const messageTableActionsCellSx = {
@@ -738,6 +783,73 @@ const EmailManager = () => {
     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   };
 
+  const handleAdminStudentIdClick = (studentId) => {
+    const normalizedId = String(studentId ?? "").trim();
+    if (!normalizedId) {
+      return;
+    }
+
+    navigate(
+      `/admin/registeredstudentlist?searchBy=STUDENT_ID&searchCriteria=equals&searchText=${encodeURIComponent(normalizedId)}`,
+    );
+  };
+
+  const renderAdminFromCell = (message) => {
+    const parts = parseAdminMessageFromParts(message);
+    if (!parts) {
+      return "—";
+    }
+
+    const { studentId, studentName, classLocation } = parts;
+    const suffix = [studentName, classLocation].filter(Boolean).join(" - ");
+    const tooltipText = getAdminFromDisplayText(message) || "—";
+
+    if (!studentId) {
+      return (
+        <Tooltip title={tooltipText}>
+          <Box
+            component="span"
+            sx={{
+              display: "block",
+              width: "100%",
+              textAlign: "left",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {tooltipText}
+          </Box>
+        </Tooltip>
+      );
+    }
+
+    return (
+      <Tooltip title={tooltipText}>
+        <Box
+          component="span"
+          sx={{
+            display: "block",
+            width: "100%",
+            textAlign: "left",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <Box
+            component="span"
+            onClick={() => handleAdminStudentIdClick(studentId)}
+            sx={adminSessionListTableActionLinkSx}
+          >
+            {studentId}
+          </Box>
+          {suffix ? ` - ${suffix}` : ""}
+        </Box>
+      </Tooltip>
+    );
+  };
+
   // Implement search functionality
   const handleSearch = () => {
     let filtered = [...messages];
@@ -748,7 +860,9 @@ const EmailManager = () => {
 
         switch (searchBy) {
           case "FROM":
-            fieldValue = message.sendFrom || "";
+            fieldValue = isAdminMessageCenter
+              ? getAdminFromDisplayText(message)
+              : message.sendFrom || "";
             break;
           case "SUBJECT":
             fieldValue = message.subject || "";
@@ -1182,18 +1296,23 @@ useSessionListTableUi
                   <SortableHeader
                     label="From"
                     field="from"
+                    align="left"
                     sortField={sortField}
                     sortOrder={sortOrder}
                     onSort={handleSort}
                     headCellSx={
                       useSessionListTableUi
-                        ? adminSessionListTableHeadCellSx(
-                            messageListColumnWidths.from
-                          )
+                        ? {
+                            ...adminSessionListTableHeadCellSx(
+                              messageListColumnWidths.from
+                            ),
+                            textAlign: "left",
+                          }
                         : {
                             fontWeight: 600,
                             ...messageTableCellBaseSx,
                             width: "16%",
+                            textAlign: "left",
                           }
                     }
                   />
@@ -1384,19 +1503,29 @@ useSessionListTableUi
                         </Box>
                       </TableCell>
                       <TableCell
+                        align="left"
                         sx={
 useSessionListTableUi
-            ? adminSessionListTableBodyCellSx({ ellipsis: true })
-                            : { ...messageTableCellBaseSx, width: "16%" }
+            ? {
+                ...adminSessionListTableBodyCellSx({ ellipsis: true }),
+                ...adminMessageFromCellSx,
+              }
+                            : {
+                                ...messageTableCellBaseSx,
+                                width: "16%",
+                                ...adminMessageFromCellSx,
+                              }
                         }
                       >
-                        {useSessionListTableUi ? (
-                          <Tooltip title={message.sendFrom ?? "—"}>
-                            <span>{message.sendFrom ?? "—"}</span>
-                          </Tooltip>
-                        ) : (
-                          message.sendFrom
-                        )}
+                        {isAdminMessageCenter
+                          ? renderAdminFromCell(message)
+                          : useSessionListTableUi ? (
+                              <Tooltip title={message.sendFrom ?? "—"}>
+                                <span>{message.sendFrom ?? "—"}</span>
+                              </Tooltip>
+                            ) : (
+                              message.sendFrom
+                            )}
                       </TableCell>
                       <TableCell
                         sx={

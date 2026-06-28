@@ -49,9 +49,9 @@ const defaultPanelCardSx = {
 
 const panelContentSx = {
   px: 1.5,
-  pt: 1,
+  pt: 1.5,
   pb: 0,
-  "&:last-child": { pb: 1.5 },
+  "&:last-child": { pb: 0 },
 };
 
 // Class code -> full name (matches the mapping used across the app, e.g. DocumentList)

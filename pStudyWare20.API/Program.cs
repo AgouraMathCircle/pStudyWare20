@@ -164,6 +164,7 @@ builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardReposito
 builder.Services.AddScoped<IEmailManagerRepository, EmailManagerRepository>();
 builder.Services.AddScoped<ISemesterLookupRepository, SemesterLookupRepository>();
 builder.Services.AddScoped<IUploadAnswerKeyRepository, UploadAnswerKeyRepository>();
+builder.Services.AddScoped<IDonorDetailsRepository, DonorDetailsRepository>();
 
 // Register Services
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -195,6 +196,7 @@ builder.Services.AddScoped<IEmailUtility, EmailUtility>();
 builder.Services.AddScoped<IEmailManagerService, EmailManagerService>();
 builder.Services.AddScoped<ISemesterLookupService, SemesterLookupService>();
 builder.Services.AddScoped<IUploadAnswerKeyService, UploadAnswerKeyService>();
+builder.Services.AddScoped<IDonorDetailsService, DonorDetailsService>();
 
 // Configure Swagger
 builder.Services.AddEndpointsApiExplorer();

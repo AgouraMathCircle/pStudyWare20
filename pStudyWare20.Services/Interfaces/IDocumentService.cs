@@ -22,6 +22,13 @@ namespace pStudyWare20.Services.Interfaces
         Task<ResponseDetails> PublishDocumentAsync(PublishDocument publishDocument);
 
         /// <summary>
+        /// Unpublish document (set Active=0 via AMC_spPublishDocuments).
+        /// </summary>
+        /// <param name="publishDocument">Document unpublish request (docID only)</param>
+        /// <returns>Unpublish result</returns>
+        Task<ResponseDetails> UnpublishDocumentAsync(PublishDocument publishDocument);
+
+        /// <summary>
         /// Get documents repository list
         /// </summary>
         /// <param name="request">Document repository list request</param>

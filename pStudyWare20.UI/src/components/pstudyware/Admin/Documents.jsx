@@ -12,7 +12,9 @@ import {
 } from "@mui/material";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
-import documentService from "../../../services/documentService";
+import documentService, {
+  getClassMaterialActionPayload,
+} from "../../../services/documentService";
 import adminDashboardService from "../../../services/adminDashboardService";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import AdminDocumentList from "./AdminDocumentList";
@@ -31,6 +33,7 @@ const Documents = () => {
   const hideRoleHeader = location.pathname.includes("/pstudyware/instructor/");
   const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [listRefreshing, setListRefreshing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [uploadFormOpen, setUploadFormOpen] = useState(false);
@@ -185,17 +188,42 @@ const Documents = () => {
     }
   };
 
+  const refreshDocumentsList = async ({ quiet = false } = {}) => {
+    try {
+      setListRefreshing(true);
+      const username = user.email || user.username;
+      documentService.clearDocumentsListCache(username);
+      const response = await getDocumentsListWithRetry(username);
+
+      if (response.isSuccess) {
+        const docs = response.documents ?? response.Documents ?? [];
+        setDocuments(Array.isArray(docs) ? docs : []);
+        if (!quiet) showMessage("Documents refreshed!", "success");
+      } else {
+        showMessage(
+          response.errorMessage || "Failed to refresh documents",
+          "error",
+        );
+      }
+    } catch (err) {
+      console.error("Error refreshing documents:", err);
+      showMessage("Error refreshing documents.", "error");
+    } finally {
+      setListRefreshing(false);
+    }
+  };
+
   // Handle delete document
   const handleDelete = async (docID, docName) => {
     try {
-      setLoading(true);
+      setListRefreshing(true);
       const response = await documentService.deleteDocument(docID, docName);
 
       if (response.isSuccess) {
         showMessage("Document deleted successfully!", "success");
-        documentService.clearDocumentsListCache(user.email || user.username);
-        await handleRefresh({ quiet: true, skipFullPageLoading: true });
+        await refreshDocumentsList({ quiet: true });
       } else {
+        setListRefreshing(false);
         showMessage(
           response.errorMessage || "Failed to delete document",
           "error",
@@ -203,6 +231,7 @@ const Documents = () => {
       }
     } catch (err) {
       console.error("Error deleting document:", err);
+      setListRefreshing(false);
       showMessage(
         err?.response?.data?.message ||
           err?.response?.data?.errorMessage ||
@@ -210,22 +239,20 @@ const Documents = () => {
           "Error deleting document. Please try again.",
         "error",
       );
-    } finally {
-      setLoading(false);
     }
   };
 
   // Handle publish document
   const handlePublish = async (docID) => {
     try {
-      setLoading(true);
+      setListRefreshing(true);
       const response = await documentService.publishDocument(docID);
 
       if (response.isSuccess) {
         showMessage("Document published successfully!", "success");
-        documentService.clearDocumentsListCache(user.email || user.username);
-        await handleRefresh({ quiet: true, skipFullPageLoading: true });
+        await refreshDocumentsList({ quiet: true });
       } else {
+        setListRefreshing(false);
         showMessage(
           response.errorMessage || "Failed to publish document",
           "error",
@@ -233,9 +260,33 @@ const Documents = () => {
       }
     } catch (err) {
       console.error("Error publishing document:", err);
+      setListRefreshing(false);
       showMessage("Error publishing document. Please try again.", "error");
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  // Handle unpublish document
+  const handleUnpublish = async (doc) => {
+    try {
+      setListRefreshing(true);
+      const response = await documentService.unpublishDocument(
+        getClassMaterialActionPayload(doc),
+      );
+
+      if (response.isSuccess) {
+        showMessage("Document unpublished successfully!", "success");
+        await refreshDocumentsList({ quiet: true });
+      } else {
+        setListRefreshing(false);
+        showMessage(
+          response.errorMessage || "Failed to unpublish document",
+          "error",
+        );
+      }
+    } catch (err) {
+      console.error("Error unpublishing document:", err);
+      setListRefreshing(false);
+      showMessage("Error unpublishing document. Please try again.", "error");
     }
   };
 
@@ -262,8 +313,7 @@ const Documents = () => {
       if (response.isSuccess) {
         showMessage("Document uploaded successfully!", "success");
         setUploadFormOpen(false);
-        documentService.clearDocumentsListCache(user.email || user.username);
-        await handleRefresh({ quiet: true, skipFullPageLoading: true });
+        await refreshDocumentsList({ quiet: true });
       } else {
         showMessage(
           response.errorMessage || "Failed to upload document",
@@ -275,33 +325,6 @@ const Documents = () => {
       showMessage("Error uploading document. Please try again.", "error");
     } finally {
       setUploading(false);
-    }
-  };
-
-  // Handle refresh data (quiet: no toast; skipFullPageLoading: list-only refresh — instructor view)
-  const handleRefresh = async (options = {}) => {
-    const { quiet = false, skipFullPageLoading = false } = options;
-    try {
-      if (!skipFullPageLoading) setLoading(true);
-      const username = user.email || user.username;
-      documentService.clearDocumentsListCache(username);
-      const response = await getDocumentsListWithRetry(username);
-
-      if (response.isSuccess) {
-        const docs = response.documents ?? response.Documents ?? [];
-        setDocuments(Array.isArray(docs) ? docs : []);
-        if (!quiet) showMessage("Documents refreshed!", "success");
-      } else {
-        showMessage(
-          response.errorMessage || "Failed to refresh documents",
-          "error",
-        );
-      }
-    } catch (err) {
-      console.error("Error refreshing documents:", err);
-      showMessage("Error refreshing documents.", "error");
-    } finally {
-      if (!skipFullPageLoading) setLoading(false);
     }
   };
 
@@ -367,10 +390,12 @@ const Documents = () => {
                 >
                   <InstructorClassMaterialList
                     documents={documents}
+                    refreshing={listRefreshing}
                     onView={handleView}
                     onDownload={handleDownload}
                     onDelete={handleDelete}
                     onPublish={handlePublish}
+                    onUnpublish={handleUnpublish}
                     onOpenVideo={handleOpenVideo}
                     onAdd={handleAdd}
                     canAddDocument={adminPrivileges.canAddDocument}
@@ -392,10 +417,12 @@ const Documents = () => {
                 >
                   <AdminDocumentList
                     documents={documents}
+                    refreshing={listRefreshing}
                     onView={handleView}
                     onDownload={handleDownload}
                     onDelete={handleDelete}
                     onPublish={handlePublish}
+                    onUnpublish={handleUnpublish}
                     onOpenVideo={handleOpenVideo}
                     onAdd={handleAdd}
                     canAddDocument={adminPrivileges.canAddDocument}
