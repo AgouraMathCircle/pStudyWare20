@@ -2,6 +2,8 @@ using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
 using System.Data;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace pStudyWare20.Services.Implementations
 {
@@ -251,7 +253,41 @@ namespace pStudyWare20.Services.Implementations
                         ModifiedDate = modifiedVal != null && modifiedVal != DBNull.Value ? Convert.ToDateTime(modifiedVal) : null
                     };
 
-                    entry.TotalHours = CalculateEntryHours(entry);
+                    var startTimeVal = GetCell(row, table, "StartTime")?.ToString();
+                    var endTimeVal = GetCell(row, table, "EndTime")?.ToString();
+                    var totalHoursVal = GetCell(row, table, "TotalHours");
+
+                    if (string.IsNullOrWhiteSpace(entry.StartHour) && !string.IsNullOrWhiteSpace(startTimeVal))
+                    {
+                        var parsed = ParseLegacyClockString(startTimeVal);
+                        if (!string.IsNullOrEmpty(parsed.Hour))
+                        {
+                            entry.StartHour = parsed.Hour;
+                            entry.StartMin = parsed.Min;
+                            entry.StartType = parsed.Type;
+                        }
+                    }
+
+                    if (string.IsNullOrWhiteSpace(entry.EndHour) && !string.IsNullOrWhiteSpace(endTimeVal))
+                    {
+                        var parsed = ParseLegacyClockString(endTimeVal);
+                        if (!string.IsNullOrEmpty(parsed.Hour))
+                        {
+                            entry.EndHour = parsed.Hour;
+                            entry.EndMin = parsed.Min;
+                            entry.EndType = parsed.Type;
+                        }
+                    }
+
+                    if (totalHoursVal != null && totalHoursVal != DBNull.Value && double.TryParse(totalHoursVal.ToString(), out var parsedTotal))
+                    {
+                        entry.TotalHours = parsedTotal;
+                    }
+                    else
+                    {
+                        entry.TotalHours = CalculateEntryHours(entry);
+                    }
+
                     entries.Add(entry);
                 }
                 catch
@@ -261,6 +297,79 @@ namespace pStudyWare20.Services.Implementations
             }
 
             return entries;
+        }
+
+        private static (string Hour, string Min, string Type) ParseLegacyClockString(string? clock)
+        {
+            if (string.IsNullOrWhiteSpace(clock))
+                return ("", "", "");
+
+            var s = clock.Trim();
+
+            var match = Regex.Match(s, @"^(\d{1,2}):(\d{2})\s*(AM|PM)$", RegexOptions.IgnoreCase);
+            if (match.Success)
+            {
+                return (
+                    Pad2Clock(match.Groups[1].Value),
+                    SnapMinuteToLegacyOption(match.Groups[2].Value),
+                    match.Groups[3].Value.ToUpperInvariant()
+                );
+            }
+
+            match = Regex.Match(s, @"^(\d{1,2}):(\d{2})(?::\d{2})?$");
+            if (match.Success && int.TryParse(match.Groups[1].Value, out var hour24))
+            {
+                var min = SnapMinuteToLegacyOption(match.Groups[2].Value);
+                var type = hour24 >= 12 ? "PM" : "AM";
+                if (hour24 == 0) hour24 = 12;
+                else if (hour24 > 12) hour24 -= 12;
+                return (Pad2Clock(hour24), min, type);
+            }
+
+            if (TimeSpan.TryParse(s, CultureInfo.InvariantCulture, out var ts))
+            {
+                var tsHour = ts.Hours;
+                var tsType = tsHour >= 12 ? "PM" : "AM";
+                var tsDisplayHour = tsHour == 0 ? 12 : tsHour > 12 ? tsHour - 12 : tsHour;
+                return (Pad2Clock(tsDisplayHour), SnapMinuteToLegacyOption(ts.Minutes), tsType);
+            }
+
+            if (DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out var dt))
+            {
+                var dtHour = dt.Hour;
+                var dtType = dtHour >= 12 ? "PM" : "AM";
+                var dtDisplayHour = dtHour == 0 ? 12 : dtHour > 12 ? dtHour - 12 : dtHour;
+                return (Pad2Clock(dtDisplayHour), SnapMinuteToLegacyOption(dt.Minute), dtType);
+            }
+
+            return ("", "", "");
+        }
+
+        private static string Pad2Clock(object value)
+        {
+            if (value == null) return "00";
+            if (value is int i) return i.ToString("D2", CultureInfo.InvariantCulture);
+            return int.TryParse(value.ToString(), out var n)
+                ? n.ToString("D2", CultureInfo.InvariantCulture)
+                : value.ToString() ?? "00";
+        }
+
+        private static string SnapMinuteToLegacyOption(object value)
+        {
+            if (!int.TryParse(value?.ToString(), out var minutes))
+                return "00";
+
+            int[] allowed = { 0, 15, 30, 45 };
+            if (Array.IndexOf(allowed, minutes) >= 0)
+                return minutes.ToString("D2", CultureInfo.InvariantCulture);
+
+            var closest = allowed[0];
+            foreach (var option in allowed)
+            {
+                if (Math.Abs(option - minutes) < Math.Abs(closest - minutes))
+                    closest = option;
+            }
+            return closest.ToString("D2", CultureInfo.InvariantCulture);
         }
 
         /// <summary>
