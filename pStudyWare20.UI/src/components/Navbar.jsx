@@ -297,6 +297,11 @@ const Navbar = ({ usePortalLogo = false }) => {
       icon: <DashboardIcon fontSize="small" />,
     },
     {
+      label: "Time Sheet",
+      href: "/pstudyware/instructor/time-sheet",
+      icon: <AssignmentIcon fontSize="small" />,
+    },
+    {
       label: "Class Material",
       href: "/pstudyware/instructor/class-material",
       icon: <AssignmentIcon fontSize="small" />,
@@ -337,7 +342,7 @@ const Navbar = ({ usePortalLogo = false }) => {
       icon: <DashboardIcon fontSize="small" />,
     },
     {
-      label: "Log hours",
+      label: "Time Sheet",
       href: "/pstudyware/volunteer/time-sheet",
       icon: <AssignmentIcon fontSize="small" />,
     },
