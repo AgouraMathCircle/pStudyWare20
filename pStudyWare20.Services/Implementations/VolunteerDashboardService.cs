@@ -244,14 +244,43 @@ namespace pStudyWare20.Services.Implementations
                         StartMin = GetCell(row, table, "StartMin")?.ToString() ?? "",
                         StartType = GetCell(row, table, "StartType")?.ToString() ?? "",
                         EndHour = GetCell(row, table, "EndHour")?.ToString() ?? "",
-                        EndMin = GetCell(row, table, "EndMin")?.ToString() ?? "",
+                        EndMin = GetCell(row, table, "EndMin", "Endmin")?.ToString() ?? "",
                         EndType = GetCell(row, table, "EndType")?.ToString() ?? "",
+                        StartTime = GetCell(row, table, "StartTime")?.ToString() ?? "",
+                        EndTime = GetCell(row, table, "EndTime")?.ToString() ?? "",
                         TaskDescription = GetCell(row, table, "TaskDescription")?.ToString() ?? "",
                         CreatedDate = createdVal != null && createdVal != DBNull.Value ? Convert.ToDateTime(createdVal) : null,
                         ModifiedDate = modifiedVal != null && modifiedVal != DBNull.Value ? Convert.ToDateTime(modifiedVal) : null
                     };
 
-                    entry.TotalHours = CalculateEntryHours(entry);
+                    var totalHoursVal = GetCell(row, table, "TotalHours")?.ToString();
+                    if (!string.IsNullOrEmpty(totalHoursVal))
+                    {
+                        if (totalHoursVal.Contains(":"))
+                        {
+                            var parts = totalHoursVal.Split(':');
+                            if (parts.Length == 2 && double.TryParse(parts[0], out double h) && double.TryParse(parts[1], out double m))
+                            {
+                                entry.TotalHours = h + (m / 60.0);
+                            }
+                            else
+                            {
+                                entry.TotalHours = CalculateEntryHours(entry);
+                            }
+                        }
+                        else if (double.TryParse(totalHoursVal, out double parsedVal))
+                        {
+                            entry.TotalHours = parsedVal;
+                        }
+                        else
+                        {
+                            entry.TotalHours = CalculateEntryHours(entry);
+                        }
+                    }
+                    else
+                    {
+                        entry.TotalHours = CalculateEntryHours(entry);
+                    }
                     entries.Add(entry);
                 }
                 catch
