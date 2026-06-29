@@ -20,6 +20,8 @@ namespace pStudyWare20.Shared
         public string TaskDescription { get; set; } = string.Empty;
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
+        public string StartTime { get; set; } = string.Empty;
+        public string EndTime { get; set; } = string.Empty;
         public double? TotalHours { get; set; }
     }
 

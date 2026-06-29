@@ -57,6 +57,18 @@ const VideoGallery = () => {
 
   const videos = [
     {
+      id: "thaUk7N8_gk",
+      title: "Agoura Math Awards 2026",
+    },
+    {
+      id: "jkpaXehFhgs",
+      title: "Agoura Math Circle Fest 2026",
+    },
+    {
+      id: "oxeDjzvjgQo",
+      title: "Presidents award 2026",
+    },
+    {
       id: "EViqvhjPO_0", // Corresponds to "Success Story - Joshna Jude"
       title: "AMC Success Story 1",
     },
@@ -68,18 +80,6 @@ const VideoGallery = () => {
       id: "LnDwNFbK61g",
       title: "AMC Success Story 3",
     },
-    {
-      id: "thaUk7N8_gk",
-      title: "Agoura Math Circle Fest 2026",
-    },
-    {
-      id: "oxeDjzvjgQo",
-      title: "Presidents award 2026",
-    },
-    {
-      id: "thaUk7N8_gk",
-      title: "Agoura Math Awards 2026",
-    }
     
   ];
 

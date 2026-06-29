@@ -275,8 +275,8 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
             {!loading &&
               pageRows.map((row, idx) => {
                 const id = rowId(row);
-                const start = formatClock(row?.startHour, row?.startMin, row?.startType);
-                const end = formatClock(row?.endHour, row?.endMin, row?.endType);
+                const start = row?.startTime ?? row?.StartTime ?? "—";
+                const end = row?.endTime ?? row?.EndTime ?? "—";
                 return (
                   <TableRow key={id ?? `row-${idx}`} hover>
                     <TableCell>{id ?? "—"}</TableCell>

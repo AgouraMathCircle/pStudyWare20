@@ -29,7 +29,7 @@ import "../styles/Donate.css";
 // Import images from src/assets
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
 import donateButtonImg from "../assets/images/donate_button.jpg";
-import boxImg from "../assets/images/box.jpg";
+import boxImg from "../assets/images/donatebox.png";
 import Sponsors from "./common/Sponsors";
 
 const Donate = () => {
@@ -131,17 +131,18 @@ const Donate = () => {
       {/* Breadcrumbs End */}
 
       {/* Main Content */}
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Grid container spacing={6}>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Grid container spacing={3}>
           {/* Left Column - Donate to AMC Section */}
-          <Grid item xs={12} md={8}>
+          <Grid item size={{ xs: 12, md: 6 }}>
             <Card
               elevation={0}
+
               sx={{
                 backgroundColor: "white",
-                borderRadius: 0,
-                boxShadow: "none",
-                border: "none",
+                borderRadius: "12px",
+                overflow: "hidden",
+                padding: 2
               }}
             >
               <CardContent sx={{ p: 0 }}>
@@ -201,21 +202,91 @@ const Donate = () => {
                 </Typography>
 
                 {/* PayPal Donate Button */}
-                <Box sx={{ mb: 3, textAlign: "center" }}>
-                  <Box
-                    component="form"
-                    action="https://www.paypal.com/cgi-bin/webscr"
-                    method="post"
-                    target="_blank"
-                    onSubmit={handlePayPalSubmit}
-                    sx={{
-                      display: "inline-block",
-                      "&:hover": {
-                        transform: "scale(1.02)",
-                      },
-                      transition: "transform 0.3s ease",
-                    }}
-                  >
+
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item size={{ xs: 12, md: 6 }}>
+            <Card
+              elevation={0}
+
+              sx={{
+                backgroundColor: "white",
+                borderRadius: "12px",
+                overflow: "hidden",
+                padding: 6.3,
+                
+              }}
+            >
+              <Box
+                sx={{
+                  width: "100%",
+                  maxWidth: 300,
+                  height: 200,
+                  margin: "0 auto",
+                  borderRadius: "15px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+
+                <Box
+                  sx={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: "30%",
+                    background:
+                      "linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%)",
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      top: "-10px",
+                      left: 0,
+                      right: 0,
+                      height: "20px",
+                      background:
+                        "linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)",
+                      borderRadius: "50%",
+                    },
+                  }}
+                />
+
+                <img
+                  src={boxImg}
+                  alt="Donation Box"
+                  style={{
+                    height: "200px",
+                    verticalAlign: "middle",
+                    boxSizing: "border-box",
+                    position: "absolute",
+                  }}
+                />
+              </Box>
+
+              <CardContent sx={{ p: 0 }}>
+                <Box sx={{ mb: 4, textAlign: "center" }}>
+<Box
+  component="form"
+  action="https://www.paypal.com/cgi-bin/webscr"
+  method="post"
+  target="_blank"
+  onSubmit={handlePayPalSubmit}
+  sx={{
+    width: "90%",
+    mx: "auto",
+    display: "block",
+    "&:hover": {
+      transform: "scale(1.02)",
+    },
+    transition: "transform 0.3s ease",
+  }}
+>
                     <input type="hidden" name="cmd" value="_s-xclick" />
                     <input
                       type="hidden"
@@ -225,24 +296,22 @@ const Donate = () => {
 
                     <Button
                       type="submit"
+                      variant="contained"
                       sx={{
-                        p: 0,
-                        minWidth: "auto",
+                        width: "90%",
+                        backgroundColor: "#53b50a",
                         "&:hover": {
-                          opacity: 0.9,
+                          backgroundColor: "#469b09",
                         },
+                        textTransform: "none",
+                        fontWeight: 600,
+                        fontSize:20,
+                        mx: "auto",        // centers horizontally
+                        display: "block",   // required for mx auto to work
+                        py: 1.5,
                       }}
                     >
-                      <img
-                        src={donateButtonImg}
-                        alt="PayPal - The safer, easier way to pay online!"
-                        style={{
-                          maxWidth: "100%",
-                          height: "auto",
-                          borderRadius: "8px",
-                          boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-                        }}
-                      />
+                      Donate with PayPal
                     </Button>
 
                     <img
@@ -362,68 +431,7 @@ const Donate = () => {
           </Grid>
 
           {/* Right Column - Illustration and Financial Reports */}
-          <Grid item xs={12} md={4}>
-            {/* Donation Illustration */}
-            <Box
-              sx={{
-                textAlign: "center",
-                mb: 4,
-                position: "relative",
-              }}
-            >
-              <Box
-                sx={{
-                  width: "100%",
-                  maxWidth: 300,
-                  height: 200,
-                  margin: "0 auto",
-                  background:
-                    "linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)",
-                  borderRadius: "15px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "relative",
-                  overflow: "hidden",
-                }}
-              >
-                {/* Decorative waves */}
-                <Box
-                  sx={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: "30%",
-                    background:
-                      "linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%)",
-                    "&::before": {
-                      content: '""',
-                      position: "absolute",
-                      top: "-10px",
-                      left: 0,
-                      right: 0,
-                      height: "20px",
-                      background:
-                        "linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)",
-                      borderRadius: "50%",
-                    },
-                  }}
-                />
-
-                {/* Donation box illustration */}
-                <img
-                  src={boxImg}
-                  alt="Donation Box"
-                  style={{
-                    maxWidth: "100%",
-                    height: "150px",
-                    verticalAlign: "middle",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </Box>
-            </Box>
+          <Grid item size={{ xs: 12, md: 12, lg: 4 }}>
 
             {/* Financial Reports Section */}
             <Card
@@ -432,6 +440,7 @@ const Donate = () => {
                 backgroundColor: "white",
                 borderRadius: "12px",
                 overflow: "hidden",
+                padding: 1
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -494,12 +503,33 @@ const Donate = () => {
               </CardContent>
             </Card>
           </Grid>
+
+          <Grid item size={{ xs: 12, md: 12, lg: 8 }}>
+            <Card
+              elevation={0}
+
+              sx={{
+                backgroundColor: "white",
+                borderRadius: "12px",
+                overflow: "hidden",
+                padding: 1.5
+              }}
+            >
+              <CardContent sx={{ p: 0 }}>
+
+
+                {/* Our Sponsors Section */}
+                <Box sx={{ mt: 1, mb: 1 }}>
+                  <Sponsors variant="donate" />
+                </Box>
+
+              </CardContent>
+            </Card>
+          </Grid>
+
+
         </Grid>
 
-        {/* Our Sponsors Section */}
-        <Box sx={{ mt: 8, mb: 6 }}>
-          <Sponsors variant="donate" />
-        </Box>
 
         {/* Donors of AMC Section */}
         <Box sx={{ mt: 8, mb: 6 }}>
@@ -598,8 +628,8 @@ const Donate = () => {
                                 icon={
                                   donorLevels[level]?.icon
                                     ? React.createElement(
-                                        donorLevels[level].icon,
-                                      )
+                                      donorLevels[level].icon,
+                                    )
                                     : undefined
                                 }
                               />
@@ -610,6 +640,7 @@ const Donate = () => {
                     ))}
                   </AccordionDetails>
                 </Accordion>
+
               )}
 
               {/* Past Year Donors */}
@@ -668,8 +699,8 @@ const Donate = () => {
                                 icon={
                                   donorLevels[level]?.icon
                                     ? React.createElement(
-                                        donorLevels[level].icon,
-                                      )
+                                      donorLevels[level].icon,
+                                    )
                                     : undefined
                                 }
                               />
@@ -684,7 +715,10 @@ const Donate = () => {
             </Box>
           )}
         </Box>
+
       </Container>
+
+
 
       {/* Scroll to Top Button */}
       <Button
@@ -710,6 +744,7 @@ const Donate = () => {
       >
         <KeyboardArrowUp />
       </Button>
+
     </div>
   );
 };
