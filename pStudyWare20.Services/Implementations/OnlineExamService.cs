@@ -39,8 +39,8 @@ namespace pStudyWare20.Services.Implementations
                         {
                             response.StudentList.Add(new StudentListItem
                             {
-                                Value = GetStringFromElement(row, "Value"),
-                                Text = GetStringFromElement(row, "Text")
+                                Value = GetStringFromElement(row, "StudentID", "Value"),
+                                Text = GetStringFromElement(row, "StudentName", "Text"),
                             });
                         }
                     }
@@ -70,17 +70,17 @@ namespace pStudyWare20.Services.Implementations
 
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
+                    if (rows != null)
                     {
-                        foreach (System.Data.DataRow row in dataTable.Rows)
+                        foreach (var row in rows)
                         {
                             response.Questions.Add(new OnlineExamQuestion
                             {
-                                Question = Convert.ToInt32(row["Question"]),
-                                AnswerKey = row["AnswerKey"]?.ToString() ?? string.Empty,
-                                Points = Convert.ToInt32(row["Points"]),
-                                CreatedDate = row["CreatedDate"] != DBNull.Value ? Convert.ToDateTime(row["CreatedDate"]) : null
+                                Question = GetInt(row, "Question"),
+                                AnswerKey = GetStringFromElement(row, "AnswerKey"),
+                                Points = GetInt(row, "Points"),
+                                CreatedDate = GetDate(row, "CreatedDate"),
                             });
                         }
                     }
@@ -110,11 +110,11 @@ namespace pStudyWare20.Services.Implementations
 
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
+                    if (rows != null && rows.Count > 0)
                     {
-                        var enableScoreUpdate = dataTable.Rows[0]["EnableScoreUpdate"]?.ToString();
-                        response.EnableScoreUpdate = enableScoreUpdate == "Y";
+                        var flag = GetStringFromElement(rows[0], "EnableScoreUpdate");
+                        response.EnableScoreUpdate = string.Equals(flag, "Y", StringComparison.OrdinalIgnoreCase);
                     }
                 }
 
@@ -142,14 +142,14 @@ namespace pStudyWare20.Services.Implementations
 
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
+                    if (rows != null)
                     {
-                        foreach (System.Data.DataRow row in dataTable.Rows)
+                        foreach (var row in rows)
                         {
                             response.Sessions.Add(new SessionItem
                             {
-                                Session = row["Session"]?.ToString() ?? string.Empty
+                                Session = GetStringFromElement(row, "Session"),
                             });
                         }
                     }
@@ -179,20 +179,23 @@ namespace pStudyWare20.Services.Implementations
 
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
+                    if (rows != null)
                     {
-                        foreach (System.Data.DataRow row in dataTable.Rows)
+                        foreach (var row in rows)
                         {
                             response.Scores.Add(new StudentScore
                             {
-                                StudentName = row["StudentName"]?.ToString() ?? string.Empty,
-                                Group = row["Class"]?.ToString() ?? string.Empty,
-                                Semester = row["CurrentSemester"]?.ToString() ?? string.Empty,
-                                ExamDate = DateTime.TryParse(row["ExamDate"]?.ToString(), out var examDate) ? examDate : DateTime.MinValue,
-                                TotalCredit = float.TryParse(row["TotalScore"]?.ToString(), out var totalScore) ? totalScore : 0,
-                                ReceivedCredit = float.TryParse(row["ReceivedScore"]?.ToString(), out var receivedScore) ? receivedScore : 0,
-                                Comments = row["Comments"]?.ToString() ?? string.Empty
+                                StudentID = GetInt(row, "StudentID"),
+                                StudentName = GetStringFromElement(row, "StudentName"),
+                                Group = GetStringFromElement(row, "Group", "Class"),
+                                Grade = GetStringFromElement(row, "Grade"),
+                                Semester = GetStringFromElement(row, "Semester", "CurrentSession"),
+                                ExamType = GetStringFromElement(row, "ExamType"),
+                                ExamDate = GetDate(row, "ExamDate") ?? DateTime.MinValue,
+                                TotalCredit = GetFloat(row, "TotalCredit", "TotalScore"),
+                                ReceivedCredit = GetFloat(row, "ReceivedCredit", "ReceivedScore"),
+                                Comments = GetStringFromElement(row, "Comments"),
                             });
                         }
                     }
@@ -244,11 +247,86 @@ namespace pStudyWare20.Services.Implementations
             return response;
         }
 
-        private static string GetStringFromElement(JsonElement row, string propertyName)
+        private static string GetStringFromElement(JsonElement row, params string[] propertyNames)
         {
-            if (row.TryGetProperty(propertyName, out var prop))
-                return prop.ValueKind == JsonValueKind.Null || prop.ValueKind == JsonValueKind.Undefined ? string.Empty : (prop.GetString() ?? string.Empty);
+            foreach (var propertyName in propertyNames)
+            {
+                if (row.TryGetProperty(propertyName, out var prop))
+                {
+                    return prop.ValueKind == JsonValueKind.Null || prop.ValueKind == JsonValueKind.Undefined
+                        ? string.Empty
+                        : prop.GetString() ?? string.Empty;
+                }
+            }
+
             return string.Empty;
+        }
+
+        private static int GetInt(JsonElement row, params string[] propertyNames)
+        {
+            foreach (var propertyName in propertyNames)
+            {
+                if (!row.TryGetProperty(propertyName, out var prop))
+                {
+                    continue;
+                }
+
+                if (prop.ValueKind == JsonValueKind.Number && prop.TryGetInt32(out var number))
+                {
+                    return number;
+                }
+
+                if (prop.ValueKind == JsonValueKind.String &&
+                    int.TryParse(prop.GetString(), out var parsed))
+                {
+                    return parsed;
+                }
+            }
+
+            return 0;
+        }
+
+        private static float GetFloat(JsonElement row, params string[] propertyNames)
+        {
+            foreach (var propertyName in propertyNames)
+            {
+                if (!row.TryGetProperty(propertyName, out var prop))
+                {
+                    continue;
+                }
+
+                if (prop.ValueKind == JsonValueKind.Number && prop.TryGetSingle(out var number))
+                {
+                    return number;
+                }
+
+                if (prop.ValueKind == JsonValueKind.String &&
+                    float.TryParse(prop.GetString(), out var parsed))
+                {
+                    return parsed;
+                }
+            }
+
+            return 0;
+        }
+
+        private static DateTime? GetDate(JsonElement row, params string[] propertyNames)
+        {
+            foreach (var propertyName in propertyNames)
+            {
+                if (!row.TryGetProperty(propertyName, out var prop))
+                {
+                    continue;
+                }
+
+                if (prop.ValueKind == JsonValueKind.String &&
+                    DateTime.TryParse(prop.GetString(), out var parsed))
+                {
+                    return parsed;
+                }
+            }
+
+            return null;
         }
     }
 }

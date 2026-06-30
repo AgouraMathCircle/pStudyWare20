@@ -26,6 +26,12 @@ namespace pStudyWare20.Shared
         public string CurrentExamDueTime { get; set; } = "";
         /// <summary>Y = open volunteer availability UI, N = closed.</summary>
         public string VolunteerAvailability { get; set; } = "N";
+        /// <summary>Y = show final exam UI, N = hidden.</summary>
+        public string FinalExamDisplay { get; set; } = "N";
+        /// <summary>Comma-separated chapter numbers, e.g. 1,2,</summary>
+        public string FinalExamDisplayChapter { get; set; } = "";
+        /// <summary>Comma-separated chapter numbers for online exam UI, e.g. 1,2,</summary>
+        public string OnlineExamDisplayChapter { get; set; } = "";
     }
 
     public class GetSemesterLookupResponse
@@ -58,6 +64,12 @@ namespace pStudyWare20.Shared
         public string CurrentExamDueTime { get; set; } = "";
         [RegularExpression("^[YN]$", ErrorMessage = "Volunteer availability must be Y (Open) or N (Close).")]
         public string VolunteerAvailability { get; set; } = "N";
+        [RegularExpression("^[YN]$", ErrorMessage = "Final exam display must be Y (Yes) or N (No).")]
+        public string FinalExamDisplay { get; set; } = "N";
+        [MaxLength(100)]
+        public string FinalExamDisplayChapter { get; set; } = "";
+        [MaxLength(100)]
+        public string OnlineExamDisplayChapter { get; set; } = "";
 
         /// <summary>Caller chapter ID; must be "1" to update (matches legacy Session ChapterID).</summary>
         [Required]

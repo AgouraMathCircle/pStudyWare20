@@ -74,6 +74,9 @@ namespace pStudyWare20.Shared
         public string Semester { get; set; } = string.Empty;
         public string SemesterName { get; set; } = string.Empty;
         public string EventLocation { get; set; } = string.Empty;
+        public string ParentName { get; set; } = string.Empty;
+        public string Class { get; set; } = string.Empty;
+        public int? OpenSpace { get; set; }
         public string Status { get; set; } = string.Empty; // "Open", "Full - Closed", "Waiting List"
         public DateTime? RegistrationDate { get; set; }
         public bool IsRegistered { get; set; }
@@ -285,6 +288,22 @@ namespace pStudyWare20.Shared
         public string Competitions { get; set; } = string.Empty;
         public string TodoList { get; set; } = string.Empty;
         public List<ReportCardEntry> ReportCardEntries { get; set; } = new List<ReportCardEntry>();
+        /// <summary>True when active AMC_tblLookupSemester row has FinalExamDisplay = 'Y'.</summary>
+        public bool ShowFinalExam { get; set; }
+        /// <summary>Active AMC_tblLookupSemester Semester code, e.g. S2026.</summary>
+        public string ActiveSemester { get; set; } = string.Empty;
+        /// <summary>Active semester registration close date (MM/DD/YYYY).</summary>
+        public string RegistrationCloseDate { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Active row from AMC_tblLookupSemester (Active = 1).
+    /// </summary>
+    public class ActiveSemesterLookupDto
+    {
+        public string Semester { get; set; } = string.Empty;
+        public bool ShowFinalExam { get; set; }
+        public string RegCloseDate { get; set; } = string.Empty;
     }
 
     /// <summary>

@@ -38,6 +38,8 @@ namespace pStudyWare20.Repository.Implementations
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
+                await EnrichMissingSemesterLookupColumnsAsync(connection, dataTable);
+
                 return dataTable;
             }
             catch (Exception ex)
@@ -77,6 +79,9 @@ namespace pStudyWare20.Repository.Implementations
                 command.Parameters.Add(new SqlParameter("@CurrentExamDate", ToDbDate(request.CurrentExamDate)));
                 command.Parameters.Add(new SqlParameter("@CurrentExamDueTime", ToDbDateTime(request.CurrentExamDueTime)));
                 command.Parameters.Add(new SqlParameter("@VolunteerAvailability", ToYnFlag(request.VolunteerAvailability)));
+                command.Parameters.Add(new SqlParameter("@FinalExamDisplay", ToYnFlag(request.FinalExamDisplay)));
+                command.Parameters.Add(new SqlParameter("@FinalExamDisplayChapter", request.FinalExamDisplayChapter ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@OnlineExamDisplayChapter", request.OnlineExamDisplayChapter ?? (object)DBNull.Value));
 
                 await command.ExecuteNonQueryAsync();
             }
@@ -131,6 +136,54 @@ namespace pStudyWare20.Repository.Implementations
             }
 
             return cleaned;
+        }
+
+        /// <summary>
+        /// Legacy AMC_spSelectSemesterLookup may omit newer columns until DB scripts are applied.
+        /// </summary>
+        private static async Task EnrichMissingSemesterLookupColumnsAsync(SqlConnection connection, DataTable table)
+        {
+            if (table.Rows.Count == 0)
+                return;
+
+            var supplementalColumns = new (string Column, string SqlExpr)[]
+            {
+                ("FinalExamDisplay", "ISNULL(FinalExamDisplay, 'N')"),
+                ("FinalExamDisplayChapter", "ISNULL(FinalExamDisplayChapter, '')"),
+                ("OnlineExamDisplayChapter", "ISNULL(OnlineExamDisplayChapter, '')"),
+            };
+
+            var missing = supplementalColumns
+                .Where(c => !table.Columns.Contains(c.Column))
+                .ToList();
+            if (missing.Count == 0)
+                return;
+
+            var selectList = string.Join(", ", missing.Select(c => $"{c.SqlExpr} AS [{c.Column}]"));
+            try
+            {
+                using var cmd = new SqlCommand(
+                    $"SELECT TOP 1 {selectList} FROM dbo.AMC_tblLookupSemester WITH (NOLOCK)",
+                    connection);
+                using var reader = await cmd.ExecuteReaderAsync();
+                if (!await reader.ReadAsync())
+                    return;
+
+                foreach (var col in missing)
+                {
+                    if (!table.Columns.Contains(col.Column))
+                        table.Columns.Add(col.Column, typeof(string));
+
+                    var ordinal = reader.GetOrdinal(col.Column);
+                    table.Rows[0][col.Column] = reader.IsDBNull(ordinal)
+                        ? ""
+                        : reader.GetValue(ordinal)?.ToString()?.Trim() ?? "";
+                }
+            }
+            catch (SqlException)
+            {
+                // Columns may not exist on the table yet.
+            }
         }
     }
 }

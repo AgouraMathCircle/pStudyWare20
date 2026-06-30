@@ -46,7 +46,11 @@ import {
   APPLICATION_ADMIN_TITLE_COLOR,
 } from "../styles/applicationSurfaces";
 
+/** Legacy StudentScore.aspx.cs RedirectToOnline — chapters 3, 5, 6 use Online Exam */
 const ONLINE_EXAM_CHAPTERS = new Set(["3", "5", "6"]);
+
+const shouldRedirectToOnlineExam = (chapterId) =>
+  ONLINE_EXAM_CHAPTERS.has(String(chapterId || "").trim());
 
 /** Legacy StudentScore.aspx `.control_box` / `.inputHeader` colors */
 const LEGACY_CONTROL_BOX_GREEN = "#54B50A";
@@ -196,10 +200,24 @@ const scoreStep9HighlightSx = {
 
 const parseStudentValue = (value) => {
   const parts = String(value || "").split("~");
+  if (parts.length >= 3) {
+    return {
+      classCode: parts[0] || "",
+      studentId: (parts[1] || "").trim(),
+      chapterId: (parts[2] || "").trim(),
+    };
+  }
+  if (parts.length === 2) {
+    return {
+      classCode: "",
+      studentId: (parts[1] || "").trim(),
+      chapterId: (parts[0] || "").trim(),
+    };
+  }
   return {
-    classCode: parts[0] || "",
-    studentId: parts[1] || "",
-    chapterId: (parts[2] || "").trim(),
+    classCode: "",
+    studentId: String(value || "").trim(),
+    chapterId: "",
   };
 };
 
@@ -263,6 +281,7 @@ const StudentScore = () => {
   const [selectedSession, setSelectedSession] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [enableScoreUpdate, setEnableScoreUpdate] = useState(false);
+  const [studentContextLoading, setStudentContextLoading] = useState(false);
   const [studentScores, setStudentScores] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -344,40 +363,67 @@ const StudentScore = () => {
 
   const loadSessionsForStudent = useCallback(
     async (studentValue, studentText) => {
+      setStudentContextLoading(true);
+      setEnableScoreUpdate(false);
+
       const { chapterId, studentId, classCode } =
         parseStudentValue(studentValue);
-      if (ONLINE_EXAM_CHAPTERS.has(chapterId)) {
+
+      if (!studentId || !chapterId) {
+        showSnackbar(
+          "Unable to read student details. Please contact support.",
+          "error",
+        );
+        setSessions([]);
+        setSelectedSession("");
+        setStudentContextLoading(false);
+        return false;
+      }
+
+      if (shouldRedirectToOnlineExam(chapterId)) {
         const params = new URLSearchParams({
           Source: "S",
           Action: "R",
           Student: studentText || "",
           ChapterID: chapterId,
         });
-        navigate(`/pstudyware/student/online-exam?${params.toString()}`);
+        navigate(`/pstudyware/student/online-exam?${params.toString()}`, {
+          replace: true,
+        });
+        setStudentContextLoading(false);
         return true;
       }
 
-      const sessionResponse =
-        await studentScoreService.getCurrentSession(chapterId);
-      if (!sessionResponse?.isSuccess) {
-        showSnackbar(
-          sessionResponse?.errorMessage || "Failed to load sessions.",
-          "error",
-        );
-        setSessions([]);
-        setSelectedSession("");
-        setEnableScoreUpdate(false);
-        return false;
-      }
+      try {
+        const sessionResponse =
+          await studentScoreService.getCurrentSession(chapterId);
+        if (!sessionResponse?.isSuccess) {
+          showSnackbar(
+            sessionResponse?.errorMessage || "Failed to load sessions.",
+            "error",
+          );
+          setSessions([]);
+          setSelectedSession("");
+          return false;
+        }
 
-      const sessionRows =
-        sessionResponse?.sessions ?? sessionResponse?.Sessions ?? [];
-      setSessions(sessionRows);
-      const firstSession =
-        sessionRows[0]?.session ?? sessionRows[0]?.Session ?? "";
-      setSelectedSession(firstSession);
-      await validateWindow(studentId, firstSession, classCode);
-      return false;
+        const sessionRows =
+          sessionResponse?.sessions ?? sessionResponse?.Sessions ?? [];
+        setSessions(sessionRows);
+        const firstSession =
+          sessionRows[0]?.session ?? sessionRows[0]?.Session ?? "";
+        setSelectedSession(firstSession);
+
+        if (!firstSession) {
+          setEnableScoreUpdate(false);
+          return false;
+        }
+
+        await validateWindow(studentId, firstSession, classCode);
+        return false;
+      } finally {
+        setStudentContextLoading(false);
+      }
     },
     [navigate, validateWindow],
   );
@@ -452,6 +498,7 @@ const StudentScore = () => {
   const handleStudentChange = async (event) => {
     const value = event.target.value;
     setSelectedStudent(value);
+    setSuccessMessage("");
     const student = students.find((s) => (s.value ?? s.Value) === value);
     const text = student?.text ?? student?.Text ?? "";
     await loadSessionsForStudent(value, text);
@@ -461,7 +508,12 @@ const StudentScore = () => {
     const session = event.target.value;
     setSelectedSession(session);
     const { studentId, classCode } = parseStudentValue(selectedStudent);
-    await validateWindow(studentId, session, classCode);
+    setStudentContextLoading(true);
+    try {
+      await validateWindow(studentId, session, classCode);
+    } finally {
+      setStudentContextLoading(false);
+    }
   };
 
   const handleNumericChange = (setter, field) => (event) => {
@@ -598,6 +650,7 @@ const StudentScore = () => {
 
                   {!enableScoreUpdate &&
                     !loading &&
+                    !studentContextLoading &&
                     students.length > 0 &&
                     selectedStudent && (
                       <Alert
@@ -608,7 +661,16 @@ const StudentScore = () => {
                       </Alert>
                     )}
 
-                  {enableScoreUpdate && (
+                  {studentContextLoading && (
+                    <Alert
+                      severity="info"
+                      sx={{ mb: 1, fontSize: "0.75rem" }}
+                    >
+                      Loading student session...
+                    </Alert>
+                  )}
+
+                  {enableScoreUpdate && !studentContextLoading && (
                     <>
                       <Box sx={legacyInputHeaderSx}>
                         <Typography
@@ -672,91 +734,99 @@ const StudentScore = () => {
                           Message Center.
                         </Typography>
                       </Box>
+                    </>
+                  )}
 
-                      <Box sx={legacyInputHeaderSx}>
-                        <Typography
-                          component="div"
-                          sx={legacyInputHeaderTitleSx}
-                        >
-                          Update Student Score
+                  <Box sx={{ ...legacyInputHeaderSx, mt: enableScoreUpdate && !studentContextLoading ? 1.5 : 0 }}>
+                    <Typography
+                      component="div"
+                      sx={legacyInputHeaderTitleSx}
+                    >
+                      Update Student Score
+                    </Typography>
+                  </Box>
+
+                  {loading ? (
+                    <Alert
+                      severity="info"
+                      sx={{ mb: 1, fontSize: "0.75rem" }}
+                    >
+                      Loading students...
+                    </Alert>
+                  ) : students.length === 0 ? (
+                    <Alert
+                      severity="info"
+                      sx={{ mb: 1, fontSize: "0.75rem" }}
+                    >
+                      No students found for your account.
+                    </Alert>
+                  ) : (
+                    <Box sx={legacyFieldBarSx}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                        }}
+                      >
+                        <Typography sx={legacyFieldLabelSx}>
+                          Student Name:
                         </Typography>
+                        <Select
+                          value={selectedStudent}
+                          onChange={handleStudentChange}
+                          size="small"
+                          sx={{ ...legacyFieldSelectSx, minWidth: 200 }}
+                          disabled={loading || studentContextLoading}
+                        >
+                          {students.map((student, index) => (
+                            <MenuItem
+                              key={index}
+                              value={student.value ?? student.Value}
+                              sx={adminSessionListMenuItemSx}
+                            >
+                              {student.text ?? student.Text}
+                            </MenuItem>
+                          ))}
+                        </Select>
                       </Box>
-
-                      {loading ? (
-                        <Alert
-                          severity="info"
-                          sx={{ mb: 1, fontSize: "0.75rem" }}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                        }}
+                      >
+                        <Typography sx={legacyFieldLabelSx}>
+                          Session:
+                        </Typography>
+                        <Select
+                          value={selectedSession}
+                          onChange={handleSessionChange}
+                          size="small"
+                          sx={{ ...legacyFieldSelectSx, minWidth: 160 }}
+                          disabled={
+                            loading ||
+                            studentContextLoading ||
+                            sessions.length === 0
+                          }
                         >
-                          Loading students...
-                        </Alert>
-                      ) : students.length === 0 ? (
-                        <Alert
-                          severity="info"
-                          sx={{ mb: 1, fontSize: "0.75rem" }}
-                        >
-                          No students found for your account.
-                        </Alert>
-                      ) : (
-                        <Box sx={legacyFieldBarSx}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 0.5,
-                            }}
-                          >
-                            <Typography sx={legacyFieldLabelSx}>
-                              Student Name:
-                            </Typography>
-                            <Select
-                              value={selectedStudent}
-                              onChange={handleStudentChange}
-                              size="small"
-                              sx={{ ...legacyFieldSelectSx, minWidth: 200 }}
-                              disabled={loading}
+                          {sessions.map((session, index) => (
+                            <MenuItem
+                              key={index}
+                              value={session.session ?? session.Session}
+                              sx={adminSessionListMenuItemSx}
                             >
-                              {students.map((student, index) => (
-                                <MenuItem
-                                  key={index}
-                                  value={student.value ?? student.Value}
-                                  sx={adminSessionListMenuItemSx}
-                                >
-                                  {student.text ?? student.Text}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </Box>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 0.5,
-                            }}
-                          >
-                            <Typography sx={legacyFieldLabelSx}>
-                              Session:
-                            </Typography>
-                            <Select
-                              value={selectedSession}
-                              onChange={handleSessionChange}
-                              size="small"
-                              sx={{ ...legacyFieldSelectSx, minWidth: 160 }}
-                              disabled={loading}
-                            >
-                              {sessions.map((session, index) => (
-                                <MenuItem
-                                  key={index}
-                                  value={session.session ?? session.Session}
-                                  sx={adminSessionListMenuItemSx}
-                                >
-                                  {session.session ?? session.Session}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </Box>
-                        </Box>
-                      )}
+                              {session.session ?? session.Session}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </Box>
+                    </Box>
+                  )}
 
+                  {enableScoreUpdate && !studentContextLoading && (
+                    <>
                       <TableContainer
                         component={Paper}
                         sx={{

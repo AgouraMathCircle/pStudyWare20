@@ -38,11 +38,13 @@ namespace pStudyWare20.Services.Implementations
 
                 var messagesTask = _repository.GetDashboardMessageAsync(username, request.ChapterID);
                 var reportCardTask = _repository.GetReportCardAsync(username);
+                var semesterLookupTask = _repository.GetActiveSemesterLookupAsync();
 
-                await Task.WhenAll(messagesTask, reportCardTask);
+                await Task.WhenAll(messagesTask, reportCardTask, semesterLookupTask);
 
                 var dataTable = await messagesTask;
                 var reportCardTable = await reportCardTask;
+                var semesterLookup = await semesterLookupTask;
 
                 var importantNotice = string.Empty;
                 var announcement = string.Empty;
@@ -71,7 +73,10 @@ namespace pStudyWare20.Services.Implementations
                     Announcement = announcement,
                     Competitions = competitions,
                     TodoList = todoList,
-                    ReportCardEntries = reportCardEntries
+                    ReportCardEntries = reportCardEntries,
+                    ShowFinalExam = semesterLookup.ShowFinalExam,
+                    ActiveSemester = semesterLookup.Semester,
+                    RegistrationCloseDate = semesterLookup.RegCloseDate
                 };
             }
             catch (Exception ex)
@@ -624,6 +629,24 @@ namespace pStudyWare20.Services.Implementations
             return int.TryParse(row[columnName]?.ToString(), out var value) ? value : defaultValue;
         }
 
+        private static int? GetRowNullableInt(DataRow row, params string[] columnNames)
+        {
+            foreach (var name in columnNames)
+            {
+                if (!row.Table.Columns.Contains(name) || row[name] == DBNull.Value)
+                {
+                    continue;
+                }
+
+                if (int.TryParse(row[name]?.ToString(), out var value))
+                {
+                    return value;
+                }
+            }
+
+            return null;
+        }
+
         private static decimal? GetRowDecimal(DataRow row, params string[] columnNames)
         {
             foreach (var name in columnNames)
@@ -651,23 +674,31 @@ namespace pStudyWare20.Services.Implementations
 
         private static RegistrationStatus MapDataRowToRegistrationStatus(DataRow row)
         {
-            var status = row.Table.Columns.Contains("Status") ? row["Status"]?.ToString() ?? "Unknown" : "Unknown";
+            var status = GetRowString(row, "RegStatus", "Status");
+            if (string.IsNullOrWhiteSpace(status))
+            {
+                status = "Unknown";
+            }
 
             return new RegistrationStatus
             {
-                RegistrationID = row.Table.Columns.Contains("RegistrationID") ? Convert.ToInt32(row["RegistrationID"]) : 0,
-                StudentID = row.Table.Columns.Contains("StudentID") ? Convert.ToInt32(row["StudentID"]) : 0,
-                StudentName = row.Table.Columns.Contains("StudentName") ? row["StudentName"]?.ToString() ?? string.Empty : string.Empty,
-                Grade = row.Table.Columns.Contains("Grade") ? row["Grade"]?.ToString() ?? string.Empty : string.Empty,
-                School = row.Table.Columns.Contains("School") ? row["School"]?.ToString() ?? string.Empty : string.Empty,
-                Semester = row.Table.Columns.Contains("Semester") ? row["Semester"]?.ToString() ?? string.Empty : string.Empty,
-                SemesterName = row.Table.Columns.Contains("SemesterName") ? row["SemesterName"]?.ToString() ?? string.Empty : string.Empty,
-                EventLocation = row.Table.Columns.Contains("EventLocation") ? row["EventLocation"]?.ToString() ?? string.Empty : string.Empty,
+                RegistrationID = GetRowInt(row, "RegistrationID"),
+                StudentID = GetRowInt(row, "StudentID"),
+                StudentName = GetRowString(row, "StudentName"),
+                Grade = GetRowString(row, "Grade"),
+                School = GetRowString(row, "School"),
+                Semester = GetRowString(row, "Semester", "EventSession"),
+                SemesterName = GetRowString(row, "SemesterName"),
+                EventLocation = GetRowString(row, "EventLocation"),
+                ParentName = GetRowString(row, "ParentName"),
+                Class = GetRowString(row, "Class"),
+                OpenSpace = GetRowNullableInt(row, "OpenSpace"),
                 Status = status,
-                RegistrationDate = row.Table.Columns.Contains("RegistrationDate") && row["RegistrationDate"] != DBNull.Value ? Convert.ToDateTime(row["RegistrationDate"]) : null,
+                RegistrationDate = GetRowDateTime(row, "RegistrationDate")
+                    ?? GetRowDateTime(row, "RegisteredDate"),
                 IsRegistered = status == "Registered",
                 CanRegister = status == "Open",
-                IsWaitingList = status == "Waiting List"
+                IsWaitingList = status == "Waiting List",
             };
         }
 

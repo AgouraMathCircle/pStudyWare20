@@ -41,7 +41,8 @@ const StudentDashboard = () => {
 
   // Final Exam state
   const [showFinalExam, setShowFinalExam] = useState(false);
-  const [finalExamLoading, setFinalExamLoading] = useState(false);
+  const [activeSemester, setActiveSemester] = useState("");
+  const [registrationCloseDate, setRegistrationCloseDate] = useState("");
 
   // Global message state
   const [snackbar, setSnackbar] = useState({
@@ -132,9 +133,20 @@ const StudentDashboard = () => {
         const response = await studentDashboardService.getRegistrationStatus(username);
         if (cancelled) return;
 
-        if (response.isSuccess && response.registrationEntries) {
-          setRegistrationData(response.registrationEntries);
-          setShowRegistration(response.registrationEntries.length > 0);
+        if (response.isSuccess) {
+          const entries =
+            response.registrationStatuses ??
+            response.RegistrationStatuses ??
+            response.registrationEntries ??
+            response.RegistrationEntries ??
+            [];
+          const showWindow =
+            response.showRegistrationWindow ??
+            response.ShowRegistrationWindow ??
+            entries.length > 0;
+
+          setRegistrationData(entries);
+          setShowRegistration(showWindow && entries.length > 0);
         } else {
           setShowRegistration(false);
         }
@@ -162,7 +174,6 @@ const StudentDashboard = () => {
     const loadDashboardData = async () => {
       try {
         setDashboardMessagesLoading(true);
-        setFinalExamLoading(true);
         const response = await studentDashboardService.getDashboardData(username, chapterId);
         if (cancelled) return;
 
@@ -178,14 +189,20 @@ const StudentDashboard = () => {
           );
           setReportCardError(null);
           setShowFinalExam(
-            response.showFinalExam !== undefined
-              ? response.showFinalExam
-              : checkIfFinalExamPeriod()
+            response.showFinalExam === true || response.ShowFinalExam === true
+          );
+          setActiveSemester(
+            response.activeSemester ?? response.ActiveSemester ?? ""
+          );
+          setRegistrationCloseDate(
+            response.registrationCloseDate ?? response.RegistrationCloseDate ?? ""
           );
         } else {
           setReportCardEntries([]);
           setReportCardError(response?.message || "Failed to load report card");
-          setShowFinalExam(checkIfFinalExamPeriod());
+          setShowFinalExam(false);
+          setActiveSemester("");
+          setRegistrationCloseDate("");
         }
       } catch (err) {
         if (!cancelled) {
@@ -196,12 +213,13 @@ const StudentDashboard = () => {
               err.message ||
               "Failed to load report card"
           );
-          setShowFinalExam(checkIfFinalExamPeriod());
+          setShowFinalExam(false);
+          setActiveSemester("");
+          setRegistrationCloseDate("");
         }
       } finally {
         if (!cancelled) {
           setDashboardMessagesLoading(false);
-          setFinalExamLoading(false);
         }
       }
     };
@@ -211,8 +229,6 @@ const StudentDashboard = () => {
       cancelled = true;
     };
   }, [isValidated, username, chapterId, refreshTrigger]);
-
-  const checkIfFinalExamPeriod = () => true;
 
   const showMessage = (message, severity = "info") => {
     setSnackbar({
@@ -324,10 +340,19 @@ const StudentDashboard = () => {
           {showRegistration && !registrationLoading && (
             <Grid item xs={12} sx={{ pt: "8px !important" }}>
               <Card sx={panelCardSx}>
-                <CardContent sx={panelContentSx}>
+                <CardContent
+                  sx={{
+                    px: 1.5,
+                    pt: 1.5,
+                    pb: 1.5,
+                    "&:last-child": { pb: 1.5 },
+                  }}
+                >
                   <RegistrationSection
                     registrationData={registrationData}
                     username={username}
+                    activeSemester={activeSemester}
+                    registrationCloseDate={registrationCloseDate}
                     onSuccess={handleRegistrationSuccess}
                     onError={handleRegistrationError}
                   />
@@ -348,21 +373,11 @@ const StudentDashboard = () => {
             </Grid>
           )}
 
-          {showFinalExam && !finalExamLoading && (
+          {showFinalExam && (
             <Grid item xs={12} sx={{ pt: "0 !important", mt: "-4px !important" }}>
               <Card sx={panelCardSx}>
                 <CardContent sx={panelContentSx}>
                   <FinalExamSection />
-                </CardContent>
-              </Card>
-            </Grid>
-          )}
-
-          {finalExamLoading && (
-            <Grid item xs={12} sx={{ pt: "0 !important", mt: "-4px !important" }}>
-              <Card sx={panelCardSx}>
-                <CardContent sx={panelContentSx}>
-                  <FinalExamSection loading />
                 </CardContent>
               </Card>
             </Grid>

@@ -182,5 +182,46 @@ namespace pStudyWare20.Repository.Implementations
             await connection.OpenAsync();
             await command.ExecuteNonQueryAsync();
         }
+
+        /// <inheritdoc />
+        public async Task<ActiveSemesterLookupDto> GetActiveSemesterLookupAsync()
+        {
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            try
+            {
+                using var command = new SqlCommand(
+                    """
+                    SELECT TOP 1
+                        ISNULL(Semester, '') AS Semester,
+                        ISNULL(FinalExamDisplay, 'N') AS FinalExamDisplay,
+                        CONVERT(VARCHAR(10), RegCloseDate, 101) AS RegCloseDate
+                    FROM dbo.AMC_tblLookupSemester WITH (NOLOCK)
+                    WHERE Active = 1
+                    """,
+                    connection);
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return new ActiveSemesterLookupDto
+                    {
+                        Semester = reader["Semester"]?.ToString()?.Trim() ?? string.Empty,
+                        ShowFinalExam = string.Equals(
+                            reader["FinalExamDisplay"]?.ToString()?.Trim(),
+                            "Y",
+                            StringComparison.OrdinalIgnoreCase),
+                        RegCloseDate = reader["RegCloseDate"]?.ToString()?.Trim() ?? string.Empty
+                    };
+                }
+            }
+            catch (SqlException)
+            {
+                // FinalExamDisplay column may not exist until DB script is applied.
+            }
+
+            return new ActiveSemesterLookupDto();
+        }
     }
 }

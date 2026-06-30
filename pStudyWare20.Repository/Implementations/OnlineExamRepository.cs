@@ -1,9 +1,11 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using pStudyWare20.Data.Models;
+using pStudyWare20.Repository.Helpers;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Shared;
 using System.Data;
+using System.Text.Json;
 
 namespace pStudyWare20.Repository.Implementations
 {
@@ -22,52 +24,36 @@ namespace pStudyWare20.Repository.Implementations
         }
 
         /// <summary>
-        /// Get student list using stored procedure
+        /// Get student list — mirrors legacy OnlineExam.aspx BindStudentList(..., "E").
         /// </summary>
         public async Task<string> GetStudentListAsync(OnlineExamStudentListRequest request)
         {
-            try
+            var username = await PortalUsernameResolver.ResolveAsync(_context, request.Username);
+            var mode = string.IsNullOrWhiteSpace(request.Type) ? "E" : request.Type.Trim();
+
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            using var command = new SqlCommand("AMC_spSelectStudentListbyUserName", connection)
             {
-                using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
+                CommandType = CommandType.StoredProcedure
+            };
+            command.Parameters.Add(new SqlParameter("@Username", username));
 
-                using var command = new SqlCommand("AMC_spSelectStudentList", connection)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                command.Parameters.Add(new SqlParameter("@Username", request.Username ?? ""));
-                command.Parameters.Add(new SqlParameter("@Mode", request.Type ?? ""));
-
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
-
-                return DataTableToJson(dataTable);
-            }
-            catch (Exception ex)
+            if (string.Equals(mode, "I", StringComparison.OrdinalIgnoreCase))
             {
-                throw new Exception($"Error getting online exam student list: {ex.Message}", ex);
+                command.Parameters.Add(new SqlParameter("@EmailMode", mode));
             }
-        }
-
-        /// <summary>
-        /// Converts DataTable to JSON-serializable list (avoids serializing System.Type in DataColumn.DataType).
-        /// </summary>
-        private static string DataTableToJson(DataTable dataTable)
-        {
-            var list = new List<Dictionary<string, object?>>();
-            foreach (DataRow row in dataTable.Rows)
+            else
             {
-                var dict = new Dictionary<string, object?>();
-                foreach (DataColumn col in dataTable.Columns)
-                {
-                    var val = row[col];
-                    dict[col.ColumnName] = val == DBNull.Value ? null : val;
-                }
-                list.Add(dict);
+                command.Parameters.Add(new SqlParameter("@DisplayMode", mode));
             }
-            return System.Text.Json.JsonSerializer.Serialize(list);
+
+            var dataTable = new DataTable();
+            using var adapter = new SqlDataAdapter(command);
+            adapter.Fill(dataTable);
+
+            return DataTableToJson(dataTable);
         }
 
         /// <summary>
@@ -75,30 +61,23 @@ namespace pStudyWare20.Repository.Implementations
         /// </summary>
         public async Task<string> GetOnlineExamQuestionsAsync(OnlineExamQuestionsRequest request)
         {
-            try
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            using var command = new SqlCommand("AMC_spSelectExamQuestions", connection)
             {
-                using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
+                CommandType = CommandType.StoredProcedure
+            };
 
-                using var command = new SqlCommand("AMC_spGetOnlineExamQuestions", connection)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            command.Parameters.Add(new SqlParameter("@Class", request.Class ?? ""));
+            command.Parameters.Add(new SqlParameter("@ExamType", request.ExamType ?? ""));
+            command.Parameters.Add(new SqlParameter("@Session", request.Session ?? ""));
 
-                command.Parameters.Add(new SqlParameter("@Class", request.Class ?? ""));
-                command.Parameters.Add(new SqlParameter("@ExamType", request.ExamType ?? ""));
-                command.Parameters.Add(new SqlParameter("@Session", request.Session ?? ""));
+            var dataTable = new DataTable();
+            using var adapter = new SqlDataAdapter(command);
+            adapter.Fill(dataTable);
 
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
-
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error getting online exam questions: {ex.Message}", ex);
-            }
+            return DataTableToJson(dataTable);
         }
 
         /// <summary>
@@ -106,32 +85,25 @@ namespace pStudyWare20.Repository.Implementations
         /// </summary>
         public async Task<string> ValidateScoreUpdateAsync(OnlineExamScoreValidationRequest request)
         {
-            try
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            using var command = new SqlCommand("AMC_spStudentScore_Validate", connection)
             {
-                using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
+                CommandType = CommandType.StoredProcedure
+            };
 
-                using var command = new SqlCommand("AMC_spValidateOnlineExamScoreUpdate", connection)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            command.Parameters.Add(new SqlParameter("@StudentID", request.StudentID.ToString()));
+            command.Parameters.Add(new SqlParameter("@Session", request.Session ?? ""));
+            command.Parameters.Add(new SqlParameter("@Class", request.Class ?? ""));
+            command.Parameters.Add(new SqlParameter("@ExamType", request.ExamType ?? "Quiz"));
+            command.Parameters.Add(new SqlParameter("@Source", request.Source ?? "OnlineExam"));
 
-                command.Parameters.Add(new SqlParameter("@StudentID", request.StudentID));
-                command.Parameters.Add(new SqlParameter("@Session", request.Session ?? ""));
-                command.Parameters.Add(new SqlParameter("@Class", request.Class ?? ""));
-                command.Parameters.Add(new SqlParameter("@ExamType", request.ExamType ?? ""));
-                command.Parameters.Add(new SqlParameter("@Source", request.Source ?? ""));
+            var dataTable = new DataTable();
+            using var adapter = new SqlDataAdapter(command);
+            adapter.Fill(dataTable);
 
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
-
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error validating online exam score update: {ex.Message}", ex);
-            }
+            return DataTableToJson(dataTable);
         }
 
         /// <summary>
@@ -139,28 +111,21 @@ namespace pStudyWare20.Repository.Implementations
         /// </summary>
         public async Task<string> GetCurrentSessionAsync(OnlineExamCurrentSessionRequest request)
         {
-            try
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            using var command = new SqlCommand("AMC_spSelectCurrentSession", connection)
             {
-                using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
+                CommandType = CommandType.StoredProcedure
+            };
 
-                using var command = new SqlCommand("AMC_spGetOnlineExamCurrentSession", connection)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            command.Parameters.Add(new SqlParameter("@ChapterID", request.ChapterID ?? ""));
 
-                command.Parameters.Add(new SqlParameter("@ChapterID", request.ChapterID ?? ""));
+            var dataTable = new DataTable();
+            using var adapter = new SqlDataAdapter(command);
+            adapter.Fill(dataTable);
 
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
-
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error getting online exam current session: {ex.Message}", ex);
-            }
+            return DataTableToJson(dataTable);
         }
 
         /// <summary>
@@ -168,28 +133,23 @@ namespace pStudyWare20.Repository.Implementations
         /// </summary>
         public async Task<string> GetStudentScoresAsync(OnlineExamStudentScoresRequest request)
         {
-            try
+            var username = await PortalUsernameResolver.ResolveAsync(_context, request.Username);
+
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+
+            using var command = new SqlCommand("AMC_spStudentScore_Select", connection)
             {
-                using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
+                CommandType = CommandType.StoredProcedure
+            };
 
-                using var command = new SqlCommand("AMC_spGetOnlineExamStudentScores", connection)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+            command.Parameters.Add(new SqlParameter("@Username", username));
 
-                command.Parameters.Add(new SqlParameter("@Username", request.Username ?? ""));
+            var dataTable = new DataTable();
+            using var adapter = new SqlDataAdapter(command);
+            adapter.Fill(dataTable);
 
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
-
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error getting online exam student scores: {ex.Message}", ex);
-            }
+            return DataTableToJson(dataTable);
         }
 
         /// <summary>
@@ -218,12 +178,28 @@ namespace pStudyWare20.Repository.Implementations
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                return DataTableToJson(dataTable);
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error submitting online exam: {ex.Message}", ex);
+                throw new Exception($"Error submitting online exam: {ex.GetBaseException().Message}", ex);
             }
+        }
+
+        private static string DataTableToJson(DataTable dataTable)
+        {
+            var list = new List<Dictionary<string, object?>>();
+            foreach (DataRow row in dataTable.Rows)
+            {
+                var dict = new Dictionary<string, object?>();
+                foreach (DataColumn col in dataTable.Columns)
+                {
+                    var val = row[col];
+                    dict[col.ColumnName] = val == DBNull.Value ? null : val;
+                }
+                list.Add(dict);
+            }
+            return JsonSerializer.Serialize(list);
         }
     }
 }
