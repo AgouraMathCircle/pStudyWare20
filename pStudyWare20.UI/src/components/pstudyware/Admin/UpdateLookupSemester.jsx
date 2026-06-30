@@ -11,13 +11,19 @@ import {
   CircularProgress,
   Card,
   CardContent,
+  Snackbar,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableRow,
+  Tooltip,
 } from "@mui/material";
-import { Save as SaveIcon, Refresh as RefreshIcon } from "@mui/icons-material";
+import {
+  Save as SaveIcon,
+  Refresh as RefreshIcon,
+  InfoOutlined as InfoOutlinedIcon,
+} from "@mui/icons-material";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import { useAuth } from "../../../contexts/AuthContext";
 import semesterLookupService from "../../../services/semesterLookupService";
@@ -69,6 +75,8 @@ const lookupFieldSx = {
   },
 };
 
+const SUCCESS_MESSAGE = "You have updated Semester Lookup successfully.";
+
 const emptyForm = {
   semester: "",
   lastSemester: "",
@@ -86,6 +94,9 @@ const emptyForm = {
   currentExamDate: "",
   currentExamDueTime: "",
   volunteerAvailability: "N",
+  finalExamDisplay: "N",
+  finalExamDisplayChapter: "",
+  onlineExamDisplayChapter: "",
 };
 
 const normalizeYn = (value) =>
@@ -107,22 +118,35 @@ const UpdateLookupSemester = () => {
   const [saving, setSaving] = useState(false);
   const [canUpdate, setCanUpdate] = useState(false);
   const [form, setForm] = useState(emptyForm);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const closeSnackbar = (_, reason) => {
+    if (reason === "clickaway") return;
+    setSnackbar((s) => ({ ...s, open: false }));
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const res = await semesterLookupService.getSemesterLookup(chapterID);
       if (!(res.isSuccess ?? res.IsSuccess)) {
-        setError(
+        showSnackbar(
           res.errorMessage || res.ErrorMessage || "Failed to load semester lookup.",
+          "error",
         );
         return;
       }
       setCanUpdate(res.canUpdate === true || res.CanUpdate === true);
       const L = res.lookup || res.Lookup || {};
+      const registrationStatus = L.registrationStatus === "C" ? "C" : "O";
       setForm({
         semester: L.semester ?? "",
         lastSemester: L.lastSemester ?? "",
@@ -130,7 +154,7 @@ const UpdateLookupSemester = () => {
         regStartDate: L.regStartDate ?? "",
         regCloseDate: L.regCloseDate ?? "",
         displayDocumentsFrom: L.displayDocumentsFrom ?? "",
-        registrationStatus: L.registrationStatus === "C" ? "C" : "O",
+        registrationStatus,
         jbTotalSpace: L.jbTotalSpace ?? "",
         jiTotalSpace: L.jiTotalSpace ?? "",
         jaTotalSpace: L.jaTotalSpace ?? "",
@@ -142,13 +166,22 @@ const UpdateLookupSemester = () => {
         volunteerAvailability: normalizeYn(
           L.volunteerAvailability ?? L.VolunteerAvailability,
         ),
+        finalExamDisplay:
+          registrationStatus === "O"
+            ? "N"
+            : normalizeYn(L.finalExamDisplay ?? L.FinalExamDisplay),
+        finalExamDisplayChapter:
+          L.finalExamDisplayChapter ?? L.FinalExamDisplayChapter ?? "",
+        onlineExamDisplayChapter:
+          L.onlineExamDisplayChapter ?? L.OnlineExamDisplayChapter ?? "",
       });
     } catch (e) {
-      setError(
+      showSnackbar(
         e.response?.data?.message ||
           e.response?.data?.error ||
           e.message ||
           "Failed to load semester lookup.",
+        "error",
       );
     } finally {
       setLoading(false);
@@ -161,16 +194,26 @@ const UpdateLookupSemester = () => {
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
-    setSuccess(null);
-    setError(null);
+    setSnackbar((s) => ({ ...s, open: false }));
   };
+
+  const handleRegistrationStatusChange = (e) => {
+    const registrationStatus = e.target.value;
+    setForm((prev) => ({
+      ...prev,
+      registrationStatus,
+      finalExamDisplay: registrationStatus === "O" ? "N" : prev.finalExamDisplay,
+    }));
+    setSnackbar((s) => ({ ...s, open: false }));
+  };
+
+  const isRegistrationOpen = form.registrationStatus === "O";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canUpdate) return;
     setSaving(true);
-    setError(null);
-    setSuccess(null);
+    setSnackbar((s) => ({ ...s, open: false }));
     try {
       const payload = {
         semester: form.semester,
@@ -189,33 +232,41 @@ const UpdateLookupSemester = () => {
         currentExamDate: form.currentExamDate,
         currentExamDueTime: form.currentExamDueTime,
         volunteerAvailability: normalizeYn(form.volunteerAvailability),
+        finalExamDisplay:
+          form.registrationStatus === "O"
+            ? "N"
+            : normalizeYn(form.finalExamDisplay),
+        finalExamDisplayChapter: form.finalExamDisplayChapter,
+        onlineExamDisplayChapter: form.onlineExamDisplayChapter,
         chapterID,
       };
       const res = await semesterLookupService.updateSemesterLookup(payload);
       if (!(res.isSuccess ?? res.IsSuccess)) {
-        setError(res.errorMessage || res.ErrorMessage || "Update failed.");
+        showSnackbar(res.errorMessage || res.ErrorMessage || "Update failed.", "error");
         return;
       }
-      setSuccess(
-        res.message || res.Message || "Semester lookup updated successfully.",
-      );
+      showSnackbar(SUCCESS_MESSAGE, "success");
       await load();
     } catch (e) {
       const status = e.response?.status;
       const data = e.response?.data;
       if (status === 403) {
-        setError(data?.errorMessage || "You do not have permission to update.");
+        showSnackbar(
+          data?.errorMessage || "You do not have permission to update.",
+          "error",
+        );
       } else {
         const errorDetails =
           data?.errors && Array.isArray(data.errors)
             ? `: ${data.errors.join(", ")}`
             : "";
-        setError(
+        showSnackbar(
           (data?.message ||
             data?.error ||
             data?.errorMessage ||
             e.message ||
             "Update failed.") + errorDetails,
+          "error",
         );
       }
     } finally {
@@ -263,25 +314,6 @@ const UpdateLookupSemester = () => {
                     <Alert severity="info" sx={{ mb: 2 }}>
                       View only. Submit is available for chapter 1
                       administrators (legacy behavior).
-                    </Alert>
-                  )}
-
-                  {error && (
-                    <Alert
-                      severity="error"
-                      sx={{ mb: 2 }}
-                      onClose={() => setError(null)}
-                    >
-                      {error}
-                    </Alert>
-                  )}
-                  {success && (
-                    <Alert
-                      severity="success"
-                      sx={{ mb: 2 }}
-                      onClose={() => setSuccess(null)}
-                    >
-                      {success}
                     </Alert>
                   )}
 
@@ -428,7 +460,7 @@ const UpdateLookupSemester = () => {
                                   variant="outlined"
                                   hiddenLabel
                                   value={form.registrationStatus}
-                                  onChange={handleChange("registrationStatus")}
+                                  onChange={handleRegistrationStatusChange}
                                   disabled={!canUpdate || saving}
                                   sx={lookupFieldSx}
                                 >
@@ -690,6 +722,137 @@ const UpdateLookupSemester = () => {
                                 />
                               </TableCell>
                             </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                Final Exam Display Y/N
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <TextField
+                                  fullWidth
+                                  select
+                                  size="small"
+                                  variant="outlined"
+                                  hiddenLabel
+                                  value={form.finalExamDisplay}
+                                  onChange={handleChange("finalExamDisplay")}
+                                  disabled={!canUpdate || saving || isRegistrationOpen}
+                                  sx={lookupFieldSx}
+                                >
+                                  <MenuItem value="Y">Yes</MenuItem>
+                                  <MenuItem value="N">No</MenuItem>
+                                </TextField>
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                <Tooltip
+                                  title="Enter chapter numbers separated by commas, e.g. 1,2,"
+                                  arrow
+                                  placement="top"
+                                >
+                                  <Box
+                                    component="span"
+                                    sx={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: 0.5,
+                                      cursor: "help",
+                                    }}
+                                  >
+                                    Final Exam Display Chapter
+                                    <InfoOutlinedIcon
+                                      sx={{ fontSize: 16, opacity: 0.9 }}
+                                    />
+                                  </Box>
+                                </Tooltip>
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <Tooltip
+                                  title="Enter chapter numbers separated by commas, e.g. 1,2,"
+                                  arrow
+                                  placement="top"
+                                >
+                                  <Box component="span" sx={{ display: "block" }}>
+                                    <TextField
+                                      fullWidth
+                                      size="small"
+                                      variant="outlined"
+                                      hiddenLabel
+                                      value={form.finalExamDisplayChapter}
+                                      onChange={handleChange(
+                                        "finalExamDisplayChapter",
+                                      )}
+                                      disabled={saving}
+                                      InputProps={{ readOnly: fieldReadOnly }}
+                                      inputProps={{ maxLength: 100 }}
+                                      placeholder="e.g. 1,2,"
+                                      sx={lookupFieldSx}
+                                    />
+                                  </Box>
+                                </Tooltip>
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell
+                                component="th"
+                                scope="row"
+                                sx={lookupLabelCellSx}
+                              >
+                                <Tooltip
+                                  title="Enter chapter numbers separated by commas, e.g. 1,2,"
+                                  arrow
+                                  placement="top"
+                                >
+                                  <Box
+                                    component="span"
+                                    sx={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: 0.5,
+                                      cursor: "help",
+                                    }}
+                                  >
+                                    Online Exam Display Chapter
+                                    <InfoOutlinedIcon
+                                      sx={{ fontSize: 16, opacity: 0.9 }}
+                                    />
+                                  </Box>
+                                </Tooltip>
+                              </TableCell>
+                              <TableCell sx={lookupInputCellSx}>
+                                <Tooltip
+                                  title="Enter chapter numbers separated by commas, e.g. 1,2,"
+                                  arrow
+                                  placement="top"
+                                >
+                                  <Box component="span" sx={{ display: "block" }}>
+                                    <TextField
+                                      fullWidth
+                                      size="small"
+                                      variant="outlined"
+                                      hiddenLabel
+                                      value={form.onlineExamDisplayChapter}
+                                      onChange={handleChange(
+                                        "onlineExamDisplayChapter",
+                                      )}
+                                      disabled={saving}
+                                      InputProps={{ readOnly: fieldReadOnly }}
+                                      inputProps={{ maxLength: 100 }}
+                                      placeholder="e.g. 1,2,"
+                                      sx={lookupFieldSx}
+                                    />
+                                  </Box>
+                                </Tooltip>
+                              </TableCell>
+                            </TableRow>
                           </TableBody>
                         </Table>
                       </TableContainer>
@@ -734,6 +897,22 @@ const UpdateLookupSemester = () => {
           </Grid>
         </Grid>
       </Container>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={closeSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

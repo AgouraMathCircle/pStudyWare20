@@ -69,5 +69,10 @@ namespace pStudyWare20.Repository.Interfaces
         /// Updates student profile (AMC_spUpdateStudentProfile).
         /// </summary>
         Task UpdateStudentProfileAsync(UpdateStudentProfileRequest request);
+
+        /// <summary>
+        /// Active AMC_tblLookupSemester row (Semester code and FinalExamDisplay flag).
+        /// </summary>
+        Task<ActiveSemesterLookupDto> GetActiveSemesterLookupAsync();
     }
 }

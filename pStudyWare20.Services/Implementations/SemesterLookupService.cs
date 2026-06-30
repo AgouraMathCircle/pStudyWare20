@@ -102,7 +102,10 @@ namespace pStudyWare20.Services.Implementations
                 SaTotalSpace = Cell(row, "SATotalSpace", "saTotalSpace"),
                 CurrentExamDate = Cell(row, "CurrentExamDate", "currentExamDate"),
                 CurrentExamDueTime = Cell(row, "CurrentExamDueTime", "currentExamDueTime"),
-                VolunteerAvailability = NormalizeYn(Cell(row, "VolunteerAvailability", "volunteerAvailability"))
+                VolunteerAvailability = NormalizeYn(Cell(row, "VolunteerAvailability", "volunteerAvailability")),
+                FinalExamDisplay = NormalizeYn(Cell(row, "FinalExamDisplay", "finalExamDisplay")),
+                FinalExamDisplayChapter = Cell(row, "FinalExamDisplayChapter", "finalExamDisplayChapter"),
+                OnlineExamDisplayChapter = Cell(row, "OnlineExamDisplayChapter", "onlineExamDisplayChapter")
             };
         }
 
