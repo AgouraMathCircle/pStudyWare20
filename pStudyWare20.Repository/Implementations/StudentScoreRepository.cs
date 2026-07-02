@@ -116,19 +116,65 @@ namespace pStudyWare20.Repository.Implementations
             using var connection = new SqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            using var command = new SqlCommand(
-                "SELECT CurrentExamDueTime FROM [AMC_tblLookupSemester]",
-                connection)
+            var dueDate = string.Empty;
+            var onlineExamDisplayChapter = string.Empty;
+
+            try
             {
-                CommandType = CommandType.Text
-            };
+                using var command = new SqlCommand(
+                    """
+                    SELECT TOP 1
+                        CurrentExamDueTime,
+                        ISNULL(OnlineExamDisplayChapter, '') AS OnlineExamDisplayChapter
+                    FROM [AMC_tblLookupSemester] WITH (NOLOCK)
+                    WHERE Active = 1
+                    """,
+                    connection)
+                {
+                    CommandType = CommandType.Text
+                };
 
-            var dueDate = await command.ExecuteScalarAsync();
-            var formatted = dueDate != null && dueDate != DBNull.Value
-                ? Convert.ToDateTime(dueDate).ToString("MM/dd/yyyy")
-                : string.Empty;
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    var rawDueDate = reader["CurrentExamDueTime"];
+                    if (rawDueDate != null && rawDueDate != DBNull.Value)
+                    {
+                        dueDate = Convert.ToDateTime(rawDueDate).ToString("MM/dd/yyyy");
+                    }
 
-            return JsonSerializer.Serialize(new[] { new { DueDate = formatted } });
+                    onlineExamDisplayChapter = reader["OnlineExamDisplayChapter"]?.ToString()?.Trim() ?? string.Empty;
+                }
+            }
+            catch (SqlException)
+            {
+                // OnlineExamDisplayChapter column may not exist until DB script is applied.
+            }
+
+            if (string.IsNullOrEmpty(dueDate))
+            {
+                using var legacyCommand = new SqlCommand(
+                    "SELECT TOP 1 CurrentExamDueTime FROM [AMC_tblLookupSemester] WITH (NOLOCK)",
+                    connection)
+                {
+                    CommandType = CommandType.Text
+                };
+
+                var legacyDueDate = await legacyCommand.ExecuteScalarAsync();
+                if (legacyDueDate != null && legacyDueDate != DBNull.Value)
+                {
+                    dueDate = Convert.ToDateTime(legacyDueDate).ToString("MM/dd/yyyy");
+                }
+            }
+
+            return JsonSerializer.Serialize(new[]
+            {
+                new
+                {
+                    DueDate = dueDate,
+                    OnlineExamDisplayChapter = onlineExamDisplayChapter,
+                },
+            });
         }
 
         public async Task<string> AddStudentScoreAsync(AddStudentScoreRequest request)

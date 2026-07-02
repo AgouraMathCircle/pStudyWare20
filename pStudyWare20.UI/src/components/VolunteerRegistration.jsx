@@ -48,8 +48,22 @@ const createSelectMenuProps = (visibleItems) => ({
 
 const registrationSelectMenuProps = createSelectMenuProps(15);
 const countrySelectMenuProps = createSelectMenuProps(10);
+const currentYear = new Date().getFullYear();
 
 const ABOUT_YOURSELF_MAX_CHARS = 500;
+
+const isEmptySelectValue = (value) =>
+  value === undefined ||
+  value === null ||
+  value === "" ||
+  value === "0" ||
+  value === 0;
+
+const requiredSelect = (requiredMessage, emptyMessage) =>
+  yup
+    .mixed()
+    .required(requiredMessage)
+    .test("selected", emptyMessage, (value) => !isEmptySelectValue(value));
 
 const validationSchema = yup.object({
   firstName: yup
@@ -86,16 +100,16 @@ const validationSchema = yup.object({
     .string()
     .required("School/University name is required")
     .min(2, "School/University name must be at least 2 characters"),
-  grade: yup.string().required("Grade/Degree is required"),
-  sessionId: yup.string().required("Register For is required"),
-  locationId: yup
-    .number()
-    .required("Course/Location is required")
-    .min(1, "Please select a course/location"),
-  interestedFor: yup
-    .string()
-    .required("Please select an area of interest")
-    .notOneOf(["0"], "Please select an area of interest"),
+  grade: requiredSelect("Grade/Degree is required", "Please select a grade/degree"),
+  sessionId: requiredSelect("Register For is required", "Please select a session"),
+  locationId: requiredSelect(
+    "Course/Location is required",
+    "Please select a course/location",
+  ),
+  interestedFor: requiredSelect(
+    "Please select an area of interest",
+    "Please select an area of interest",
+  ),
   aboutyourself: yup
     .string()
     .max(
@@ -122,9 +136,9 @@ const defaultFormValues = {
   state: "",
   country: "US",
   schoolName: "",
-  grade: "",
-  sessionId: "",
-  locationId: 0,
+  grade: "0",
+  sessionId: "0",
+  locationId: "0",
   interestedFor: "0",
   aboutyourself: "",
   liabilitySignature: "",
@@ -157,6 +171,9 @@ const VolunteerRegistration = () => {
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: defaultFormValues,
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+    shouldFocusError: true,
   });
 
   useEffect(() => {
@@ -228,7 +245,7 @@ const VolunteerRegistration = () => {
         schoolName: data.schoolName,
         grade: data.grade,
         sessionId: data.sessionId,
-        locationId: data.locationId,
+        locationId: Number(data.locationId),
         interestedFor: data.interestedFor,
         aboutyourself: data.aboutyourself || "",
         liabilitySignature: data.liabilitySignature,
@@ -243,7 +260,7 @@ const VolunteerRegistration = () => {
         "success",
       );
 
-      reset();
+      reset(defaultFormValues);
 
       setTimeout(() => {
         navigate("/");
@@ -257,6 +274,10 @@ const VolunteerRegistration = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const onInvalid = () => {
+    showSnackbar("Please fill in all required fields before submitting.", "error");
   };
 
   return (
@@ -305,7 +326,11 @@ const VolunteerRegistration = () => {
 
           {/* Main Form */}
           <div className="row">
-            <form onSubmit={handleSubmit(onSubmit)} style={{ width: "100%" }}>
+            <form
+              noValidate
+              onSubmit={handleSubmit(onSubmit, onInvalid)}
+              style={{ width: "100%" }}
+            >
               <div className="registration-form-layout">
                 {/* Personal Information Section */}
                 <div className="registration-parent-column">
@@ -452,7 +477,9 @@ const VolunteerRegistration = () => {
                             error={!!errors.country}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="country-label">Country</InputLabel>
+                            <InputLabel id="country-label" required>
+                              Country
+                            </InputLabel>
                             <Select
                               {...field}
                               labelId="country-label"
@@ -531,31 +558,37 @@ const VolunteerRegistration = () => {
                       <Controller
                         name="grade"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field, fieldState }) => (
                           <FormControl
                             fullWidth
                             required
                             variant="outlined"
                             size="small"
-                            error={!!errors.grade}
+                            error={!!fieldState.error}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="grade-label">Grade/Degree</InputLabel>
+                            <InputLabel id="grade-label" required>
+                              Grade/Degree
+                            </InputLabel>
                             <Select
                               {...field}
                               labelId="grade-label"
                               id="grade-select"
                               label="Grade/Degree"
+                              displayEmpty
                             >
+                              <MenuItem value="0">
+                                <em>--Select--</em>
+                              </MenuItem>
                               {grades.map((grade) => (
                                 <MenuItem key={grade.value} value={grade.value}>
                                   {grade.label}
                                 </MenuItem>
                               ))}
                             </Select>
-                            {errors.grade && (
+                            {fieldState.error && (
                               <FormHelperText>
-                                {errors.grade.message}
+                                {fieldState.error.message}
                               </FormHelperText>
                             )}
                           </FormControl>
@@ -565,31 +598,37 @@ const VolunteerRegistration = () => {
                       <Controller
                         name="sessionId"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field, fieldState }) => (
                           <FormControl
                             fullWidth
                             required
                             variant="outlined"
                             size="small"
-                            error={!!errors.sessionId}
+                            error={!!fieldState.error}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="session-label">Register For</InputLabel>
+                            <InputLabel id="session-label" required>
+                              Register For
+                            </InputLabel>
                             <Select
                               {...field}
                               labelId="session-label"
                               id="session-select"
                               label="Register For"
+                              displayEmpty
                             >
+                              <MenuItem value="0">
+                                <em>--Select--</em>
+                              </MenuItem>
                               {sessions.map((session) => (
                                 <MenuItem key={session.id} value={session.id}>
                                   {session.name}
                                 </MenuItem>
                               ))}
                             </Select>
-                            {errors.sessionId && (
+                            {fieldState.error && (
                               <FormHelperText>
-                                {errors.sessionId.message}
+                                {fieldState.error.message}
                               </FormHelperText>
                             )}
                           </FormControl>
@@ -599,35 +638,41 @@ const VolunteerRegistration = () => {
                       <Controller
                         name="locationId"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field, fieldState }) => (
                           <FormControl
                             fullWidth
                             required
                             variant="outlined"
                             size="small"
-                            error={!!errors.locationId}
+                            error={!!fieldState.error}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="location-label">Course/Location</InputLabel>
+                            <InputLabel id="location-label" required>
+                              Course/Location
+                            </InputLabel>
                             <Select
                               {...field}
                               labelId="location-label"
                               id="location-select"
                               label="Course/Location"
+                              displayEmpty
                               MenuProps={registrationSelectMenuProps}
                             >
-                              <MenuItem value={0}>
+                              <MenuItem value="0">
                                 <em>--Select--</em>
                               </MenuItem>
                               {locations.map((location) => (
-                                <MenuItem key={location.id} value={location.id}>
+                                <MenuItem
+                                  key={location.id}
+                                  value={String(location.id)}
+                                >
                                   {location.name}
                                 </MenuItem>
                               ))}
                             </Select>
-                            {errors.locationId && (
+                            {fieldState.error && (
                               <FormHelperText>
-                                {errors.locationId.message}
+                                {fieldState.error.message}
                               </FormHelperText>
                             )}
                           </FormControl>
@@ -637,21 +682,24 @@ const VolunteerRegistration = () => {
                       <Controller
                         name="interestedFor"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field, fieldState }) => (
                           <FormControl
                             fullWidth
                             required
                             variant="outlined"
                             size="small"
-                            error={!!errors.interestedFor}
+                            error={!!fieldState.error}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="interested-label">Interested For</InputLabel>
+                            <InputLabel id="interested-label" required>
+                              Interested For
+                            </InputLabel>
                             <Select
                               {...field}
                               labelId="interested-label"
                               id="interested-select"
                               label="Interested For"
+                              displayEmpty
                             >
                               <MenuItem value="0">
                                 <em>--Select--</em>
@@ -665,9 +713,9 @@ const VolunteerRegistration = () => {
                                 </MenuItem>
                               ))}
                             </Select>
-                            {errors.interestedFor && (
+                            {fieldState.error && (
                               <FormHelperText>
-                                {errors.interestedFor.message}
+                                {fieldState.error.message}
                               </FormHelperText>
                             )}
                           </FormControl>
@@ -683,7 +731,10 @@ const VolunteerRegistration = () => {
                             value={value}
                             onChange={(event) => {
                               onChange(
-                                event.target.value.slice(0, ABOUT_YOURSELF_MAX_CHARS),
+                                event.target.value.slice(
+                                  0,
+                                  ABOUT_YOURSELF_MAX_CHARS,
+                                ),
                               );
                             }}
                             fullWidth
@@ -695,7 +746,9 @@ const VolunteerRegistration = () => {
                             helperText={errors.aboutyourself?.message || ""}
                             FormHelperTextProps={{
                               sx: {
-                                display: errors.aboutyourself?.message ? "block" : "none",
+                                display: errors.aboutyourself?.message
+                                  ? "block"
+                                  : "none",
                                 margin: 0,
                               },
                             }}
@@ -713,14 +766,14 @@ const VolunteerRegistration = () => {
 
               {/* Signatures and Agreements Section */}
               <div className="registration-signature-column">
-                  <div
-                    className="form-section signature-section registration-card"
-                    style={{
-                      marginTop: "0px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    <div className="form-group-container signature-form-fields">
+                <div
+                  className="form-section signature-section registration-card"
+                  style={{
+                    marginTop: "0px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <div className="form-group-container signature-form-fields">
                     <p className="agreement-text">
                       Pressing the "Submit" button I agree the Agoura Math
                       Circle{" "}
@@ -762,10 +815,10 @@ const VolunteerRegistration = () => {
                     </p>
                     <p className="signature-help-text">
                       Please sign the waiver (Liability Signature)
-                      <span className="required-asterisk">*</span>. DO NOT
-                      SIGN WITHOUT READING. I HAVE READ THIS ASSUMPTION OF
-                      RISK, WAIVER OF LIABILITY AND INDEMNITY AGREEMENT AND
-                      AGREE TO ITS TERMS.
+                      <span className="required-asterisk">*</span>. DO NOT SIGN
+                      WITHOUT READING. I HAVE READ THIS ASSUMPTION OF RISK,
+                      WAIVER OF LIABILITY AND INDEMNITY AGREEMENT AND AGREE TO
+                      ITS TERMS.
                     </p>
                     <Controller
                       name="liabilitySignature"
@@ -788,9 +841,9 @@ const VolunteerRegistration = () => {
                     <p className="signature-help-text">
                       By printing your name in the box and pressing the submit
                       button, I acknowledge that I have read and am
-                      electronically signing the Waiver of Liability,
-                      Assumption of Risk and Indemnity Agreement on behalf of
-                      myself or my dependent minor participant.
+                      electronically signing the Waiver of Liability, Assumption
+                      of Risk and Indemnity Agreement on behalf of myself or my
+                      dependent minor participant.
                     </p>
 
                     <Controller
@@ -819,10 +872,10 @@ const VolunteerRegistration = () => {
                       participant.
                     </p>
                     <p className="signature-help-text">
-                      Occasionally, we take pictures at AMC meetings, which
-                      may be used for publicity purposes [e.g.: posted on our
-                      web site or used in a brochure about AMC.] Do you give
-                      us permission to include you in such photographs?
+                      Occasionally, we take pictures at AMC meetings, which may
+                      be used for publicity purposes [e.g.: posted on our web
+                      site or used in a brochure about AMC.] Do you give us
+                      permission to include you in such photographs?
                     </p>
                     <Controller
                       name="picturePermission"
@@ -1085,7 +1138,7 @@ const VolunteerRegistration = () => {
                 variant="body2"
                 sx={{ marginTop: "20px", fontWeight: "bold" }}
               >
-                Last revised: January 1, 2020
+                Last revised: January 1, {currentYear}
               </Typography>
             </DialogContent>
           </Dialog>
@@ -1200,7 +1253,7 @@ const VolunteerRegistration = () => {
                 variant="body2"
                 sx={{ marginTop: "20px", fontStyle: "italic" }}
               >
-                <strong>Last revised: January 1, 2020</strong>
+                <strong>Last revised: January 1, {currentYear}</strong>
               </Typography>
             </DialogContent>
           </Dialog>

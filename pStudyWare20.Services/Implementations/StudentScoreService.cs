@@ -138,6 +138,7 @@ namespace pStudyWare20.Services.Implementations
                     if (rows != null && rows.Count > 0)
                     {
                         response.DueDate = GetString(rows[0], "DueDate");
+                        response.OnlineExamDisplayChapter = GetString(rows[0], "OnlineExamDisplayChapter");
                     }
                 }
 

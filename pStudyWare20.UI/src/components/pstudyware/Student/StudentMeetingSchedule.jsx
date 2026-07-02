@@ -8,7 +8,6 @@ import {
   CircularProgress,
   Alert,
   Tooltip,
-  IconButton,
 } from "@mui/material";
 import {
   AccessTime as AccessTimeIcon,
@@ -25,11 +24,7 @@ import {
 } from "../styles/applicationSurfaces";
 
 const ZoomIcon = ({ className }) => (
-  <svg
-    viewBox="0 0 24 24"
-    className={className}
-    fill="currentColor"
-  >
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor">
     <path d="M21 7.156l-3.375 2.531v-2.187c0-1.406-1.125-2.5-2.531-2.5h-11.25c-1.406 0-2.531 1.094-2.531 2.5v9c0 1.406 1.125 2.5 2.531 2.5h11.25c1.406 0 2.531-1.094 2.531-2.5v-2.188l3.375 2.531c0.688 0.5 1.5 0 1.5-0.844v-7.656c0-0.844-0.813-1.344-1.5-0.844z" />
   </svg>
 );
@@ -42,19 +37,16 @@ const defaultPanelCardSx = {
   boxShadow: PORTAL_CARD_BOX_SHADOW,
   overflow: "hidden",
   boxSizing: "border-box",
-  pl: "35px",
-  pr: "35px",
   ...portalCardAntiLiftSx,
 };
 
 const panelContentSx = {
-  px: 1.5,
-  pt: 1.5,
+  px: 1,
+  pt: 1,
   pb: 0,
   "&:last-child": { pb: 0 },
 };
 
-// Class code -> full name (matches the mapping used across the app, e.g. DocumentList)
 const CLASS_LABELS = {
   JB: "Junior Beginner",
   JI: "Junior Intermediate",
@@ -94,9 +86,8 @@ const formatMeetingDateTime = (meetingDate, meetingTime) => {
   return meetingDate;
 };
 
-// Module-level cache per username so GetAllMeetingSchedules is only called once per user per TTL
-const MEETING_CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutes
-const meetingSchedulesCacheByUser = {}; // { [username]: { data: [...], time: number } }
+const MEETING_CACHE_TTL_MS = 2 * 60 * 1000;
+const meetingSchedulesCacheByUser = {};
 
 const getActiveMeetings = (response) => {
   if (!response?.isSuccess) return null;
@@ -136,7 +127,6 @@ const StudentMeetingSchedule = ({
     setTimeout(() => setCopiedText(""), 2000);
   };
 
-  // Helper to get property value (handles both camelCase and PascalCase)
   const getProp = (obj, propName) => {
     if (obj[propName] !== undefined) return obj[propName];
     const camelCase = propName.charAt(0).toLowerCase() + propName.slice(1);
@@ -152,7 +142,8 @@ const StudentMeetingSchedule = ({
 
     const now = Date.now();
     const cached = meetingSchedulesCacheByUser[username];
-    const cacheValid = cached && cached.data && now - cached.time < MEETING_CACHE_TTL_MS;
+    const cacheValid =
+      cached && cached.data && now - cached.time < MEETING_CACHE_TTL_MS;
 
     if (cacheValid) {
       setMeetings(cached.data);
@@ -168,7 +159,8 @@ const StudentMeetingSchedule = ({
         setLoading(true);
         setError(null);
 
-        const response = await meetingDetailsService.getAllMeetingSchedules(username);
+        const response =
+          await meetingDetailsService.getAllMeetingSchedules(username);
 
         if (cancelled) return;
 
@@ -180,9 +172,9 @@ const StudentMeetingSchedule = ({
           };
           setMeetings(activeMeetings);
         } else {
-          const errorMsg =
-            response?.errorMessage || "Unable to load meeting schedules";
-          setError(errorMsg);
+          setError(
+            response?.errorMessage || "Unable to load meeting schedules"
+          );
         }
       } catch (err) {
         if (!cancelled) {
@@ -203,13 +195,15 @@ const StudentMeetingSchedule = ({
     };
   }, [username]);
 
+  const cardSx = { ...panelCardSx };
+
   if (loading) {
     return (
-      <Card sx={panelCardSx}>
+      <Card sx={cardSx}>
         <CardContent sx={panelContentSx}>
           {renderSectionHeader(sectionTitleSx)}
-          <Box display="flex" justifyContent="center" alignItems="center" p={2}>
-            <CircularProgress size={32} />
+          <Box display="flex" justifyContent="center" alignItems="center" p={1.5}>
+            <CircularProgress size={28} />
           </Box>
         </CardContent>
       </Card>
@@ -218,7 +212,7 @@ const StudentMeetingSchedule = ({
 
   if (error) {
     return (
-      <Card sx={panelCardSx}>
+      <Card sx={cardSx}>
         <CardContent sx={panelContentSx}>
           {renderSectionHeader(sectionTitleSx)}
           <Alert severity="warning">{error}</Alert>
@@ -232,12 +226,11 @@ const StudentMeetingSchedule = ({
   }
 
   return (
-    <Card sx={panelCardSx} className="meeting-schedule-card">
+    <Card sx={cardSx} className="meeting-schedule-card">
       <CardContent sx={panelContentSx}>
         {renderSectionHeader(sectionTitleSx)}
         <Box className="meeting-grid">
           {meetings.map((meeting, index) => {
-            // Extract properties with fallback for camelCase/PascalCase
             const rowId =
               getProp(meeting, "RowID") || getProp(meeting, "RowId");
             const meetingURL =
@@ -256,16 +249,12 @@ const StudentMeetingSchedule = ({
                   {classDisplay && (
                     <Typography component="div" className="meeting-class">
                       {classDisplay}
-                    </Typography>
-                  )}
-                  {section && (
-                    <Typography component="div" className="meeting-section">
-                      Section {section}
+                      {section ? ` - Section ${section}` : ""}
                     </Typography>
                   )}
                   {meetingDate && (
                     <Box className="meeting-datetime">
-                      <AccessTimeIcon sx={{ fontSize: 14 }} />
+                      <AccessTimeIcon sx={{ fontSize: 15 }} />
                       <span>
                         {formatMeetingDateTime(meetingDate, meetingTime)}
                       </span>
@@ -273,63 +262,125 @@ const StudentMeetingSchedule = ({
                   )}
                 </Box>
 
+                {meetingURL && (
+                  <Link
+                    href={meetingURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="meeting-url"
+                    underline="hover"
+                  >
+                    {meetingURL}
+                  </Link>
+                )}
+
                 {(meetingID || passcode) && (
                   <Box className="meeting-meta">
                     {meetingID && (
-                      <Box className="meeting-detail-row" sx={{ display: "flex", alignItems: "center" }}>
+                      <Box
+                        className="meeting-detail-row"
+                        sx={{ display: "flex", alignItems: "center" }}
+                      >
                         <MeetingRoomIcon sx={{ fontSize: 15, mr: 0.5 }} />
-                        <span className="meeting-detail-label" style={{ marginRight: "4px" }}>ID</span>
+                        <span
+                          className="meeting-detail-label"
+                          style={{ marginRight: "4px" }}
+                        >
+                          ID
+                        </span>
                         <span className="meeting-detail-value">{meetingID}</span>
-                        <Tooltip title={copiedText === String(meetingID) ? "Copied!" : "Copy ID"} placement="top">
-                          <IconButton
-                            size="small"
+                        <Tooltip
+                          title={
+                            copiedText === String(meetingID)
+                              ? "Copied!"
+                              : "Copy ID"
+                          }
+                          placement="top"
+                        >
+                          <Box
+                            component="button"
+                            type="button"
                             onClick={() => handleCopy(String(meetingID))}
                             sx={{
-                              p: 0.25,
-                              ml: 0.5,
+                              border: "none",
+                              background: "none",
+                              p: 0,
+                              ml: 0,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 0,
                               color: "#2e7d32",
-                              "&:hover": { backgroundColor: "rgba(46, 125, 50, 0.1)" },
+                              cursor: "pointer",
                             }}
                           >
                             <ContentCopyIcon sx={{ fontSize: 11 }} />
-                          </IconButton>
+                            <Typography component="span" className="meeting-copy-label">
+                              copy
+                            </Typography>
+                          </Box>
                         </Tooltip>
                       </Box>
                     )}
                     {passcode && (
-                      <Box className="meeting-detail-row" sx={{ display: "flex", alignItems: "center" }}>
+                      <Box
+                        className="meeting-detail-row"
+                        sx={{ display: "flex", alignItems: "center" }}
+                      >
                         <VpnKeyIcon sx={{ fontSize: 15, mr: 0.5 }} />
-                        <span className="meeting-detail-label" style={{ marginRight: "4px" }}>Passcode</span>
+                        <span
+                          className="meeting-detail-label"
+                          style={{ marginRight: "4px" }}
+                        >
+                          Passcode
+                        </span>
                         <span className="meeting-detail-value">{passcode}</span>
-                        <Tooltip title={copiedText === String(passcode) ? "Copied!" : "Copy Passcode"} placement="top">
-                          <IconButton
-                            size="small"
+                        <Tooltip
+                          title={
+                            copiedText === String(passcode)
+                              ? "Copied!"
+                              : "Copy Passcode"
+                          }
+                          placement="top"
+                        >
+                          <Box
+                            component="button"
+                            type="button"
                             onClick={() => handleCopy(String(passcode))}
                             sx={{
-                              p: 0.25,
-                              ml: 0.5,
+                              border: "none",
+                              background: "none",
+                              p: 0,
+                              ml: 0,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 0,
                               color: "#2e7d32",
-                              "&:hover": { backgroundColor: "rgba(46, 125, 50, 0.1)" },
+                              cursor: "pointer",
                             }}
                           >
                             <ContentCopyIcon sx={{ fontSize: 11 }} />
-                          </IconButton>
+                            <Typography component="span" className="meeting-copy-label">
+                              copy
+                            </Typography>
+                          </Box>
                         </Tooltip>
                       </Box>
                     )}
                   </Box>
                 )}
 
-                <Link
-                  href={meetingURL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="meeting-join-btn"
-                  underline="none"
-                >
-                  <ZoomIcon className="zoom-icon" />
-                  Launch
-                </Link>
+                {meetingURL && (
+                  <Link
+                    href={meetingURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="meeting-join-btn"
+                    underline="none"
+                  >
+                    <ZoomIcon className="zoom-icon" />
+                    Launch
+                  </Link>
+                )}
               </Box>
             );
           })}

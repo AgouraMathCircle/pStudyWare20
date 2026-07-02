@@ -17,7 +17,7 @@ import DashboardMessages from "./DashboardMessages";
 import StudentProfile from "./StudentProfile";
 import ReportCard from "./ReportCard";
 import RegistrationSection from "./RegistrationSection";
-import FinalExamSection from "./FinalExamSection";
+import OnlineExamSection from "./OnlineExamSection";
 import StudentMeetingSchedule from "./StudentMeetingSchedule";
 import studentDashboardService from "../../../services/studentDashboardService";
 import {
@@ -325,15 +325,29 @@ const StudentDashboard = () => {
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sx={{ pb: "0 !important" }}>
-            <DashboardMessages
-              username={username}
-              chapterId={chapterId}
-              dashboardMessages={dashboardMessages}
-              loading={dashboardMessagesLoading}
-            />
+            <Card sx={panelCardSx} className="dashboard-messages-panel">
+              <CardContent
+                sx={{
+                  px: 2,
+                  pt: 1.5,
+                  pb: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  minHeight: 0,
+                  "&:last-child": { pb: 0 },
+                }}
+              >
+                <DashboardMessages
+                  username={username}
+                  chapterId={chapterId}
+                  dashboardMessages={dashboardMessages}
+                  loading={dashboardMessagesLoading}
+                />
+              </CardContent>
+            </Card>
           </Grid>
 
-          <Grid item xs={12} sx={{ pt: "0 !important", mt: "-24px !important" }}>
+          <Grid item xs={12} sx={{ pt: "0 !important", mt: "-12px !important" }}>
             <StudentMeetingSchedule username={username} panelCardSx={panelCardSx} />
           </Grid>
 
@@ -377,7 +391,7 @@ const StudentDashboard = () => {
             <Grid item xs={12} sx={{ pt: "0 !important", mt: "-4px !important" }}>
               <Card sx={panelCardSx}>
                 <CardContent sx={panelContentSx}>
-                  <FinalExamSection />
+                  <OnlineExamSection />
                 </CardContent>
               </Card>
             </Grid>

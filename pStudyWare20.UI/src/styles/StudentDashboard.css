@@ -83,54 +83,54 @@
 }
 
 /* Final exam dashboard section — legacy inputHeader + dark button */
-.student-dashboard a.final-exam-launch-btn,
-.student-dashboard .final-exam-launch-btn {
+.student-dashboard a.online-exam-launch-btn,
+.student-dashboard .online-exam-launch-btn {
   background-color: #174a10 !important;
   color: #ffffff !important;
   text-decoration: none !important;
 }
 
-.student-dashboard a.final-exam-launch-btn:hover,
-.student-dashboard .final-exam-launch-btn:hover {
+.student-dashboard a.online-exam-launch-btn:hover,
+.student-dashboard .online-exam-launch-btn:hover {
   background-color: #0f3310 !important;
   color: #ffffff !important;
   text-decoration: none !important;
 }
 
-/* Final exam answer sheet — legacy FinalExam.aspx look */
-.final-exam-page .final-exam-answer-sheet {
+/* Online exam answer sheet — legacy OnlineExam.aspx look */
+.online-exam-page .online-exam-answer-sheet {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.final-exam-page .final-exam-answer-sheet .MuiTableContainer-root {
+.online-exam-page .online-exam-answer-sheet .MuiTableContainer-root {
   overflow: visible !important;
   overflow-y: hidden !important;
   max-height: none !important;
 }
 
-.final-exam-page .final-exam-answer-sheet .MuiTableContainer-root::-webkit-scrollbar {
+.online-exam-page .online-exam-answer-sheet .MuiTableContainer-root::-webkit-scrollbar {
   display: none;
   width: 0;
   height: 0;
 }
 
-.final-exam-page .final-exam-answer-sheet .MuiTableRow-root:hover {
+.online-exam-page .online-exam-answer-sheet .MuiTableRow-root:hover {
   background-color: transparent !important;
   cursor: default;
 }
 
-.final-exam-page .final-exam-answer-sheet .MuiCard-root:hover,
-.final-exam-page .final-exam-answer-sheet.MuiCard-root:hover {
+.online-exam-page .online-exam-answer-sheet .MuiCard-root:hover,
+.online-exam-page .online-exam-answer-sheet.MuiCard-root:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
   transform: none !important;
 }
 
-.final-exam-page .final-exam-instructions .MuiPaper-root:hover {
+.online-exam-page .online-exam-instructions .MuiPaper-root:hover {
   box-shadow: none !important;
   transform: none !important;
 }
 
-.final-exam-page .final-exam-main-content {
+.online-exam-page .online-exam-main-content {
   padding-top: 52px;
   margin-top: 0;
 }
@@ -378,40 +378,106 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Meeting schedule — compact admin-style cards */
+/* Dashboard message widgets — admin dashboard widget look */
+.student-dashboard .dashboard-messages-panel {
+  width: 100%;
+}
+
+.student-dashboard .dashboard-messages-panel > .MuiCardContent-root {
+  width: 100%;
+}
+
+.student-dashboard .student-dashboard-widgets-row {
+  width: 100%;
+}
+
+.student-dashboard .student-dashboard-message-widget {
+  width: 100%;
+  border: 1px solid #e6e6e6;
+  box-shadow: none;
+}
+
+.student-dashboard .student-dashboard-message-widget .MuiCardContent-root {
+  padding: 8px;
+}
+
+.student-dashboard .student-dashboard-message-widget .MuiCardContent-root:last-child {
+  padding-bottom: 8px;
+}
+
+.student-dashboard .student-dashboard-message-widget:hover {
+  transform: none;
+}
+
+@media (max-width: 899px) {
+  .student-dashboard .student-dashboard-widgets-row > .MuiGrid-item {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Meeting schedule — compact cards */
+.student-dashboard .meeting-schedule-card {
+  max-width: 100%;
+}
+
 .student-dashboard .meeting-schedule-card .MuiCardHeader-root {
   background-color: #e8f5e9;
   border-bottom: 1px solid #c8e6c9;
-  padding: 8px 16px;
+  padding: 6px 12px;
 }
 
 .student-dashboard .meeting-header-title {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.0625rem;
   color: #4caf50;
 }
 
-.student-dashboard .meeting-grid {
+/* Meeting schedule — sentence-style list */
+.student-dashboard .meeting-sentence-list {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 10px;
+}
+
+.student-dashboard .meeting-sentence-item {
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fafafa;
+  box-sizing: border-box;
+}
+
+.student-dashboard .meeting-sentence {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: #333;
+}
+
+.student-dashboard .meeting-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   align-items: stretch;
-  gap: 12px;
-  overflow-x: auto;
+  gap: 4px;
   width: 100%;
-  padding-bottom: 12px;
+  padding-bottom: 4px;
+  overflow-x: visible;
 }
 
 .student-dashboard .meeting-card {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 14px;
-  flex: 1 1 240px;
-  border: 1px solid #e6e6e6;
+  gap: 1px;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid #2e7d32;
   border-radius: 8px;
-  padding: 12px;
-  background: #ffffff;
+  padding: 5px 6px;
+  background: #eaf4ef;
   box-sizing: border-box;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
@@ -419,87 +485,117 @@
 
 .student-dashboard .meeting-card:hover {
   transform: translateY(-2px);
-  border-color: #54b50a;
-  box-shadow: 0 6px 16px rgba(84, 181, 10, 0.12);
+  border-color: #1b5e20;
+  box-shadow: 0 4px 12px rgba(27, 94, 32, 0.18);
 }
 
 .student-dashboard .meeting-card-main {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
 }
 
 .student-dashboard .meeting-class {
   font-weight: 700;
-  font-size: 0.85rem;
-  color: #2c3e50;
+  font-size: 0.76rem;
+  color: #1b8f2e;
   line-height: 1.3;
+  text-decoration: underline;
 }
 
 .student-dashboard .meeting-section {
   font-weight: 600;
-  font-size: 0.65rem;
-  color: #555;
-  background: #f0f0f0;
+  font-size: 0.7rem;
+  color: #0f7d22;
+  background: transparent;
   padding: 1px 6px;
-  border-radius: 12px;
+  border-radius: 0;
 }
 
 .student-dashboard .meeting-datetime {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.7rem;
-  color: #666;
+  gap: 2px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #000000;
   margin-top: 0;
 }
 
 .student-dashboard .meeting-meta {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 10px;
-  background: #f4faed;
-  border-radius: 8px;
-  border: 1px solid #e6f4da;
-  font-size: 0.7rem;
-  margin-top: auto;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  font-size: 0.68rem;
+  font-weight: 600;
+  margin-top: 0;
 }
 
 .student-dashboard .meeting-detail-row {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 1px;
   margin-bottom: 0;
   white-space: nowrap;
+  line-height: 1.1;
 }
 
 .student-dashboard .meeting-detail-label {
-  color: #666;
-  font-weight: 500;
+  color: #000000;
+  font-weight: 600;
 }
 
 .student-dashboard .meeting-detail-value {
-  font-weight: 700;
-  color: #2e7d32;
+  font-weight: 600;
+  color: #0f7d22;
+}
+
+.student-dashboard .meeting-url {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  font-size: 0.64rem;
+  line-height: 1;
+  color: #0b48d9;
+  font-weight: 600;
+  padding: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: underline;
+  margin: 0;
+}
+
+.student-dashboard .meeting-copy-label {
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: #0f7d22;
+  text-transform: lowercase;
+}
+
+.student-dashboard .meeting-url:hover {
+  color: #0837ab;
+  text-decoration: underline;
 }
 
 .student-dashboard .meeting-join-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
   width: 100%;
-  padding: 8px 12px;
+  padding: 4px 6px;
   background-color: #4caf50;
   color: #ffffff;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 6px;
   text-decoration: none;
   transition: background-color 0.2s ease;
 }
@@ -542,15 +638,13 @@
 
 @media (max-width: 768px) {
   .student-dashboard .meeting-grid {
-    flex-direction: column;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     overflow-x: visible;
   }
 
   .student-dashboard .meeting-card {
-    flex-direction: column;
-    align-items: flex-start;
     min-width: 0;
-    width: 100%;
+    max-width: 100%;
   }
 
   .student-dashboard .meeting-card-main {
@@ -564,5 +658,11 @@
 
   .student-dashboard .meeting-join-btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 1200px) {
+  .student-dashboard .meeting-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }

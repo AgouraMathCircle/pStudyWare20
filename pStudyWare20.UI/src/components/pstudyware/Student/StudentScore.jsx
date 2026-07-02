@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Container,
   Box,
@@ -30,6 +30,11 @@ import studentScoreService, {
 import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import StudentScoreScoresGrid from "./StudentScoreScoresGrid";
 import {
+  parseStudentDropdownValue,
+  parseOnlineExamDisplayChapters,
+  shouldRedirectToOnlineExam,
+} from "../../../utils/studentChapterRouting";
+import {
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
   adminSessionListMenuItemSx,
@@ -45,12 +50,6 @@ import {
   APPLICATION_SURFACE_BORDER,
   APPLICATION_ADMIN_TITLE_COLOR,
 } from "../styles/applicationSurfaces";
-
-/** Legacy StudentScore.aspx.cs RedirectToOnline — chapters 3, 5, 6 use Online Exam */
-const ONLINE_EXAM_CHAPTERS = new Set(["3", "5", "6"]);
-
-const shouldRedirectToOnlineExam = (chapterId) =>
-  ONLINE_EXAM_CHAPTERS.has(String(chapterId || "").trim());
 
 /** Legacy StudentScore.aspx `.control_box` / `.inputHeader` colors */
 const LEGACY_CONTROL_BOX_GREEN = "#54B50A";
@@ -198,28 +197,7 @@ const scoreStep9HighlightSx = {
   mb: 0.5,
 };
 
-const parseStudentValue = (value) => {
-  const parts = String(value || "").split("~");
-  if (parts.length >= 3) {
-    return {
-      classCode: parts[0] || "",
-      studentId: (parts[1] || "").trim(),
-      chapterId: (parts[2] || "").trim(),
-    };
-  }
-  if (parts.length === 2) {
-    return {
-      classCode: "",
-      studentId: (parts[1] || "").trim(),
-      chapterId: (parts[0] || "").trim(),
-    };
-  }
-  return {
-    classCode: "",
-    studentId: String(value || "").trim(),
-    chapterId: "",
-  };
-};
+const parseStudentValue = parseStudentDropdownValue;
 
 const validateScoreEntries = (quiz, classTest, homeWork) => {
   const rows = [
@@ -280,6 +258,8 @@ const StudentScore = () => {
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const onlineExamRedirectChaptersRef = useRef(null);
+  const pageInitKeyRef = useRef("");
   const [enableScoreUpdate, setEnableScoreUpdate] = useState(false);
   const [studentContextLoading, setStudentContextLoading] = useState(false);
   const [studentScores, setStudentScores] = useState([]);
@@ -362,7 +342,7 @@ const StudentScore = () => {
   }, []);
 
   const loadSessionsForStudent = useCallback(
-    async (studentValue, studentText) => {
+    async (studentValue, studentText, chaptersOverride) => {
       setStudentContextLoading(true);
       setEnableScoreUpdate(false);
 
@@ -380,17 +360,23 @@ const StudentScore = () => {
         return false;
       }
 
-      if (shouldRedirectToOnlineExam(chapterId)) {
+      const redirectChapters =
+        chaptersOverride !== undefined
+          ? chaptersOverride
+          : onlineExamRedirectChaptersRef.current;
+
+      if (shouldRedirectToOnlineExam(chapterId, redirectChapters)) {
         const params = new URLSearchParams({
           Source: "S",
           Action: "R",
           Student: studentText || "",
           ChapterID: chapterId,
         });
-        navigate(`/pstudyware/student/online-exam?${params.toString()}`, {
+        setStudentContextLoading(false);
+        setLoading(false);
+        navigate(`/student/online-exam?${params.toString()}`, {
           replace: true,
         });
-        setStudentContextLoading(false);
         return true;
       }
 
@@ -429,7 +415,21 @@ const StudentScore = () => {
   );
 
   useEffect(() => {
-    if (!isAuthenticated || !user) return;
+    if (!isAuthenticated || !user) {
+      setLoading(false);
+      return;
+    }
+
+    const initKey = [
+      username,
+      searchParams.get("Student") ?? "",
+      searchParams.get("Action") ?? "",
+    ].join("|");
+
+    if (pageInitKeyRef.current === initKey) {
+      return;
+    }
+    pageInitKeyRef.current = initKey;
 
     const init = async () => {
       try {
@@ -454,8 +454,16 @@ const StudentScore = () => {
           listResponse?.studentList ?? listResponse?.StudentList ?? [];
         setStudents(studentList);
 
+        const configuredChapters = dueDateResponse?.isSuccess
+          ? parseOnlineExamDisplayChapters(
+              dueDateResponse.onlineExamDisplayChapter ??
+                dueDateResponse.OnlineExamDisplayChapter,
+            )
+          : null;
+
         if (dueDateResponse?.isSuccess) {
           setDueDate(dueDateResponse.dueDate ?? dueDateResponse.DueDate ?? "");
+          onlineExamRedirectChaptersRef.current = configuredChapters;
         } else if (dueDateResponse?.errorMessage) {
           showSnackbar(dueDateResponse.errorMessage, "warning");
         }
@@ -469,7 +477,11 @@ const StudentScore = () => {
           const value = initial.value ?? initial.Value ?? "";
           const text = initial.text ?? initial.Text ?? "";
           setSelectedStudent(value);
-          const redirected = await loadSessionsForStudent(value, text);
+          const redirected = await loadSessionsForStudent(
+            value,
+            text,
+            configuredChapters,
+          );
           if (redirected) return;
         }
 
@@ -486,14 +498,7 @@ const StudentScore = () => {
     };
 
     init();
-  }, [
-    isAuthenticated,
-    user,
-    username,
-    searchParams,
-    loadScores,
-    loadSessionsForStudent,
-  ]);
+  }, [isAuthenticated, user, username, searchParams]);
 
   const handleStudentChange = async (event) => {
     const value = event.target.value;

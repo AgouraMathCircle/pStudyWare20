@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace pStudyWare20.Shared
 {
     /// <summary>
-    /// Model for exam question (matches FinalExam from legacy system)
+    /// Model for exam question (online exam API — legacy OnlineExam.aspx)
     /// </summary>
     public class ExamQuestion
     {
