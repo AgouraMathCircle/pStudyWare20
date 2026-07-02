@@ -13,10 +13,17 @@ import {
   TextField,
   Typography,
   InputAdornment,
+  IconButton,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import {
   Search as SearchIcon,
   DeleteOutline as DeleteIcon,
+  FirstPage as FirstPageIcon,
+  KeyboardArrowLeft as PrevPageIcon,
+  KeyboardArrowRight as NextPageIcon,
+  LastPage as LastPageIcon,
 } from "@mui/icons-material";
 import timeSheetTrackingService from "../../../services/timeSheetTrackingService";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
@@ -59,7 +66,37 @@ function rowId(row) {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-const timeSheetHeadCellSx = { fontWeight: 700 };
+const legacySearchBarSx = {
+  backgroundColor: "#4caf50",
+  p: 0.5,
+  borderRadius: 1,
+  display: "flex",
+  alignItems: "center",
+  gap: 1.5,
+  flexWrap: "wrap",
+};
+
+const legacySearchFieldSx = {
+  minWidth: 150,
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "white",
+    fontSize: "0.75rem",
+    height: "30px",
+  },
+};
+
+const legacyTableCellSx = {
+  fontSize: "0.75rem",
+  padding: "3px 5px",
+  borderRight: "1px solid #4caf50",
+};
+
+const legacyTableHeadCellSx = {
+  ...legacyTableCellSx,
+  fontWeight: 700,
+};
+
+const timeSheetHeadCellSx = legacyTableHeadCellSx;
 
 const getTimeSheetFieldValue = (row, field) => {
   switch (field) {
@@ -123,10 +160,18 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
     [filtered, sortField, sortOrder],
   );
 
+  const totalRecords = sorted.length;
+  const totalPages = Math.ceil(totalRecords / rowsPerPage) || 0;
   const pageRows = useMemo(() => {
     const start = page * rowsPerPage;
     return sorted.slice(start, start + rowsPerPage);
   }, [sorted, page, rowsPerPage]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage - 1);
+    }
+  };
 
   const handleDeleteClick = (id) => {
     if (!id) return;
@@ -171,27 +216,73 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
 
   return (
     <Paper elevation={1} sx={{ width: "100%", overflow: "hidden" }}>
-      <Box sx={{ p: 2, display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center" }}>
-        <Typography variant="h6" component="h2" sx={{ flexGrow: 1 }}>
-          My Time Sheet
-        </Typography>
+      <Box sx={legacySearchBarSx}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}>
+            Search By:
+          </Typography>
+          <Select
+            value="ALL"
+            size="small"
+            sx={{
+              color: "white",
+              fontSize: "0.75rem",
+              minWidth: 100,
+              height: "30px",
+              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+              "& .MuiSelect-icon": { color: "white" },
+            }}
+          >
+            <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>-ALL-</MenuItem>
+          </Select>
+        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}>
+            Criteria:
+          </Typography>
+          <Select
+            value="Contains"
+            size="small"
+            sx={{
+              color: "white",
+              fontSize: "0.75rem",
+              minWidth: 100,
+              height: "30px",
+              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+              "& .MuiSelect-icon": { color: "white" },
+            }}
+          >
+            <MenuItem value="Contains" sx={{ fontSize: "0.75rem" }}>Contains</MenuItem>
+          </Select>
+        </Box>
         <TextField
           size="small"
-          placeholder="Search…"
+          placeholder="Search Text"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
             setPage(0);
           }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" color="action" />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ minWidth: 220 }}
+          sx={legacySearchFieldSx}
         />
+        <Box
+          component="button"
+          onClick={() => setPage(0)}
+          sx={{
+            backgroundColor: "white",
+            color: "#4caf50",
+            fontSize: "0.75rem",
+            textTransform: "none",
+            px: 2,
+            py: 0.5,
+            border: "none",
+            borderRadius: 1,
+            cursor: "pointer",
+            "&:hover": { backgroundColor: "#f5f5f5" },
+          }}
+        >
+          Find
+        </Box>
       </Box>
 
       <TableContainer sx={{ maxWidth: "100%" }}>
@@ -279,15 +370,15 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
                 const end = row?.endTime ?? row?.EndTime ?? "—";
                 return (
                   <TableRow key={id ?? `row-${idx}`} hover>
-                    <TableCell>{id ?? "—"}</TableCell>
-                    <TableCell>{row?.username ?? row?.Username ?? "—"}</TableCell>
-                    <TableCell>{row?.taskName ?? row?.TaskName ?? "—"}</TableCell>
-                    <TableCell>{formatDate(row?.volunteerDate ?? row?.VolunteerDate)}</TableCell>
-                    <TableCell>{start}</TableCell>
-                    <TableCell>{end}</TableCell>
-                    <TableCell align="right">{formatHours(row?.totalHours ?? row?.TotalHours)}</TableCell>
-                    <TableCell>{formatDate(row?.createdDate ?? row?.CreatedDate)}</TableCell>
-                    <TableCell align="center">
+                    <TableCell sx={legacyTableCellSx}>{id ?? "—"}</TableCell>
+                    <TableCell sx={legacyTableCellSx}>{row?.username ?? row?.Username ?? "—"}</TableCell>
+                    <TableCell sx={legacyTableCellSx}>{row?.taskName ?? row?.TaskName ?? "—"}</TableCell>
+                    <TableCell sx={legacyTableCellSx}>{formatDate(row?.volunteerDate ?? row?.VolunteerDate)}</TableCell>
+                    <TableCell sx={legacyTableCellSx}>{start}</TableCell>
+                    <TableCell sx={legacyTableCellSx}>{end}</TableCell>
+                    <TableCell sx={legacyTableCellSx} align="right">{formatHours(row?.totalHours ?? row?.TotalHours)}</TableCell>
+                    <TableCell sx={legacyTableCellSx}>{formatDate(row?.createdDate ?? row?.CreatedDate)}</TableCell>
+                    <TableCell align="center" sx={legacyTableCellSx}>
                       {id ? (
                         <Box
                           component={RouterLink}
@@ -300,7 +391,7 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
                         "—"
                       )}
                     </TableCell>
-                    <TableCell align="center">
+                    <TableCell align="center" sx={legacyTableCellSx}>
                       {id ? (
                         <Box
                           onClick={deletingId === id ? undefined : () => handleDeleteClick(id)}
@@ -322,18 +413,85 @@ const VolunteerTimeSheetGrid = ({ rows = [], loading = false, error = null, onEn
           </TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
-        component="div"
-        count={sorted.length}
-        page={page}
-        onPageChange={(_, p) => setPage(p)}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={(e) => {
-          setRowsPerPage(parseInt(e.target.value, 10));
-          setPage(0);
+      <Box
+        sx={{
+          backgroundColor: "#4caf50",
+          p: 0.5,
+          borderRadius: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 1.5,
+          mt: 2,
         }}
-        rowsPerPageOptions={[10, 20, 50]}
-      />
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          <IconButton
+            size="small"
+            sx={{ color: "white", padding: "2px" }}
+            disabled={page === 0 || totalRecords === 0}
+            onClick={() => handlePageChange(1)}
+          >
+            <FirstPageIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            sx={{ color: "white", padding: "2px" }}
+            disabled={page === 0 || totalRecords === 0}
+            onClick={() => handlePageChange(page)}
+          >
+            <PrevPageIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            sx={{ color: "white", padding: "2px" }}
+            disabled={page >= totalPages - 1 || totalRecords === 0}
+            onClick={() => handlePageChange(page + 2)}
+          >
+            <NextPageIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            sx={{ color: "white", padding: "2px" }}
+            disabled={page >= totalPages - 1 || totalRecords === 0}
+            onClick={() => handlePageChange(totalPages)}
+          >
+            <LastPageIcon fontSize="small" />
+          </IconButton>
+        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography sx={{ color: "white", fontSize: "0.75rem", whiteSpace: "nowrap" }}>
+            GoTo
+          </Typography>
+          <Select
+            value={page + 1}
+            onChange={(e) => handlePageChange(e.target.value)}
+            size="small"
+            sx={{
+              color: "white",
+              fontSize: "0.75rem",
+              minWidth: 60,
+              height: "24px",
+              "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" },
+              "& .MuiSelect-icon": { color: "white" },
+            }}
+          >
+            {Array.from({ length: totalPages || 1 }, (_, i) => (
+              <MenuItem key={i + 1} value={i + 1} sx={{ fontSize: "0.75rem" }}>
+                {i + 1}
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
+        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+          Page(s): {page + 1} of {totalPages || 1}
+        </Typography>
+        <Typography sx={{ color: "white", fontSize: "0.75rem" }}>
+          Record(s): {totalRecords === 0 ? 0 : page * rowsPerPage + 1} -{" "}
+          {Math.min((page + 1) * rowsPerPage, totalRecords)} of {totalRecords}
+        </Typography>
+      </Box>
 
       <AppConfirmDialog
         open={deleteConfirm.open}

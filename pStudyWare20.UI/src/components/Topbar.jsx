@@ -127,7 +127,7 @@ const Topbar = () => {
     },
     {
       icon: <EditIcon sx={topbarLinkIconSx} />,
-      text: "Test Preperation",
+      text: "Test Preparation",
       href: "/about/test-preparation",
     },
     {
@@ -360,56 +360,7 @@ const Topbar = () => {
               </Box>
             )}
 
-            {/* Login Button */}
-            {!user && (
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0,
-                  cursor: "pointer",
-                  "&:hover": { color: "#ccc" },
-                  order: { xs: 2, sm: 2, md: 3 },
-                  flexGrow: { xs: 1, sm: 0 },
-                  justifyContent: {
-                    xs: "flex-start",
-                    sm: "center",
-                    md: "flex-start",
-                  },
-                  mr: 1,
-                }}
-                onClick={() => navigate("/login")}
-              >
-                <LoginIcon sx={topbarActionIconSx} />
-                <Typography variant="body2" sx={topbarActionTextSx}>
-                  &nbsp;LOGIN
-                </Typography>
-              </Box>
-            )}
-
-            {/* Donate Button */}
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 0,
-                cursor: "pointer",
-                "&:hover": { color: "#ccc" },
-                order: { xs: 2, sm: 2, md: 3 },
-                flexGrow: { xs: 1, sm: 0 },
-                justifyContent: {
-                  xs: "flex-start",
-                  sm: "center",
-                  md: "flex-start",
-                },
-              }}
-              onClick={() => navigate("/donate")}
-            >
-              <DonateIcon sx={topbarActionIconSx} />
-              <Typography variant="body2" sx={topbarActionTextSx}>
-                DONATE
-              </Typography>
-            </Box>
+            
           </Box>
         </Box>
       </Container>

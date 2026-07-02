@@ -141,12 +141,12 @@ const VolunteerTimeSheet = () => {
         const volunteerRaw = entry.volunteerDate ?? entry.VolunteerDate;
         setVolunteerDate(
           toDateInputValue(volunteerRaw) ||
-            (() => {
-              const m = String(volunteerRaw ?? "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-              if (!m) return "";
-              return `${m[3]}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`;
-            })() ||
-            toDateInputValue(new Date()),
+          (() => {
+            const m = String(volunteerRaw ?? "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (!m) return "";
+            return `${m[3]}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`;
+          })() ||
+          toDateInputValue(new Date()),
         );
         const startFields = resolveTimeFieldsFromEntry(entry, "start");
         const endFields = resolveTimeFieldsFromEntry(entry, "end");
@@ -215,13 +215,13 @@ const VolunteerTimeSheet = () => {
         setError(res?.errorMessage || res?.message || "Save failed.");
         return;
       }
-      
+
       setSuccessMsg("Your entry was successfully saved.");
       loadEntries();
-      
+
       if (isEdit) {
-        const addModePath = user?.role === "Volunteer" 
-          ? "/pstudyware/volunteer/time-sheet" 
+        const addModePath = user?.role === "Volunteer"
+          ? "/pstudyware/volunteer/time-sheet"
           : "/pstudyware/instructor/time-sheet";
         navigate(addModePath, { replace: true });
       } else {
@@ -288,8 +288,8 @@ const VolunteerTimeSheet = () => {
     lineHeight: 1,
   };
 
-  const dashboardPath = user?.role === "Volunteer" 
-    ? "/pstudyware/volunteer/dashboard" 
+  const dashboardPath = user?.role === "Volunteer"
+    ? "/pstudyware/volunteer/dashboard"
     : "/pstudyware/instructor/dashboard";
 
   return (
@@ -366,264 +366,264 @@ const VolunteerTimeSheet = () => {
         </Box>
 
         <Box sx={{ p: { xs: 2, sm: 3 } }}>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Box component="form" onSubmit={handleSubmit}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={7}>
-                <Paper sx={sectionCardSx}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-                    <TaskIcon sx={{ color: "#2e7d32" }} />
-                    <Typography variant="h6" sx={{ fontWeight: 800, color: "#1b5e20" }}>
-                      Work details
-                    </Typography>
-                  </Box>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <TextField
-                        label="Task name"
-                        value={taskName}
-                        onChange={(e) => setTaskName(e.target.value)}
-                        fullWidth
-                        required
-                        sx={fieldSx}
-                      />
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Box component="form" onSubmit={handleSubmit}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={7}>
+                  <Paper sx={sectionCardSx}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+                      <TaskIcon sx={{ color: "#2e7d32" }} />
+                      <Typography variant="h6" sx={{ fontWeight: 800, color: "#1b5e20" }}>
+                        Work details
+                      </Typography>
+                    </Box>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Task name"
+                          value={taskName}
+                          onChange={(e) => setTaskName(e.target.value)}
+                          fullWidth
+                          required
+                          sx={fieldSx}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Description"
+                          value={taskDescription}
+                          onChange={(e) => setTaskDescription(e.target.value)}
+                          fullWidth
+                          multiline
+                          minRows={5}
+                          placeholder="Add notes about what you worked on."
+                          sx={fieldSx}
+                        />
+                      </Grid>
                     </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        label="Description"
-                        value={taskDescription}
-                        onChange={(e) => setTaskDescription(e.target.value)}
-                        fullWidth
-                        multiline
-                        minRows={5}
-                        placeholder="Add notes about what you worked on."
-                        sx={fieldSx}
-                      />
+                  </Paper>
+                </Grid>
+
+                <Grid item xs={12} md={5}>
+                  <Paper sx={sectionCardSx}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+                      <CalendarIcon sx={{ color: "#2e7d32" }} />
+                      <Typography variant="h6" sx={{ fontWeight: 800, color: "#1b5e20" }}>
+                        Date and time
+                      </Typography>
+                    </Box>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <Box
+                          sx={{
+                            display: "grid",
+                            gridTemplateColumns: {
+                              xs: "1fr",
+                              lg: "minmax(180px, 0.8fr) minmax(0, 1fr) minmax(0, 1fr)",
+                            },
+                            gap: 1.5,
+                            alignItems: "stretch",
+                          }}
+                        >
+                          <Box sx={timePanelSx}>
+                            <Typography sx={timeFieldLabelSx}>Volunteer date</Typography>
+                            <TextField
+                              type="date"
+                              value={volunteerDate}
+                              onChange={(e) => setVolunteerDate(e.target.value)}
+                              fullWidth
+                              required
+                              inputProps={{ "aria-label": "Volunteer date" }}
+                              sx={compactFieldSx}
+                            />
+                          </Box>
+
+                          <Box sx={timePanelSx}>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1 }}>
+                              <TimeIcon fontSize="small" sx={{ color: "#43a047" }} />
+                              <Typography variant="subtitle2" sx={{ color: "#1b5e20", fontWeight: 800 }}>
+                                Start time
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.15fr", gap: 1 }}>
+                              <Box>
+                                <Typography sx={timeFieldLabelSx}>Hour</Typography>
+                                <TextField
+                                  select
+                                  value={startHour}
+                                  onChange={(e) => setStartHour(e.target.value)}
+                                  fullWidth
+                                  inputProps={{ "aria-label": "Start hour" }}
+                                  sx={compactFieldSx}
+                                >
+                                  {HOURS.map((h) => (
+                                    <MenuItem key={h} value={h}>
+                                      {h}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Box>
+                              <Box>
+                                <Typography sx={timeFieldLabelSx}>Min</Typography>
+                                <TextField
+                                  select
+                                  value={startMin}
+                                  onChange={(e) => setStartMin(e.target.value)}
+                                  fullWidth
+                                  inputProps={{ "aria-label": "Start minute" }}
+                                  sx={compactFieldSx}
+                                >
+                                  {MINS.map((m) => (
+                                    <MenuItem key={m} value={m}>
+                                      {m}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Box>
+                              <Box>
+                                <Typography sx={timeFieldLabelSx}>AM/PM</Typography>
+                                <TextField
+                                  select
+                                  value={startType}
+                                  onChange={(e) => setStartType(e.target.value)}
+                                  fullWidth
+                                  inputProps={{ "aria-label": "Start AM or PM" }}
+                                  sx={compactFieldSx}
+                                >
+                                  {AMPM.map((t) => (
+                                    <MenuItem key={t} value={t}>
+                                      {t}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Box>
+                            </Box>
+                          </Box>
+
+                          <Box sx={timePanelSx}>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1 }}>
+                              <TimeIcon fontSize="small" sx={{ color: "#43a047" }} />
+                              <Typography variant="subtitle2" sx={{ color: "#1b5e20", fontWeight: 800 }}>
+                                End time
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.15fr", gap: 1 }}>
+                              <Box>
+                                <Typography sx={timeFieldLabelSx}>Hour</Typography>
+                                <TextField
+                                  select
+                                  value={endHour}
+                                  onChange={(e) => setEndHour(e.target.value)}
+                                  fullWidth
+                                  inputProps={{ "aria-label": "End hour" }}
+                                  sx={compactFieldSx}
+                                >
+                                  {HOURS.map((h) => (
+                                    <MenuItem key={h} value={h}>
+                                      {h}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Box>
+                              <Box>
+                                <Typography sx={timeFieldLabelSx}>Min</Typography>
+                                <TextField
+                                  select
+                                  value={endMin}
+                                  onChange={(e) => setEndMin(e.target.value)}
+                                  fullWidth
+                                  inputProps={{ "aria-label": "End minute" }}
+                                  sx={compactFieldSx}
+                                >
+                                  {MINS.map((m) => (
+                                    <MenuItem key={m} value={m}>
+                                      {m}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Box>
+                              <Box>
+                                <Typography sx={timeFieldLabelSx}>AM/PM</Typography>
+                                <TextField
+                                  select
+                                  value={endType}
+                                  onChange={(e) => setEndType(e.target.value)}
+                                  fullWidth
+                                  inputProps={{ "aria-label": "End AM or PM" }}
+                                  sx={compactFieldSx}
+                                >
+                                  {AMPM.map((t) => (
+                                    <MenuItem key={t} value={t}>
+                                      {t}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </Box>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Grid>
                     </Grid>
-                  </Grid>
-                </Paper>
-              </Grid>
+                  </Paper>
+                </Grid>
 
-              <Grid item xs={12} md={5}>
-                <Paper sx={sectionCardSx}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-                    <CalendarIcon sx={{ color: "#2e7d32" }} />
-                    <Typography variant="h6" sx={{ fontWeight: 800, color: "#1b5e20" }}>
-                      Date and time
-                    </Typography>
-                  </Box>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <Box
-                        sx={{
-                          display: "grid",
-                          gridTemplateColumns: {
-                            xs: "1fr",
-                            lg: "minmax(180px, 0.8fr) minmax(0, 1fr) minmax(0, 1fr)",
-                          },
-                          gap: 1.5,
-                          alignItems: "stretch",
-                        }}
-                      >
-                        <Box sx={timePanelSx}>
-                          <Typography sx={timeFieldLabelSx}>Volunteer date</Typography>
-                          <TextField
-                            type="date"
-                            value={volunteerDate}
-                            onChange={(e) => setVolunteerDate(e.target.value)}
-                            fullWidth
-                            required
-                            inputProps={{ "aria-label": "Volunteer date" }}
-                            sx={compactFieldSx}
-                          />
-                        </Box>
-
-                        <Box sx={timePanelSx}>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1 }}>
-                            <TimeIcon fontSize="small" sx={{ color: "#43a047" }} />
-                            <Typography variant="subtitle2" sx={{ color: "#1b5e20", fontWeight: 800 }}>
-                              Start time
-                            </Typography>
-                          </Box>
-                          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.15fr", gap: 1 }}>
-                            <Box>
-                              <Typography sx={timeFieldLabelSx}>Hour</Typography>
-                              <TextField
-                                select
-                                value={startHour}
-                                onChange={(e) => setStartHour(e.target.value)}
-                                fullWidth
-                                inputProps={{ "aria-label": "Start hour" }}
-                                sx={compactFieldSx}
-                              >
-                                {HOURS.map((h) => (
-                                  <MenuItem key={h} value={h}>
-                                    {h}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
-                            </Box>
-                            <Box>
-                              <Typography sx={timeFieldLabelSx}>Min</Typography>
-                              <TextField
-                                select
-                                value={startMin}
-                                onChange={(e) => setStartMin(e.target.value)}
-                                fullWidth
-                                inputProps={{ "aria-label": "Start minute" }}
-                                sx={compactFieldSx}
-                              >
-                                {MINS.map((m) => (
-                                  <MenuItem key={m} value={m}>
-                                    {m}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
-                            </Box>
-                            <Box>
-                              <Typography sx={timeFieldLabelSx}>AM/PM</Typography>
-                              <TextField
-                                select
-                                value={startType}
-                                onChange={(e) => setStartType(e.target.value)}
-                                fullWidth
-                                inputProps={{ "aria-label": "Start AM or PM" }}
-                                sx={compactFieldSx}
-                              >
-                                {AMPM.map((t) => (
-                                  <MenuItem key={t} value={t}>
-                                    {t}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
-                            </Box>
-                          </Box>
-                        </Box>
-
-                        <Box sx={timePanelSx}>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mb: 1 }}>
-                            <TimeIcon fontSize="small" sx={{ color: "#43a047" }} />
-                            <Typography variant="subtitle2" sx={{ color: "#1b5e20", fontWeight: 800 }}>
-                              End time
-                            </Typography>
-                          </Box>
-                          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.15fr", gap: 1 }}>
-                            <Box>
-                              <Typography sx={timeFieldLabelSx}>Hour</Typography>
-                              <TextField
-                                select
-                                value={endHour}
-                                onChange={(e) => setEndHour(e.target.value)}
-                                fullWidth
-                                inputProps={{ "aria-label": "End hour" }}
-                                sx={compactFieldSx}
-                              >
-                                {HOURS.map((h) => (
-                                  <MenuItem key={h} value={h}>
-                                    {h}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
-                            </Box>
-                            <Box>
-                              <Typography sx={timeFieldLabelSx}>Min</Typography>
-                              <TextField
-                                select
-                                value={endMin}
-                                onChange={(e) => setEndMin(e.target.value)}
-                                fullWidth
-                                inputProps={{ "aria-label": "End minute" }}
-                                sx={compactFieldSx}
-                              >
-                                {MINS.map((m) => (
-                                  <MenuItem key={m} value={m}>
-                                    {m}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
-                            </Box>
-                            <Box>
-                              <Typography sx={timeFieldLabelSx}>AM/PM</Typography>
-                              <TextField
-                                select
-                                value={endType}
-                                onChange={(e) => setEndType(e.target.value)}
-                                fullWidth
-                                inputProps={{ "aria-label": "End AM or PM" }}
-                                sx={compactFieldSx}
-                              >
-                                {AMPM.map((t) => (
-                                  <MenuItem key={t} value={t}>
-                                    {t}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
-                            </Box>
-                          </Box>
-                        </Box>
-                      </Box>
-                    </Grid>
-                  </Grid>
-                </Paper>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 2,
-                    border: "1px solid #dfe9df",
-                    borderRadius: 2,
-                    bgcolor: "#ffffff",
-                    boxShadow: "none",
-                  }}
-                >
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ color: "#1b5e20", fontWeight: 800 }}>
-                      Ready to save?
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {totalHoursPreview === null
-                        ? "Choose a valid end time after the start time."
-                        : `This entry will record ${totalHoursPreview.toFixed(2)} volunteer hours.`}
-                    </Typography>
-                  </Box>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    startIcon={<SaveIcon />}
-                    disabled={saving}
+                <Grid item xs={12}>
+                  <Paper
                     sx={{
-                      bgcolor: "#43a047",
-                      fontWeight: 800,
-                      textTransform: "none",
-                      borderRadius: 1.5,
-                      px: 2.5,
-                      py: 1,
-                      minWidth: { xs: "100%", sm: 170 },
-                      "&:hover": { bgcolor: "#2e7d32" },
+                      p: 2,
+                      display: "flex",
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 2,
+                      border: "1px solid #dfe9df",
+                      borderRadius: 2,
+                      bgcolor: "#ffffff",
+                      boxShadow: "none",
                     }}
                   >
-                    {saving ? "Saving..." : isEdit ? "Update entry" : "Save entry"}
-                  </Button>
-                </Paper>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ color: "#1b5e20", fontWeight: 800 }}>
+                        Ready to save?
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {totalHoursPreview === null
+                          ? "Choose a valid end time after the start time."
+                          : `This entry will record ${totalHoursPreview.toFixed(2)} volunteer hours.`}
+                      </Typography>
+                    </Box>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      startIcon={<SaveIcon />}
+                      disabled={saving}
+                      sx={{
+                        bgcolor: "#43a047",
+                        fontWeight: 800,
+                        textTransform: "none",
+                        borderRadius: 1.5,
+                        px: 2.5,
+                        py: 1,
+                        minWidth: { xs: "100%", sm: 170 },
+                        "&:hover": { bgcolor: "#2e7d32" },
+                      }}
+                    >
+                      {saving ? "Saving..." : isEdit ? "Update entry" : "Save entry"}
+                    </Button>
+                  </Paper>
+                </Grid>
               </Grid>
-            </Grid>
-          </Box>
-        )}
+            </Box>
+          )}
         </Box>
       </Paper>
 

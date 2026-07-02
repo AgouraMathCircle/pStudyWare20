@@ -347,6 +347,11 @@ const Navbar = ({ usePortalLogo = false }) => {
       icon: <AssignmentIcon fontSize="small" />,
     },
     {
+      label: "Class Material",
+      href: "/pstudyware/volunteer/class-material",
+      icon: <AssignmentIcon fontSize="small" />,
+    },
+    {
       label: "Message Center",
       href: "/pstudyware/volunteer/message-center",
       icon: <MessageIcon fontSize="small" />,
