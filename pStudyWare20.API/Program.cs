@@ -143,12 +143,11 @@ builder.Services.AddScoped<IVolunteerAvailabilityRepository, VolunteerAvailabili
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<ITimesheetRepository, TimesheetRepository>();
-builder.Services.AddScoped<IFinalExamRepository, FinalExamRepository>();
+builder.Services.AddScoped<IOnlineExamRepository, OnlineExamRepository>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IInstructorDashboardRepository, InstructorDashboardRepository>();
 builder.Services.AddScoped<IMeetingDetailsRepository, MeetingDetailsRepository>();
 builder.Services.AddScoped<IInstructorRepository, InstructorRepository>();
-builder.Services.AddScoped<IOnlineExamRepository, OnlineExamRepository>();
 builder.Services.AddScoped<IStudentScoreRepository, StudentScoreRepository>();
 builder.Services.AddScoped<IPostMessageRepository, PostMessageRepository>();
 builder.Services.AddScoped<ISentEmailRepository, SentEmailRepository>();
@@ -174,12 +173,11 @@ builder.Services.AddScoped<IVolunteerAvailabilityService, VolunteerAvailabilityS
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<ITimesheetService, TimesheetService>();
-builder.Services.AddScoped<IFinalExamService, FinalExamService>();
+builder.Services.AddScoped<IOnlineExamService, OnlineExamService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IInstructorDashboardService, InstructorDashboardService>();
 builder.Services.AddScoped<IMeetingDetailsService, MeetingDetailsService>();
 builder.Services.AddScoped<IInstructorService, InstructorService>();
-builder.Services.AddScoped<IOnlineExamService, OnlineExamService>();
 builder.Services.AddScoped<IStudentScoreService, StudentScoreService>();
 builder.Services.AddScoped<IPostMessageService, PostMessageService>();
 builder.Services.AddScoped<ISentEmailService, SentEmailService>();

@@ -67,6 +67,35 @@
   margin-top: 0;
 }
 
+.admin-meeting-details .meeting-list-sentence {
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #333;
+}
+
+.admin-meeting-details .meeting-list-class {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.admin-meeting-details .meeting-list-date {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.admin-meeting-details .meeting-list-url {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: #1976d2;
+  font-weight: 600;
+  word-break: break-all;
+  overflow-wrap: break-word;
+  text-decoration: underline;
+}
+
 /* Meeting schedule modal — single vertical column, fixed field sizing */
 .admin-meeting-details-form {
   display: flex;

@@ -13,6 +13,7 @@ import {
   MenuItem,
   Select,
   TextField,
+  Link,
 } from "@mui/material";
 import SortableHeader from "./SortableHeader";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
@@ -96,6 +97,16 @@ function buildChapterNameLookup(chapters) {
 }
 
 const formatBoolean = (value) => (value ? "Yes" : "No");
+
+const formatMeetingSentence = (row) => {
+  const label = row.chapterName || row.class || "Meeting";
+  const sectionPart = row.section ? ` Section ${row.section}` : "";
+  const datePart = row.meetingDate
+    ? ` is on ${row.meetingDate}${row.meetingTime ? ` ${row.meetingTime} (PST)` : ""}.`
+    : "";
+
+  return { label, sectionPart, datePart };
+};
 
 function normalizeMeeting(meeting, index, chapterNameById = new Map()) {
   const rowId = getProp(meeting, "RowID") || getProp(meeting, "RowId") || index + 1;
@@ -460,8 +471,47 @@ const MeetingList = ({ meetings, chapters = [], onEdit, canEdit, loading = false
                   <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
                     {row.meetingTime}
                   </TableCell>
-                  <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-                    {row.meetingURL}
+                  <TableCell
+                    sx={{
+                      ...adminSessionListTableBodyCellSx({ ellipsis: false }),
+                      whiteSpace: "normal",
+                      maxWidth: "none",
+                    }}
+                  >
+                    {(() => {
+                      const { label, sectionPart, datePart } =
+                        formatMeetingSentence(row);
+                      return (
+                        <Typography
+                          component="div"
+                          className="meeting-list-sentence"
+                        >
+                          <Box component="span" className="meeting-list-class">
+                            {label}
+                            {sectionPart}
+                          </Box>
+                          {datePart && (
+                            <Box component="span" className="meeting-list-date">
+                              {datePart}
+                            </Box>
+                          )}
+                          {row.meetingURL && (
+                            <>
+                              {" Join at "}
+                              <Link
+                                href={row.meetingURL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="meeting-list-url"
+                                underline="hover"
+                              >
+                                {row.meetingURL}
+                              </Link>
+                            </>
+                          )}
+                        </Typography>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
                     {row.meetingID}

@@ -150,6 +150,10 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Score ID")]
         public string ScoreID { get; set; } = "0";
+
+        /// <summary>Portal username (parent email) — legacy Session["Username"] for score notification.</summary>
+        [Display(Name = "Username")]
+        public string Username { get; set; } = string.Empty;
     }
 
     /// <summary>

@@ -19,6 +19,7 @@ import {
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -51,6 +52,21 @@ const createSelectMenuProps = (visibleItems) => ({
 
 const registrationSelectMenuProps = createSelectMenuProps(15);
 const countrySelectMenuProps = createSelectMenuProps(10);
+
+const isEmptySelectValue = (value) =>
+  value === undefined ||
+  value === null ||
+  value === "" ||
+  value === "0" ||
+  value === 0;
+
+const currentYear = new Date().getFullYear();
+
+const requiredSelect = (requiredMessage, emptyMessage) =>
+  yup
+    .mixed()
+    .required(requiredMessage)
+    .test("selected", emptyMessage, (value) => !isEmptySelectValue(value));
 
 // Validation schema
 const validationSchema = yup.object({
@@ -98,29 +114,32 @@ const validationSchema = yup.object({
     is: "S",
     then: (schema) =>
       schema
+        .trim()
         .required(
           "Student email is required when using student email as username",
         )
         .email("Please enter a valid student email address"),
     otherwise: (schema) =>
-      schema.email("Please enter a valid student email address"),
+      schema
+        .transform((value) =>
+          value?.trim() === "" ? undefined : value?.trim(),
+        )
+        .optional()
+        .email("Please enter a valid student email address"),
   }),
   studentSchoolName: yup
     .string()
     .required("Student school name is required")
     .min(2, "Student school name must be at least 2 characters"),
-  studentGrade: yup
-    .string()
-    .required("Student grade is required")
-    .notOneOf(["0"], "Please select a grade"),
-  sessionId: yup
-    .string()
-    .required("Session is required")
-    .notOneOf(["0"], "Please select a session"),
-  locationId: yup
-    .number()
-    .required("Course/Location is required")
-    .min(1, "Please select a course/location"),
+  studentGrade: requiredSelect(
+    "Student grade is required",
+    "Please select a grade",
+  ),
+  sessionId: requiredSelect("Session is required", "Please select a session"),
+  locationId: requiredSelect(
+    "Course/Location is required",
+    "Please select a course/location",
+  ),
   userName: yup.string().required("Please select username option"),
   liabilitySignature: yup
     .string()
@@ -147,7 +166,7 @@ const defaultFormValues = {
   studentSchoolName: "",
   studentGrade: "0",
   sessionId: "0",
-  locationId: 0,
+  locationId: "0",
   userName: "P",
   liabilitySignature: "",
   ruleSignature: "",
@@ -155,6 +174,7 @@ const defaultFormValues = {
 };
 
 const StudentRegistration = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
@@ -177,9 +197,13 @@ const StudentRegistration = () => {
     reset,
     getValues,
     watch,
+    clearErrors,
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: defaultFormValues,
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+    shouldFocusError: true,
   });
 
   const userNameOption = watch("userName");
@@ -255,7 +279,7 @@ const StudentRegistration = () => {
         StudentSchoolName: data.studentSchoolName,
         StudentGrade: data.studentGrade,
         SessionId: data.sessionId,
-        LocationId: data.locationId,
+        LocationId: Number(data.locationId),
         UserName: data.userName,
         LiabilitySignature: data.liabilitySignature,
         RuleSignature: data.ruleSignature,
@@ -298,12 +322,29 @@ const StudentRegistration = () => {
       country: getValues("country"),
       userName: getValues("userName"),
     };
-    reset({ ...defaultFormValues, ...parentData });
+    clearErrors();
+    reset(
+      { ...defaultFormValues, ...parentData },
+      {
+        keepErrors: false,
+        keepDirty: false,
+        keepTouched: false,
+        keepIsSubmitted: false,
+      },
+    );
     setSuccessDialogOpen(false);
+  };
+
+  const onInvalid = () => {
+    showSnackbar(
+      "Please fill in all required fields before submitting.",
+      "error",
+    );
   };
 
   const handleSuccessDialogClose = () => {
     setSuccessDialogOpen(false);
+    navigate("/");
   };
 
   return (
@@ -353,49 +394,65 @@ const StudentRegistration = () => {
           {/* Important Notice */}
           <div className="row registration-notice-row">
             <div className="important-notice">
-            <p>
-              <span style={{ color: "#d32f2f", fontWeight: "bold" }}>Important:</span>{" "}
-              Registration for the Spring 2026 Semester is closed now. We invite
-              you to register for our upcoming Fall 2026 Semester. Thank you for
-              your interest in Agoura Math Circle!{" "}
-              <span style={{ color: "#d32f2f", fontWeight: "bold" }}>
-                Existing students, please do not use this page to register for
-                ONLINE or ONSITE Math Circle classes. Instead, follow the separate
-                registration instructions provided for returning students. This page
-                is for new students only. .
-              </span>
-            </p>
-            <p>
-              <span style={{ color: "#2e7d32", fontWeight: "bold", fontStyle: "italic" }}>
-                Register Now.
-              </span>{" "}
-              Use this page to register for any course/program (
-              <span style={{ color: "#1976d2", fontStyle: "italic" }}>Test Preparation</span>{" "}
-              - SAT/PSAT and ACT,{" "}
-              <span style={{ color: "#1976d2", fontStyle: "italic" }}>Engineering circle</span>{" "}
-              - Foundations of Data Science, Introduction to AI, and Engineering
-              Design & 3D Modeling), with the exception of existing students
-              registering for a new semester at math circle. Please carefully
-              choose the course and location. After you submit your
-              application, we will review and decide based on the availability
-              of space and eligibility.
-            </p>
-            <p className="notice-engineering-text">
-              Engineering Circle:Before you apply for Agoura Engineering Circle,
-              please review the curriculum and the criteria for eligibility and
-              make an informed decision to see if this is the right class for
-              you. Due to the limited available space and the challenging
-              material, we will conduct an assessment. We will email details
-              regarding this assessment. Based on the eligibility and
-              performance of the student on the exam, we will decide on the
-              student's enrollment.
-            </p>
+              <p>
+                <span style={{ color: "#d32f2f", fontWeight: "bold" }}>
+                  Important:
+                </span>{" "}
+                Registration for the Spring 2026 Semester is closed now. We
+                invite you to register for our upcoming Fall 2026 Semester.
+                Thank you for your interest in Agoura Math Circle!{" "}
+                <span style={{ color: "#d32f2f", fontWeight: "bold" }}>
+                  Existing students, please do not use this page to register for
+                  ONLINE or ONSITE Math Circle classes. Instead, follow the
+                  separate registration instructions provided for returning
+                  students. This page is for new students only. .
+                </span>
+              </p>
+              <p>
+                <span
+                  style={{
+                    color: "#2e7d32",
+                    fontWeight: "bold",
+                    fontStyle: "italic",
+                  }}
+                >
+                  Register Now.
+                </span>{" "}
+                Use this page to register for any course/program (
+                <span style={{ color: "#1976d2", fontStyle: "italic" }}>
+                  Test Preparation
+                </span>{" "}
+                - SAT/PSAT and ACT,{" "}
+                <span style={{ color: "#1976d2", fontStyle: "italic" }}>
+                  Engineering circle
+                </span>{" "}
+                - Foundations of Data Science, Introduction to AI, and
+                Engineering Design & 3D Modeling), with the exception of
+                existing students registering for a new semester at math circle.
+                Please carefully choose the course and location. After you
+                submit your application, we will review and decide based on the
+                availability of space and eligibility.
+              </p>
+              <p className="notice-engineering-text">
+                Engineering Circle:Before you apply for Agoura Engineering
+                Circle, please review the curriculum and the criteria for
+                eligibility and make an informed decision to see if this is the
+                right class for you. Due to the limited available space and the
+                challenging material, we will conduct an assessment. We will
+                email details regarding this assessment. Based on the
+                eligibility and performance of the student on the exam, we will
+                decide on the student's enrollment.
+              </p>
             </div>
           </div>
 
           {/* Main Form */}
           <div className="row">
-            <form onSubmit={handleSubmit(onSubmit)} style={{ width: "100%" }}>
+            <form
+              noValidate
+              onSubmit={handleSubmit(onSubmit, onInvalid)}
+              style={{ width: "100%" }}
+            >
               <div className="registration-form-layout">
                 {/* Parent Information Section */}
                 <div className="registration-parent-column">
@@ -575,7 +632,11 @@ const StudentRegistration = () => {
                           <FormControl
                             className="user-name-control"
                             error={!!errors.userName}
-                            sx={{ marginTop: 0, marginBottom: 0, width: "100%" }}
+                            sx={{
+                              marginTop: 0,
+                              marginBottom: 0,
+                              width: "100%",
+                            }}
                           >
                             <div className="user-name-row">
                               <span className="user-name-label">
@@ -635,14 +696,14 @@ const StudentRegistration = () => {
                       <Controller
                         name="studentFirstName"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field, fieldState }) => (
                           <TextField
                             {...field}
                             fullWidth
                             required
                             label="Student First Name"
-                            error={!!errors.studentFirstName}
-                            helperText={errors.studentFirstName?.message}
+                            error={!!fieldState.error}
+                            helperText={fieldState.error?.message}
                             variant="outlined"
                             size="small"
                             className="form-input-field"
@@ -654,14 +715,14 @@ const StudentRegistration = () => {
                       <Controller
                         name="studentLastName"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field, fieldState }) => (
                           <TextField
                             {...field}
                             fullWidth
                             required
                             label="Student Last Name"
-                            error={!!errors.studentLastName}
-                            helperText={errors.studentLastName?.message}
+                            error={!!fieldState.error}
+                            helperText={fieldState.error?.message}
                             variant="outlined"
                             size="small"
                             sx={{ width: "100%" }}
@@ -672,7 +733,7 @@ const StudentRegistration = () => {
                       <Controller
                         name="studentEmail"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field, fieldState }) => (
                           <TextField
                             {...field}
                             fullWidth
@@ -682,9 +743,9 @@ const StudentRegistration = () => {
                                 : "Student Email ID (Optional)"
                             }
                             type="email"
-                            error={!!errors.studentEmail}
+                            error={!!fieldState.error}
                             helperText={
-                              errors.studentEmail?.message ||
+                              fieldState.error?.message ||
                               (userNameOption === "S"
                                 ? "Required when using student email as username"
                                 : "")
@@ -700,14 +761,14 @@ const StudentRegistration = () => {
                       <Controller
                         name="studentSchoolName"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field, fieldState }) => (
                           <TextField
                             {...field}
                             fullWidth
                             required
                             label="School"
-                            error={!!errors.studentSchoolName}
-                            helperText={errors.studentSchoolName?.message}
+                            error={!!fieldState.error}
+                            helperText={fieldState.error?.message}
                             variant="outlined"
                             size="small"
                             sx={{ width: "100%" }}
@@ -718,21 +779,24 @@ const StudentRegistration = () => {
                       <Controller
                         name="studentGrade"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field, fieldState }) => (
                           <FormControl
                             fullWidth
                             required
                             variant="outlined"
                             size="small"
-                            error={!!errors.studentGrade}
+                            error={!!fieldState.error}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="student-grade-label">Grade</InputLabel>
+                            <InputLabel id="student-grade-label">
+                              Grade
+                            </InputLabel>
                             <Select
                               {...field}
                               labelId="student-grade-label"
                               id="student-grade-select"
                               label="Grade"
+                              displayEmpty
                             >
                               <MenuItem value="0">
                                 <em>--Select--</em>
@@ -743,9 +807,9 @@ const StudentRegistration = () => {
                                 </MenuItem>
                               ))}
                             </Select>
-                            {errors.studentGrade && (
+                            {fieldState.error && (
                               <FormHelperText>
-                                {errors.studentGrade.message}
+                                {fieldState.error.message}
                               </FormHelperText>
                             )}
                           </FormControl>
@@ -755,21 +819,24 @@ const StudentRegistration = () => {
                       <Controller
                         name="sessionId"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field, fieldState }) => (
                           <FormControl
                             fullWidth
                             required
                             variant="outlined"
                             size="small"
-                            error={!!errors.sessionId}
+                            error={!!fieldState.error}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="session-label">Register For</InputLabel>
+                            <InputLabel id="session-label">
+                              Register For
+                            </InputLabel>
                             <Select
                               {...field}
                               labelId="session-label"
                               id="session-select"
                               label="Register For"
+                              displayEmpty
                             >
                               <MenuItem value="0">
                                 <em>--Select--</em>
@@ -780,9 +847,9 @@ const StudentRegistration = () => {
                                 </MenuItem>
                               ))}
                             </Select>
-                            {errors.sessionId && (
+                            {fieldState.error && (
                               <FormHelperText>
-                                {errors.sessionId.message}
+                                {fieldState.error.message}
                               </FormHelperText>
                             )}
                           </FormControl>
@@ -792,35 +859,41 @@ const StudentRegistration = () => {
                       <Controller
                         name="locationId"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field, fieldState }) => (
                           <FormControl
                             fullWidth
                             required
                             variant="outlined"
                             size="small"
-                            error={!!errors.locationId}
+                            error={!!fieldState.error}
                             sx={{ width: "100%" }}
                           >
-                            <InputLabel id="location-label">Course/Location</InputLabel>
+                            <InputLabel id="location-label">
+                              Course/Location
+                            </InputLabel>
                             <Select
                               {...field}
                               labelId="location-label"
                               id="location-select"
                               label="Course/Location"
+                              displayEmpty
                               MenuProps={registrationSelectMenuProps}
                             >
-                              <MenuItem value={0}>
+                              <MenuItem value="0">
                                 <em>--Select--</em>
                               </MenuItem>
                               {locations.map((location) => (
-                                <MenuItem key={location.id} value={location.id}>
+                                <MenuItem
+                                  key={location.id}
+                                  value={String(location.id)}
+                                >
                                   {location.name}
                                 </MenuItem>
                               ))}
                             </Select>
-                            {errors.locationId && (
+                            {fieldState.error && (
                               <FormHelperText>
-                                {errors.locationId.message}
+                                {fieldState.error.message}
                               </FormHelperText>
                             )}
                           </FormControl>
@@ -833,142 +906,142 @@ const StudentRegistration = () => {
 
               {/* Signatures and Agreements Section */}
               <div className="registration-signature-column">
-                  <div
-                    className="form-section signature-section registration-card"
-                    style={{
-                      marginTop: "0px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    <div className="form-group-container signature-form-fields">
-                      <p className="agreement-text">
-                        Pressing the "Submit" button I agree the Agoura Math
-                        Circle{" "}
-                        <button
-                          type="button"
-                          onClick={() => setTermsOpen(true)}
-                          style={{
-                            backgroundColor: "#53b50a",
-                            color: "#ffffff",
-                            border: "none",
-                            padding: "4px 12px",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "0.875rem",
-                            fontWeight: "500",
-                            margin: "0 2px",
-                          }}
-                        >
-                          Terms
-                        </button>{" "}
-                        and{" "}
-                        <button
-                          type="button"
-                          onClick={() => setRulesOpen(true)}
-                          style={{
-                            backgroundColor: "#53b50a",
-                            color: "#ffffff",
-                            border: "none",
-                            padding: "4px 12px",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "0.875rem",
-                            fontWeight: "500",
-                            margin: "0 2px",
-                          }}
-                        >
-                          Rules
-                        </button>
-                      </p>
-                      <p className="signature-help-text">
-                        Please sign the waiver (Liability Signature)
-                        <span className="required-asterisk">*</span>. DO NOT
-                        SIGN WITHOUT READING. I HAVE READ THIS ASSUMPTION OF
-                        RISK, WAIVER OF LIABILITY AND INDEMNITY AGREEMENT AND
-                        AGREE TO ITS TERMS.
-                      </p>
-                      <Controller
-                        name="liabilitySignature"
-                        control={control}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            fullWidth
-                            required
-                            label="Liability Signature"
-                            error={!!errors.liabilitySignature}
-                            helperText={errors.liabilitySignature?.message}
-                            variant="outlined"
-                            size="small"
-                            className="form-input-field"
-                            placeholder="Enter your full name"
-                            sx={{ width: "100%" }}
-                          />
-                        )}
-                      />
-                      <p className="signature-help-text">
-                        By printing your name in the box and pressing the submit
-                        button, I acknowledge that I have read and am
-                        electronically signing the Waiver of Liability,
-                        Assumption of Risk and Indemnity Agreement on behalf of
-                        myself or my dependent minor participant.
-                      </p>
+                <div
+                  className="form-section signature-section registration-card"
+                  style={{
+                    marginTop: "0px",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <div className="form-group-container signature-form-fields">
+                    <p className="agreement-text">
+                      Pressing the "Submit" button I agree the Agoura Math
+                      Circle{" "}
+                      <button
+                        type="button"
+                        onClick={() => setTermsOpen(true)}
+                        style={{
+                          backgroundColor: "#53b50a",
+                          color: "#ffffff",
+                          border: "none",
+                          padding: "4px 12px",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "0.875rem",
+                          fontWeight: "500",
+                          margin: "0 2px",
+                        }}
+                      >
+                        Terms
+                      </button>{" "}
+                      and{" "}
+                      <button
+                        type="button"
+                        onClick={() => setRulesOpen(true)}
+                        style={{
+                          backgroundColor: "#53b50a",
+                          color: "#ffffff",
+                          border: "none",
+                          padding: "4px 12px",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "0.875rem",
+                          fontWeight: "500",
+                          margin: "0 2px",
+                        }}
+                      >
+                        Rules
+                      </button>
+                    </p>
+                    <p className="signature-help-text">
+                      Please sign the waiver (Liability Signature)
+                      <span className="required-asterisk">*</span>. DO NOT SIGN
+                      WITHOUT READING. I HAVE READ THIS ASSUMPTION OF RISK,
+                      WAIVER OF LIABILITY AND INDEMNITY AGREEMENT AND AGREE TO
+                      ITS TERMS.
+                    </p>
+                    <Controller
+                      name="liabilitySignature"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          required
+                          label="Liability Signature"
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message}
+                          variant="outlined"
+                          size="small"
+                          className="form-input-field"
+                          placeholder="Enter your full name"
+                          sx={{ width: "100%" }}
+                        />
+                      )}
+                    />
+                    <p className="signature-help-text">
+                      By printing your name in the box and pressing the submit
+                      button, I acknowledge that I have read and am
+                      electronically signing the Waiver of Liability, Assumption
+                      of Risk and Indemnity Agreement on behalf of myself or my
+                      dependent minor participant.
+                    </p>
 
-                      <Controller
-                        name="ruleSignature"
-                        control={control}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            fullWidth
-                            required
-                            label="Signature"
-                            error={!!errors.ruleSignature}
-                            helperText={errors.ruleSignature?.message}
-                            variant="outlined"
-                            size="small"
-                            className="form-input-field"
-                            placeholder="Enter your full name"
-                            sx={{ width: "100%" }}
-                          />
-                        )}
-                      />
-                      <p className="signature-help-text">
-                        By printing your name in the box and pressing the submit
-                        button, I acknowledge that I have read and am
-                        electronically signing the Agoura Math Circle Rules and
-                        Expectations on behalf of myself or my dependent minor
-                        participant.
-                      </p>
-                      <p className="signature-help-text">
-                        Occasionally, we take pictures at AMC meetings, which
-                        may be used for publicity purposes [e.g.: posted on our
-                        web site or used in a brochure about AMC.] Do you give
-                        us permission to include you in such photographs?
-                      </p>
-                      <Controller
-                        name="picturePermission"
-                        control={control}
-                        render={({ field }) => (
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                {...field}
-                                checked={field.value}
-                                color="primary"
-                              />
-                            }
-                            label={
-                              <span style={{ fontSize: "0.875rem" }}>
-                                I give permission to use the pictures/videos.
-                              </span>
-                            }
-                          />
-                        )}
-                      />
-                    </div>
+                    <Controller
+                      name="ruleSignature"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          required
+                          label="Signature"
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message}
+                          variant="outlined"
+                          size="small"
+                          className="form-input-field"
+                          placeholder="Enter your full name"
+                          sx={{ width: "100%" }}
+                        />
+                      )}
+                    />
+                    <p className="signature-help-text">
+                      By printing your name in the box and pressing the submit
+                      button, I acknowledge that I have read and am
+                      electronically signing the Agoura Math Circle Rules and
+                      Expectations on behalf of myself or my dependent minor
+                      participant.
+                    </p>
+                    <p className="signature-help-text">
+                      Occasionally, we take pictures at AMC meetings, which may
+                      be used for publicity purposes [e.g.: posted on our web
+                      site or used in a brochure about AMC.] Do you give us
+                      permission to include you in such photographs?
+                    </p>
+                    <Controller
+                      name="picturePermission"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              {...field}
+                              checked={field.value}
+                              color="primary"
+                            />
+                          }
+                          label={
+                            <span style={{ fontSize: "0.875rem" }}>
+                              I give permission to use the pictures/videos.
+                            </span>
+                          }
+                        />
+                      )}
+                    />
                   </div>
                 </div>
+              </div>
 
               {/* Submit Button */}
               <div className="row">
@@ -1062,8 +1135,8 @@ const StudentRegistration = () => {
             </DialogTitle>
             <DialogContent>
               <Typography>
-                Registration successful, do you want to register another student?
-                you will receive an email once it is approved.
+                Registration successful, do you want to register another
+                student? you will receive an email once it is approved.
               </Typography>
             </DialogContent>
             <DialogActions sx={{ padding: "16px 24px" }}>
@@ -1354,7 +1427,7 @@ const StudentRegistration = () => {
                 variant="body2"
                 sx={{ marginTop: "20px", fontStyle: "italic" }}
               >
-                <strong>Last revised: January 1, 2020</strong>
+                <strong>Last revised: January 1, {currentYear}</strong>
               </Typography>
             </DialogContent>
           </Dialog>

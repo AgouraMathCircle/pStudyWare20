@@ -50,9 +50,8 @@ import StudentChangePassword from "./src/components/pstudyware/Student/StudentCh
 import ClassMaterial from "./src/components/pstudyware/Student/ClassMaterial";
 import { UpdateProfileRouteOpener } from "./src/contexts/UpdateProfileModalContext";
 import StudentDocuments from "./src/components/pstudyware/Student/StudentDocuments";
-import OnlineExam from "./src/components/pstudyware/Student/OnlineExam";
 import StudentScore from "./src/components/pstudyware/Student/StudentScore";
-import FinalExam from "./src/components/pstudyware/Student/FinalExam";
+import OnlineExam from "./src/components/pstudyware/Student/OnlineExam";
 import ReportCard from "./src/components/pstudyware/Student/ReportCard";
 import AdminDashboard from "./src/components/pstudyware/Admin/AdminDashboard";
 import AdminInstructors from "./src/components/pstudyware/Admin/AdminInstructors";
@@ -236,6 +235,10 @@ const AppRoutes = () => {
               }
             />
             <Route
+              path="/student/final-exam"
+              element={<Navigate to="/student/online-exam" replace />}
+            />
+            <Route
               path="/student/online-exam"
               element={
                 <RoleProtectedRoute
@@ -247,6 +250,12 @@ const AppRoutes = () => {
               }
             />
             <Route
+              path="/pstudyware/student/final-exam"
+              element={
+                <Navigate to="/pstudyware/student/online-exam" replace />
+              }
+            />
+            <Route
               path="/pstudyware/student/online-exam"
               element={
                 <RoleProtectedRoute
@@ -254,28 +263,6 @@ const AppRoutes = () => {
                   allowedMemberTypes={["S"]}
                 >
                   <OnlineExam />
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/final-exam"
-              element={
-                <RoleProtectedRoute
-                  allowedRoles={["Student"]}
-                  allowedMemberTypes={["S"]}
-                >
-                  <FinalExam />
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/pstudyware/student/final-exam"
-              element={
-                <RoleProtectedRoute
-                  allowedRoles={["Student"]}
-                  allowedMemberTypes={["S"]}
-                >
-                  <FinalExam />
                 </RoleProtectedRoute>
               }
             />

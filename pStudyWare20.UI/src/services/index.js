@@ -7,4 +7,3 @@ export { default as studentDashboardService } from "./studentDashboardService";
 export { default as instructorService } from "./instructorService";
 export { default as documentService } from "./documentService";
 export { default as registeredStudentListService } from "./registeredStudentListService";
-export { default as onlineExamService } from "./onlineExamService";

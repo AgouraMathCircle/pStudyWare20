@@ -228,6 +228,12 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Due Date")]
         public string DueDate { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Comma-separated chapter IDs that use Online Exam from Update Score (AMC_tblLookupSemester).
+        /// </summary>
+        [Display(Name = "Online Exam Display Chapter")]
+        public string OnlineExamDisplayChapter { get; set; } = string.Empty;
     }
 
 

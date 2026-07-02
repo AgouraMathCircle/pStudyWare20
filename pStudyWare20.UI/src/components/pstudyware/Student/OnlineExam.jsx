@@ -1,138 +1,275 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Container,
   Box,
   Alert,
   Snackbar,
   Typography,
+  CircularProgress,
   Grid,
   Card,
   CardContent,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
   Button,
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
   Paper,
   Radio,
   RadioGroup,
   FormControlLabel,
-  FormLabel,
-  Divider,
   Link,
 } from "@mui/material";
-import { useSearchParams } from "react-router-dom";
+import { Send as SendIcon } from "@mui/icons-material";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import onlineExamService from "../../../services/onlineExamService";
-import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
-import FinalExamScoresGrid from "./FinalExamScoresGrid";
-import AppConfirmDialog from "../Common/AppConfirmDialog";
-import SendIcon from "@mui/icons-material/Send";
 import {
+  parseStudentDropdownValue,
+  shouldRedirectToManualScoreUpdate,
+  getStudentListItemText,
+  getStudentListItemValue,
+} from "../../../utils/studentChapterRouting";
+import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
+import OnlineExamScoresGrid from "./OnlineExamScoresGrid";
+import {
+  APPLICATION_ADMIN_TITLE_COLOR,
+  APPLICATION_SURFACE_BG,
+  APPLICATION_SURFACE_BORDER,
   PORTAL_CARD_BOX_SHADOW,
-  portalCardAntiLiftSx,
+  adminSessionListPanelCardSx,
+  adminSessionListPanelContentSx,
+  adminSessionListHeaderBarSx,
   adminSessionListTitleSx,
 } from "../styles/applicationSurfaces";
+import "../../../styles/StudentDashboard.css";
 
-const portalCardSx = {
-  backgroundColor: "white",
-  borderRadius: 2,
-  boxShadow: PORTAL_CARD_BOX_SHADOW,
-  overflow: "hidden",
-  ...portalCardAntiLiftSx,
+const FINAL_EXAM_TYPE = "Final Exam";
+
+/** Legacy OnlineExam.aspx ddDescription — used when redirected from StudentScore. */
+const ONLINE_EXAM_TYPES = [
+  "Quiz",
+  "Class Work",
+  "Home Work",
+  "Mock Test",
+  FINAL_EXAM_TYPE,
+];
+
+/** Legacy FinalExam.aspx / style.css palette */
+const LEGACY_CONTROL_BOX_BG = "#54B50A";
+const LEGACY_CONTROL_BOX_BORDER = "#cceac4";
+const LEGACY_INPUT_HEADER_BG = "#3f8a36";
+const LEGACY_GROUP_HEADER_BG = "#174a10";
+const LEGACY_INPUT_CAPTION_BG = "#54B50A";
+const LEGACY_INPUTBOX_BG = "#D4E6F1";
+const LEGACY_BODY_COLOR = "#0e4354";
+const LEGACY_BUTTON_BG = "#174a10";
+const LEGACY_TABLE_BORDER = "#333333";
+
+const examAnswerSheetScale = 1.584;
+
+const answerSheetPanelSx = {
+  backgroundColor: LEGACY_CONTROL_BOX_BG,
+  border: `1px solid ${LEGACY_CONTROL_BOX_BORDER}`,
+  borderRadius: 0,
+  boxShadow: "none",
+  mb: 2,
+  overflow: "visible",
 };
 
-const fieldSx = {
-  "& .MuiInputBase-root": {
-    fontSize: "0.75rem",
-    backgroundColor: "#fff",
+const answerSheetTitleSx = {
+  backgroundColor: LEGACY_INPUT_HEADER_BG,
+  color: "whitesmoke",
+  borderBottom: "1px solid #152F52",
+  textAlign: "center",
+  fontFamily: "Arial, Helvetica, sans-serif",
+  fontSize: "1.3em",
+  lineHeight: 1.5,
+  fontWeight: 400,
+  py: 1,
+};
+
+const answerSheetGroupPaperSx = {
+  p: 0,
+  borderRadius: 1,
+  overflow: "hidden",
+  border: `1px solid ${LEGACY_TABLE_BORDER}`,
+  backgroundColor: "#ffffff",
+};
+
+const answerSheetGroupHeaderSx = {
+  backgroundColor: LEGACY_GROUP_HEADER_BG,
+  color: "whitesmoke",
+  textAlign: "center",
+  fontFamily: "Arial, Helvetica, sans-serif",
+  fontWeight: 400,
+  fontSize: `${0.8 * examAnswerSheetScale}rem`,
+  lineHeight: 1.5,
+  py: 0.5,
+  borderBottom: `1px solid ${LEGACY_TABLE_BORDER}`,
+};
+
+const legacySubmitButtonSx = {
+  backgroundColor: LEGACY_BUTTON_BG,
+  color: "#FFFFFF",
+  textTransform: "none",
+  fontWeight: 400,
+  height: 25,
+  minWidth: 100,
+  borderRadius: 0,
+  fontSize: "0.875rem",
+  "&:hover": { backgroundColor: "#0f3310" },
+};
+
+const legacyInstructionBodySx = {
+  px: { xs: 2, sm: 2.5 },
+  pt: 1.25,
+  pb: 2,
+};
+
+const legacyInstructionStepSx = {
+  color: "#ffffff",
+  fontFamily: "Arial, Helvetica, sans-serif",
+  fontSize: "0.875rem",
+  lineHeight: 1.5,
+  mb: 0.75,
+};
+
+const legacyInstructionLinkSx = {
+  color: "#ffffff",
+  fontWeight: 400,
+  textDecoration: "underline",
+  "&:hover": { color: "#ffffff", textDecoration: "underline" },
+};
+
+const legacyFormCaptionCellSx = {
+  backgroundColor: LEGACY_INPUT_CAPTION_BG,
+  color: "whitesmoke",
+  borderBottom: `1px solid ${LEGACY_INPUT_CAPTION_BG}`,
+  fontFamily: "Arial, Helvetica, sans-serif",
+  fontSize: "0.8rem",
+  textAlign: "center",
+  py: 0.75,
+  px: 1.5,
+  whiteSpace: "nowrap",
+  verticalAlign: "middle",
+};
+
+const legacyFormFieldCellSx = {
+  py: 0.5,
+  px: 0.5,
+  verticalAlign: "middle",
+};
+
+const legacyFormRowSx = {
+  display: "flex",
+  flexWrap: { xs: "wrap", lg: "nowrap" },
+  alignItems: "stretch",
+  gap: 0,
+  width: "100%",
+};
+
+const legacyFormGroupSx = {
+  display: "flex",
+  alignItems: "stretch",
+  flex: { xs: "1 1 100%", sm: "1 1 auto" },
+  minWidth: 0,
+};
+
+const legacyInputSelectSx = {
+  backgroundColor: LEGACY_INPUTBOX_BG,
+  color: LEGACY_BODY_COLOR,
+  fontSize: "0.875rem",
+  minWidth: 220,
+  height: 32,
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: LEGACY_CONTROL_BOX_BG,
   },
-  "& .MuiInputLabel-root": {
-    fontSize: "0.75rem",
-    maxWidth: "calc(100% - 32px)",
+  "&:hover .MuiOutlinedInput-notchedOutline": {
+    borderColor: LEGACY_CONTROL_BOX_BG,
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: LEGACY_CONTROL_BOX_BG,
   },
   "& .MuiSelect-select": {
-    fontSize: "0.75rem",
+    py: "4px",
+    display: "flex",
+    alignItems: "center",
   },
 };
 
-const menuItemSx = { fontSize: "0.75rem" };
+const legacyInputSelectInlineSx = {
+  ...legacyInputSelectSx,
+  minWidth: { xs: 160, md: 140 },
+  width: "100%",
+};
 
-const primaryButtonSx = {
-  backgroundColor: "#174a10",
-  fontSize: "0.75rem",
-  textTransform: "none",
-  fontWeight: 600,
-  px: 2,
-  py: 0.75,
-  whiteSpace: "nowrap",
-  "&:hover": {
-    backgroundColor: "#0f3209",
+const legacyGetAnswerSheetButtonSx = {
+  ...legacySubmitButtonSx,
+  width: 200,
+  height: 32,
+  flexShrink: 0,
+  alignSelf: "stretch",
+  mt: { xs: 1, lg: 0 },
+};
+
+const compactRadioLabelSx = {
+  mr: 0.6,
+  m: 0,
+  my: 0,
+  height: "auto",
+  minHeight: 0,
+  alignItems: "center",
+  color: LEGACY_BODY_COLOR,
+  "& .MuiFormControlLabel-label": {
+    fontSize: `${0.75 * examAnswerSheetScale}rem`,
+    lineHeight: 1,
+    px: 0.3,
+    py: 0,
+    color: LEGACY_BODY_COLOR,
+  },
+  "& .MuiRadio-root": {
+    p: 0,
+    m: 0,
+    color: LEGACY_GROUP_HEADER_BG,
+    "&.Mui-checked": { color: LEGACY_GROUP_HEADER_BG },
+    "& svg": { fontSize: `${0.875 * examAnswerSheetScale}rem` },
   },
 };
 
-const instructionTextSx = { fontSize: "0.875rem", color: "#666" };
-const alertTextSx = { fontSize: "0.875rem" };
-const sectionTitleSx = { ...adminSessionListTitleSx, mb: 1 };
-const groupHeaderSx = {
-  backgroundColor: "#174a10",
-  color: "white",
-  p: 0.75,
-  mb: 1.5,
-  fontSize: "0.875rem",
-  fontWeight: 600,
+const examQuestionTableSx = {
+  borderCollapse: "collapse",
+  backgroundColor: "#ffffff",
+  "& .MuiTableCell-root": {
+    py: "0 !important",
+    pt: "0 !important",
+    pb: "0 !important",
+    fontSize: `${0.8 * examAnswerSheetScale}rem`,
+    lineHeight: 1.2,
+    border: `1px solid ${LEGACY_TABLE_BORDER}`,
+    verticalAlign: "middle",
+  },
+  "& .MuiTableRow-root": {
+    height: "auto !important",
+    backgroundColor: "transparent",
+  },
+  "& .MuiTableRow-root:hover": {
+    backgroundColor: "transparent",
+  },
 };
-const questionBoxSx = {
-  mb: 1.5,
-  p: 1.5,
-  border: "1px solid #ddd",
-  borderRadius: 1,
-};
-const questionLegendSx = { fontSize: "0.75rem", fontWeight: 600 };
-const questionChoiceSx = {
-  "& .MuiFormControlLabel-label": { fontSize: "0.75rem" },
-};
-
-const normalizeStudentName = (name) =>
-  decodeURIComponent(name || "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-const findStudentByName = (studentList, studentName) => {
-  if (!studentName || !studentList?.length) return null;
-  const normalized = normalizeStudentName(studentName);
-  return (
-    studentList.find(
-      (student) => normalizeStudentName(student.text) === normalized,
-    ) ||
-    studentList.find((student) =>
-      normalizeStudentName(student.text).includes(normalized),
-    )
-  );
-};
-
-const parseStudentValue = (value) => {
-  const parts = String(value || "").split("~");
-  if (parts.length >= 3) {
-    return {
-      classCode: parts[0] || "",
-      studentId: (parts[1] || "").trim(),
-      chapterId: (parts[2] || "").trim(),
-    };
-  }
-  return {
-    classCode: "",
-    studentId: "",
-    chapterId: "",
-  };
-};
-
-const isScoreUpdateEnabled = (response) =>
-  response?.enableScoreUpdate ?? response?.EnableScoreUpdate ?? false;
 
 const OnlineExam = () => {
   const { user, isAuthenticated } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const isScoreUpdateExamFlow =
+    searchParams.get("Source") === "S" && searchParams.get("Action") === "R";
+  const examTypes = isScoreUpdateExamFlow ? ONLINE_EXAM_TYPES : [FINAL_EXAM_TYPE];
   const [loading, setLoading] = useState(true);
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -143,14 +280,9 @@ const OnlineExam = () => {
   const [selectedStudent, setSelectedStudent] = useState("");
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState("");
-  const [examTypes] = useState([
-    "Quiz",
-    "Class Work",
-    "Home Work",
-    "Mock Test",
-    "Final Exam",
-  ]);
-  const [selectedExamType, setSelectedExamType] = useState("Quiz");
+  const [selectedExamType, setSelectedExamType] = useState(
+    isScoreUpdateExamFlow ? ONLINE_EXAM_TYPES[0] : FINAL_EXAM_TYPE,
+  );
 
   // Questions and answers state
   const [questions, setQuestions] = useState([]);
@@ -160,6 +292,7 @@ const OnlineExam = () => {
 
   // Student scores state
   const [studentScores, setStudentScores] = useState([]);
+  const [scoresLoading, setScoresLoading] = useState(false);
 
   // Message state
   const [snackbar, setSnackbar] = useState({
@@ -174,49 +307,62 @@ const OnlineExam = () => {
   const [showAlreadySubmitted, setShowAlreadySubmitted] = useState(false);
   const [showExamCompleted, setShowExamCompleted] = useState(false);
 
-  const applyScoreValidationResult = useCallback(
-    (validationResponse) => {
-      const action = searchParams.get("Action");
+  const studentChangeReadyRef = useRef(false);
 
-      if (!validationResponse?.isSuccess || !isScoreUpdateEnabled(validationResponse)) {
-        setShowQuestions(false);
-        setQuestions([]);
-        setAnswers({});
-        setShowNoQuestions(false);
-        setShowExamCompleted(false);
-        if (action !== "U") {
-          setShowAlreadySubmitted(true);
-        }
-        return false;
-      }
+  useEffect(() => {
+    setSelectedExamType(
+      isScoreUpdateExamFlow ? ONLINE_EXAM_TYPES[0] : FINAL_EXAM_TYPE,
+    );
+  }, [isScoreUpdateExamFlow]);
 
-      setShowAlreadySubmitted(false);
+  const resetQuestionState = () => {
+    setShowQuestions(false);
+    setQuestions([]);
+    setAnswers({});
+    setCanSubmit(false);
+    setShowNoQuestions(false);
+    setShowExamCompleted(false);
+  };
+  const [showFormError, setShowFormError] = useState(false);
+
+  const applyScoreValidationResult = useCallback((validationResponse) => {
+    if (!validationResponse.isSuccess) {
+      setShowQuestions(false);
+      setShowAlreadySubmitted(true);
+      setShowNoQuestions(false);
       setShowExamCompleted(false);
-      setShowForm(true);
-      return true;
-    },
-    [searchParams],
-  );
+      return false;
+    }
+
+    if (!validationResponse.enableScoreUpdate) {
+      setShowQuestions(false);
+      setShowAlreadySubmitted(true);
+      setShowNoQuestions(false);
+      setShowExamCompleted(false);
+      return false;
+    }
+
+    setShowAlreadySubmitted(false);
+    setShowExamCompleted(false);
+    return true;
+  }, []);
 
   const runScoreValidation = useCallback(
     async (studentValue, session) => {
-      const { classCode, studentId } = parseStudentValue(studentValue);
-      const studentID = parseInt(studentId, 10);
-
-      if (!studentId || Number.isNaN(studentID) || !session) {
-        return false;
-      }
+      const studentInfo = studentValue.split("~");
+      const classValue = studentInfo[0];
+      const studentID = parseInt(studentInfo[1], 10);
 
       const validationResponse = await onlineExamService.validateScoreUpdate({
         studentID,
         session,
-        class: classCode,
+        class: classValue,
         examType: selectedExamType,
       });
 
       return applyScoreValidationResult(validationResponse);
     },
-    [applyScoreValidationResult, selectedExamType],
+    [applyScoreValidationResult, selectedExamType]
   );
 
   // Load initial data
@@ -228,6 +374,7 @@ const OnlineExam = () => {
 
       try {
         setLoading(true);
+        studentChangeReadyRef.current = false;
         console.log("OnlineExam: Fetching student list");
 
         // Check URL parameters
@@ -237,16 +384,12 @@ const OnlineExam = () => {
         const chapterID = searchParams.get("ChapterID");
         const receivedScore = searchParams.get("ReceivedScore");
         const totalScore = searchParams.get("TotalScore");
-        const portalUsername = user.username || user.email;
-
-        if (action === "R" && source === "S") {
-          setShowForm(true);
-          setShowAlreadySubmitted(false);
-          setShowExamCompleted(false);
-          setShowNoQuestions(false);
-        }
 
         // Handle success messages from URL parameters
+        if (action === "U") {
+          setShowQuestions(false);
+        }
+
         if (action === "U" && source !== "S" && receivedScore && totalScore) {
           showSnackbar(
             `You have successfully submitted. You have received the score: ${receivedScore} out of ${totalScore}.`,
@@ -262,31 +405,26 @@ const OnlineExam = () => {
 
         // Get student list
         const studentListResponse = await onlineExamService.getStudentList(
-          portalUsername,
+          user.email || user.username
         );
 
-        console.log("OnlineExam: Student list response", studentListResponse);
+        if (studentListResponse.isSuccess && studentListResponse.students) {
+          const list = studentListResponse.students;
+          setStudents(list);
 
-        if (studentListResponse.isSuccess && studentListResponse.studentList) {
-          setStudents(studentListResponse.studentList);
-
-          if (studentListResponse.studentList.length === 0) {
+          if (list.length === 0) {
             showSnackbar("No students found for your account.", "warning");
-          } else {
-            // Pre-select student from URL parameter if provided
-            if (studentName && studentListResponse.studentList.length > 0) {
-              const matchingStudent = findStudentByName(
-                studentListResponse.studentList,
-                studentName,
-              );
-              if (matchingStudent) {
-                setSelectedStudent(matchingStudent.value);
-              } else if (studentListResponse.studentList.length > 0) {
-                setSelectedStudent(studentListResponse.studentList[0].value);
-              }
-            } else if (studentListResponse.studentList.length > 0) {
-              setSelectedStudent(studentListResponse.studentList[0].value);
+          } else if (list.length === 1) {
+            setSelectedStudent(list[0].value);
+          } else if (studentName) {
+            const matchingStudent = list.find((s) => s.text === studentName);
+            if (matchingStudent) {
+              setSelectedStudent(matchingStudent.value);
+            } else {
+              setSelectedStudent("0");
             }
+          } else {
+            setSelectedStudent("0");
           }
 
           setShowForm(true);
@@ -321,6 +459,7 @@ const OnlineExam = () => {
         showSnackbar("Error loading data. Please try again.", "error");
       } finally {
         setLoading(false);
+        studentChangeReadyRef.current = true;
       }
     };
 
@@ -371,36 +510,15 @@ const OnlineExam = () => {
     loadSessions();
   }, [selectedStudent]);
 
-  const loadStudentScores = useCallback(async () => {
-    if (!user) return;
-    try {
-      const scoresResponse = await onlineExamService.getStudentScores(
-        user.username || user.email,
-      );
-
-      if (scoresResponse.isSuccess && scoresResponse.scores) {
-        setStudentScores(scoresResponse.scores);
-      }
-    } catch (error) {
-      console.error("Error loading student scores:", error);
-    }
-  }, [user]);
-
-  // Legacy OnlineExam.aspx.cs EnbleScoreUpdate on student/session/exam type change
+  // EnbleScoreUpdate on student/session change (multi-student — FinalExam.aspx.cs)
   useEffect(() => {
-    if (loading || !isAuthenticated || !selectedStudent || !selectedSession) {
-      return;
-    }
+    if (loading) return;
+    if (students.length <= 1) return;
+    if (!selectedStudent || selectedStudent === "0" || !selectedSession) return;
 
     const validateAccess = async () => {
       try {
-        const canUpdate = await runScoreValidation(
-          selectedStudent,
-          selectedSession,
-        );
-        if (!canUpdate) {
-          await loadStudentScores();
-        }
+        await runScoreValidation(selectedStudent, selectedSession);
       } catch (error) {
         console.error("Error validating exam access:", error);
       }
@@ -409,28 +527,73 @@ const OnlineExam = () => {
     validateAccess();
   }, [
     loading,
-    isAuthenticated,
+    students.length,
     selectedStudent,
     selectedSession,
     selectedExamType,
     runScoreValidation,
-    loadStudentScores,
   ]);
 
-  const resetQuestionState = () => {
-    setShowQuestions(false);
-    setQuestions([]);
-    setAnswers({});
-    setCanSubmit(false);
-    setShowNoQuestions(false);
-    setShowExamCompleted(false);
+  // Load student scores
+  const loadStudentScores = async () => {
+    try {
+      setScoresLoading(true);
+      const scoresResponse = await onlineExamService.getStudentScores(
+        user.email || user.username
+      );
+
+      if (scoresResponse.isSuccess && scoresResponse.scores) {
+        setStudentScores(scoresResponse.scores);
+      } else {
+        setStudentScores([]);
+      }
+    } catch (error) {
+      console.error("Error loading student scores:", error);
+      setStudentScores([]);
+    } finally {
+      setScoresLoading(false);
+    }
   };
 
-  // Handle student selection change (ddlStudentList_SelectedIndexChanged)
+  // Legacy FinalExam.aspx.cs ddlStudentList_SelectedIndexChanged — chapter != 6 → StudentScore
   const handleStudentChange = (event) => {
-    setSelectedStudent(event.target.value);
+    if (!studentChangeReadyRef.current) {
+      return;
+    }
+
+    const value = event.target.value;
+    if (value === selectedStudent) {
+      return;
+    }
+
+    const { chapterId } = parseStudentDropdownValue(value);
+
+    if (shouldRedirectToManualScoreUpdate(chapterId)) {
+      const student = students.find(
+        (item) => getStudentListItemValue(item) === value,
+      );
+      const studentText = getStudentListItemText(student);
+      const params = new URLSearchParams();
+      if (studentText) {
+        params.set("Student", studentText);
+      }
+      const query = params.toString();
+      navigate(
+        `/pstudyware/student/update-score${query ? `?${query}` : ""}`,
+        { replace: true },
+      );
+      return;
+    }
+
+    setSelectedStudent(value);
     resetQuestionState();
-    setShowAlreadySubmitted(false);
+    setShowFormError(false);
+
+    if (!value || value === "0") {
+      setShowAlreadySubmitted(false);
+      setShowExamCompleted(false);
+      setShowForm(true);
+    }
   };
 
   const handleSessionChange = (event) => {
@@ -445,28 +608,35 @@ const OnlineExam = () => {
     setShowAlreadySubmitted(false);
   };
 
-  // Handle get answer sheet button click
+  // Handle get answer sheet button click (btnGenerateQuestion_Click)
   const handleGetAnswerSheet = async () => {
-    if (!selectedStudent || !selectedSession || !selectedExamType) {
-      showSnackbar("Please select all required fields.", "warning");
+    if (!selectedStudent || selectedStudent === "0") {
+      setShowFormError(true);
+      return;
+    }
+    if (!selectedSession) {
+      showSnackbar("Please select a session.", "warning");
       return;
     }
 
+    setShowFormError(false);
+
     try {
       setQuestionsLoading(true);
-      const { classCode } = parseStudentValue(selectedStudent);
 
       const canProceed = await runScoreValidation(
         selectedStudent,
-        selectedSession,
+        selectedSession
       );
       if (!canProceed) {
-        await loadStudentScores();
         return;
       }
 
-      const questionsResponse = await onlineExamService.getOnlineExamQuestions({
-        class: classCode,
+      const studentInfo = selectedStudent.split("~");
+      const classValue = studentInfo[0];
+
+      const questionsResponse = await onlineExamService.getExamQuestions({
+        class: classValue,
         examType: selectedExamType,
         session: selectedSession,
       });
@@ -482,7 +652,6 @@ const OnlineExam = () => {
         setShowExamCompleted(false);
         setCanSubmit(true);
 
-        // Initialize answers object
         const initialAnswers = {};
         questionsResponse.questions.forEach((q) => {
           initialAnswers[q.question] = "";
@@ -510,11 +679,28 @@ const OnlineExam = () => {
     }));
   };
 
-  // Handle submit
-  const handleSubmit = () => {
+  const handleSubmitClick = () => {
+    if (!selectedStudent || selectedStudent === "0") {
+      showSnackbar("Please select a student.", "warning");
+      return;
+    }
+
+    const answeredCount = questions.filter((q) => answers[q.question]).length;
+    if (answeredCount === 0) {
+      showSnackbar("Please select at least one answer before submitting.", "warning");
+      return;
+    }
+
     setSubmitConfirmOpen(true);
   };
 
+  const handleSubmitConfirmClose = () => {
+    if (!submitting) {
+      setSubmitConfirmOpen(false);
+    }
+  };
+
+  // Handle submit (btnSubmit_Click — FinalExam.aspx.cs)
   const handleSubmitConfirm = async () => {
     setSubmitConfirmOpen(false);
 
@@ -524,40 +710,45 @@ const OnlineExam = () => {
       const classValue = studentInfo[0];
       const studentID = studentInfo[1];
 
-      // Prepare answers array
-      const answersArray = questions.map((q) => ({
-        studentID: parseInt(studentID),
-        answerKey: answers[q.question] || "",
-        question: q.question,
-        class: classValue,
-        currentSemester: "", // Will be set by backend
-        examType: selectedExamType,
-        session: selectedSession,
-      }));
+      const answersArray = questions
+        .filter((q) => answers[q.question])
+        .map((q) => ({
+          studentID: parseInt(studentID, 10),
+          answerKey: answers[q.question],
+          question: Number(q.question),
+          class: classValue,
+          semester: "",
+          points: 0,
+          createdDate: new Date().toISOString(),
+          examType: selectedExamType,
+          session: selectedSession,
+        }));
 
-      const submitData = {
-        studentID: studentID,
+      const submitResponse = await onlineExamService.submitExam({
+        studentID,
         class: classValue,
         examType: selectedExamType,
         session: selectedSession,
         answers: answersArray,
         scoreID: "0",
-      };
-
-      const submitResponse = await onlineExamService.submitOnlineExam(
-        submitData
-      );
+      });
 
       if (submitResponse.isSuccess) {
-        showSnackbar(
-          `You have successfully submitted. You received ${submitResponse.receivedScore} out of ${submitResponse.totalScore}.`,
-          "success"
-        );
+        const receivedScore = submitResponse.receivedScore ?? "0";
+        const totalScore = submitResponse.totalScore ?? "0";
+
         setShowQuestions(false);
         setCanSubmit(false);
-        setShowExamCompleted(true);
-        // Reload scores
+        setShowForm(false);
+        setShowExamCompleted(false);
+        setShowAlreadySubmitted(false);
+
         await loadStudentScores();
+
+        navigate(
+          `/pstudyware/student/online-exam?Action=U&ReceivedScore=${encodeURIComponent(receivedScore)}&TotalScore=${encodeURIComponent(totalScore)}`,
+          { replace: true }
+        );
       } else {
         showSnackbar(
           submitResponse.errorMessage || "Error submitting exam.",
@@ -566,7 +757,14 @@ const OnlineExam = () => {
       }
     } catch (error) {
       console.error("Error submitting exam:", error);
-      showSnackbar("Error submitting exam. Please try again.", "error");
+      const apiMessage =
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.response?.data?.error;
+      showSnackbar(
+        apiMessage || "Error submitting exam. Please try again.",
+        "error"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -602,168 +800,252 @@ const OnlineExam = () => {
 
   const [group1, group2, group3] = splitQuestionsIntoGroups();
 
+  const renderQuestionRow = (question) => (
+    <TableRow key={question.question} sx={{ height: "auto" }}>
+      <TableCell
+        sx={{
+          width: "1%",
+          whiteSpace: "nowrap",
+          fontWeight: 400,
+          px: 0.75,
+          py: 0,
+          textAlign: "center",
+          backgroundColor: LEGACY_INPUT_CAPTION_BG,
+          color: "whitesmoke",
+          fontFamily: "Arial, Helvetica, sans-serif",
+        }}
+      >
+        Question # {question.question}
+      </TableCell>
+      <TableCell
+        sx={{
+          py: "0 !important",
+          pl: 6,
+          pr: 3,
+          backgroundColor: LEGACY_INPUTBOX_BG,
+          color: LEGACY_BODY_COLOR,
+        }}
+      >
+        <RadioGroup
+          row
+          value={answers[question.question] || ""}
+          onChange={(e) =>
+            handleAnswerChange(question.question, e.target.value)
+          }
+          sx={{
+            flexWrap: "nowrap",
+            gap: 0,
+            m: 0,
+            p: 0,
+            minHeight: 0,
+            lineHeight: 1,
+          }}
+        >
+          {["A", "B", "C", "D"].map((option) => (
+            <FormControlLabel
+              key={option}
+              value={option}
+              control={<Radio />}
+              label={option}
+              sx={compactRadioLabelSx}
+            />
+          ))}
+        </RadioGroup>
+      </TableCell>
+    </TableRow>
+  );
+
+  const renderQuestionGroup = (items, title) => {
+    if (items.length === 0) return null;
+    return (
+      <Grid size={{ xs: 12, md: questions.length > 10 ? 4 : 12 }}>
+        <Paper elevation={0} sx={answerSheetGroupPaperSx}>
+          <Box sx={answerSheetGroupHeaderSx}>{title}</Box>
+          <Table size="small" sx={examQuestionTableSx}>
+            <TableBody>{items.map(renderQuestionRow)}</TableBody>
+          </Table>
+        </Paper>
+      </Grid>
+    );
+  };
+
+  // Auto-load answer sheet when only one student (legacy FinalExam.aspx behavior)
+  useEffect(() => {
+    if (
+      !loading &&
+      students.length === 1 &&
+      selectedStudent &&
+      selectedSession &&
+      !showQuestions &&
+      !showAlreadySubmitted &&
+      !questionsLoading
+    ) {
+      handleGetAnswerSheet();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, students.length, selectedStudent, selectedSession, selectedExamType]);
+
+  if (loading) {
+    return (
+      <Box className="student-dashboard online-exam-page">
+        <StudentHeader user={user} />
+        <StudentRoleHeaderSpacer />
+        <Container maxWidth="xl">
+          <Box
+            display="flex"
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            minHeight="400px"
+            gap={2}
+          >
+            <CircularProgress size={60} />
+            <Typography variant="h6" color="textSecondary">
+              Loading Final Exam...
+            </Typography>
+          </Box>
+        </Container>
+      </Box>
+    );
+  }
+
   return (
-    <Box className="student-dashboard">
+    <Box className="student-dashboard online-exam-page">
       <StudentHeader user={user} />
       <StudentRoleHeaderSpacer />
-
-      <Container maxWidth="xl" sx={{ mb: 4 }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Card sx={portalCardSx}>
-              <CardContent sx={{ p: 0 }}>
-                <Box sx={{ p: 2, pb: 1 }}>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ ...adminSessionListTitleSx, mb: 0.5 }}
-                  >
-                    Update Score
-                  </Typography>
-                </Box>
-
-                <Box sx={{ px: 2, pb: 2 }}>
-        {/* Instructions */}
+      <Container maxWidth="xl" sx={{ mb: 4, mt: 0 }}>
+        {/* Instructions — legacy green panel above Answer Sheet */}
         {showForm && (
-          <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle1" sx={sectionTitleSx}>
-                Instructions
+          <Paper
+            className="online-exam-instructions"
+            elevation={0}
+            sx={{ ...answerSheetPanelSx, mb: 2 }}
+          >
+            <Box sx={answerSheetTitleSx}>On Line Exam</Box>
+            <Box sx={legacyInstructionBodySx}>
+              <Typography component="p" sx={legacyInstructionStepSx}>
+                <strong>Step 1:</strong> Download the questions (Quiz, Classwork,
+                Homework, Final exam) and answer each question carefully.{" "}
+                <Link
+                  href="/pstudyware/student/class-material"
+                  sx={legacyInstructionLinkSx}
+                >
+                  Click here to download the Questions (Quiz, Classwork, Homework,
+                  Final exam).
+                </Link>
               </Typography>
-              <Box sx={{ "& p": { mb: 1 } }}>
-                <Typography variant="body2" paragraph sx={instructionTextSx}>
-                  <strong>Step 1:</strong> Download the questions (Quiz,
-                  Classwork, Homework, Final exam) and answer each question
-                  carefully.{" "}
-                  <Link
-                    href="/pstudyware/student/class-material"
-                    sx={{ color: "#174a10", fontWeight: 700 }}
-                  >
-                    Click here to download the Questions (Quiz, Classwork,
-                    Homework, Final exam).
-                  </Link>
-                </Typography>
-                <Typography variant="body2" paragraph sx={instructionTextSx}>
-                  <strong>Step 2:</strong> Select the student from the list. (If
-                  you have multiple kids enrolled, pay attention to the Student
-                  Name, Session and Exam Type from the dropdown menu. You will
-                  only be able to submit your answers once and they cannot be
-                  changed.)
-                </Typography>
-                <Typography variant="body2" paragraph sx={instructionTextSx}>
-                  <strong>Step 3:</strong> Select the Correct Answer. If you did
-                  not know the answer, skip it so you don't waste time.
-                </Typography>
-                <Typography variant="body2" paragraph sx={instructionTextSx}>
-                  <strong>Step 4:</strong> Click the submit button after
-                  updating all answers. Do not forget this step.
-                </Typography>
-                <Typography variant="body2" paragraph sx={instructionTextSx}>
-                  <strong>Step 5:</strong> The answer sheet update option will
-                  be disabled after you submitted. You can submit only one time.
-                  If you have any questions, please contact us via Message
-                  Center.
-                </Typography>
-              </Box>
+              <Typography component="p" sx={legacyInstructionStepSx}>
+                <strong>Step 2:</strong> Select the student from the list. (If you
+                have multiple kids enrolled, pay attention to the Student Name,
+                Session and Exam Type from the dropdown menu. You will only be able
+                to submit your answers once and they cannot be changed.)
+              </Typography>
+              <Typography component="p" sx={legacyInstructionStepSx}>
+                <strong>Step 3:</strong> Select the Correct Answer. If you did not
+                know the answer, skip it so you don&apos;t waste time.
+              </Typography>
+              <Typography component="p" sx={legacyInstructionStepSx}>
+                <strong>Step 4:</strong> Click the submit button after updating all
+                answers. Do not forget this step.
+              </Typography>
+              <Typography component="p" sx={{ ...legacyInstructionStepSx, mb: 1.5 }}>
+                <strong>Step 5:</strong> The answer sheet update option will be
+                disabled after you submitted. You can submit only one time. If you
+                have any questions, please contact us via Message Center.
+              </Typography>
 
-              <Divider sx={{ my: 2 }} />
-
-              {/* Student Selection Form */}
-              {loading ? (
-                <Alert severity="info" sx={{ mb: 2, width: "100%", fontSize: "0.875rem" }}>
-                  Loading students...
+              {showFormError && (
+                <Alert severity="error" sx={{ mb: 1.5, py: 0.5 }}>
+                  Please Select Student.
                 </Alert>
-              ) : students.length === 0 ? (
-                <Alert severity="info" sx={{ mb: 2, width: "100%", fontSize: "0.875rem" }}>
-                  No students found for your account. Please contact support if
-                  you believe this is an error.
+              )}
+
+              {students.length === 0 ? (
+                <Alert severity="info" sx={{ backgroundColor: "#edfce9" }}>
+                  No students found for your account. Please contact support if you
+                  believe this is an error.
                 </Alert>
               ) : (
-                <Box
-                  sx={{
-                    backgroundColor: "#f4fbf5",
-                    border: "1px solid #dbeedc",
-                    borderRadius: 2,
-                    p: { xs: 2, md: 2.5 },
-                  }}
-                >
-                <Grid container spacing={1.5} alignItems="center">
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <FormControl fullWidth size="small" sx={fieldSx}>
-                      <InputLabel>Student Name</InputLabel>
-                      <Select
-                        value={selectedStudent}
-                        onChange={handleStudentChange}
-                        label="Student Name"
-                        disabled={loading}
-                      >
-                        {students.map((student, index) => (
-                          <MenuItem key={index} value={student.value} sx={menuItemSx}>
-                            {student.text}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
+                <Box sx={legacyFormRowSx}>
+                  <Box sx={legacyFormGroupSx}>
+                    <Box sx={legacyFormCaptionCellSx}>Student Name</Box>
+                    <Box sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}>
+                      <FormControl size="small" fullWidth>
+                        <Select
+                          value={selectedStudent}
+                          onChange={handleStudentChange}
+                          displayEmpty
+                          sx={legacyInputSelectInlineSx}
+                        >
+                          {students.length > 1 && (
+                            <MenuItem value="0">Select Student</MenuItem>
+                          )}
+                          {students.map((student, index) => (
+                            <MenuItem key={index} value={student.value}>
+                              {student.text}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  </Box>
 
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <FormControl fullWidth size="small" sx={fieldSx}>
-                      <InputLabel>Session</InputLabel>
-                      <Select
-                        value={selectedSession}
-                        onChange={handleSessionChange}
-                        label="Session"
-                        disabled={loading}
-                      >
-                        {sessions.map((session, index) => (
-                          <MenuItem key={index} value={session.session} sx={menuItemSx}>
-                            {session.session}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
+                  <Box sx={legacyFormGroupSx}>
+                    <Box sx={legacyFormCaptionCellSx}>Session</Box>
+                    <Box sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}>
+                      <FormControl size="small" fullWidth>
+                        <Select
+                          value={selectedSession}
+                          onChange={handleSessionChange}
+                          sx={legacyInputSelectInlineSx}
+                        >
+                          {sessions.map((session, index) => (
+                            <MenuItem key={index} value={session.session}>
+                              {session.session}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  </Box>
 
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <FormControl fullWidth size="small" sx={fieldSx}>
-                      <InputLabel>Exam Type</InputLabel>
-                      <Select
-                        value={selectedExamType}
-                        onChange={handleExamTypeChange}
-                        label="Exam Type"
-                        disabled={loading}
-                      >
-                        {examTypes.map((type, index) => (
-                          <MenuItem key={index} value={type} sx={menuItemSx}>
-                            {type}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
+                  <Box sx={legacyFormGroupSx}>
+                    <Box sx={legacyFormCaptionCellSx}>Exam Type</Box>
+                    <Box sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}>
+                      <FormControl size="small" fullWidth>
+                        <Select
+                          value={selectedExamType}
+                          onChange={handleExamTypeChange}
+                          sx={legacyInputSelectInlineSx}
+                        >
+                          {examTypes.map((type) => (
+                            <MenuItem key={type} value={type}>
+                              {type}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  </Box>
 
-                  <Grid size={{ xs: 12, md: 2 }}>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={handleGetAnswerSheet}
-                      disabled={loading || questionsLoading || showAlreadySubmitted}
-                      sx={{
-                        ...primaryButtonSx,
-                        width: "100%",
-                      }}
-                    >
-                      {questionsLoading ? "Loading..." : "Get Answer Sheet"}
-                    </Button>
-                  </Grid>
-                </Grid>
+                  <Button
+                    variant="contained"
+                    onClick={handleGetAnswerSheet}
+                    disabled={questionsLoading}
+                    sx={legacyGetAnswerSheetButtonSx}
+                  >
+                    {questionsLoading ? "Loading..." : "Get Answer Sheet"}
+                  </Button>
                 </Box>
               )}
-          </Box>
+            </Box>
+          </Paper>
         )}
 
         {/* No Questions Available Message */}
         {showNoQuestions && (
-          <Alert severity="warning" sx={{ mb: 2 }}>
-            <Typography sx={alertTextSx}>
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            <Typography variant="body1">
               <strong>
                 No answer sheet available for the selected options.
               </strong>
@@ -773,8 +1055,8 @@ const OnlineExam = () => {
 
         {/* Already Submitted Message */}
         {showAlreadySubmitted && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            <Typography sx={alertTextSx}>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            <Typography variant="body1">
               <strong>
                 You have already submitted. You can't submit more than one time.
                 Here is your score. If you have a question, please contact us
@@ -786,8 +1068,8 @@ const OnlineExam = () => {
 
         {/* Exam Completed Message */}
         {showExamCompleted && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            <Typography sx={alertTextSx}>
+          <Alert severity="success" sx={{ mb: 3 }}>
+            <Typography variant="body1">
               <strong>
                 You have already taken the Exam. You can't take the Exam more
                 than one time. Here is your Exam Score. If you have a question,
@@ -799,181 +1081,27 @@ const OnlineExam = () => {
 
         {/* Questions Display */}
         {showQuestions && questions.length > 0 && (
-          <Box sx={{ mb: 1, pt: 2, borderTop: "1px solid #e0e0e0" }}>
-              <Typography variant="subtitle1" sx={sectionTitleSx}>
+          <Card
+            className="online-exam-answer-sheet"
+            sx={{ ...adminSessionListPanelCardSx, mb: 2 }}
+          >
+            <CardContent sx={adminSessionListPanelContentSx}>
+              <Typography
+                variant="subtitle1"
+                sx={{ ...adminSessionListTitleSx, mb: 1.5 }}
+              >
                 Answer Sheet
               </Typography>
 
-              <Grid container spacing={2}>
-                {/* Group 1 */}
-                {group1.length > 0 && (
-                  <Grid size={{ xs: 12, md: questions.length > 10 ? 4 : 12 }}>
-                    <Paper elevation={1} sx={{ p: 1.5 }}>
-                      <Typography variant="subtitle2" sx={groupHeaderSx}>
-                        Group 1
-                      </Typography>
-                      {group1.map((question) => (
-                        <Box key={question.question} sx={questionBoxSx}>
-                          <FormControl component="fieldset">
-                            <FormLabel component="legend" sx={questionLegendSx}>
-                              Question # {question.question}
-                            </FormLabel>
-                            <RadioGroup
-                              row
-                              value={answers[question.question] || ""}
-                              onChange={(e) =>
-                                handleAnswerChange(
-                                  question.question,
-                                  e.target.value
-                                )
-                              }
-                            >
-                              <FormControlLabel
-                                value="A"
-                                control={<Radio size="small" />}
-                                label="A"
-                                sx={questionChoiceSx}
-                              />
-                              <FormControlLabel
-                                value="B"
-                                control={<Radio size="small" />}
-                                label="B"
-                                sx={questionChoiceSx}
-                              />
-                              <FormControlLabel
-                                value="C"
-                                control={<Radio size="small" />}
-                                label="C"
-                                sx={questionChoiceSx}
-                              />
-                              <FormControlLabel
-                                value="D"
-                                control={<Radio size="small" />}
-                                label="D"
-                                sx={questionChoiceSx}
-                              />
-                            </RadioGroup>
-                          </FormControl>
-                        </Box>
-                      ))}
-                    </Paper>
-                  </Grid>
-                )}
-
-                {/* Group 2 */}
-                {group2.length > 0 && (
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <Paper elevation={1} sx={{ p: 1.5 }}>
-                      <Typography variant="subtitle2" sx={groupHeaderSx}>
-                        Group 2
-                      </Typography>
-                      {group2.map((question) => (
-                        <Box key={question.question} sx={questionBoxSx}>
-                          <FormControl component="fieldset">
-                            <FormLabel component="legend" sx={questionLegendSx}>
-                              Question # {question.question}
-                            </FormLabel>
-                            <RadioGroup
-                              row
-                              value={answers[question.question] || ""}
-                              onChange={(e) =>
-                                handleAnswerChange(
-                                  question.question,
-                                  e.target.value
-                                )
-                              }
-                            >
-                              <FormControlLabel
-                                value="A"
-                                control={<Radio size="small" />}
-                                label="A"
-                                sx={questionChoiceSx}
-                              />
-                              <FormControlLabel
-                                value="B"
-                                control={<Radio size="small" />}
-                                label="B"
-                                sx={questionChoiceSx}
-                              />
-                              <FormControlLabel
-                                value="C"
-                                control={<Radio size="small" />}
-                                label="C"
-                                sx={questionChoiceSx}
-                              />
-                              <FormControlLabel
-                                value="D"
-                                control={<Radio size="small" />}
-                                label="D"
-                                sx={questionChoiceSx}
-                              />
-                            </RadioGroup>
-                          </FormControl>
-                        </Box>
-                      ))}
-                    </Paper>
-                  </Grid>
-                )}
-
-                {/* Group 3 */}
-                {group3.length > 0 && (
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <Paper elevation={1} sx={{ p: 1.5 }}>
-                      <Typography variant="subtitle2" sx={groupHeaderSx}>
-                        Group 3
-                      </Typography>
-                      {group3.map((question) => (
-                        <Box key={question.question} sx={questionBoxSx}>
-                          <FormControl component="fieldset">
-                            <FormLabel component="legend" sx={questionLegendSx}>
-                              Question # {question.question}
-                            </FormLabel>
-                            <RadioGroup
-                              row
-                              value={answers[question.question] || ""}
-                              onChange={(e) =>
-                                handleAnswerChange(
-                                  question.question,
-                                  e.target.value
-                                )
-                              }
-                            >
-                              <FormControlLabel
-                                value="A"
-                                control={<Radio size="small" />}
-                                label="A"
-                                sx={questionChoiceSx}
-                              />
-                              <FormControlLabel
-                                value="B"
-                                control={<Radio size="small" />}
-                                label="B"
-                                sx={questionChoiceSx}
-                              />
-                              <FormControlLabel
-                                value="C"
-                                control={<Radio size="small" />}
-                                label="C"
-                                sx={questionChoiceSx}
-                              />
-                              <FormControlLabel
-                                value="D"
-                                control={<Radio size="small" />}
-                                label="D"
-                                sx={questionChoiceSx}
-                              />
-                            </RadioGroup>
-                          </FormControl>
-                        </Box>
-                      ))}
-                    </Paper>
-                  </Grid>
-                )}
+              <Grid container spacing={1.5}>
+                {renderQuestionGroup(group1, "Group 1")}
+                {renderQuestionGroup(group2, "Group 2")}
+                {renderQuestionGroup(group3, "Group 3")}
               </Grid>
 
               {/* Submit Button */}
               {canSubmit && (
-                <Box sx={{ mt: 3, textAlign: "center" }}>
+                <Box sx={{ mt: 2, textAlign: "center" }}>
                   {submitting && (
                     <Alert severity="error" sx={{ mb: 2 }}>
                       Your answers are being processed. Please wait and do not
@@ -982,32 +1110,33 @@ const OnlineExam = () => {
                   )}
                   <Button
                     variant="contained"
-                    size="small"
-                    onClick={handleSubmit}
+                    onClick={handleSubmitClick}
                     disabled={submitting}
-                    sx={{
-                      ...primaryButtonSx,
-                      minWidth: "120px",
-                    }}
+                    sx={legacySubmitButtonSx}
                   >
                     {submitting ? "Submitting..." : "Submit"}
                   </Button>
                 </Box>
               )}
-          </Box>
+            </CardContent>
+          </Card>
         )}
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
 
+        {/* Student Scores Table */}
+        <Grid container spacing={3} sx={{ mt: 1 }}>
           <Grid item xs={12}>
-            <Card sx={portalCardSx}>
-              <CardContent sx={{ p: 0 }}>
-                <FinalExamScoresGrid
+            <Card sx={{ ...adminSessionListPanelCardSx, mb: 2 }}>
+              <CardContent
+                sx={{
+                  ...adminSessionListPanelContentSx,
+                  pt: 1,
+                  "&:last-child": { pb: 1.5 },
+                }}
+              >
+                <OnlineExamScoresGrid
                   scores={studentScores}
+                  loading={scoresLoading}
                   embedded
-                  loading={loading}
                 />
               </CardContent>
             </Card>
@@ -1017,11 +1146,7 @@ const OnlineExam = () => {
 
       <AppConfirmDialog
         open={submitConfirmOpen}
-        onClose={() => {
-          if (!submitting) {
-            setSubmitConfirmOpen(false);
-          }
-        }}
+        onClose={handleSubmitConfirmClose}
         onConfirm={handleSubmitConfirm}
         title="Confirm Submit"
         message="Are you sure you want to submit your answers?"
