@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import {
   Container,
   Box,
-  Alert,
-  Snackbar,
   Typography,
   CircularProgress,
   Grid,
   Card,
   CardContent,
 } from "@mui/material";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
+import AppSnackbar from "../Common/AppSnackbar";
 import { useAuth } from "../../../contexts/AuthContext";
 import instructorService from "../../../services/instructorService";
 import studentWaitingListService from "../../../services/studentWaitingListService";
@@ -35,6 +35,19 @@ const parseChapterFromInstructorInfo = (info) => {
   return (parts[7] || "").trim();
 };
 
+const normalizeRowMemberStatus = (status, instructorInfo = "") => {
+  const value = String(status ?? "").trim().toLowerCase();
+  if (value === "1" || value === "active") return "1";
+  if (value === "0" || value === "inactive" || value === "deactive") return "0";
+
+  if (instructorInfo) {
+    const approved = (instructorInfo.split("~#")[8] || "").trim();
+    return approved === "0" ? "0" : "1";
+  }
+
+  return "1";
+};
+
 const normalizeInstructorRow = (row) => {
   if (!row || typeof row !== "object") return row;
 
@@ -56,7 +69,10 @@ const normalizeInstructorRow = (row) => {
     class: row["class"] ?? row.Class ?? "",
     section: row.section ?? row.Section ?? "",
     userName: row.userName ?? row.UserName ?? "",
-    memberStatus: row.memberStatus ?? row.MemberStatus ?? "",
+    memberStatus: normalizeRowMemberStatus(
+      row.memberStatus ?? row.MemberStatus,
+      instructorInfo,
+    ),
     instructorInfo,
     lastLogin: row.lastLogin ?? row.LastLogin,
   };
@@ -88,12 +104,7 @@ const InstructorManagement = () => {
     canExportData: false,
   });
 
-  // Global message state
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "info",
-  });
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("info");
 
   // Load chapter dropdown data
   useEffect(() => {
@@ -155,14 +166,14 @@ const InstructorManagement = () => {
             (response.instructorList || []).map(normalizeInstructorRow),
           );
         } else {
-          showMessage(
+          showSnackbar(
             response.errorMessage || "Failed to load instructor list",
             "error"
           );
         }
       } catch (err) {
         console.error("Error fetching instructor data:", err);
-        showMessage(
+        showSnackbar(
           "Error loading instructor data. Please refresh the page.",
           "error"
         );
@@ -174,22 +185,14 @@ const InstructorManagement = () => {
     loadInstructors();
   }, [isAuthenticated, user]);
 
-  // Helper function to show messages
-  const showMessage = (message, severity = "info") => {
-    setSnackbar({
-      open: true,
-      message,
-      severity,
-    });
-  };
-
-  // Helper function to close snackbar
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
+  useEffect(() => {
+    if (!loading && (!isAuthenticated || !user)) {
+      showSnackbar(
+        "Access denied. Please log in as an administrator.",
+        "error",
+      );
     }
-    setSnackbar({ ...snackbar, open: false });
-  };
+  }, [loading, isAuthenticated, user, showSnackbar]);
 
   // Handle add instructor
   const handleAdd = () => {
@@ -209,34 +212,46 @@ const InstructorManagement = () => {
   const handleDelete = async (instructorID) => {
     try {
       console.log("InstructorManagement: Deleting instructor", instructorID);
-      showMessage("Deleting instructor...", "info");
+      showSnackbar("Deleting instructor...", "info");
 
       const response = await instructorService.deleteInstructor(instructorID);
 
       if (response.isSuccess) {
-        showMessage(
+        showSnackbar(
           response.message || "Instructor deleted successfully!",
           "success"
         );
         // Refresh instructor list
         await refreshInstructors();
       } else {
-        showMessage(
+        showSnackbar(
           response.errorMessage || "Failed to delete instructor.",
           "error"
         );
       }
     } catch (err) {
       console.error("Error deleting instructor:", err);
-      showMessage("Error deleting instructor. Please try again.", "error");
+      showSnackbar("Error deleting instructor. Please try again.", "error");
     }
   };
 
   // Handle form submit
   const handleFormSubmit = async (formData) => {
     try {
+      const instructorID = Number(
+        formData?.instructorID ?? formData?.InstructorID ?? 0,
+      );
+
+      if (isEdit && instructorID <= 0) {
+        showSnackbar(
+          "Cannot update instructor: missing instructor ID. Refresh the page and try again.",
+          "error",
+        );
+        throw new Error("Missing instructor ID");
+      }
+
       console.log("InstructorManagement: Submitting instructor", formData);
-      showMessage(
+      showSnackbar(
         isEdit ? "Updating instructor..." : "Adding instructor...",
         "info"
       );
@@ -244,7 +259,7 @@ const InstructorManagement = () => {
       const response = await instructorService.addOrUpdateInstructor(formData);
 
       if (response.isSuccess) {
-        showMessage(
+        showSnackbar(
           response.message ||
             (isEdit
               ? "Instructor updated successfully!"
@@ -255,7 +270,7 @@ const InstructorManagement = () => {
         await refreshInstructors();
         setFormOpen(false);
       } else {
-        showMessage(
+        showSnackbar(
           response.errorMessage || "Failed to save instructor.",
           "error"
         );
@@ -271,16 +286,16 @@ const InstructorManagement = () => {
   const handleExportToExcel = async () => {
     try {
       console.log("InstructorManagement: Exporting to Excel");
-      showMessage("Generating Excel file...", "info");
+      showSnackbar("Generating Excel file...", "info");
 
       await instructorService.exportInstructorListToExcel(
         user.email || user.username
       );
 
-      showMessage("Excel file downloaded successfully!", "success");
+      showSnackbar("Excel file downloaded successfully!", "success");
     } catch (err) {
       console.error("Error exporting to Excel:", err);
-      showMessage("Error exporting to Excel. Please try again.", "error");
+      showSnackbar("Error exporting to Excel. Please try again.", "error");
     }
   };
 
@@ -296,14 +311,14 @@ const InstructorManagement = () => {
           (response.instructorList || []).map(normalizeInstructorRow),
         );
       } else {
-        showMessage(
+        showSnackbar(
           response.errorMessage || "Failed to refresh instructor list",
           "error"
         );
       }
     } catch (err) {
       console.error("Error refreshing instructor list:", err);
-      showMessage("Error refreshing instructor list.", "error");
+      showSnackbar("Error refreshing instructor list.", "error");
     }
   };
 
@@ -328,22 +343,8 @@ const InstructorManagement = () => {
     );
   }
 
-  // Check authentication
   if (!isAuthenticated || !user) {
-    return (
-      <Box
-        sx={{
-          ...instructorManagementPageSx,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Alert severity="error">
-          Access denied. Please log in as an administrator.
-        </Alert>
-      </Box>
-    );
+    return <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />;
   }
 
   return (
@@ -388,22 +389,7 @@ const InstructorManagement = () => {
         isEdit={isEdit}
       />
 
-      {/* Global Snackbar for Success/Error Messages */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-          variant="filled"
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />
     </Box>
   );
 };

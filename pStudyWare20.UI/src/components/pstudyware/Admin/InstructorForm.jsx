@@ -6,7 +6,6 @@ import {
   FormControl,
   InputLabel,
   MenuItem,
-  Alert,
   Box,
   Typography,
 } from "@mui/material";
@@ -15,6 +14,8 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
 import PortalDialog from "../Common/PortalDialog";
 import PortalModalSelect from "../Common/PortalModalSelect";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
+import AppSnackbar from "../Common/AppSnackbar";
 
 const CLASS_OPTIONS = [
   { value: "JB", label: "Junior Beginner" },
@@ -217,7 +218,7 @@ const InstructorForm = ({
   });
 
   const [errors, setErrors] = useState({});
-  const [submitError, setSubmitError] = useState("");
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("error");
 
   // Class options (alias for dropdown rendering)
   const classOptions = CLASS_OPTIONS;
@@ -309,7 +310,6 @@ const InstructorForm = ({
       });
     }
     setErrors({});
-    setSubmitError("");
   }, [instructor, isEdit, open, chapters]);
 
   // Handle input change
@@ -387,8 +387,9 @@ const InstructorForm = ({
       });
       handleClose();
     } catch (error) {
-      setSubmitError(
+      showSnackbar(
         error.message || "An error occurred while saving the instructor",
+        "error",
       );
     }
   };
@@ -408,7 +409,6 @@ const InstructorForm = ({
       memberStatus: "1",
     });
     setErrors({});
-    setSubmitError("");
     onClose();
   };
 
@@ -416,12 +416,6 @@ const InstructorForm = ({
 
   const formFields = (
     <Box>
-      {submitError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {submitError}
-        </Alert>
-      )}
-
       <Grid container spacing={2}>
         {/* Contact fields — single row */}
         <Grid item xs={3}>
@@ -646,6 +640,7 @@ const InstructorForm = ({
   );
 
   return (
+    <>
     <PortalDialog
       open={open}
       onClose={handleClose}
@@ -671,6 +666,8 @@ const InstructorForm = ({
     >
       {formFields}
     </PortalDialog>
+    <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+    </>
   );
 };
 

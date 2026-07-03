@@ -32,6 +32,7 @@ const PortalDialog = ({
   contentSx,
   paperSx,
   hideActions = false,
+  hideCloseIcon = false,
 }) => {
   const titleId = ariaLabelledby || "portal-dialog-title";
 
@@ -62,15 +63,17 @@ const PortalDialog = ({
             {title}
           </Typography>
         </Box>
-        <IconButton
-          aria-label="close"
-          onClick={() => onClose?.()}
-          disabled={disableClose}
-          size="small"
-          sx={portalModalCloseIconButtonSx}
-        >
-          <CloseIcon fontSize="small" />
-        </IconButton>
+        {!hideCloseIcon && (
+          <IconButton
+            aria-label="close"
+            onClick={() => onClose?.()}
+            disabled={disableClose}
+            size="small"
+            sx={portalModalCloseIconButtonSx}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        )}
       </DialogTitle>
       <DialogContent sx={{ ...portalModalContentSx, ...contentSx }}>
         {children}

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Alert,
   Button,
   CircularProgress,
   FormControl,
@@ -14,6 +13,8 @@ import { CloudUpload as UploadIcon } from "@mui/icons-material";
 import PortalDialog from "../Common/PortalDialog";
 import PortalModalSelect from "../Common/PortalModalSelect";
 import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
+import AppSnackbar from "../Common/AppSnackbar";
 
 const REPOSITORY_ALLOWED_EXTENSIONS = [".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"];
 
@@ -65,12 +66,11 @@ const isAllowedRepositoryFile = (fileName) => {
 const DocumentRepositoryUploadForm = ({ open, onClose, onSubmit, loading }) => {
   const [formData, setFormData] = useState(defaultFormData);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [error, setError] = useState("");
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("error");
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setError("");
   };
 
   const handleFileChange = (event) => {
@@ -80,19 +80,18 @@ const DocumentRepositoryUploadForm = ({ open, onClose, onSubmit, loading }) => {
     }
 
     if (!isAllowedRepositoryFile(file.name)) {
-      setError("Sorry, we can accept only Word, Excel and PowerPoint files.");
+      showSnackbar("Sorry, we can accept only Word, Excel and PowerPoint files.", "error");
       setSelectedFile(null);
       event.target.value = "";
       return;
     }
 
     setSelectedFile(file);
-    setError("");
   };
 
   const handleSubmit = async () => {
     if (!selectedFile?.name) {
-      setError("Please select a file to upload.");
+      showSnackbar("Please select a file to upload.", "error");
       return;
     }
 
@@ -102,7 +101,7 @@ const DocumentRepositoryUploadForm = ({ open, onClose, onSubmit, loading }) => {
         try {
           const base64 = String(event.target?.result ?? "").split(",")[1];
           if (!base64) {
-            setError("Unable to read the selected file.");
+            showSnackbar("Unable to read the selected file.", "error");
             return;
           }
 
@@ -119,24 +118,24 @@ const DocumentRepositoryUploadForm = ({ open, onClose, onSubmit, loading }) => {
             handleClose();
           }
         } catch {
-          setError("Error preparing file for upload.");
+          showSnackbar("Error preparing file for upload.", "error");
         }
       };
-      reader.onerror = () => setError("Error reading the selected file.");
+      reader.onerror = () => showSnackbar("Error reading the selected file.", "error");
       reader.readAsDataURL(selectedFile);
     } catch {
-      setError("Error preparing file for upload.");
+      showSnackbar("Error preparing file for upload.", "error");
     }
   };
 
   const handleClose = () => {
     setFormData(defaultFormData);
     setSelectedFile(null);
-    setError("");
     onClose();
   };
 
   return (
+    <>
     <PortalDialog
       open={open}
       onClose={handleClose}
@@ -162,12 +161,6 @@ const DocumentRepositoryUploadForm = ({ open, onClose, onSubmit, loading }) => {
       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
         Word, Excel, and PowerPoint files only
       </Typography>
-
-      {error ? (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
-          {error}
-        </Alert>
-      ) : null}
 
       <Grid container spacing={2}>
         <Grid item xs={12}>
@@ -266,6 +259,8 @@ const DocumentRepositoryUploadForm = ({ open, onClose, onSubmit, loading }) => {
         </Grid>
       </Grid>
     </PortalDialog>
+    <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+    </>
   );
 };
 

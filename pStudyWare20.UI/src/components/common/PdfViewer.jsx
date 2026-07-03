@@ -4,7 +4,6 @@ import {
   Typography,
   IconButton,
   Tooltip,
-  Alert,
   Paper,
   LinearProgress,
   Button,
@@ -31,6 +30,8 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import config, { getPublicDocumentUrl, getSessionDocumentUrl } from "../../utils/config";
 import documentService from "../../services/documentService";
+import AppSnackbar from "../pstudyware/Common/AppSnackbar";
+import { useAppSnackbar } from "../pstudyware/Common/useAppSnackbar";
 
 // react-pdf v10 requires the bundled pdfjs worker (.mjs), not the legacy CDN .min.js URL.
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -67,6 +68,7 @@ const PdfViewer = ({
   const [scale, setScale] = useState(1.0);
   const [error, setError] = useState(null);
   const [useFallback, setUseFallback] = useState(false);
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar();
   const [fullscreen, setFullscreen] = useState(false);
   const [pageInput, setPageInput] = useState("1");
   const [pdfFile, setPdfFile] = useState(null);
@@ -98,6 +100,12 @@ const PdfViewer = ({
     cMapPacked: true,
     standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
   }), []);
+
+  useEffect(() => {
+    if (error) {
+      showSnackbar(error, "error");
+    }
+  }, [error, showSnackbar]);
 
   const revokeBlobUrl = useCallback(() => {
     if (blobUrlRef.current) {
@@ -531,9 +539,13 @@ const PdfViewer = ({
             width: "100%",
           }}
         >
-          <Alert severity="error" sx={{ mb: 2, maxWidth: "520px" }}>
+          <Typography
+            variant="body1"
+            color="error"
+            sx={{ mb: 2, maxWidth: "520px", textAlign: "center" }}
+          >
             {error}
-          </Alert>
+          </Typography>
           <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
@@ -569,9 +581,9 @@ const PdfViewer = ({
           }
           error={
             <Box sx={{ color: "white", p: 3, textAlign: "center" }}>
-              <Alert severity="error" sx={{ mb: 2, maxWidth: "500px" }}>
+              <Typography variant="body1" color="error" sx={{ mb: 2, maxWidth: "500px" }}>
                 Failed to load PDF.
-              </Alert>
+              </Typography>
               <Button
                 variant="contained"
                 onClick={() => setUseFallback(true)}
@@ -594,6 +606,7 @@ const PdfViewer = ({
   );
 
   return (
+    <>
     <Paper
       ref={containerRef}
       elevation={showHeader ? 3 : 0}
@@ -648,6 +661,8 @@ const PdfViewer = ({
       {toolbar}
       {viewerBody}
     </Paper>
+    <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+    </>
   );
 };
 

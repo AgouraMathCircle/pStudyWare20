@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Container,
   Box,
-  Alert,
-  Snackbar,
   Typography,
   CircularProgress,
   Grid,
@@ -11,6 +9,8 @@ import {
   CardContent,
 } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
+import AppSnackbar from "../Common/AppSnackbar";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
 import documentService from "../../../services/documentService";
 import StudentDocumentList from "./StudentDocumentList";
 import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
@@ -26,12 +26,8 @@ const ClassMaterial = () => {
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState([]);
   const [selectedPdf, setSelectedPdf] = useState(null);
-
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "info",
-  });
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("info");
+  const accessDeniedShownRef = useRef(false);
 
   const loadPublishedDocuments = async (username) => {
     const response = await documentService.getDocumentsList(username);
@@ -42,7 +38,7 @@ const ClassMaterial = () => {
       setDocuments(publishedDocuments);
       return true;
     }
-    showMessage(
+    showSnackbar(
       response.errorMessage || "Failed to load class materials",
       "error",
     );
@@ -60,7 +56,7 @@ const ClassMaterial = () => {
         await loadPublishedDocuments(user.email || user.username);
       } catch (err) {
         console.error("Error fetching class materials:", err);
-        showMessage(
+        showSnackbar(
           "Error loading class materials. Please refresh the page.",
           "error",
         );
@@ -72,20 +68,15 @@ const ClassMaterial = () => {
     loadDocuments();
   }, [isAuthenticated, user]);
 
-  const showMessage = (message, severity = "info") => {
-    setSnackbar({
-      open: true,
-      message,
-      severity,
-    });
-  };
-
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
+  useEffect(() => {
+    if (!loading && (!isAuthenticated || !user) && !accessDeniedShownRef.current) {
+      accessDeniedShownRef.current = true;
+      showSnackbar(
+        "Access denied. Please log in to view class materials.",
+        "error",
+      );
     }
-    setSnackbar({ ...snackbar, open: false });
-  };
+  }, [loading, isAuthenticated, user, showSnackbar]);
 
   const handleView = (docName) => {
     setSelectedPdf(docName);
@@ -100,7 +91,7 @@ const ClassMaterial = () => {
       await documentService.downloadClassMaterial(docName);
     } catch (err) {
       console.error("Error downloading class material:", err);
-      showMessage(
+      showSnackbar(
         err?.message || "Unable to download document. Please try again.",
         "error",
       );
@@ -111,7 +102,7 @@ const ClassMaterial = () => {
     if (videoURL) {
       documentService.openVideo(videoURL);
     } else {
-      showMessage("No video URL available for this document.", "warning");
+      showSnackbar("No video URL available for this document.", "warning");
     }
   };
 
@@ -145,9 +136,7 @@ const ClassMaterial = () => {
           height: "400px",
         }}
       >
-        <Alert severity="error">
-          Access denied. Please log in to view class materials.
-        </Alert>
+        <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />
       </Box>
     );
   }
@@ -186,21 +175,7 @@ const ClassMaterial = () => {
         onClose={handleClosePdfViewer}
       />
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-          variant="filled"
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />
     </Box>
   );
 };

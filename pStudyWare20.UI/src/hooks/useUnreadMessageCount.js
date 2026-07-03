@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import emailManagerService from "../services/emailManagerService";
 import { getPortalUsername } from "../utils/portalUsername";
+import { UNREAD_MESSAGE_COUNT_EVENT } from "../utils/messageCenterEvents";
 
 export function useUnreadMessageCount(user, enabled = true) {
   const [count, setCount] = useState(0);
@@ -8,14 +9,14 @@ export function useUnreadMessageCount(user, enabled = true) {
 
   const refresh = useCallback(async () => {
     const username = getPortalUsername(user);
-    if (!enabled || !username) {
+    if (!enabled || (!username && !user)) {
       setCount(0);
       return;
     }
 
     try {
       setLoading(true);
-      const response = await emailManagerService.getMessageTotal(username);
+      const response = await emailManagerService.getMessageTotal(username || null);
       const success =
         response?.isSuccess === true || response?.IsSuccess === true;
       const total = Number(response?.total ?? response?.Total ?? 0);
@@ -30,8 +31,22 @@ export function useUnreadMessageCount(user, enabled = true) {
 
   useEffect(() => {
     refresh();
-    const id = window.setInterval(refresh, 120000);
-    return () => window.clearInterval(id);
+    const intervalId = window.setInterval(refresh, 120000);
+    const onCountChanged = () => {
+      refresh();
+    };
+    const onFocus = () => {
+      refresh();
+    };
+
+    window.addEventListener(UNREAD_MESSAGE_COUNT_EVENT, onCountChanged);
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener(UNREAD_MESSAGE_COUNT_EVENT, onCountChanged);
+      window.removeEventListener("focus", onFocus);
+    };
   }, [refresh]);
 
   return { count, loading, refresh };

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import {
-  Alert,
   Box,
   Card,
   CardContent,
@@ -9,6 +8,8 @@ import {
   Link,
   Typography,
 } from "@mui/material";
+import AppSnackbar from "../Common/AppSnackbar";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
 import {
   Warning as WarningIcon,
   Info as InfoIcon,
@@ -89,6 +90,7 @@ const InstructorDashboardMessages = ({
   });
   const [internalLoading, setInternalLoading] = useState(!isControlled);
   const [error, setError] = useState(null);
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("error");
 
   const dashboardMessages = isControlled ? propsDashboardMessages : internalMessages;
   const loading = isControlled ? (propsLoading ?? false) : internalLoading;
@@ -136,6 +138,12 @@ const InstructorDashboardMessages = ({
     };
   }, [isControlled, username, chapterId]);
 
+  useEffect(() => {
+    if (error) {
+      showSnackbar(error, "error");
+    }
+  }, [error, showSnackbar]);
+
   if (loading) {
     return (
       <Box className="instructor-dashboard-messages-loading">
@@ -145,11 +153,7 @@ const InstructorDashboardMessages = ({
   }
 
   if (error) {
-    return (
-      <Alert severity="error" sx={{ mb: 0 }}>
-        {error}
-      </Alert>
-    );
+    return <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />;
   }
 
   const shouldShowSection = (section) => {
@@ -224,6 +228,7 @@ const InstructorDashboardMessages = ({
           );
         })}
       </Box>
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
     </Box>
   );
 };

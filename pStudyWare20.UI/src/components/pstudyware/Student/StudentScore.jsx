@@ -2,8 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Container,
   Box,
-  Alert,
-  Snackbar,
   Typography,
   Grid,
   Card,
@@ -22,6 +20,8 @@ import {
 } from "@mui/material";
 import { Send as SendIcon } from "@mui/icons-material";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
+import AppSnackbar from "../Common/AppSnackbar";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import studentScoreService, {
@@ -263,7 +263,10 @@ const StudentScore = () => {
   const [enableScoreUpdate, setEnableScoreUpdate] = useState(false);
   const [studentContextLoading, setStudentContextLoading] = useState(false);
   const [studentScores, setStudentScores] = useState([]);
-  const [successMessage, setSuccessMessage] = useState("");
+  const scoreWindowClosedToastShownRef = useRef(false);
+  const accessDeniedShownRef = useRef(false);
+
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("info");
 
   const [quiz, setQuiz] = useState({
     total: "5",
@@ -280,16 +283,6 @@ const StudentScore = () => {
     received: "",
     comments: "",
   });
-
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "info",
-  });
-
-  const showSnackbar = (message, severity = "info") => {
-    setSnackbar({ open: true, message, severity });
-  };
 
   const loadScores = useCallback(async () => {
     if (!username) return;
@@ -435,7 +428,7 @@ const StudentScore = () => {
       try {
         setLoading(true);
         if (searchParams.get("Action") === "U") {
-          setSuccessMessage("Scores have been updated successfully.");
+          showSnackbar("Scores have been updated successfully.", "success");
         }
 
         const [listResponse, dueDateResponse] = await Promise.all([
@@ -503,7 +496,7 @@ const StudentScore = () => {
   const handleStudentChange = async (event) => {
     const value = event.target.value;
     setSelectedStudent(value);
-    setSuccessMessage("");
+    scoreWindowClosedToastShownRef.current = false;
     const student = students.find((s) => (s.value ?? s.Value) === value);
     const text = student?.text ?? student?.Text ?? "";
     await loadSessionsForStudent(value, text);
@@ -580,7 +573,6 @@ const StudentScore = () => {
       if (response?.isSuccess) {
         const message =
           response.message || "Scores have been updated successfully.";
-        setSuccessMessage(message);
         showSnackbar(message, "success");
         setQuiz((prev) => ({ ...prev, received: "", comments: "" }));
         setClassTest((prev) => ({ ...prev, received: "", comments: "" }));
@@ -608,6 +600,36 @@ const StudentScore = () => {
     comments: "62%",
   };
 
+  useEffect(() => {
+    if (
+      !enableScoreUpdate &&
+      !loading &&
+      !studentContextLoading &&
+      students.length > 0 &&
+      selectedStudent &&
+      !scoreWindowClosedToastShownRef.current
+    ) {
+      scoreWindowClosedToastShownRef.current = true;
+      showSnackbar("The Score Update window has closed.", "error");
+    }
+  }, [
+    enableScoreUpdate,
+    loading,
+    studentContextLoading,
+    students.length,
+    selectedStudent,
+    showSnackbar,
+  ]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      if (!accessDeniedShownRef.current) {
+        accessDeniedShownRef.current = true;
+        showSnackbar("Access denied. Please log in to update scores.", "error");
+      }
+    }
+  }, [isAuthenticated, user, showSnackbar]);
+
   if (!isAuthenticated || !user) {
     return (
       <Box
@@ -618,9 +640,7 @@ const StudentScore = () => {
           height: "400px",
         }}
       >
-        <Alert severity="error">
-          Access denied. Please log in to update scores.
-        </Alert>
+        <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />
       </Box>
     );
   }
@@ -644,35 +664,12 @@ const StudentScore = () => {
                     {/* Update Score */}
                   </Typography>
 
-                  {successMessage && (
-                    <Alert
-                      severity="success"
-                      sx={{ mb: 1, fontSize: "0.75rem" }}
-                    >
-                      {successMessage}
-                    </Alert>
-                  )}
-
-                  {!enableScoreUpdate &&
-                    !loading &&
-                    !studentContextLoading &&
-                    students.length > 0 &&
-                    selectedStudent && (
-                      <Alert
-                        severity="error"
-                        sx={{ mb: 1, fontSize: "0.75rem" }}
-                      >
-                        <strong>The Score Update window has closed.</strong>
-                      </Alert>
-                    )}
-
                   {studentContextLoading && (
-                    <Alert
-                      severity="info"
-                      sx={{ mb: 1, fontSize: "0.75rem" }}
+                    <Typography
+                      sx={{ mb: 1, fontSize: "0.75rem", color: "#ffffff" }}
                     >
                       Loading student session...
-                    </Alert>
+                    </Typography>
                   )}
 
                   {enableScoreUpdate && !studentContextLoading && (
@@ -752,19 +749,17 @@ const StudentScore = () => {
                   </Box>
 
                   {loading ? (
-                    <Alert
-                      severity="info"
-                      sx={{ mb: 1, fontSize: "0.75rem" }}
+                    <Typography
+                      sx={{ mb: 1, fontSize: "0.75rem", color: "#ffffff" }}
                     >
                       Loading students...
-                    </Alert>
+                    </Typography>
                   ) : students.length === 0 ? (
-                    <Alert
-                      severity="info"
-                      sx={{ mb: 1, fontSize: "0.75rem" }}
+                    <Typography
+                      sx={{ mb: 1, fontSize: "0.75rem", color: "#ffffff" }}
                     >
                       No students found for your account.
-                    </Alert>
+                    </Typography>
                   ) : (
                     <Box sx={legacyFieldBarSx}>
                       <Box
@@ -1005,21 +1000,7 @@ const StudentScore = () => {
         loading={submitting}
       />
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-          variant="filled"
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />
     </Box>
   );
 };

@@ -1,5 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import React, { useState, useMemo } from "react";
 import {
   Typography,
   Button,
@@ -62,7 +61,6 @@ const StudentList = ({
   onExportToExcel,
   canExportData,
 }) => {
-  const [searchParams] = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("");
@@ -73,29 +71,6 @@ const StudentList = ({
   const { openUpdateProfile } = useUpdateProfileModal();
 
   const pageSize = 25;
-
-  useEffect(() => {
-    const searchByParam = searchParams.get("searchBy");
-    const searchCriteriaParam = searchParams.get("searchCriteria");
-    const searchTextParam = searchParams.get("searchText");
-
-    if (!searchByParam || !searchTextParam) {
-      return;
-    }
-
-    setSearchBy(searchByParam);
-    setSearchCriteria(searchCriteriaParam || "equals");
-    setSearchText(searchTextParam);
-    setCurrentPage(1);
-    setGoToPageInput("1");
-
-    const scrollTarget = document.getElementById("admin-student-list");
-    if (scrollTarget) {
-      window.requestAnimationFrame(() => {
-        scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    }
-  }, [searchParams]);
 
   const handlePageChange = (page) => {
     const totalPages = Math.ceil(

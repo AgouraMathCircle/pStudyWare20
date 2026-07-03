@@ -7,19 +7,21 @@ import {
   Card,
   CardContent,
   CircularProgress,
-  Alert,
   Chip,
   Tabs,
   Tab,
   Divider,
 } from "@mui/material";
+import { useAppSnackbar } from "./pstudyware/Common/useAppSnackbar";
+import AppSnackbar from "./pstudyware/Common/AppSnackbar";
 import donorService from "../services/donorService";
 
 const Donors = () => {
   const [currentYearDonors, setCurrentYearDonors] = useState([]);
   const [pastYearDonors, setPastYearDonors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [fetchFailed, setFetchFailed] = useState(false);
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("error");
   const [currentYear] = useState(new Date().getFullYear());
   const [pastYear] = useState(currentYear - 1);
   const [activeTab, setActiveTab] = useState(0);
@@ -28,7 +30,7 @@ const Donors = () => {
     const fetchDonors = async () => {
       try {
         setLoading(true);
-        setError(null);
+        setFetchFailed(false);
 
         // Fetch current year donors
         const currentDonors = await donorService.getCurrentYearDonors(
@@ -41,8 +43,10 @@ const Donors = () => {
         setPastYearDonors(pastDonors);
       } catch (err) {
         console.error("Error fetching donors:", err);
-        setError(
-          err.message || "Failed to load donors. Please try again later."
+        setFetchFailed(true);
+        showSnackbar(
+          err.message || "Failed to load donors. Please try again later.",
+          "error",
         );
       } finally {
         setLoading(false);
@@ -188,17 +192,12 @@ const Donors = () => {
     );
   }
 
-  if (error) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      </Container>
-    );
+  if (fetchFailed) {
+    return <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />;
   }
 
   return (
+    <>
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box textAlign="center" mb={4}>
         <Typography variant="h4" component="h1" gutterBottom>
@@ -247,6 +246,8 @@ const Donors = () => {
         {renderDonorsSection(pastYearDonors, pastYear, "Past Year")}
       </Box>
     </Container>
+    <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+    </>
   );
 };
 

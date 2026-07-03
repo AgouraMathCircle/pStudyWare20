@@ -7,7 +7,6 @@ import {
   InputLabel,
   Box,
   Typography,
-  Alert,
   CircularProgress,
   Grid,
   Chip,
@@ -18,6 +17,8 @@ import {
 import PortalDialog from "../Common/PortalDialog";
 import PortalModalSelect from "../Common/PortalModalSelect";
 import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
+import AppSnackbar from "../Common/AppSnackbar";
 import documentService from "../../../services/documentService";
 
 const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
@@ -34,7 +35,7 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [uploadError, setUploadError] = useState("");
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("error");
 
   // Description options (from the legacy system)
   const descriptionOptions = [
@@ -113,7 +114,6 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
         });
       }
       setErrors({});
-      setUploadError("");
     }
   }, [open, isEdit, document]);
 
@@ -136,12 +136,11 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
   // Handle file change
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    setUploadError("");
 
     if (file) {
       // Validate file type (only PDF)
       if (file.type !== "application/pdf") {
-        setUploadError("Only PDF files are allowed.");
+        showSnackbar("Only PDF files are allowed.", "error");
         event.target.value = "";
         return;
       }
@@ -149,7 +148,7 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
       // Validate file size (max 2 MB)
       const maxSize = 2 * 1024 * 1024; // 2 MB in bytes
       if (file.size > maxSize) {
-        setUploadError("File size must be less than 2 MB.");
+        showSnackbar("File size must be less than 2 MB.", "error");
         event.target.value = "";
         return;
       }
@@ -214,8 +213,9 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
       onClose();
     } catch (error) {
       console.error("Error submitting form:", error);
-      setUploadError(
-        error.message || "Failed to upload document. Please try again."
+      showSnackbar(
+        error.message || "Failed to upload document. Please try again.",
+        "error",
       );
     } finally {
       setLoading(false);
@@ -223,6 +223,7 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
   };
 
   return (
+    <>
     <PortalDialog
       open={open}
       onClose={onClose}
@@ -243,12 +244,6 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
         </Button>
       }
     >
-      {uploadError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {uploadError}
-        </Alert>
-      )}
-
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <TextField
@@ -400,6 +395,8 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
         </Grid>
       </Grid>
     </PortalDialog>
+    <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+    </>
   );
 };
 

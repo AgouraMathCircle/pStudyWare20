@@ -37,6 +37,12 @@ class AuthService {
           expiresAt,
           loginAt,
           ...userData,
+          username:
+            response.data?.username ??
+            response.data?.Username ??
+            userData?.username ??
+            userData?.Username ??
+            "",
           volunteerAvailability,
           VolunteerAvailability: volunteerAvailability,
         };

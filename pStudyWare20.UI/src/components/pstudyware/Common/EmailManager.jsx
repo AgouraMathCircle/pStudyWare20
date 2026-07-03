@@ -46,6 +46,7 @@ import StudentHeader, { StudentRoleHeaderSpacer } from "../Student/StudentHeader
 import AdminHeader, { AdminRoleHeaderSpacer } from "../Admin/AdminHeader";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import { getPortalUsername, getPortalLoginIdentifier } from "../../../utils/portalUsername";
+import { notifyUnreadMessageCountChanged } from "../../../utils/messageCenterEvents";
 import {
   getMessagePreview,
   getMessageFieldValue,
@@ -109,42 +110,6 @@ const parseLegacyEmailInfoName = (message) => {
   return isLegacyPlaceholderName(name) ? "" : name;
 };
 
-/** Admin inbox grid: student id, name, and class/location parsed from SP SendFrom. */
-const parseAdminMessageFromParts = (message) => {
-  const studentId = String(message?.sendBy ?? message?.SendBy ?? "").trim();
-  const sendFrom = String(message?.sendFrom ?? message?.SendFrom ?? "").trim();
-
-  if (!studentId && !sendFrom) {
-    return null;
-  }
-
-  const match = sendFrom.match(/^(.+?)\s+-\s+\S+\s+\((.+)\)$/);
-  if (match) {
-    return {
-      studentId,
-      studentName: match[1].trim(),
-      classLocation: match[2].trim(),
-    };
-  }
-
-  return {
-    studentId,
-    studentName: "",
-    classLocation: sendFrom || "",
-  };
-};
-
-const getAdminFromDisplayText = (message) => {
-  const parts = parseAdminMessageFromParts(message);
-  if (!parts) {
-    return "";
-  }
-
-  return [parts.studentId, parts.studentName, parts.classLocation]
-    .filter(Boolean)
-    .join(" - ");
-};
-
 /** Admin reply/view: legacy uses Emailinfo SendFrom (raw username), not Name ('0'). */
 const getAdminReplyRecipientDisplay = (message) =>
   message?.senderUsername ||
@@ -205,15 +170,6 @@ const messageTableCellBaseSx = {
   borderRight: "1px solid #4caf50",
 };
 
-const adminMessageFromCellSx = {
-  textAlign: "left",
-  "& .MuiTooltip-root, & > span": {
-    display: "block",
-    width: "100%",
-    textAlign: "left",
-  },
-};
-
 const messageTableActionsCellSx = {
   ...messageTableCellBaseSx,
   width: MESSAGE_TABLE_COLUMN_WIDTHS.actions,
@@ -246,7 +202,8 @@ const messageTableStatusCellSx = {
 const EmailManager = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const actionUMarkedRef = useRef(false);
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [messageBodyLoading, setMessageBodyLoading] = useState(false);
@@ -294,9 +251,10 @@ const EmailManager = () => {
   });
 
   // Member type
-  const memberType = user?.memberType?.toUpperCase() || "";
+  const memberType = (user?.memberType || user?.MemberType || "").toUpperCase();
   const username = getPortalUsername(user);
   const loginIdentifier = getPortalLoginIdentifier(user);
+  const userId = user?.userId || user?.UserId || "";
   const firstName = user?.firstName || "";
   const chapterId = user?.chapterID || "1";
 
@@ -350,7 +308,9 @@ const EmailManager = () => {
     setLoadError(null);
 
     try {
-      const response = await emailManagerService.getMessages(portalUsername);
+      const response = await emailManagerService.getMessages(
+        portalUsername || null
+      );
       if (loadId !== inboxLoadRef.current) {
         return;
       }
@@ -373,15 +333,19 @@ const EmailManager = () => {
           response?.ErrorMessage ||
           "Error loading messages";
         setLoadError(errorMsg);
-        showSnackbar(errorMsg, "error");
+        setSnackbar({ open: true, message: errorMsg, severity: "error", vertical: "top" });
       }
     } catch (error) {
       if (loadId !== inboxLoadRef.current) {
         return;
       }
-      const errorMsg = error.message || "Error loading messages";
+      const errorMsg =
+        error.response?.data?.message ||
+        error.response?.data?.errorMessage ||
+        error.message ||
+        "Error loading messages";
       setLoadError(errorMsg);
-      showSnackbar(errorMsg, "error");
+      setSnackbar({ open: true, message: errorMsg, severity: "error", vertical: "top" });
     } finally {
       if (loadId === inboxLoadRef.current) {
         setMessagesLoading(false);
@@ -389,19 +353,85 @@ const EmailManager = () => {
     }
   };
 
-  // Load inbox when portal username is available
+  // Load inbox when authenticated (API resolves username from JWT).
   useEffect(() => {
-    if (!username) {
+    if (authLoading) {
+      return;
+    }
+
+    if (!isAuthenticated || !userId) {
       setMessagesLoading(false);
       return;
     }
 
-    fetchInbox(username);
-  }, [username]);
+    fetchInbox(null);
+  }, [authLoading, isAuthenticated, userId]);
+
+  // Strip ?Action=U from URL for admin; mark-as-viewed for other roles after inbox loads.
+  useEffect(() => {
+    if (authLoading || messagesLoading) {
+      return;
+    }
+
+    const params = new URLSearchParams(location.search);
+    if (params.get("Action") !== "U") {
+      actionUMarkedRef.current = false;
+      return;
+    }
+
+    params.delete("Action");
+    const nextSearch = params.toString();
+    navigate(
+      {
+        pathname: location.pathname,
+        search: nextSearch ? `?${nextSearch}` : "",
+      },
+      { replace: true }
+    );
+
+    if (memberType === "A" || actionUMarkedRef.current) {
+      return;
+    }
+
+    const markAsViewedUser = username || loginIdentifier;
+    if (!markAsViewedUser) {
+      return;
+    }
+
+    actionUMarkedRef.current = true;
+
+    emailManagerService
+      .updateMessageStatus({
+        trackingID: 0,
+        mode: "V",
+        sendTo: markAsViewedUser,
+      })
+      .then((response) => {
+        const success =
+          response?.isSuccess === true || response?.IsSuccess === true;
+        if (success) {
+          notifyUnreadMessageCountChanged();
+          fetchInbox(null);
+        }
+      })
+      .catch((error) => {
+        console.error("Error marking messages as viewed:", error);
+      });
+  }, [
+    authLoading,
+    messagesLoading,
+    location.search,
+    location.pathname,
+    username,
+    loginIdentifier,
+    memberType,
+    navigate,
+  ]);
 
   // Load compose dropdowns separately (do not block inbox reload)
   useEffect(() => {
-    if (!username) {
+    const portalUser = username || loginIdentifier;
+    if (!portalUser) {
       return;
     }
 
@@ -410,7 +440,7 @@ const EmailManager = () => {
     } else if (memberType === "I" || memberType === "V" || memberType === "S") {
       loadStudentList();
     }
-  }, [username, memberType, loginIdentifier]);
+  }, [username, loginIdentifier, memberType]);
 
   // Apply search when messages or search criteria change
   useEffect(() => {
@@ -468,14 +498,14 @@ const EmailManager = () => {
   };
 
   const loadMessages = async () => {
-    if (!username) return;
-    await fetchInbox(username);
+    if (authLoading || !isAuthenticated || !userId) return;
+    await fetchInbox(null);
   };
 
   const loadEmailGroups = async () => {
     try {
       const response = await emailManagerService.getInstructorEmailGroups(
-        username
+        username || loginIdentifier
       );
       if (response.isSuccess) {
         setEmailGroups(response.emailGroups || []);
@@ -596,6 +626,7 @@ const EmailManager = () => {
 
         setMessages(removeDeleted);
         setFilteredMessages(removeDeleted);
+        notifyUnreadMessageCountChanged();
         showSnackbar(
           response.message ||
             response.Message ||
@@ -783,73 +814,6 @@ const EmailManager = () => {
     return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   };
 
-  const handleAdminStudentIdClick = (studentId) => {
-    const normalizedId = String(studentId ?? "").trim();
-    if (!normalizedId) {
-      return;
-    }
-
-    navigate(
-      `/admin/registeredstudentlist?searchBy=STUDENT_ID&searchCriteria=equals&searchText=${encodeURIComponent(normalizedId)}`,
-    );
-  };
-
-  const renderAdminFromCell = (message) => {
-    const parts = parseAdminMessageFromParts(message);
-    if (!parts) {
-      return "—";
-    }
-
-    const { studentId, studentName, classLocation } = parts;
-    const suffix = [studentName, classLocation].filter(Boolean).join(" - ");
-    const tooltipText = getAdminFromDisplayText(message) || "—";
-
-    if (!studentId) {
-      return (
-        <Tooltip title={tooltipText}>
-          <Box
-            component="span"
-            sx={{
-              display: "block",
-              width: "100%",
-              textAlign: "left",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {tooltipText}
-          </Box>
-        </Tooltip>
-      );
-    }
-
-    return (
-      <Tooltip title={tooltipText}>
-        <Box
-          component="span"
-          sx={{
-            display: "block",
-            width: "100%",
-            textAlign: "left",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <Box
-            component="span"
-            onClick={() => handleAdminStudentIdClick(studentId)}
-            sx={adminSessionListTableActionLinkSx}
-          >
-            {studentId}
-          </Box>
-          {suffix ? ` - ${suffix}` : ""}
-        </Box>
-      </Tooltip>
-    );
-  };
-
   // Implement search functionality
   const handleSearch = () => {
     let filtered = [...messages];
@@ -860,9 +824,7 @@ const EmailManager = () => {
 
         switch (searchBy) {
           case "FROM":
-            fieldValue = isAdminMessageCenter
-              ? getAdminFromDisplayText(message)
-              : message.sendFrom || "";
+            fieldValue = message.sendFrom || "";
             break;
           case "SUBJECT":
             fieldValue = message.subject || "";
@@ -1296,23 +1258,18 @@ useSessionListTableUi
                   <SortableHeader
                     label="From"
                     field="from"
-                    align="left"
                     sortField={sortField}
                     sortOrder={sortOrder}
                     onSort={handleSort}
                     headCellSx={
                       useSessionListTableUi
-                        ? {
-                            ...adminSessionListTableHeadCellSx(
-                              messageListColumnWidths.from
-                            ),
-                            textAlign: "left",
-                          }
+                        ? adminSessionListTableHeadCellSx(
+                            messageListColumnWidths.from
+                          )
                         : {
                             fontWeight: 600,
                             ...messageTableCellBaseSx,
                             width: "16%",
-                            textAlign: "left",
                           }
                     }
                   />
@@ -1503,29 +1460,19 @@ useSessionListTableUi
                         </Box>
                       </TableCell>
                       <TableCell
-                        align="left"
                         sx={
 useSessionListTableUi
-            ? {
-                ...adminSessionListTableBodyCellSx({ ellipsis: true }),
-                ...adminMessageFromCellSx,
-              }
-                            : {
-                                ...messageTableCellBaseSx,
-                                width: "16%",
-                                ...adminMessageFromCellSx,
-                              }
+            ? adminSessionListTableBodyCellSx({ ellipsis: true })
+                            : { ...messageTableCellBaseSx, width: "16%" }
                         }
                       >
-                        {isAdminMessageCenter
-                          ? renderAdminFromCell(message)
-                          : useSessionListTableUi ? (
-                              <Tooltip title={message.sendFrom ?? "—"}>
-                                <span>{message.sendFrom ?? "—"}</span>
-                              </Tooltip>
-                            ) : (
-                              message.sendFrom
-                            )}
+                        {useSessionListTableUi ? (
+                          <Tooltip title={message.sendFrom ?? "—"}>
+                            <span>{message.sendFrom ?? "—"}</span>
+                          </Tooltip>
+                        ) : (
+                          message.sendFrom
+                        )}
                       </TableCell>
                       <TableCell
                         sx={

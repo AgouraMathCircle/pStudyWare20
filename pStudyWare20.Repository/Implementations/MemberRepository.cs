@@ -27,33 +27,46 @@ namespace pStudyWare20.Repository.Implementations
         {
             try
             {
+                var loginId = (emailId ?? string.Empty).Trim();
+                if (loginId.Length == 0 || string.IsNullOrEmpty(password))
+                {
+                    return null;
+                }
+
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("pWebMemberFrm", connection)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+                // Match legacy ValidateUser: Approved=1, username or email, plain-text password.
+                using var command = new SqlCommand(@"
+                    SELECT pMemberID, UserName, EmailID, FirstName, LastName, MemberType, ChapterID, systemAdmin
+                    FROM MemberMaster WITH (NOLOCK)
+                    WHERE [Password] = @password
+                      AND ISNULL(Approved, 0) = 1
+                      AND ISNULL(Active, 1) = 1
+                      AND (
+                        UPPER(LTRIM(UserName)) = UPPER(LTRIM(@loginId))
+                        OR UPPER(LTRIM(EmailID)) = UPPER(LTRIM(@loginId))
+                      )", connection);
 
-                command.Parameters.Add(new SqlParameter("@emailId", emailId));
+                command.Parameters.Add(new SqlParameter("@loginId", loginId));
                 command.Parameters.Add(new SqlParameter("@password", password));
-                command.Parameters.Add(new SqlParameter("@mode", "ValidateUser"));
 
                 using var reader = await command.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
                     return new MemberMaster
                     {
-                        pMemberID = reader.GetInt32("pMemberID"),
-                        UserName = reader.GetString("Username"),
-                        EmailID = reader.GetString("EmailID"),
-                        FirstName = reader.GetString("FirstName"),
-                        LastName = reader.GetString("LastName"),
-                        MemberType = reader.GetString("MemberType"),
-                        ChapterID = reader.GetInt32("ChapterID"),
-                        systemAdmin = reader.GetString("systemAdmin")
+                        pMemberID = reader.GetInt32(reader.GetOrdinal("pMemberID")),
+                        UserName = reader.GetString(reader.GetOrdinal("UserName")),
+                        EmailID = reader.GetString(reader.GetOrdinal("EmailID")),
+                        FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                        LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                        MemberType = reader.GetString(reader.GetOrdinal("MemberType")),
+                        ChapterID = reader.GetInt32(reader.GetOrdinal("ChapterID")),
+                        systemAdmin = reader.GetString(reader.GetOrdinal("systemAdmin"))
                     };
                 }
+
                 return null;
             }
             catch (Exception ex)

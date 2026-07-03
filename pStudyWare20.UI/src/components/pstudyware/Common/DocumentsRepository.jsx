@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Container,
   Box,
-  Alert,
-  Snackbar,
   Typography,
   CircularProgress,
   Grid,
@@ -14,6 +12,8 @@ import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader, { AdminRoleHeaderSpacer } from "../Admin/AdminHeader";
 import AdminDocumentsRepositoryList from "../Admin/AdminDocumentsRepositoryList";
 import DocumentRepositoryUploadForm from "../Admin/DocumentRepositoryUploadForm";
+import AppSnackbar from "./AppSnackbar";
+import { useAppSnackbar } from "./useAppSnackbar";
 import documentService, {
   getDocumentApiList,
   isDocumentApiSuccess,
@@ -25,16 +25,12 @@ import {
 
 const DocumentsRepository = () => {
   const { user, isAuthenticated } = useAuth();
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("info");
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [documents, setDocuments] = useState([]);
   const [uploadFormOpen, setUploadFormOpen] = useState(false);
   const [listRefreshToken, setListRefreshToken] = useState(0);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "info",
-  });
 
   const memberType = user?.memberType?.toUpperCase() || "";
   const isStudent = memberType === "S";
@@ -46,6 +42,12 @@ const DocumentsRepository = () => {
     }
   }, [isAuthenticated, user]);
 
+  useEffect(() => {
+    if (!loading && (!isAuthenticated || !user)) {
+      showSnackbar("Access denied. Please log in to view documents.", "error");
+    }
+  }, [loading, isAuthenticated, user, showSnackbar]);
+
   const loadDocuments = async ({ showPageLoader = true } = {}) => {
     try {
       if (showPageLoader) setLoading(true);
@@ -56,7 +58,7 @@ const DocumentsRepository = () => {
         return true;
       }
 
-        showMessage(
+        showSnackbar(
         response?.errorMessage ||
           response?.ErrorMessage ||
           "Failed to load documents",
@@ -65,7 +67,7 @@ const DocumentsRepository = () => {
       return false;
     } catch (error) {
       console.error("Error loading documents:", error);
-      showMessage("Error loading documents. Please refresh the page.", "error");
+      showSnackbar("Error loading documents. Please refresh the page.", "error");
       return false;
     } finally {
       if (showPageLoader) setLoading(false);
@@ -81,7 +83,7 @@ const DocumentsRepository = () => {
     const previewWindow = isPdf ? window.open("about:blank", "_blank") : null;
 
     if (isPdf && !previewWindow) {
-      showMessage(
+      showSnackbar(
         "Unable to open document. Please allow popups for this site.",
         "error",
       );
@@ -96,7 +98,7 @@ const DocumentsRepository = () => {
 
     documentService.viewRepositoryDocument(docName, previewWindow).catch((error) => {
       console.error("Error opening repository document:", error);
-      showMessage(
+      showSnackbar(
         error?.message || "Unable to open document. Please try again.",
         "error",
       );
@@ -111,11 +113,11 @@ const DocumentsRepository = () => {
       );
 
       if (isDocumentApiSuccess(response)) {
-        showMessage("Document deleted successfully", "success");
+        showSnackbar("Document deleted successfully", "success");
         await loadDocuments({ showPageLoader: false });
         setListRefreshToken((token) => token + 1);
       } else {
-        showMessage(
+        showSnackbar(
           response?.errorMessage ||
             response?.ErrorMessage ||
             "Failed to delete document",
@@ -124,7 +126,7 @@ const DocumentsRepository = () => {
       }
     } catch (error) {
       console.error("Error deleting document:", error);
-      showMessage("Error deleting document. Please try again.", "error");
+      showSnackbar("Error deleting document. Please try again.", "error");
     }
   };
 
@@ -134,7 +136,7 @@ const DocumentsRepository = () => {
       const response = await documentService.uploadRepositoryDocument(uploadData);
 
       if (isDocumentApiSuccess(response)) {
-        showMessage("Document uploaded successfully", "success");
+        showSnackbar("Document uploaded successfully", "success");
         setUploadFormOpen(false);
         const refreshed = await loadDocuments({ showPageLoader: false });
         if (refreshed) {
@@ -143,7 +145,7 @@ const DocumentsRepository = () => {
         return { ...response, isSuccess: true };
       }
 
-        showMessage(
+        showSnackbar(
         response?.errorMessage ||
           response?.ErrorMessage ||
           "Failed to upload document",
@@ -157,29 +159,15 @@ const DocumentsRepository = () => {
         error?.response?.data?.message ||
         error?.message ||
         "Error uploading document. Please try again.";
-      showMessage(message, "error");
+      showSnackbar(message, "error");
     } finally {
       setUploading(false);
     }
   };
 
-  const showMessage = (message, severity = "info") => {
-    setSnackbar({
-      open: true,
-      message,
-      severity,
-    });
-  };
-
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setSnackbar((prev) => ({ ...prev, open: false }));
-  };
-
   if (loading) {
     return (
+      <>
       <Box>
         <AdminHeader user={user} />
         <AdminRoleHeaderSpacer />
@@ -199,11 +187,14 @@ const DocumentsRepository = () => {
           </Typography>
         </Box>
       </Box>
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />
+      </>
     );
   }
 
   if (!isAuthenticated || !user) {
   return (
+    <>
     <Box>
       <AdminHeader user={user} />
         <AdminRoleHeaderSpacer />
@@ -214,16 +205,15 @@ const DocumentsRepository = () => {
             alignItems: "center",
             height: "400px",
           }}
-        >
-          <Alert severity="error">
-            Access denied. Please log in to view documents.
-          </Alert>
+        />
         </Box>
-        </Box>
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />
+      </>
     );
   }
 
   return (
+    <>
     <Box>
       <AdminHeader user={user} />
       <AdminRoleHeaderSpacer />
@@ -260,22 +250,9 @@ const DocumentsRepository = () => {
         loading={uploading}
       />
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-          variant="filled"
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />
     </Box>
+    </>
   );
 };
 

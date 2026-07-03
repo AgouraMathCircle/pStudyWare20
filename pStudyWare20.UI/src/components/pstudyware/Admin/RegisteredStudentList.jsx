@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -15,7 +14,6 @@ import {
   TableRow,
   Paper,
   Tooltip,
-  Alert,
   CircularProgress,
   FormControl,
   InputLabel,
@@ -23,7 +21,6 @@ import {
   Container,
   Card,
   CardContent,
-  Snackbar,
 } from "@mui/material";
 import {
   Download as DownloadIcon,
@@ -39,6 +36,8 @@ import PortalDialog from "../Common/PortalDialog";
 import PortalModalSelect from "../Common/PortalModalSelect";
 import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
 import SortableHeader from "../Common/SortableHeader";
+import AppSnackbar from "../Common/AppSnackbar";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
 import {
   adminSessionListEmptyCellSx,
   adminSessionListEmptyTextSx,
@@ -213,7 +212,6 @@ const RegisteredListCopyCell = ({ value, onCopied }) => {
 
 const RegisteredStudentList = () => {
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
 
   // State management
   const [students, setStudents] = useState([]);
@@ -221,14 +219,7 @@ const RegisteredStudentList = () => {
   const [sessionOptions, setSessionOptions] = useState(BASE_SESSION_OPTIONS);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [updateFormError, setUpdateFormError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("");
@@ -278,29 +269,12 @@ const RegisteredStudentList = () => {
     checkPrivileges();
   }, []);
 
-  useEffect(() => {
-    const searchByParam = searchParams.get("searchBy");
-    const searchCriteriaParam = searchParams.get("searchCriteria");
-    const searchTextParam = searchParams.get("searchText");
-
-    if (!searchByParam || !searchTextParam) {
-      return;
-    }
-
-    setSearchBy(searchByParam);
-    setSearchCriteria(searchCriteriaParam || "equals");
-    setSearchText(searchTextParam);
-    setCurrentPage(1);
-    setGoToPageInput("1");
-  }, [searchParams]);
-
   // Fetch dashboard data
   const fetchData = async ({ quiet = false } = {}) => {
     try {
       if (!quiet) {
         setLoading(true);
       }
-      setError(null);
       const response = await registeredStudentListService.getDashboardData();
 
       if (response.isSuccess) {
@@ -308,10 +282,10 @@ const RegisteredStudentList = () => {
         setChapterLocations(response.chapterLocations || []);
         setSessionOptions(mapSessionOptions(response.sessionOptions));
       } else {
-        setError(response.errorMessage || "Failed to load data");
+        showSnackbar(response.errorMessage || "Failed to load data", "error");
       }
     } catch (err) {
-      setError(err.message || "An error occurred while loading data");
+      showSnackbar(err.message || "An error occurred while loading data", "error");
       console.error("Error fetching data:", err);
     } finally {
       if (!quiet) {
@@ -349,7 +323,6 @@ const RegisteredStudentList = () => {
       chapterLocations
     );
 
-    setUpdateFormError(null);
     setUpdateFormData({
       studentId: String(student.studentID ?? ""),
       firstName: parsed.firstName || nameParts[0] || "",
@@ -366,26 +339,24 @@ const RegisteredStudentList = () => {
 
   const handleUpdateSubmit = async () => {
     if (!updateFormData.studentId || updateFormData.studentId === "0") {
-      setUpdateFormError("Invalid student selected for update.");
+      showSnackbar("Invalid student selected for update.", "error");
       return;
     }
     if (!updateFormData.chapterId) {
-      setUpdateFormError("Please select a chapter.");
+      showSnackbar("Please select a chapter.", "error");
       return;
     }
     if (!updateFormData.class || !updateFormData.section || !updateFormData.location) {
-      setUpdateFormError("Class, section, and location are required.");
+      showSnackbar("Class, section, and location are required.", "error");
       return;
     }
     if (!updateFormData.session) {
-      setUpdateFormError("Please select a session.");
+      showSnackbar("Please select a session.", "error");
       return;
     }
 
     try {
       setSubmitting(true);
-      setUpdateFormError(null);
-      setError(null);
 
       const classLabel =
         CLASS_OPTIONS.find((option) => option.value === updateFormData.class)?.label ??
@@ -428,16 +399,13 @@ const RegisteredStudentList = () => {
       if (response.isSuccess) {
         const message =
           response.message || "You have updated the class/location successfully";
-        setSnackbar({
-          open: true,
-          message,
-          severity: "success",
-        });
+        showSnackbar(message, "success");
         setShowUpdateForm(false);
         await fetchData({ quiet: true });
       } else {
-        setUpdateFormError(
-          response.errorMessage || "Failed to update student class"
+        showSnackbar(
+          response.errorMessage || "Failed to update student class",
+          "error"
         );
       }
     } catch (err) {
@@ -448,7 +416,7 @@ const RegisteredStudentList = () => {
             err?.response?.data?.message ??
             err?.message ??
             "An error occurred while updating student class";
-      setUpdateFormError(message);
+      showSnackbar(message, "error");
       console.error("Error updating student class:", err);
     } finally {
       setSubmitting(false);
@@ -458,7 +426,7 @@ const RegisteredStudentList = () => {
   // Handle delete student
   const handleDeleteStudent = (studentId) => {
     if (!studentId || studentId === "0") {
-      setError("You cannot delete this student.");
+      showSnackbar("You cannot delete this student.", "error");
       return;
     }
 
@@ -481,21 +449,30 @@ const RegisteredStudentList = () => {
 
     try {
       setLoading(true);
-      setError(null);
 
       const response = await registeredStudentListService.deleteStudent(
         studentToDelete
       );
 
       if (response.isSuccess) {
-        setSuccess(response.message || "Student deleted successfully");
+        showSnackbar(
+          response.message || "You have deleted the student successfully",
+          "success"
+        );
         handleDeleteConfirmClose();
         fetchData();
       } else {
-        setError(response.errorMessage || "Failed to delete student");
+        showSnackbar(response.errorMessage || "Failed to delete student", "error");
       }
     } catch (err) {
-      setError(err.message || "An error occurred while deleting student");
+      const apiMessage =
+        err.response?.data?.errorMessage ||
+        err.response?.data?.message ||
+        err.response?.data?.error;
+      showSnackbar(
+        apiMessage || err.message || "An error occurred while deleting student",
+        "error"
+      );
       console.error("Error deleting student:", err);
     } finally {
       setLoading(false);
@@ -506,7 +483,6 @@ const RegisteredStudentList = () => {
   const handleExportToExcel = async () => {
     try {
       setLoading(true);
-      setError(null);
 
       const request = {
         username: "", // Will use JWT token
@@ -514,9 +490,9 @@ const RegisteredStudentList = () => {
       };
 
       await registeredStudentListService.exportStudentListToExcel(request);
-      setSuccess("Excel file downloaded successfully");
+      showSnackbar("Excel file downloaded successfully", "success");
     } catch (err) {
-      setError(err.message || "An error occurred while exporting to Excel");
+      showSnackbar(err.message || "An error occurred while exporting to Excel", "error");
       console.error("Error exporting to Excel:", err);
     } finally {
       setLoading(false);
@@ -562,11 +538,7 @@ const RegisteredStudentList = () => {
   };
 
   const handleCellCopy = () => {
-    setSnackbar({
-      open: true,
-      message: "Copied to clipboard",
-      severity: "success",
-    });
+    showSnackbar("Copied to clipboard", "success");
   };
 
   const formatRegisteredDate = (value) => {
@@ -760,26 +732,6 @@ const RegisteredStudentList = () => {
                     )}
                   </Box>
                 </Box>
-
-                {/* Alert Messages */}
-                {error && (
-                  <Alert
-                    severity="error"
-                    onClose={() => setError(null)}
-                    sx={{ mb: 2 }}
-                  >
-                    {error}
-                  </Alert>
-                )}
-                {success && (
-                  <Alert
-                    severity="success"
-                    onClose={() => setSuccess(null)}
-                    sx={{ mb: 2 }}
-                  >
-                    {success}
-                  </Alert>
-                )}
 
                 <Box sx={adminSessionListSearchBarSx}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -1101,15 +1053,6 @@ const RegisteredStudentList = () => {
                     </Button>
                   }
                 >
-                  {updateFormError && (
-                    <Alert
-                      severity="error"
-                      onClose={() => setUpdateFormError(null)}
-                      sx={{ mb: 2 }}
-                    >
-                      {updateFormError}
-                    </Alert>
-                  )}
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
                       <TextField
@@ -1263,24 +1206,7 @@ const RegisteredStudentList = () => {
         loading={loading}
       />
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={(event, reason) => {
-          if (reason === "clickaway") return;
-          setSnackbar((s) => ({ ...s, open: false }));
-        }}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          severity={snackbar.severity}
-          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-          sx={{ width: "100%" }}
-          variant="filled"
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
     </Box>
   );
 };

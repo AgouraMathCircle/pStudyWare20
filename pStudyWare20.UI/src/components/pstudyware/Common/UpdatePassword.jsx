@@ -5,7 +5,6 @@ import {
   Typography,
   TextField,
   Button,
-  Alert,
   CircularProgress,
   Container,
   InputAdornment,
@@ -15,6 +14,8 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useAuth } from "../../../contexts/AuthContext";
 import authService from "../../../services/authService";
+import AppSnackbar from "./AppSnackbar";
+import { useAppSnackbar } from "./useAppSnackbar";
 import {
   adminSessionListHeaderBarSx,
   adminSessionListTitleSx,
@@ -97,9 +98,8 @@ const legacyFieldSx = {
 const UpdatePassword = ({ embedded = false }) => {
   const location = useLocation();
   const { user } = useAuth();
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -127,8 +127,6 @@ const UpdatePassword = ({ embedded = false }) => {
       ...prev,
       [name]: "",
     }));
-
-    setError(null);
   };
 
   const validateForm = () => {
@@ -172,8 +170,6 @@ const UpdatePassword = ({ embedded = false }) => {
 
     try {
       setLoading(true);
-      setError(null);
-      setSuccess(false);
 
       const response = await authService.updatePassword(
         formData.currentPassword,
@@ -181,7 +177,7 @@ const UpdatePassword = ({ embedded = false }) => {
       );
 
       if (response?.isSuccess || response?.IsSuccess) {
-        setSuccess(true);
+        showSnackbar("You have changed your password successfully!", "success");
         setFormData({
           currentPassword: "",
           password: "",
@@ -189,15 +185,19 @@ const UpdatePassword = ({ embedded = false }) => {
         });
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
-        setError(
+        showSnackbar(
           response?.message ||
             response?.Message ||
             "Failed to update password. Please try again.",
+          "error",
         );
       }
     } catch (err) {
       console.error("Error updating password:", err);
-      setError(err.message || "Failed to update password. Please try again.");
+      showSnackbar(
+        err.message || "Failed to update password. Please try again.",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
@@ -505,23 +505,9 @@ const UpdatePassword = ({ embedded = false }) => {
     </Box>
   );
 
-  const alerts = (
-    <>
-      {success && (
-        <Alert severity="success" sx={{ mb: 2, maxWidth: useLegacyCompactLayout ? 420 : "100%" }}>
-          You have changed your password successfully!
-        </Alert>
-      )}
-      {error && (
-        <Alert severity="error" sx={{ mb: 2, maxWidth: useLegacyCompactLayout ? 420 : "100%" }}>
-          {error}
-        </Alert>
-      )}
-    </>
-  );
-
   if (useLegacyCompactLayout) {
     return (
+      <>
       <Box sx={{ width: "100%" }}>
         {embedded && (
           <Box sx={adminSessionListHeaderBarSx}>
@@ -530,19 +516,20 @@ const UpdatePassword = ({ embedded = false }) => {
             </Typography>
           </Box>
         )}
-        {alerts}
         {legacyForm}
       </Box>
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+      </>
     );
   }
 
   return (
+    <>
     <Box>
       <Container
         maxWidth="md"
         sx={{ py: isDashboardShell ? 1 : 4 }}
       >
-        {alerts}
         <Box sx={{ textAlign: "left", mb: 3 }}>
           <Typography
             variant="h4"
@@ -558,6 +545,8 @@ const UpdatePassword = ({ embedded = false }) => {
         {wideForm}
       </Container>
     </Box>
+    <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+    </>
   );
 };
 
