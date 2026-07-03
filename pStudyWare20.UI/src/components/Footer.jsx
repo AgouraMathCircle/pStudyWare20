@@ -194,6 +194,8 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   const location = useLocation();
   const isHomePage = location.pathname === "/";
+  const isSatelliteProgram = location.pathname === "/about/satellite-program";
+  const showFooter = isHomePage || isSatelliteProgram;
 
   return (
     <>
@@ -201,16 +203,16 @@ const Footer = () => {
         component="footer"
         id="sc-footer"
         sx={(theme) => ({
-          paddingTop: isHomePage ? "120px" : "40px",
+          paddingTop: showFooter ? "120px" : "40px",
           [theme.breakpoints.down("md")]: {
-            paddingTop: isHomePage ? "80px" : "30px",
+            paddingTop: showFooter ? "80px" : "30px",
           },
           [theme.breakpoints.down("sm")]: {
-            paddingTop: isHomePage ? "60px" : "20px",
+            paddingTop: showFooter ? "60px" : "20px",
           },
         })}
       >
-        {isHomePage && <Newsletter />}
+        {(showFooter) && <Newsletter />}
         <Container
           maxWidth={false}
           disableGutters

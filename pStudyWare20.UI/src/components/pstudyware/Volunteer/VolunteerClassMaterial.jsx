@@ -13,7 +13,7 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
 import StudentDocumentList from "../Student/StudentDocumentList";
-import VolunteerHeader, { VolunteerRoleHeaderSpacer } from "./VolunteerHeader";
+
 import PdfViewerModal from "../../common/PdfViewerModal";
 import {
   adminSessionListPanelCardSx,
@@ -135,8 +135,6 @@ const VolunteerClassMaterial = () => {
 
   return (
     <Box className="student-class-material">
-      <VolunteerHeader user={user} />
-      <VolunteerRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

@@ -11,7 +11,13 @@
   padding: 40px 0 20px;
   overflow: hidden;
 }
-
+.overview-text-row{
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -15px;
+  justify-content: space-around;
+  margin-bottom: 40px;
+}
 .breadcrumbs-overlay {
   position: relative;
 }

@@ -128,7 +128,7 @@ const SatelliteProgram = () => {
             >
               <div
                 className="img-part overview-img-wrapper"
-                style={{ width: "100%", maxWidth: "600px" }}
+                style={{ width: "100%", maxWidth: "600px", height: 'fit-content' }}
               >
                 <img
                   src={flyerImg}
@@ -145,6 +145,7 @@ const SatelliteProgram = () => {
               <h2 className="title mb-40">Satellite Chapters</h2>
             </div>
           </div>
+          <div className="overview-text-row">
           <div
             className="row justify-content-center"
             style={{ marginTop: "16px" }}
@@ -202,6 +203,7 @@ const SatelliteProgram = () => {
                 SAI KRUSHNA VIDYA MANDIR, INDIA
               </div>
             </div>
+          </div>
           </div>
         </div>
       </div>

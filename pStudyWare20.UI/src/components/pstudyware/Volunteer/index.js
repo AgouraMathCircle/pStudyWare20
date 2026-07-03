@@ -3,3 +3,4 @@ export { default as VolunteerHeader } from "./VolunteerHeader";
 export { default as VolunteerDashboard } from "./VolunteerDashboard";
 export { default as VolunteerTimeSheetGrid } from "./VolunteerTimeSheetGrid";
 export { default as VolunteerTimeSheet } from "./VolunteerTimeSheet";
+export { default as VolunteerClassMaterial } from "./VolunteerClassMaterial";
