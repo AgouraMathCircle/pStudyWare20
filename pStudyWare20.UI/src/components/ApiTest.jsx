@@ -1,27 +1,38 @@
-import React, { useState } from 'react';
-import { Button, Typography, Box, Alert, Paper } from '@mui/material';
-import api from '../services/api';
+import React, { useState, useEffect } from "react";
+import { Button, Typography, Box, Paper } from "@mui/material";
+import api from "../services/api";
+import AppSnackbar from "./pstudyware/Common/AppSnackbar";
+import { useAppSnackbar } from "./pstudyware/Common/useAppSnackbar";
 
 const ApiTest = () => {
   const [testResult, setTestResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar();
+
+  useEffect(() => {
+    if (!testResult) return;
+    showSnackbar(
+      testResult.message,
+      testResult.success ? "success" : "error"
+    );
+  }, [testResult, showSnackbar]);
 
   const testApiConnection = async () => {
     setLoading(true);
     setTestResult(null);
 
     try {
-      const response = await api.get('/test/public');
+      const response = await api.get("/test/public");
       setTestResult({
         success: true,
-        message: 'API connection successful!',
-        data: response.data
+        message: "API connection successful!",
+        data: response.data,
       });
     } catch (error) {
       setTestResult({
         success: false,
         message: error.message,
-        error: error
+        error: error,
       });
     } finally {
       setLoading(false);
@@ -33,17 +44,17 @@ const ApiTest = () => {
     setTestResult(null);
 
     try {
-      const response = await api.get('/test/cors-test');
+      const response = await api.get("/test/cors-test");
       setTestResult({
         success: true,
-        message: 'CORS test successful!',
-        data: response.data
+        message: "CORS test successful!",
+        data: response.data,
       });
     } catch (error) {
       setTestResult({
         success: false,
         message: error.message,
-        error: error
+        error: error,
       });
     } finally {
       setLoading(false);
@@ -55,52 +66,37 @@ const ApiTest = () => {
       <Typography variant="h4" gutterBottom>
         API Connection Test
       </Typography>
-      
+
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>
           Test API Endpoints
         </Typography>
-        
-        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-          <Button 
-            variant="contained" 
+
+        <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+          <Button
+            variant="contained"
             onClick={testApiConnection}
             disabled={loading}
           >
-            {loading ? 'Testing...' : 'Test Public Endpoint'}
+            {loading ? "Testing..." : "Test Public Endpoint"}
           </Button>
-          
-          <Button 
-            variant="outlined" 
-            onClick={testCors}
-            disabled={loading}
-          >
-            {loading ? 'Testing...' : 'Test CORS'}
+
+          <Button variant="outlined" onClick={testCors} disabled={loading}>
+            {loading ? "Testing..." : "Test CORS"}
           </Button>
         </Box>
 
-        {testResult && (
-          <Alert 
-            severity={testResult.success ? 'success' : 'error'}
-            sx={{ mb: 2 }}
-          >
-            <Typography variant="body1" gutterBottom>
-              {testResult.message}
+        {testResult?.data && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2" component="pre" sx={{
+              backgroundColor: "grey.100",
+              p: 1,
+              borderRadius: 1,
+              fontSize: "0.875rem",
+            }}>
+              {JSON.stringify(testResult.data, null, 2)}
             </Typography>
-            
-            {testResult.data && (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="body2" component="pre" sx={{ 
-                  backgroundColor: 'grey.100', 
-                  p: 1, 
-                  borderRadius: 1,
-                  fontSize: '0.875rem'
-                }}>
-                  {JSON.stringify(testResult.data, null, 2)}
-                </Typography>
-              </Box>
-            )}
-          </Alert>
+          </Box>
         )}
       </Paper>
 
@@ -108,11 +104,11 @@ const ApiTest = () => {
         <Typography variant="h6" gutterBottom>
           Troubleshooting
         </Typography>
-        
+
         <Typography variant="body2" paragraph>
-          If you're getting network errors:
+          If you&apos;re getting network errors:
         </Typography>
-        
+
         <Box component="ul" sx={{ pl: 3 }}>
           <Typography component="li" variant="body2">
             Make sure the API server is running: <code>dotnet run --launch-profile http</code>
@@ -128,8 +124,10 @@ const ApiTest = () => {
           </Typography>
         </Box>
       </Paper>
+
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
     </Box>
   );
 };
 
-export default ApiTest; 
+export default ApiTest;

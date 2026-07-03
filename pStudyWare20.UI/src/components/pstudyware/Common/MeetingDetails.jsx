@@ -10,10 +10,6 @@ import {
 
   Box,
 
-  Alert,
-
-  Snackbar,
-
   Grid,
 
   Card,
@@ -33,6 +29,10 @@ import AdminHeader, { AdminRoleHeaderSpacer } from "../Admin/AdminHeader";
 import MeetingList from "./MeetingList";
 
 import MeetingForm from "./MeetingForm";
+
+import AppSnackbar from "./AppSnackbar";
+
+import { useAppSnackbar } from "./useAppSnackbar";
 
 import {
 
@@ -136,23 +136,31 @@ const MeetingDetails = () => {
 
 
 
-  const [snackbar, setSnackbar] = useState({
-
-    open: false,
-
-    message: "",
-
-    severity: "info",
-
-  });
-
-
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("info");
 
   useEffect(() => {
 
     loadInitialData();
 
   }, []);
+
+
+
+  useEffect(() => {
+
+    if (!loading && !privileges.isAdmin) {
+
+      showSnackbar(
+
+        "You do not have permission to access this page. Admin access required.",
+
+        "error",
+
+      );
+
+    }
+
+  }, [loading, privileges.isAdmin, showSnackbar]);
 
 
 
@@ -442,22 +450,6 @@ const MeetingDetails = () => {
 
 
 
-  const showSnackbar = (message, severity = "info") => {
-
-    setSnackbar({ open: true, message, severity });
-
-  };
-
-
-
-  const handleCloseSnackbar = () => {
-
-    setSnackbar((prev) => ({ ...prev, open: false }));
-
-  };
-
-
-
   const selectedMeetingKey = selectedMeeting
 
     ? `edit-${selectedMeeting.RowID ?? selectedMeeting.rowID ?? selectedMeeting.RowId ?? "unknown"}`
@@ -546,15 +538,7 @@ const MeetingDetails = () => {
 
 
 
-                {!loading && !privileges.isAdmin ? (
-
-                  <Alert severity="error">
-
-                    You do not have permission to access this page. Admin access required.
-
-                  </Alert>
-
-                ) : (
+                {!loading && !privileges.isAdmin ? null : (
 
                   <MeetingList
 
@@ -608,33 +592,15 @@ const MeetingDetails = () => {
 
 
 
-      <Snackbar
+      <AppSnackbar
 
-        open={snackbar.open}
+        snackbar={snackbar}
+
+        onClose={closeSnackbar}
 
         autoHideDuration={6000}
 
-        onClose={handleCloseSnackbar}
-
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-
-      >
-
-        <Alert
-
-          onClose={handleCloseSnackbar}
-
-          severity={snackbar.severity}
-
-          sx={{ width: "100%" }}
-
-        >
-
-          {snackbar.message}
-
-        </Alert>
-
-      </Snackbar>
+      />
 
     </Box>
 

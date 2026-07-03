@@ -51,7 +51,7 @@ namespace pStudyWare20.Services.Implementations
                                 Class = GetStringValue(row, "Class"),
                                 Section = GetStringValue(row, "Section"),
                                 UserName = GetStringValue(row, "UserName"),
-                                MemberStatus = GetStringValue(row, "mStatus"),
+                                MemberStatus = NormalizeMemberStatus(GetStringValue(row, "mStatus")),
                                 LastLogin = GetDateTimeValue(row, "LastLogin")
                             };
 
@@ -83,6 +83,13 @@ namespace pStudyWare20.Services.Implementations
             InstructorOperationResponse response = new InstructorOperationResponse();
             try
             {
+                request.MemberStatus = NormalizeMemberStatus(request.MemberStatus);
+
+                if (request.InstructorID > 0)
+                {
+                    request.InstructorType = NormalizeInstructorTypeCode(request.InstructorType);
+                }
+
                 var result = _instructorRepository.AddOrUpdateInstructorAsync(request).Result;
 
                 if (result)
@@ -172,6 +179,37 @@ namespace pStudyWare20.Services.Implementations
             }
 
             return response;
+        }
+
+        private static string NormalizeMemberStatus(string? memberStatus)
+        {
+            var value = (memberStatus ?? "1").Trim().ToLowerInvariant();
+            if (value is "0" or "inactive" or "deactive" or "false")
+            {
+                return "0";
+            }
+
+            if (value is "1" or "active")
+            {
+                return "1";
+            }
+
+            return "1";
+        }
+
+        private static string NormalizeInstructorTypeCode(string? instructorType)
+        {
+            var value = (instructorType ?? "P").Trim();
+            return value.ToUpperInvariant() switch
+            {
+                "PRIMARY" => "P",
+                "SECONDARY" => "S",
+                "COORDINATOR" => "C",
+                "VOLUNTEER" or "VOLUNTEERS" => "V",
+                "ADMINISTRATOR" => "A",
+                _ when value.Length == 1 => value.ToUpperInvariant(),
+                _ => "P",
+            };
         }
 
         /// <summary>

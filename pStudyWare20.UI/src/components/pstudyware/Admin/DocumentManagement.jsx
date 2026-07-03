@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import {
   Container,
   Box,
-  Alert,
-  Snackbar,
   Typography,
   CircularProgress,
   Grid,
   Card,
   CardContent,
 } from "@mui/material";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
+import AppSnackbar from "../Common/AppSnackbar";
 import { useAuth } from "../../../contexts/AuthContext";
 import documentService from "../../../services/documentService";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
@@ -33,12 +33,7 @@ const DocumentManagement = () => {
     canPublishDocument: false,
   });
 
-  // Global message state
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "info",
-  });
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("info");
 
   // Load document data
   useEffect(() => {
@@ -76,7 +71,7 @@ const DocumentManagement = () => {
         if (response.isSuccess) {
           setDocuments(response.documents || []);
         } else {
-          showMessage(
+          showSnackbar(
             response.errorMessage || "Failed to load documents list",
             "error"
           );
@@ -99,7 +94,7 @@ const DocumentManagement = () => {
           errorMessage = `Error: ${err.message}`;
         }
 
-        showMessage(errorMessage, "error");
+        showSnackbar(errorMessage, "error");
       } finally {
         setLoading(false);
       }
@@ -108,22 +103,11 @@ const DocumentManagement = () => {
     loadDocuments();
   }, [isAuthenticated, user]);
 
-  // Helper function to show messages
-  const showMessage = (message, severity = "info") => {
-    setSnackbar({
-      open: true,
-      message,
-      severity,
-    });
-  };
-
-  // Helper function to close snackbar
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
+  useEffect(() => {
+    if (!loading && (!isAuthenticated || !user)) {
+      showSnackbar("Access denied. Please log in to view documents.", "error");
     }
-    setSnackbar({ ...snackbar, open: false });
-  };
+  }, [loading, isAuthenticated, user, showSnackbar]);
 
   // Handle add document
   const handleAdd = () => {
@@ -143,7 +127,7 @@ const DocumentManagement = () => {
   const handleDelete = async (docID, docName) => {
     try {
       console.log("DocumentManagement: Deleting document", docID, docName);
-      showMessage("Deleting document...", "info");
+      showSnackbar("Deleting document...", "info");
 
       const response = await documentService.deleteDocument(
         docID.toString(),
@@ -151,21 +135,21 @@ const DocumentManagement = () => {
       );
 
       if (response.isSuccess) {
-        showMessage(
+        showSnackbar(
           response.message || "Document deleted successfully!",
           "success"
         );
         // Refresh documents list
         await refreshDocuments();
       } else {
-        showMessage(
+        showSnackbar(
           response.errorMessage || "Failed to delete document.",
           "error"
         );
       }
     } catch (err) {
       console.error("Error deleting document:", err);
-      showMessage("Error deleting document. Please try again.", "error");
+      showSnackbar("Error deleting document. Please try again.", "error");
     }
   };
 
@@ -173,26 +157,26 @@ const DocumentManagement = () => {
   const handlePublish = async (docID) => {
     try {
       console.log("DocumentManagement: Publishing document", docID);
-      showMessage("Publishing document...", "info");
+      showSnackbar("Publishing document...", "info");
 
       const response = await documentService.publishDocument(docID);
 
       if (response.isSuccess) {
-        showMessage(
+        showSnackbar(
           response.message || "Document published successfully!",
           "success"
         );
         // Refresh documents list
         await refreshDocuments();
       } else {
-        showMessage(
+        showSnackbar(
           response.errorMessage || "Failed to publish document.",
           "error"
         );
       }
     } catch (err) {
       console.error("Error publishing document:", err);
-      showMessage("Error publishing document. Please try again.", "error");
+      showSnackbar("Error publishing document. Please try again.", "error");
     }
   };
 
@@ -211,7 +195,7 @@ const DocumentManagement = () => {
     if (videoURL) {
       documentService.openVideo(videoURL);
     } else {
-      showMessage("No video URL available for this document.", "warning");
+      showSnackbar("No video URL available for this document.", "warning");
     }
   };
 
@@ -219,12 +203,12 @@ const DocumentManagement = () => {
   const handleFormSubmit = async (formData) => {
     try {
       console.log("DocumentManagement: Uploading document", formData);
-      showMessage("Uploading document...", "info");
+      showSnackbar("Uploading document...", "info");
 
       const response = await documentService.uploadDocument(formData);
 
       if (response.isSuccess) {
-        showMessage(
+        showSnackbar(
           response.message || "Document uploaded successfully!",
           "success"
         );
@@ -232,7 +216,7 @@ const DocumentManagement = () => {
         await refreshDocuments();
         setFormOpen(false);
       } else {
-        showMessage(
+        showSnackbar(
           response.errorMessage || "Failed to upload document.",
           "error"
         );
@@ -247,7 +231,7 @@ const DocumentManagement = () => {
   // Handle refresh data
   const handleRefresh = async () => {
     await refreshDocuments();
-    showMessage("Documents list refreshed!", "success");
+    showSnackbar("Documents list refreshed!", "success");
   };
 
   // Refresh documents list
@@ -260,14 +244,14 @@ const DocumentManagement = () => {
       if (response.isSuccess) {
         setDocuments(response.documents || []);
       } else {
-        showMessage(
+        showSnackbar(
           response.errorMessage || "Failed to refresh documents list",
           "error"
         );
       }
     } catch (err) {
       console.error("Error refreshing documents list:", err);
-      showMessage("Error refreshing documents list.", "error");
+      showSnackbar("Error refreshing documents list.", "error");
     }
   };
 
@@ -292,22 +276,8 @@ const DocumentManagement = () => {
     );
   }
 
-  // Check authentication
   if (!isAuthenticated || !user) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "400px",
-        }}
-      >
-        <Alert severity="error">
-          Access denied. Please log in to view documents.
-        </Alert>
-      </Box>
-    );
+    return <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />;
   }
 
   return (
@@ -354,22 +324,7 @@ const DocumentManagement = () => {
         isEdit={isEdit}
       />
 
-      {/* Global Snackbar for Success/Error Messages */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-          variant="filled"
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />
     </Box>
   );
 };

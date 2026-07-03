@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import {
   Container,
   Box,
-  Alert,
-  Snackbar,
   Typography,
   CircularProgress,
   Grid,
   Card,
   CardContent,
 } from "@mui/material";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
+import AppSnackbar from "../Common/AppSnackbar";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import documentService, {
@@ -46,12 +46,7 @@ const Documents = () => {
     canPublishDocument: false,
   });
 
-  // Global message state
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "info",
-  });
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("info");
 
   const getDocumentsListWithRetry = async (username) => {
     return await documentService.getDocumentsList(username);
@@ -114,7 +109,7 @@ const Documents = () => {
             const docs = response.documents ?? response.Documents ?? [];
             setDocuments(Array.isArray(docs) ? docs : []);
           } else {
-            showMessage(
+            showSnackbar(
               response.errorMessage || "Failed to load documents list",
               "error",
             );
@@ -140,7 +135,7 @@ const Documents = () => {
           errorMessage = `Error: ${err.message}`;
         }
 
-        showMessage(errorMessage, "error");
+        showSnackbar(errorMessage, "error");
       } finally {
         setLoading(false);
       }
@@ -149,22 +144,11 @@ const Documents = () => {
     loadDocuments();
   }, [isAuthenticated, user]);
 
-  // Helper function to show messages
-  const showMessage = (message, severity = "info") => {
-    setSnackbar({
-      open: true,
-      message,
-      severity,
-    });
-  };
-
-  // Helper function to close snackbar
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
+  useEffect(() => {
+    if (!loading && (!isAuthenticated || !user)) {
+      showSnackbar("Access denied. Please log in to view documents.", "error");
     }
-    setSnackbar({ ...snackbar, open: false });
-  };
+  }, [loading, isAuthenticated, user, showSnackbar]);
 
   // Handle view document — open PDF via API storage (legacy static /pstudyware/Documents/ is not used for uploads)
   const handleView = (docName) => {
@@ -181,7 +165,7 @@ const Documents = () => {
       await documentService.downloadClassMaterial(docName);
     } catch (err) {
       console.error("Error downloading class material:", err);
-      showMessage(
+      showSnackbar(
         err?.message || "Unable to download document. Please try again.",
         "error",
       );
@@ -198,16 +182,16 @@ const Documents = () => {
       if (response.isSuccess) {
         const docs = response.documents ?? response.Documents ?? [];
         setDocuments(Array.isArray(docs) ? docs : []);
-        if (!quiet) showMessage("Documents refreshed!", "success");
+        if (!quiet) showSnackbar("Documents refreshed!", "success");
       } else {
-        showMessage(
+        showSnackbar(
           response.errorMessage || "Failed to refresh documents",
           "error",
         );
       }
     } catch (err) {
       console.error("Error refreshing documents:", err);
-      showMessage("Error refreshing documents.", "error");
+      showSnackbar("Error refreshing documents.", "error");
     } finally {
       setListRefreshing(false);
     }
@@ -220,11 +204,11 @@ const Documents = () => {
       const response = await documentService.deleteDocument(docID, docName);
 
       if (response.isSuccess) {
-        showMessage("Document deleted successfully!", "success");
+        showSnackbar("Document deleted successfully!", "success");
         await refreshDocumentsList({ quiet: true });
       } else {
         setListRefreshing(false);
-        showMessage(
+        showSnackbar(
           response.errorMessage || "Failed to delete document",
           "error",
         );
@@ -232,7 +216,7 @@ const Documents = () => {
     } catch (err) {
       console.error("Error deleting document:", err);
       setListRefreshing(false);
-      showMessage(
+      showSnackbar(
         err?.response?.data?.message ||
           err?.response?.data?.errorMessage ||
           err?.message ||
@@ -249,11 +233,11 @@ const Documents = () => {
       const response = await documentService.publishDocument(docID);
 
       if (response.isSuccess) {
-        showMessage("Document published successfully!", "success");
+        showSnackbar("Document published successfully!", "success");
         await refreshDocumentsList({ quiet: true });
       } else {
         setListRefreshing(false);
-        showMessage(
+        showSnackbar(
           response.errorMessage || "Failed to publish document",
           "error",
         );
@@ -261,7 +245,7 @@ const Documents = () => {
     } catch (err) {
       console.error("Error publishing document:", err);
       setListRefreshing(false);
-      showMessage("Error publishing document. Please try again.", "error");
+      showSnackbar("Error publishing document. Please try again.", "error");
     }
   };
 
@@ -274,11 +258,11 @@ const Documents = () => {
       );
 
       if (response.isSuccess) {
-        showMessage("Document unpublished successfully!", "success");
+        showSnackbar("Document unpublished successfully!", "success");
         await refreshDocumentsList({ quiet: true });
       } else {
         setListRefreshing(false);
-        showMessage(
+        showSnackbar(
           response.errorMessage || "Failed to unpublish document",
           "error",
         );
@@ -286,7 +270,7 @@ const Documents = () => {
     } catch (err) {
       console.error("Error unpublishing document:", err);
       setListRefreshing(false);
-      showMessage("Error unpublishing document. Please try again.", "error");
+      showSnackbar("Error unpublishing document. Please try again.", "error");
     }
   };
 
@@ -295,7 +279,7 @@ const Documents = () => {
     if (videoURL) {
       documentService.openVideo(videoURL);
     } else {
-      showMessage("No video URL available for this document.", "warning");
+      showSnackbar("No video URL available for this document.", "warning");
     }
   };
 
@@ -311,18 +295,18 @@ const Documents = () => {
       const response = await documentService.uploadDocument(uploadData);
 
       if (response.isSuccess) {
-        showMessage("Document uploaded successfully!", "success");
+        showSnackbar("Document uploaded successfully!", "success");
         setUploadFormOpen(false);
         await refreshDocumentsList({ quiet: true });
       } else {
-        showMessage(
+        showSnackbar(
           response.errorMessage || "Failed to upload document",
           "error",
         );
       }
     } catch (err) {
       console.error("Error uploading document:", err);
-      showMessage("Error uploading document. Please try again.", "error");
+      showSnackbar("Error uploading document. Please try again.", "error");
     } finally {
       setUploading(false);
     }
@@ -349,22 +333,8 @@ const Documents = () => {
     );
   }
 
-  // Check authentication
   if (!isAuthenticated || !user) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "400px",
-        }}
-      >
-        <Alert severity="error">
-          Access denied. Please log in to view documents.
-        </Alert>
-      </Box>
-    );
+    return <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />;
   }
 
   return (
@@ -453,22 +423,7 @@ const Documents = () => {
         />
       )}
 
-      {/* Global Snackbar for Success/Error Messages */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-          variant="filled"
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />
     </Box>
   );
 };

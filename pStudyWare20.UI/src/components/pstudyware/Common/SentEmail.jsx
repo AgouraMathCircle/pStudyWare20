@@ -26,7 +26,7 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import sentEmailService from "../../../services/sentEmailService";
-import { getPortalUsername } from "../../../utils/portalUsername";
+import { getPortalUsername, getPortalLoginIdentifier } from "../../../utils/portalUsername";
 import {
   getMessagePreview,
   getMessageFieldValue,
@@ -62,7 +62,21 @@ import {
   adminSessionListTitleSx,
   portalHeaderActionButtonSx,
 } from "../styles/applicationSurfaces";
-import { portalModalFieldSx } from "./portalModalStyles";
+import {
+  portalModalFieldSx,
+  portalModalClearButtonSx,
+} from "./portalModalStyles";
+
+/** Real tracking row id — never use MessageID (Row_Number) for API calls. */
+const getSentEmailTrackingId = (message) => {
+  const id =
+    message?.emailID ??
+    message?.EmailID ??
+    message?.trackingID ??
+    message?.TrackingID;
+  const parsed = Number(id);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
 
 const sentListColumnWidths = {
   actions: "10%",
@@ -206,10 +220,8 @@ const SentEmail = () => {
     try {
       setLoading(true);
       setLoadError(null);
-      const portalUsername = getPortalUsername(user) || user?.email || "";
-      const response = await sentEmailService.getSentMessages(
-        portalUsername || null
-      );
+      const portalUsername = getPortalUsername(user) || getPortalLoginIdentifier(user) || null;
+      const response = await sentEmailService.getSentMessages(portalUsername);
 
       if (response.isSuccess || response.IsSuccess) {
         const messagesList = response.messages || response.Messages || [];
@@ -352,11 +364,7 @@ const SentEmail = () => {
   };
 
   const openViewModal = async (message, options = {}) => {
-    const emailID =
-      message?.emailID ||
-      message?.EmailID ||
-      message?.messageID ||
-      message?.MessageID;
+    const trackingId = getSentEmailTrackingId(message);
     const rowBody = getMessagePreview(message);
 
     setSendTo(getSentViewToDisplay(message, memberType));
@@ -365,20 +373,27 @@ const SentEmail = () => {
     setMessageBody(rowBody);
     setViewModalOpen(true);
 
-    if (rowBody.trim() && !options.forceReload) {
+    const shouldFetchBody =
+      options.forceReload || !rowBody.trim() || Boolean(trackingId);
+
+    if (!shouldFetchBody) {
       return;
     }
 
-    if (!emailID) {
+    if (!trackingId) {
       showSnackbar("Unable to load message details (missing message ID).", "error");
       return;
     }
 
     try {
       setMessageBodyLoading(true);
-      const response = await sentEmailService.getMessageDetails(emailID);
+      const response = await sentEmailService.getMessageDetails(trackingId);
       if (response.isSuccess || response.IsSuccess) {
-        setMessageBody(response.message || response.Message || rowBody);
+        const body =
+          response.message ??
+          response.Message ??
+          rowBody;
+        setMessageBody(body);
       } else {
         showSnackbar(
           response.errorMessage ||
@@ -612,13 +627,7 @@ const SentEmail = () => {
                   ) : (
                     paginatedMessages.map((message, index) => (
                       <TableRow
-                        key={
-                          message.emailID ||
-                          message.EmailID ||
-                          message.messageID ||
-                          message.MessageID ||
-                          index
-                        }
+                        key={getSentEmailTrackingId(message) ?? index}
                         sx={adminSessionListTableBodyRowSx}
                       >
                         <TableCell
@@ -689,13 +698,23 @@ const SentEmail = () => {
           open={viewModalOpen}
           onClose={closeViewModal}
           maxWidth="md"
-          hideActions
+          hideCloseIcon
           ariaLabelledby="view-sent-message-dialog-title"
           title="View Sent Message"
           icon={<VisibilityIcon sx={{ fontSize: 20 }} />}
+          actions={
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={closeViewModal}
+              sx={portalModalClearButtonSx}
+            >
+              Close
+            </Button>
+          }
         >
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 0.5 }}>
-            {(isStudent || (!isInstructor && !isStudent)) && (
+            {(isStudent || isAdmin || memberType === "V") && (
               <TextField
                 fullWidth
                 variant="outlined"
@@ -707,7 +726,7 @@ const SentEmail = () => {
                 sx={portalModalFieldSx}
               />
             )}
-            {(isInstructor || (!isInstructor && !isStudent)) && (
+            {(isInstructor || isAdmin || memberType === "V") && (
               <TextField
                 fullWidth
                 variant="outlined"

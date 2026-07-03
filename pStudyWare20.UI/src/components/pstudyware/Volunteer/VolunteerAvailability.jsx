@@ -1,7 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import {
-  Alert,
   Box,
   Button,
   Chip,
@@ -17,6 +16,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import AppSnackbar from "../Common/AppSnackbar";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
 import {
   ArrowBack as BackIcon,
   EventAvailable as AvailabilityIcon,
@@ -79,13 +80,12 @@ const VolunteerAvailability = ({ embedded = false }) => {
   const [isAvailable, setIsAvailable] = useState("true");
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState(null);
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [hasLoadedAvailability, setHasLoadedAvailability] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [hasExistingData, setHasExistingData] = useState(false);
   const loadAvailabilityRequestedRef = useRef(false);
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("info");
 
   // Load existing availability if available
   useEffect(() => {
@@ -129,7 +129,7 @@ const VolunteerAvailability = ({ embedded = false }) => {
           const isAvailableValue = data.response === "Y" ? "true" : "false";
           setIsAvailable(isAvailableValue);
           setReason(data.comments || "");
-          setMessage("Existing availability loaded. You can update it below.");
+          showSnackbar("Existing availability loaded. You can update it below.", "info");
           setHasExistingData(true);
         }
 
@@ -145,7 +145,7 @@ const VolunteerAvailability = ({ embedded = false }) => {
     };
 
     loadExistingAvailability();
-  }, [user, hasLoadedAvailability, showAvailability]);
+  }, [user, hasLoadedAvailability, showAvailability, showSnackbar]);
 
   if (!showAvailability) {
     return null;
@@ -153,23 +153,22 @@ const VolunteerAvailability = ({ embedded = false }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setMessage(null);
-    setError(null);
 
     if (!username) {
-      setError("You must be signed in.");
+      showSnackbar("You must be signed in.", "error");
       return;
     }
 
     if (!reason) {
-      setError("Please select a reason.");
+      showSnackbar("Please select a reason.", "error");
       return;
     }
 
     const currentSession = user?.currentSession;
     if (!currentSession) {
-      setError(
-        "Current session is required from login response. Please sign out and sign in again."
+      showSnackbar(
+        "Current session is required from login response. Please sign out and sign in again.",
+        "error",
       );
       return;
     }
@@ -184,8 +183,9 @@ const VolunteerAvailability = ({ embedded = false }) => {
     const semester = user?.currentSemester;
 
     if (!semester) {
-      setError(
-        "Current semester is required from login response. Please sign out and sign in again."
+      showSnackbar(
+        "Current semester is required from login response. Please sign out and sign in again.",
+        "error",
       );
       return;
     }
@@ -204,17 +204,18 @@ const VolunteerAvailability = ({ embedded = false }) => {
         await volunteerAvailabilityService.updateAvailability(request);
 
       if (response?.isSuccess === false) {
-        setError(response?.errorMessage || response?.message || "Save failed.");
+        showSnackbar(response?.errorMessage || response?.message || "Save failed.", "error");
         return;
       }
 
-      setMessage(
-        response?.message || "Volunteer availability updated successfully."
+      showSnackbar(
+        response?.message || "Volunteer availability updated successfully.",
+        "success",
       );
       setHasExistingData(true);
       setIsEditMode(false);
     } catch (err) {
-      setError(err?.response?.data?.message ?? err?.message ?? "Save failed.");
+      showSnackbar(err?.response?.data?.message ?? err?.message ?? "Save failed.", "error");
     } finally {
       setSaving(false);
     }
@@ -382,9 +383,12 @@ const VolunteerAvailability = ({ embedded = false }) => {
                 gap: 1,
               }}
             >
-              <Alert severity="success" sx={{ m: 0, py: 0, px: 1 }}>
+              <Typography
+                variant="body2"
+                sx={{ m: 0, py: 0.5, px: 1, color: "#1b5e20", fontWeight: 600 }}
+              >
                 Your volunteer availability has been submitted.
-              </Alert>
+              </Typography>
               <Box>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                   Need to change your response? Edit and resubmit before the session starts.
@@ -392,7 +396,6 @@ const VolunteerAvailability = ({ embedded = false }) => {
                 <Button
                   onClick={() => {
                     setIsEditMode(true);
-                    setMessage(null);
                   }}
                   variant="contained"
                   startIcon={<EditIcon />}
@@ -412,9 +415,9 @@ const VolunteerAvailability = ({ embedded = false }) => {
         ) : (
           <>
             {loading && (
-              <Alert severity="info" sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Loading your availability information...
-              </Alert>
+              </Typography>
             )}
 
             <FormControl component="fieldset" sx={{ mb: 2, width: "100%" }} disabled={loading}>
@@ -475,17 +478,6 @@ const VolunteerAvailability = ({ embedded = false }) => {
               placeholder="Type your reason for not volunteering..."
             />
 
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
-            {message && !hasExistingData && (
-              <Alert severity="success" sx={{ mb: 2 }}>
-                {message}
-              </Alert>
-            )}
-
             <Divider sx={{ mb: 2 }} />
 
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
@@ -517,6 +509,8 @@ const VolunteerAvailability = ({ embedded = false }) => {
           </>
         )}
       </Box>
+
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
     </Box>
   );
 

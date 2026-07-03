@@ -115,14 +115,14 @@ export const updateStudentClass = async (request) => {
 
 /**
  * Delete student registration
- * @param {string} studentId - Student ID to delete
+ * @param {string|number} studentId - Student ID to delete
  * @returns {Promise} - Promise with delete response
  */
 export const deleteStudent = async (studentId) => {
   try {
-    const response = await api.delete(
-      `/RegisteredStudentList/DeleteStudent/${studentId}`
-    );
+    const response = await api.post("/RegisteredStudentList/DeleteStudent", {
+      studentId: String(studentId),
+    });
     return response.data;
   } catch (error) {
     console.error("Error deleting student:", error);

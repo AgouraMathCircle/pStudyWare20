@@ -72,29 +72,125 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spAddInstructor", connection)
+                var memberStatus = ParseMemberStatus(request.MemberStatus);
+                var isUpdate = request.InstructorID > 0;
+
+                if (isUpdate)
+                {
+                    await ApplyMemberLoginStatusAsync(
+                        connection,
+                        request.InstructorID,
+                        memberStatus,
+                        request.EmailID);
+                }
+
+                using (var command = new SqlCommand("AMC_spAddInstructor", connection)
                 {
                     CommandType = CommandType.StoredProcedure
-                };
+                })
+                {
+                    command.Parameters.Add(new SqlParameter("@InstructorID", request.InstructorID));
+                    command.Parameters.Add(new SqlParameter("@firstname", request.FirstName ?? ""));
+                    command.Parameters.Add(new SqlParameter("@lastname", request.LastName ?? ""));
+                    command.Parameters.Add(new SqlParameter("@emailId", request.EmailID ?? ""));
+                    command.Parameters.Add(new SqlParameter("@Phone", request.ContactPhone ?? ""));
+                    command.Parameters.Add(new SqlParameter("@ChapterID", ParseChapterId(request.ChapterID)));
+                    command.Parameters.Add(new SqlParameter("@Type", request.InstructorType ?? ""));
+                    command.Parameters.Add(new SqlParameter("@Class", request.Class ?? ""));
+                    command.Parameters.Add(new SqlParameter("@Section", request.Section ?? ""));
+                    command.Parameters.Add(new SqlParameter("@MemberStatus", SqlDbType.Int) { Value = memberStatus });
 
-                command.Parameters.Add(new SqlParameter("@InstructorID", request.InstructorID));
-                command.Parameters.Add(new SqlParameter("@firstname", request.FirstName ?? ""));
-                command.Parameters.Add(new SqlParameter("@lastname", request.LastName ?? ""));
-                command.Parameters.Add(new SqlParameter("@emailId", request.EmailID ?? ""));
-                command.Parameters.Add(new SqlParameter("@Phone", request.ContactPhone ?? ""));
-                command.Parameters.Add(new SqlParameter("@ChapterID", request.ChapterID ?? ""));
-                command.Parameters.Add(new SqlParameter("@Type", request.InstructorType ?? ""));
-                command.Parameters.Add(new SqlParameter("@Class", request.Class ?? ""));
-                command.Parameters.Add(new SqlParameter("@Section", request.Section ?? ""));
-                command.Parameters.Add(new SqlParameter("@MemberStatus", request.MemberStatus ?? "1"));
+                    await command.ExecuteNonQueryAsync();
+                }
 
-                var result = await command.ExecuteNonQueryAsync();
-                return result > 0;
+                if (isUpdate)
+                {
+                    await ApplyMemberLoginStatusAsync(
+                        connection,
+                        request.InstructorID,
+                        memberStatus,
+                        request.EmailID);
+                }
+
+                return true;
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error adding or updating instructor: {ex.Message}", ex);
             }
+        }
+
+        private static int ParseMemberStatus(string? memberStatus)
+        {
+            var value = (memberStatus ?? "1").Trim().ToLowerInvariant();
+            return value is "0" or "inactive" or "deactive" or "false" ? 0 : 1;
+        }
+
+        /// <summary>
+        /// MemberMaster is HasNoKey() in EF — must use raw SQL to persist Approved/Active.
+        /// </summary>
+        private static async Task ApplyMemberLoginStatusAsync(
+            SqlConnection connection,
+            int memberId,
+            int memberStatus,
+            string? emailId)
+        {
+            var isActive = memberStatus == 1;
+            var normalizedEmail = (emailId ?? string.Empty).Trim();
+
+            var rows = await UpdateMemberLoginStatusByIdAsync(connection, memberId, isActive);
+            if (rows == 0 && normalizedEmail.Length > 0)
+            {
+                rows = await UpdateMemberLoginStatusByEmailAsync(connection, normalizedEmail, isActive);
+            }
+
+            if (rows == 0)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to update login status for instructor {memberId}.");
+            }
+        }
+
+        private static async Task<int> UpdateMemberLoginStatusByIdAsync(
+            SqlConnection connection,
+            int memberId,
+            bool isActive)
+        {
+            using var command = new SqlCommand(
+                @"UPDATE MemberMaster
+                  SET Approved = @approved, Active = @active
+                  WHERE pMemberID = @memberId",
+                connection);
+
+            command.Parameters.Add(new SqlParameter("@approved", SqlDbType.Bit) { Value = isActive });
+            command.Parameters.Add(new SqlParameter("@active", SqlDbType.Bit) { Value = isActive });
+            command.Parameters.Add(new SqlParameter("@memberId", SqlDbType.Int) { Value = memberId });
+
+            return await command.ExecuteNonQueryAsync();
+        }
+
+        private static async Task<int> UpdateMemberLoginStatusByEmailAsync(
+            SqlConnection connection,
+            string emailId,
+            bool isActive)
+        {
+            using var command = new SqlCommand(
+                @"UPDATE MemberMaster
+                  SET Approved = @approved, Active = @active
+                  WHERE UPPER(LTRIM(EmailID)) = UPPER(LTRIM(@emailId))
+                    AND MemberType IN ('I', 'V', 'C', 'A')",
+                connection);
+
+            command.Parameters.Add(new SqlParameter("@approved", SqlDbType.Bit) { Value = isActive });
+            command.Parameters.Add(new SqlParameter("@active", SqlDbType.Bit) { Value = isActive });
+            command.Parameters.Add(new SqlParameter("@emailId", SqlDbType.VarChar, 100) { Value = emailId });
+
+            return await command.ExecuteNonQueryAsync();
+        }
+
+        private static int ParseChapterId(string? chapterId)
+        {
+            return int.TryParse(chapterId, out var parsed) ? parsed : 0;
         }
 
         /// <summary>

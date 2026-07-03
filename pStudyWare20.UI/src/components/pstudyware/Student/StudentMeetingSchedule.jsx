@@ -6,9 +6,10 @@ import {
   Box,
   Link,
   CircularProgress,
-  Alert,
   Tooltip,
 } from "@mui/material";
+import AppSnackbar from "../Common/AppSnackbar";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
 import {
   AccessTime as AccessTimeIcon,
   VpnKey as VpnKeyIcon,
@@ -120,6 +121,7 @@ const StudentMeetingSchedule = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [copiedText, setCopiedText] = useState("");
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("warning");
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
@@ -195,6 +197,12 @@ const StudentMeetingSchedule = ({
     };
   }, [username]);
 
+  useEffect(() => {
+    if (error) {
+      showSnackbar(error, "warning");
+    }
+  }, [error, showSnackbar]);
+
   const cardSx = { ...panelCardSx };
 
   if (loading) {
@@ -212,12 +220,14 @@ const StudentMeetingSchedule = ({
 
   if (error) {
     return (
-      <Card sx={cardSx}>
-        <CardContent sx={panelContentSx}>
-          {renderSectionHeader(sectionTitleSx)}
-          <Alert severity="warning">{error}</Alert>
-        </CardContent>
-      </Card>
+      <>
+        <Card sx={cardSx}>
+          <CardContent sx={panelContentSx}>
+            {renderSectionHeader(sectionTitleSx)}
+          </CardContent>
+        </Card>
+        <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+      </>
     );
   }
 
@@ -226,6 +236,7 @@ const StudentMeetingSchedule = ({
   }
 
   return (
+    <>
     <Card sx={cardSx} className="meeting-schedule-card">
       <CardContent sx={panelContentSx}>
         {renderSectionHeader(sectionTitleSx)}
@@ -387,6 +398,8 @@ const StudentMeetingSchedule = ({
         </Box>
       </CardContent>
     </Card>
+    <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+    </>
   );
 };
 

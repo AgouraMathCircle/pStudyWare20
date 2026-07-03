@@ -7,13 +7,14 @@ import {
   InputLabel,
   Grid,
   Typography,
-  Alert,
   CircularProgress,
 } from "@mui/material";
 import { CloudUpload as UploadIcon } from "@mui/icons-material";
 import PortalDialog from "../Common/PortalDialog";
 import PortalModalSelect from "../Common/PortalModalSelect";
 import { portalModalFieldSx, portalModalSendButtonSx } from "../Common/portalModalStyles";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
+import AppSnackbar from "../Common/AppSnackbar";
 
 const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
   const [formData, setFormData] = useState({
@@ -26,7 +27,7 @@ const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
     publish: "0",
   });
   const [selectedFile, setSelectedFile] = useState(null);
-  const [error, setError] = useState("");
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("error");
 
   // Description options
   const descriptionOptions = [
@@ -84,7 +85,6 @@ const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
       ...prev,
       [name]: value,
     }));
-    setError("");
   };
 
   // Handle file selection
@@ -93,20 +93,19 @@ const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
     if (file) {
       // Validate file type
       if (file.type !== "application/pdf") {
-        setError("Sorry, we can accept only PDF files.");
+        showSnackbar("Sorry, we can accept only PDF files.", "error");
         setSelectedFile(null);
         e.target.value = "";
         return;
       }
       // Validate file size (2MB = 2097152 bytes)
       if (file.size > 2097152) {
-        setError("File size must be less than 2 MB.");
+        showSnackbar("File size must be less than 2 MB.", "error");
         setSelectedFile(null);
         e.target.value = "";
         return;
       }
       setSelectedFile(file);
-      setError("");
     }
   };
 
@@ -114,11 +113,11 @@ const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
   const handleSubmit = async () => {
     // Validate
     if (!formData.topics.trim()) {
-      setError("Topics is required.");
+      showSnackbar("Topics is required.", "error");
       return;
     }
     if (!selectedFile) {
-      setError("Please select a PDF file.");
+      showSnackbar("Please select a PDF file.", "error");
       return;
     }
 
@@ -143,7 +142,7 @@ const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
         await onSubmit(uploadData);
         handleClose();
       } catch (err) {
-        setError("Error preparing file for upload.");
+        showSnackbar("Error preparing file for upload.", "error");
       }
     };
     reader.readAsDataURL(selectedFile);
@@ -161,11 +160,11 @@ const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
       publish: "0",
     });
     setSelectedFile(null);
-    setError("");
     onClose();
   };
 
   return (
+    <>
     <PortalDialog
       open={open}
       onClose={handleClose}
@@ -189,12 +188,6 @@ const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
         PDF only, max 2 MB
       </Typography>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
-          {error}
-        </Alert>
-      )}
 
       <Grid container spacing={2}>
         <Grid item xs={12}>
@@ -319,6 +312,8 @@ const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
         </Grid>
       </Grid>
     </PortalDialog>
+    <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+    </>
   );
 };
 

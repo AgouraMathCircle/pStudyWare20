@@ -7,11 +7,9 @@ import {
   Button,
   MenuItem,
   Grid,
-  Alert,
   CircularProgress,
   Card,
   CardContent,
-  Snackbar,
   Table,
   TableBody,
   TableCell,
@@ -25,6 +23,8 @@ import {
   InfoOutlined as InfoOutlinedIcon,
 } from "@mui/icons-material";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
+import AppSnackbar from "../Common/AppSnackbar";
 import { useAuth } from "../../../contexts/AuthContext";
 import semesterLookupService from "../../../services/semesterLookupService";
 import {
@@ -118,20 +118,10 @@ const UpdateLookupSemester = () => {
   const [saving, setSaving] = useState(false);
   const [canUpdate, setCanUpdate] = useState(false);
   const [form, setForm] = useState(emptyForm);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+  const { snackbar, showSnackbar, closeSnackbar, setSnackbar } = useAppSnackbar();
 
-  const showSnackbar = (message, severity = "success") => {
-    setSnackbar({ open: true, message, severity });
-  };
-
-  const closeSnackbar = (_, reason) => {
-    if (reason === "clickaway") return;
-    setSnackbar((s) => ({ ...s, open: false }));
-  };
+  const VIEW_ONLY_MESSAGE =
+    "View only. Submit is available for chapter 1 administrators (legacy behavior).";
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -191,6 +181,12 @@ const UpdateLookupSemester = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!loading && !canUpdate) {
+      showSnackbar(VIEW_ONLY_MESSAGE, "info");
+    }
+  }, [loading, canUpdate, showSnackbar]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -308,14 +304,7 @@ const UpdateLookupSemester = () => {
                     }}
                   >
                     Update Semester Lookup
-                  </Typography>
-
-                  {!canUpdate && !loading && (
-                    <Alert severity="info" sx={{ mb: 2 }}>
-                      View only. Submit is available for chapter 1
-                      administrators (legacy behavior).
-                    </Alert>
-                  )}
+                  </Typography                  >
 
                   {loading ? (
                     <Box
@@ -898,21 +887,7 @@ const UpdateLookupSemester = () => {
         </Grid>
       </Container>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={closeSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />
     </Box>
   );
 };

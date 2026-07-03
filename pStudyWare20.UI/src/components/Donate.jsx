@@ -12,8 +12,9 @@ import {
   AccordionDetails,
   Chip,
   CircularProgress,
-  Alert,
 } from "@mui/material";
+import AppSnackbar from "./pstudyware/Common/AppSnackbar";
+import { useAppSnackbar } from "./pstudyware/Common/useAppSnackbar";
 import {
   Description,
   ExpandMore,
@@ -39,8 +40,8 @@ const Donate = () => {
     statistics: null,
   });
   const [donorsLoading, setDonorsLoading] = useState(true);
-  const [donorsError, setDonorsError] = useState(null);
   const [expandedYear, setExpandedYear] = useState("2020");
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("error");
 
   // Financial reports data
   const financialReports = [
@@ -70,7 +71,6 @@ const Donate = () => {
     const fetchDonorsData = async () => {
       try {
         setDonorsLoading(true);
-        setDonorsError(null);
 
         const response = await donateService.getDashboardData();
 
@@ -81,13 +81,14 @@ const Donate = () => {
             statistics: response.statistics,
           });
         } else {
-          setDonorsError(
-            response.errorMessage || "Failed to load donors data."
+          showSnackbar(
+            response.errorMessage || "Failed to load donors data.",
+            "error",
           );
         }
       } catch (err) {
         console.error("Error fetching donors:", err);
-        setDonorsError("Failed to load donors. Please try again later.");
+        showSnackbar("Failed to load donors. Please try again later.", "error");
       } finally {
         setDonorsLoading(false);
       }
@@ -110,6 +111,7 @@ const Donate = () => {
   };
 
   return (
+    <>
     <div className="main-content">
       {/* Breadcrumbs Start */}
       <div className="sc-breadcrumbs breadcrumbs-overlay">
@@ -565,10 +567,6 @@ const Donate = () => {
             <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
               <CircularProgress />
             </Box>
-          ) : donorsError ? (
-            <Alert severity="error" sx={{ maxWidth: 600, mx: "auto" }}>
-              {donorsError}
-            </Alert>
           ) : (
             <Box sx={{ maxWidth: 800, mx: "auto" }}>
               {/* Current Year Donors */}
@@ -746,6 +744,8 @@ const Donate = () => {
       </Button>
 
     </div>
+    <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+    </>
   );
 };
 

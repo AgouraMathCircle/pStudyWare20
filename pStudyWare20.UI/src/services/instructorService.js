@@ -30,9 +30,42 @@ const instructorService = {
    */
   addOrUpdateInstructor: async (instructorData) => {
     try {
+      const memberStatus =
+        instructorData?.memberStatus ?? instructorData?.MemberStatus ?? "1";
+      const payload = {
+        instructorID: Number(
+          instructorData?.instructorID ?? instructorData?.InstructorID ?? 0,
+        ),
+        firstName: instructorData?.firstName ?? instructorData?.FirstName ?? "",
+        lastName: instructorData?.lastName ?? instructorData?.LastName ?? "",
+        emailID: instructorData?.emailID ?? instructorData?.EmailID ?? "",
+        contactPhone:
+          instructorData?.contactPhone ?? instructorData?.ContactPhone ?? "",
+        chapterID: String(
+          instructorData?.chapterID ?? instructorData?.ChapterID ?? "",
+        ),
+        class:
+          instructorData?.class ??
+          instructorData?.Class ??
+          instructorData?.classCode ??
+          "",
+        section: instructorData?.section ?? instructorData?.Section ?? "A",
+        instructorType:
+          instructorData?.instructorType ??
+          instructorData?.InstructorType ??
+          "P",
+        memberStatus: String(
+          memberStatus === "0" ||
+            String(memberStatus).trim().toLowerCase() === "inactive" ||
+            String(memberStatus).trim().toLowerCase() === "deactive"
+            ? "0"
+            : "1",
+        ),
+      };
+
       const response = await api.post(
         "/Instructor/AddOrUpdateInstructor",
-        instructorData
+        payload,
       );
       return response.data;
     } catch (error) {

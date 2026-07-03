@@ -185,7 +185,8 @@ const InstructorList = ({
 
   // Get status display
   const getStatusDisplay = (status) => {
-    const isActive = status === "1" || status?.toLowerCase() === "active";
+    const value = String(status ?? "").trim().toLowerCase();
+    const isActive = value === "1" || value === "active";
     return isActive ? "Active" : "Inactive";
   };
 

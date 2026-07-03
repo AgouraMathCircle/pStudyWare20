@@ -7,11 +7,12 @@ import {
   FormControl,
   InputLabel,
   Grid,
-  Alert,
   CircularProgress,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import PortalDialog from "./PortalDialog";
+import AppSnackbar from "./AppSnackbar";
+import { useAppSnackbar } from "./useAppSnackbar";
 import PortalModalSelect from "./PortalModalSelect";
 import { portalModalFieldSx, portalModalSendButtonSx } from "./portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -84,9 +85,9 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
     return Number.isFinite(n) && n > 0 ? n : 1;
   }, [user]);
 
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("error");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
   const [formData, setFormData] = useState(emptyFormData);
 
@@ -95,7 +96,6 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
       setFormData(emptyFormData);
       setLoading(false);
       setSubmitting(false);
-      setError(null);
       setValidationErrors({});
       return;
     }
@@ -103,27 +103,26 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        setError(null);
         setValidationErrors({});
 
         if (resolvedStudentId) {
           const id = parseInt(resolvedStudentId, 10);
           if (!Number.isFinite(id) || id <= 0) {
-            setError("Invalid Student ID.");
+            showSnackbar("Invalid Student ID.", "error");
             return;
           }
           const response = await studentDashboardService.getStudentProfileById(id);
           if (response?.isSuccess && response.studentProfile) {
             setFormData(mapProfileToForm(response.studentProfile, id));
           } else {
-            setError(response?.message || "Profile not found.");
+            showSnackbar(response?.message || "Profile not found.", "error");
           }
           return;
         }
 
         const username = user?.username || user?.email;
         if (!username) {
-          setError("Sign in required to update your profile.");
+          showSnackbar("Sign in required to update your profile.", "error");
           return;
         }
 
@@ -134,11 +133,11 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
         if (response?.isSuccess && response.studentProfile) {
           setFormData(mapProfileToForm(response.studentProfile));
         } else {
-          setError(response?.message || "Profile not found.");
+          showSnackbar(response?.message || "Profile not found.", "error");
         }
       } catch (err) {
         console.error("Error loading profile:", err);
-        setError("Failed to load profile data. Please try again.");
+        showSnackbar("Failed to load profile data. Please try again.", "error");
       } finally {
         setLoading(false);
       }
@@ -166,19 +165,18 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
     const nextValidationErrors = validateProfileForm(formData);
     if (Object.keys(nextValidationErrors).length > 0) {
       setValidationErrors(nextValidationErrors);
-      setError("Please fix the highlighted fields before submitting.");
+      showSnackbar("Please fix the highlighted fields before submitting.", "error");
       return;
     }
 
     const sid = parseInt(formData.studentID, 10);
     if (!Number.isFinite(sid) || sid <= 0) {
-      setError("Missing or invalid Student ID.");
+      showSnackbar("Missing or invalid Student ID.", "error");
       return;
     }
 
     try {
       setSubmitting(true);
-      setError(null);
 
       const res = await studentDashboardService.updateStudentProfile({
         studentID: sid,
@@ -199,14 +197,15 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
         onSaved?.(formData);
         onClose?.();
       } else {
-        setError(res?.message || "Failed to update profile.");
+        showSnackbar(res?.message || "Failed to update profile.", "error");
       }
     } catch (err) {
       console.error("Error updating profile:", err);
-      setError(
+      showSnackbar(
         err?.response?.data?.message ||
           err?.message ||
           "Failed to update profile. Please try again.",
+        "error",
       );
     } finally {
       setSubmitting(false);
@@ -219,6 +218,7 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
   };
 
   return (
+    <>
     <PortalDialog
       open={open}
       onClose={handleClose}
@@ -240,12 +240,6 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
         </Button>
       }
     >
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      )}
-
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
           <CircularProgress />
@@ -383,6 +377,8 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
         </Box>
       )}
     </PortalDialog>
+    <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+    </>
   );
 };
 

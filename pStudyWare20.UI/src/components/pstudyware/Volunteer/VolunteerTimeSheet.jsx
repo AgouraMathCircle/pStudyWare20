@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams, Link as RouterLink } from "react-router-dom";
 import {
-  Alert,
   Box,
   Button,
   Chip,
@@ -13,8 +12,9 @@ import {
   TextField,
   Typography,
   CircularProgress,
-  Snackbar,
 } from "@mui/material";
+import AppSnackbar from "../Common/AppSnackbar";
+import { useAppSnackbar } from "../Common/useAppSnackbar";
 import {
   ArrowBack as BackIcon,
   AccessTime as TimeIcon,
@@ -67,9 +67,8 @@ const VolunteerTimeSheet = () => {
 
   const [loading, setLoading] = useState(!!isEdit);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMsg, setSuccessMsg] = useState("");
   const [taskName, setTaskName] = useState("");
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("error");
   const [volunteerDate, setVolunteerDate] = useState(() => toDateInputValue(new Date()));
   const [startHour, setStartHour] = useState("9");
   const [startMin, setStartMin] = useState("00");
@@ -104,14 +103,19 @@ const VolunteerTimeSheet = () => {
       } else {
         setEntries([]);
         setListError(res?.errorMessage || res?.message || "Could not load time sheet.");
+        showSnackbar(
+          res?.errorMessage || res?.message || "Could not load time sheet.",
+          "error",
+        );
       }
     } catch (e) {
       setListError(e?.message || "Failed to load time sheet.");
+      showSnackbar(e?.message || "Failed to load time sheet.", "error");
       setEntries([]);
     } finally {
       setListLoading(false);
     }
-  }, [username]);
+  }, [username, showSnackbar]);
 
   useEffect(() => {
     if (username) {
@@ -128,13 +132,12 @@ const VolunteerTimeSheet = () => {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      setError(null);
       try {
         const res = await timeSheetTrackingService.getTimeSheetForEdit(logId, username);
         const entry = res?.timeSheetEntry ?? res?.TimeSheetEntry;
         if (cancelled) return;
         if (!res?.isSuccess || !entry) {
-          setError(res?.errorMessage || "Could not load this entry.");
+          showSnackbar(res?.errorMessage || "Could not load this entry.", "error");
           return;
         }
         setTaskName(entry.taskName ?? entry.TaskName ?? "");
@@ -159,7 +162,10 @@ const VolunteerTimeSheet = () => {
         setTaskDescription(entry.taskDescription ?? entry.TaskDescription ?? "");
       } catch (e) {
         if (!cancelled) {
-          setError(e?.response?.data?.message ?? e?.message ?? "Failed to load entry.");
+          showSnackbar(
+            e?.response?.data?.message ?? e?.message ?? "Failed to load entry.",
+            "error",
+          );
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -174,23 +180,22 @@ const VolunteerTimeSheet = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username) {
-      setError("You must be signed in.");
+      showSnackbar("You must be signed in.", "error");
       return;
     }
     if (!taskName.trim()) {
-      setError("Please enter a task name.");
+      showSnackbar("Please enter a task name.", "error");
       return;
     }
     if (!volunteerDate) {
-      setError("Please choose a date.");
+      showSnackbar("Please choose a date.", "error");
       return;
     }
     if (totalHoursPreview === null) {
-      setError("End time must be later than start time.");
+      showSnackbar("End time must be later than start time.", "error");
       return;
     }
     setSaving(true);
-    setError(null);
     try {
       const parts = volunteerDate.split("-").map((x) => parseInt(x, 10));
       const volunteerDateObj =
@@ -212,11 +217,11 @@ const VolunteerTimeSheet = () => {
       };
       const res = await timeSheetTrackingService.upsertTimeSheetTracking(payload);
       if (res?.isSuccess === false) {
-        setError(res?.errorMessage || res?.message || "Save failed.");
+        showSnackbar(res?.errorMessage || res?.message || "Save failed.", "error");
         return;
       }
 
-      setSuccessMsg("Your entry was successfully saved.");
+      showSnackbar("Your entry was successfully saved.", "success");
       loadEntries();
 
       if (isEdit) {
@@ -235,7 +240,10 @@ const VolunteerTimeSheet = () => {
         setEndType("PM");
       }
     } catch (err) {
-      setError(err?.response?.data?.message ?? err?.message ?? "Save failed.");
+      showSnackbar(
+        err?.response?.data?.message ?? err?.message ?? "Save failed.",
+        "error",
+      );
     } finally {
       setSaving(false);
     }
@@ -366,11 +374,6 @@ const VolunteerTimeSheet = () => {
         </Box>
 
         <Box sx={{ p: { xs: 2, sm: 3 } }}>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
           {loading ? (
             <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
               <CircularProgress />
@@ -636,16 +639,12 @@ const VolunteerTimeSheet = () => {
         />
       </Box>
 
-      <Snackbar
-        open={!!successMsg}
+      <AppSnackbar
+        snackbar={snackbar}
+        onClose={closeSnackbar}
         autoHideDuration={4000}
-        onClose={() => setSuccessMsg("")}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert onClose={() => setSuccessMsg("")} severity="success" sx={{ width: "100%", fontWeight: "bold" }}>
-          {successMsg}
-        </Alert>
-      </Snackbar>
+      />
     </Container>
   );
 };
