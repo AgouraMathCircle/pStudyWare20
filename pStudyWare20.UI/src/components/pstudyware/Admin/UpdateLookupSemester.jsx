@@ -6,20 +6,20 @@ import {
   TextField,
   Button,
   MenuItem,
-  Grid,
   CircularProgress,
   Card,
   CardContent,
+  Stack,
+  Tooltip,
   Table,
   TableBody,
   TableCell,
   TableContainer,
+  TableHead,
   TableRow,
-  Tooltip,
 } from "@mui/material";
 import {
   Save as SaveIcon,
-  Refresh as RefreshIcon,
   InfoOutlined as InfoOutlinedIcon,
 } from "@mui/icons-material";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
@@ -28,9 +28,15 @@ import AppSnackbar from "../Common/AppSnackbar";
 import { useAuth } from "../../../contexts/AuthContext";
 import semesterLookupService from "../../../services/semesterLookupService";
 import {
-  APPLICATION_ADMIN_TITLE_COLOR,
-  PORTAL_CARD_BOX_SHADOW,
-  portalCardAntiLiftSx,
+  portalModalFieldSx,
+  portalModalSendButtonSx,
+} from "../Common/portalModalStyles";
+import {
+  adminSessionListPanelCardSx,
+  adminSessionListPanelContentSx,
+  adminSessionListTitleSx,
+  adminSessionListMenuItemSx,
+  APPLICATION_SURFACE_BG,
 } from "../styles/applicationSurfaces";
 
 const pageShellSx = {
@@ -41,41 +47,67 @@ const pageShellSx = {
   flexDirection: "column",
 };
 
-/** Legacy-style panel: green band, white labels, light input column */
 const lookupTableContainerSx = {
   bgcolor: "#2e7d32",
   borderRadius: 1,
   overflow: "hidden",
+  border: "1px solid #4caf50",
   "& .MuiTableCell-root": {
     borderColor: "rgba(255,255,255,0.35)",
   },
 };
 
-const lookupLabelCellSx = {
-  width: { xs: "40%", sm: "34%" },
-  maxWidth: 320,
+const categoryHeaderCellSx = {
+  bgcolor: "#1b5e20",
   color: "common.white",
   fontWeight: 700,
-  fontSize: "0.875rem",
-  verticalAlign: "middle",
+  fontSize: "1rem",
+  textAlign: "center",
   py: 1,
-  pr: 2,
+  borderBottom: "2px solid rgba(255,255,255,0.5)",
+};
+
+const lookupLabelCellSx = {
+  width: "22%",
+  color: "common.white",
+  fontWeight: 600,
+  fontSize: "0.9375rem",
+  verticalAlign: "middle",
+  py: 0.75,
+  pr: 1.5,
+  pl: 1.5,
+  whiteSpace: "nowrap",
 };
 
 const lookupInputCellSx = {
-  bgcolor: "#b3e5fc",
+  bgcolor: APPLICATION_SURFACE_BG,
   verticalAlign: "middle",
-  py: 0.75,
+  py: 0.5,
+  px: 1,
 };
 
 const lookupFieldSx = {
+  ...portalModalFieldSx,
   "& .MuiOutlinedInput-root": {
+    ...portalModalFieldSx["& .MuiOutlinedInput-root"],
+    fontSize: "1rem",
     bgcolor: "common.white",
-    fontSize: "0.875rem",
   },
 };
 
+const examLabelCellSx = {
+  ...lookupLabelCellSx,
+  width: "28%",
+};
+
 const SUCCESS_MESSAGE = "You have updated Semester Lookup successfully.";
+
+const DATE_FIELDS = new Set([
+  "startingDate",
+  "regStartDate",
+  "regCloseDate",
+  "currentExamDate",
+]);
 
 const emptyForm = {
   semester: "",
@@ -105,6 +137,88 @@ const normalizeYn = (value) =>
     .toUpperCase() === "Y"
     ? "Y"
     : "N";
+
+/** MM/DD/YYYY or ISO → YYYY-MM-DD for `<input type="date">` */
+const toInputDate = (val) => {
+  if (!val) return "";
+  const trimmed = String(val).trim();
+  const legacy = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (legacy) {
+    const [, month, day, year] = legacy;
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  const parsed = new Date(trimmed);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toISOString().slice(0, 10);
+  }
+  return "";
+};
+
+/** YYYY-MM-DD → MM/DD/YYYY for API (legacy) */
+const toApiDate = (val) => {
+  if (!val) return "";
+  const trimmed = String(val).trim();
+  const iso = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) {
+    const [, year, month, day] = iso;
+    return `${month}/${day}/${year}`;
+  }
+  const legacy = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (legacy) {
+    const [, month, day, year] = legacy;
+    return `${month.padStart(2, "0")}/${day.padStart(2, "0")}/${year}`;
+  }
+  return trimmed;
+};
+
+const normalizeFormDatesForInput = (formState) => {
+  const next = { ...formState };
+  DATE_FIELDS.forEach((field) => {
+    next[field] = toInputDate(next[field]);
+  });
+  return next;
+};
+
+const normalizeFormDatesForApi = (formState) => {
+  const next = { ...formState };
+  DATE_FIELDS.forEach((field) => {
+    next[field] = toApiDate(next[field]);
+  });
+  return next;
+};
+
+const LabelCell = ({ children, tooltip, sx = lookupLabelCellSx }) => {
+  const content = (
+    <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
+      {children}
+      {tooltip ? (
+        <InfoOutlinedIcon sx={{ fontSize: 16, opacity: 0.9 }} />
+      ) : null}
+    </Box>
+  );
+
+  return (
+    <TableCell component="th" scope="row" sx={sx}>
+      {tooltip ? (
+        <Tooltip title={tooltip} arrow placement="top">
+          <Box component="span" sx={{ cursor: "help" }}>
+            {content}
+          </Box>
+        </Tooltip>
+      ) : (
+        content
+      )}
+    </TableCell>
+  );
+};
+
+const EmptyPairCells = () => (
+  <>
+    <TableCell sx={{ ...lookupLabelCellSx, bgcolor: "#2e7d32" }} />
+    <TableCell sx={{ ...lookupInputCellSx, bgcolor: APPLICATION_SURFACE_BG }} />
+  </>
+);
 
 const UpdateLookupSemester = () => {
   const { user } = useAuth();
@@ -137,34 +251,36 @@ const UpdateLookupSemester = () => {
       setCanUpdate(res.canUpdate === true || res.CanUpdate === true);
       const L = res.lookup || res.Lookup || {};
       const registrationStatus = L.registrationStatus === "C" ? "C" : "O";
-      setForm({
-        semester: L.semester ?? "",
-        lastSemester: L.lastSemester ?? "",
-        startingDate: L.startingDate ?? "",
-        regStartDate: L.regStartDate ?? "",
-        regCloseDate: L.regCloseDate ?? "",
-        displayDocumentsFrom: L.displayDocumentsFrom ?? "",
-        registrationStatus,
-        jbTotalSpace: L.jbTotalSpace ?? "",
-        jiTotalSpace: L.jiTotalSpace ?? "",
-        jaTotalSpace: L.jaTotalSpace ?? "",
-        sbTotalSpace: L.sbTotalSpace ?? "",
-        siTotalSpace: L.siTotalSpace ?? "",
-        saTotalSpace: L.saTotalSpace ?? "",
-        currentExamDate: L.currentExamDate ?? L.CurrentExamDate ?? "",
-        currentExamDueTime: L.currentExamDueTime ?? L.CurrentExamDueTime ?? "",
-        volunteerAvailability: normalizeYn(
-          L.volunteerAvailability ?? L.VolunteerAvailability,
-        ),
-        finalExamDisplay:
-          registrationStatus === "O"
-            ? "N"
-            : normalizeYn(L.finalExamDisplay ?? L.FinalExamDisplay),
-        finalExamDisplayChapter:
-          L.finalExamDisplayChapter ?? L.FinalExamDisplayChapter ?? "",
-        onlineExamDisplayChapter:
-          L.onlineExamDisplayChapter ?? L.OnlineExamDisplayChapter ?? "",
-      });
+      setForm(
+        normalizeFormDatesForInput({
+          semester: L.semester ?? "",
+          lastSemester: L.lastSemester ?? "",
+          startingDate: L.startingDate ?? "",
+          regStartDate: L.regStartDate ?? "",
+          regCloseDate: L.regCloseDate ?? "",
+          displayDocumentsFrom: L.displayDocumentsFrom ?? "",
+          registrationStatus,
+          jbTotalSpace: L.jbTotalSpace ?? "",
+          jiTotalSpace: L.jiTotalSpace ?? "",
+          jaTotalSpace: L.jaTotalSpace ?? "",
+          sbTotalSpace: L.sbTotalSpace ?? "",
+          siTotalSpace: L.siTotalSpace ?? "",
+          saTotalSpace: L.saTotalSpace ?? "",
+          currentExamDate: L.currentExamDate ?? L.CurrentExamDate ?? "",
+          currentExamDueTime: L.currentExamDueTime ?? L.CurrentExamDueTime ?? "",
+          volunteerAvailability: normalizeYn(
+            L.volunteerAvailability ?? L.VolunteerAvailability,
+          ),
+          finalExamDisplay:
+            registrationStatus === "O"
+              ? "N"
+              : normalizeYn(L.finalExamDisplay ?? L.FinalExamDisplay),
+          finalExamDisplayChapter:
+            L.finalExamDisplayChapter ?? L.FinalExamDisplayChapter ?? "",
+          onlineExamDisplayChapter:
+            L.onlineExamDisplayChapter ?? L.OnlineExamDisplayChapter ?? "",
+        }),
+      );
     } catch (e) {
       showSnackbar(
         e.response?.data?.message ||
@@ -176,7 +292,7 @@ const UpdateLookupSemester = () => {
     } finally {
       setLoading(false);
     }
-  }, [chapterID]);
+  }, [chapterID, showSnackbar]);
 
   useEffect(() => {
     load();
@@ -204,6 +320,7 @@ const UpdateLookupSemester = () => {
   };
 
   const isRegistrationOpen = form.registrationStatus === "O";
+  const fieldReadOnly = !canUpdate;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -211,29 +328,30 @@ const UpdateLookupSemester = () => {
     setSaving(true);
     setSnackbar((s) => ({ ...s, open: false }));
     try {
+      const apiForm = normalizeFormDatesForApi(form);
       const payload = {
-        semester: form.semester,
-        lastSemester: form.lastSemester,
-        startingDate: form.startingDate,
-        regStartDate: form.regStartDate,
-        regCloseDate: form.regCloseDate,
-        displayDocumentsFrom: form.displayDocumentsFrom,
-        registrationStatus: form.registrationStatus,
-        jbTotalSpace: form.jbTotalSpace,
-        jiTotalSpace: form.jiTotalSpace,
-        jaTotalSpace: form.jaTotalSpace,
-        sbTotalSpace: form.sbTotalSpace,
-        siTotalSpace: form.siTotalSpace,
-        saTotalSpace: form.saTotalSpace,
-        currentExamDate: form.currentExamDate,
-        currentExamDueTime: form.currentExamDueTime,
-        volunteerAvailability: normalizeYn(form.volunteerAvailability),
+        semester: apiForm.semester,
+        lastSemester: apiForm.lastSemester,
+        startingDate: apiForm.startingDate,
+        regStartDate: apiForm.regStartDate,
+        regCloseDate: apiForm.regCloseDate,
+        displayDocumentsFrom: apiForm.displayDocumentsFrom,
+        registrationStatus: apiForm.registrationStatus,
+        jbTotalSpace: apiForm.jbTotalSpace,
+        jiTotalSpace: apiForm.jiTotalSpace,
+        jaTotalSpace: apiForm.jaTotalSpace,
+        sbTotalSpace: apiForm.sbTotalSpace,
+        siTotalSpace: apiForm.siTotalSpace,
+        saTotalSpace: apiForm.saTotalSpace,
+        currentExamDate: apiForm.currentExamDate,
+        currentExamDueTime: apiForm.currentExamDueTime,
+        volunteerAvailability: normalizeYn(apiForm.volunteerAvailability),
         finalExamDisplay:
-          form.registrationStatus === "O"
+          apiForm.registrationStatus === "O"
             ? "N"
-            : normalizeYn(form.finalExamDisplay),
-        finalExamDisplayChapter: form.finalExamDisplayChapter,
-        onlineExamDisplayChapter: form.onlineExamDisplayChapter,
+            : normalizeYn(apiForm.finalExamDisplay),
+        finalExamDisplayChapter: apiForm.finalExamDisplayChapter,
+        onlineExamDisplayChapter: apiForm.onlineExamDisplayChapter,
         chapterID,
       };
       const res = await semesterLookupService.updateSemesterLookup(payload);
@@ -243,9 +361,9 @@ const UpdateLookupSemester = () => {
       }
       showSnackbar(SUCCESS_MESSAGE, "success");
       await load();
-    } catch (e) {
-      const status = e.response?.status;
-      const data = e.response?.data;
+    } catch (err) {
+      const status = err.response?.status;
+      const data = err.response?.data;
       if (status === 403) {
         showSnackbar(
           data?.errorMessage || "You do not have permission to update.",
@@ -260,7 +378,7 @@ const UpdateLookupSemester = () => {
           (data?.message ||
             data?.error ||
             data?.errorMessage ||
-            e.message ||
+            err.message ||
             "Update failed.") + errorDetails,
           "error",
         );
@@ -270,621 +388,246 @@ const UpdateLookupSemester = () => {
     }
   };
 
-  const fieldReadOnly = !canUpdate;
+  const renderTextInput = (field, extra = {}) => (
+    <TextField
+      fullWidth
+      size="small"
+      variant="outlined"
+      hiddenLabel
+      value={form[field]}
+      onChange={handleChange(field)}
+      disabled={saving}
+      InputProps={{ readOnly: fieldReadOnly }}
+      sx={lookupFieldSx}
+      {...extra}
+    />
+  );
+
+  const renderDateInput = (field) => (
+    <TextField
+      fullWidth
+      size="small"
+      variant="outlined"
+      hiddenLabel
+      type="date"
+      value={form[field] || ""}
+      onChange={handleChange(field)}
+      disabled={saving || fieldReadOnly}
+      InputLabelProps={{ shrink: true }}
+      sx={lookupFieldSx}
+    />
+  );
+
+  const renderSelectInput = (field, options, extra = {}) => (
+    <TextField
+      fullWidth
+      select
+      size="small"
+      variant="outlined"
+      hiddenLabel
+      value={form[field]}
+      onChange={handleChange(field)}
+      disabled={!canUpdate || saving}
+      sx={lookupFieldSx}
+      {...extra}
+    >
+      {options.map((opt) => (
+        <MenuItem key={opt.value} value={opt.value} sx={adminSessionListMenuItemSx}>
+          {opt.label}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+
+  const semesterRows = [
+    { label: "Current Semester", render: () => renderTextInput("semester", { inputProps: { maxLength: 5 } }) },
+    { label: "Last Semester", render: () => renderTextInput("lastSemester", { inputProps: { maxLength: 5 } }) },
+    { label: "Starting Date", render: () => renderDateInput("startingDate") },
+  ];
+
+  const registrationRows = [
+    { label: "Registration Start Date", render: () => renderDateInput("regStartDate") },
+    { label: "Registration Close Date", render: () => renderDateInput("regCloseDate") },
+    {
+      label: "Registration Status",
+      render: () =>
+        renderSelectInput(
+          "registrationStatus",
+          [
+            { value: "O", label: "Open" },
+            { value: "C", label: "Close" },
+          ],
+          { onChange: handleRegistrationStatusChange },
+        ),
+    },
+    {
+      label: "Volunteer Availability",
+      render: () =>
+        renderSelectInput("volunteerAvailability", [
+          { value: "Y", label: "Open (Yes)" },
+          { value: "N", label: "Close (No)" },
+        ]),
+    },
+    {
+      label: "Display Documents From",
+      render: () => renderTextInput("displayDocumentsFrom"),
+    },
+  ];
+
+  const capacityRows = [
+    { label: "Junior Beginner", render: () => renderTextInput("jbTotalSpace", { inputProps: { maxLength: 5 } }) },
+    { label: "Junior Intermediate", render: () => renderTextInput("jiTotalSpace", { inputProps: { maxLength: 5 } }) },
+    { label: "Junior Advanced", render: () => renderTextInput("jaTotalSpace", { inputProps: { maxLength: 5 } }) },
+    { label: "Senior Beginner", render: () => renderTextInput("sbTotalSpace", { inputProps: { maxLength: 5 } }) },
+    { label: "Senior Intermediate", render: () => renderTextInput("siTotalSpace", { inputProps: { maxLength: 5 } }) },
+    { label: "Senior Advanced", render: () => renderTextInput("saTotalSpace", { inputProps: { maxLength: 5 } }) },
+  ];
+
+  const examRows = [
+    { label: "Current Exam Date", render: () => renderDateInput("currentExamDate") },
+    {
+      label: "Current Exam Due Time",
+      render: () => renderTextInput("currentExamDueTime", { inputProps: { maxLength: 25 } }),
+    },
+    {
+      label: "Final Exam Display",
+      render: () =>
+        renderSelectInput(
+          "finalExamDisplay",
+          [
+            { value: "Y", label: "Yes" },
+            { value: "N", label: "No" },
+          ],
+          { disabled: !canUpdate || saving || isRegistrationOpen },
+        ),
+    },
+    {
+      label: "Final Exam Display Chapter",
+      tooltip: "Enter chapter numbers separated by commas, e.g. 1,2,",
+      render: () =>
+        renderTextInput("finalExamDisplayChapter", {
+          inputProps: { maxLength: 100 },
+          placeholder: "e.g. 1,2,",
+        }),
+    },
+    {
+      label: "Online Exam Display Chapter",
+      tooltip: "Enter chapter numbers separated by commas, e.g. 1,2,",
+      render: () =>
+        renderTextInput("onlineExamDisplayChapter", {
+          inputProps: { maxLength: 100 },
+          placeholder: "e.g. 1,2,",
+        }),
+    },
+  ];
+
+  const renderCategoryPair = (row) => {
+    if (!row) return <EmptyPairCells />;
+    return (
+      <>
+        <LabelCell tooltip={row.tooltip}>{row.label}</LabelCell>
+        <TableCell sx={lookupInputCellSx}>{row.render()}</TableCell>
+      </>
+    );
+  };
+
+  const mainRowCount = Math.max(
+    semesterRows.length,
+    registrationRows.length,
+    capacityRows.length,
+  );
 
   return (
     <Box sx={pageShellSx}>
       <AdminHeader user={user} />
       <AdminRoleHeaderSpacer />
-      <Container maxWidth="xl" sx={{ mb: 4 }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Card
-              sx={{
-                backgroundColor: "white",
-                borderRadius: 2,
-                boxShadow: PORTAL_CARD_BOX_SHADOW,
-                overflow: "hidden",
-                ...portalCardAntiLiftSx,
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <Box
-                  component="form"
-                  onSubmit={handleSubmit}
-                  sx={{ width: "100%" }}
-                >
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      mb: 2,
-                      fontWeight: 600,
-                      color: APPLICATION_ADMIN_TITLE_COLOR,
-                      fontSize: "1rem",
-                    }}
-                  >
-                    Update Semester Lookup
-                  </Typography                  >
+      <Container maxWidth="xl" sx={{ mb: 4, px: { xs: 2, sm: 3 } }}>
+        <Card
+          sx={{
+            ...adminSessionListPanelCardSx,
+            width: "100%",
+            pl: { xs: 2, sm: 3 },
+            pr: { xs: 2, sm: 3 },
+          }}
+        >
+          <CardContent sx={{ ...adminSessionListPanelContentSx, px: 0, pt: 2, pb: 2 }}>
+            <Box component="form" onSubmit={handleSubmit}>
+              <Typography variant="subtitle1" sx={{ ...adminSessionListTitleSx, mb: 2 }}>
+                Update Semester Lookup
+              </Typography>
 
-                  {loading ? (
-                    <Box
-                      sx={{ display: "flex", justifyContent: "center", py: 4 }}
-                    >
-                      <CircularProgress />
-                    </Box>
-                  ) : (
-                    <>
-                      <TableContainer sx={lookupTableContainerSx}>
-                        <Table size="small" sx={{ tableLayout: "fixed" }}>
-                          <TableBody>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Current Semester
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  fullWidth
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.semester}
-                                  onChange={handleChange("semester")}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  inputProps={{ maxLength: 5 }}
-                                  sx={lookupFieldSx}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Last Semester
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  fullWidth
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.lastSemester}
-                                  onChange={handleChange("lastSemester")}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  inputProps={{ maxLength: 5 }}
-                                  sx={lookupFieldSx}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Starting Date
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  fullWidth
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.startingDate}
-                                  onChange={handleChange("startingDate")}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  inputProps={{ maxLength: 20 }}
-                                  placeholder="e.g. MM/dd/yyyy"
-                                  sx={lookupFieldSx}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Registration Start Date
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  fullWidth
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.regStartDate}
-                                  onChange={handleChange("regStartDate")}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  inputProps={{ maxLength: 20 }}
-                                  sx={lookupFieldSx}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Registration Close Date
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  fullWidth
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.regCloseDate}
-                                  onChange={handleChange("regCloseDate")}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  inputProps={{ maxLength: 20 }}
-                                  sx={lookupFieldSx}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Registration Status
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  fullWidth
-                                  select
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.registrationStatus}
-                                  onChange={handleRegistrationStatusChange}
-                                  disabled={!canUpdate || saving}
-                                  sx={lookupFieldSx}
-                                >
-                                  <MenuItem value="O">Open</MenuItem>
-                                  <MenuItem value="C">Close</MenuItem>
-                                </TextField>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Volunteer Availability
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  fullWidth
-                                  select
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.volunteerAvailability}
-                                  onChange={handleChange(
-                                    "volunteerAvailability",
-                                  )}
-                                  disabled={!canUpdate || saving}
-                                  sx={lookupFieldSx}
-                                >
-                                  <MenuItem value="Y">Open (Yes)</MenuItem>
-                                  <MenuItem value="N">Close (No)</MenuItem>
-                                </TextField>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Display Documents From
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  fullWidth
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.displayDocumentsFrom}
-                                  onChange={handleChange(
-                                    "displayDocumentsFrom",
-                                  )}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  sx={lookupFieldSx}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Total Space Junior Beginner
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.jbTotalSpace}
-                                  onChange={handleChange("jbTotalSpace")}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  inputProps={{ maxLength: 5 }}
-                                  sx={{
-                                    ...lookupFieldSx,
-                                    width: 108,
-                                    maxWidth: "100%",
-                                  }}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Total Space Junior Intermediate
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.jiTotalSpace}
-                                  onChange={handleChange("jiTotalSpace")}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  inputProps={{ maxLength: 5 }}
-                                  sx={{
-                                    ...lookupFieldSx,
-                                    width: 108,
-                                    maxWidth: "100%",
-                                  }}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Total Space Junior Advanced
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.jaTotalSpace}
-                                  onChange={handleChange("jaTotalSpace")}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  inputProps={{ maxLength: 5 }}
-                                  sx={{
-                                    ...lookupFieldSx,
-                                    width: 108,
-                                    maxWidth: "100%",
-                                  }}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Total Space Senior Beginner
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.sbTotalSpace}
-                                  onChange={handleChange("sbTotalSpace")}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  inputProps={{ maxLength: 5 }}
-                                  sx={{
-                                    ...lookupFieldSx,
-                                    width: 108,
-                                    maxWidth: "100%",
-                                  }}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Total Space Senior Intermediate
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.siTotalSpace}
-                                  onChange={handleChange("siTotalSpace")}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  inputProps={{ maxLength: 5 }}
-                                  sx={{
-                                    ...lookupFieldSx,
-                                    width: 108,
-                                    maxWidth: "100%",
-                                  }}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Total Space Senior Advanced
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.saTotalSpace}
-                                  onChange={handleChange("saTotalSpace")}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  inputProps={{ maxLength: 5 }}
-                                  sx={{
-                                    ...lookupFieldSx,
-                                    width: 108,
-                                    maxWidth: "100%",
-                                  }}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Current Exam Date
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  fullWidth
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.currentExamDate}
-                                  onChange={handleChange("currentExamDate")}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  inputProps={{ maxLength: 10 }}
-                                  sx={lookupFieldSx}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Current Exam Due Time
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  fullWidth
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.currentExamDueTime}
-                                  onChange={handleChange("currentExamDueTime")}
-                                  disabled={saving}
-                                  InputProps={{ readOnly: fieldReadOnly }}
-                                  inputProps={{ maxLength: 25 }}
-                                  sx={lookupFieldSx}
-                                />
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                Final Exam Display Y/N
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <TextField
-                                  fullWidth
-                                  select
-                                  size="small"
-                                  variant="outlined"
-                                  hiddenLabel
-                                  value={form.finalExamDisplay}
-                                  onChange={handleChange("finalExamDisplay")}
-                                  disabled={!canUpdate || saving || isRegistrationOpen}
-                                  sx={lookupFieldSx}
-                                >
-                                  <MenuItem value="Y">Yes</MenuItem>
-                                  <MenuItem value="N">No</MenuItem>
-                                </TextField>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                <Tooltip
-                                  title="Enter chapter numbers separated by commas, e.g. 1,2,"
-                                  arrow
-                                  placement="top"
-                                >
-                                  <Box
-                                    component="span"
-                                    sx={{
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      gap: 0.5,
-                                      cursor: "help",
-                                    }}
-                                  >
-                                    Final Exam Display Chapter
-                                    <InfoOutlinedIcon
-                                      sx={{ fontSize: 16, opacity: 0.9 }}
-                                    />
-                                  </Box>
-                                </Tooltip>
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <Tooltip
-                                  title="Enter chapter numbers separated by commas, e.g. 1,2,"
-                                  arrow
-                                  placement="top"
-                                >
-                                  <Box component="span" sx={{ display: "block" }}>
-                                    <TextField
-                                      fullWidth
-                                      size="small"
-                                      variant="outlined"
-                                      hiddenLabel
-                                      value={form.finalExamDisplayChapter}
-                                      onChange={handleChange(
-                                        "finalExamDisplayChapter",
-                                      )}
-                                      disabled={saving}
-                                      InputProps={{ readOnly: fieldReadOnly }}
-                                      inputProps={{ maxLength: 100 }}
-                                      placeholder="e.g. 1,2,"
-                                      sx={lookupFieldSx}
-                                    />
-                                  </Box>
-                                </Tooltip>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                sx={lookupLabelCellSx}
-                              >
-                                <Tooltip
-                                  title="Enter chapter numbers separated by commas, e.g. 1,2,"
-                                  arrow
-                                  placement="top"
-                                >
-                                  <Box
-                                    component="span"
-                                    sx={{
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      gap: 0.5,
-                                      cursor: "help",
-                                    }}
-                                  >
-                                    Online Exam Display Chapter
-                                    <InfoOutlinedIcon
-                                      sx={{ fontSize: 16, opacity: 0.9 }}
-                                    />
-                                  </Box>
-                                </Tooltip>
-                              </TableCell>
-                              <TableCell sx={lookupInputCellSx}>
-                                <Tooltip
-                                  title="Enter chapter numbers separated by commas, e.g. 1,2,"
-                                  arrow
-                                  placement="top"
-                                >
-                                  <Box component="span" sx={{ display: "block" }}>
-                                    <TextField
-                                      fullWidth
-                                      size="small"
-                                      variant="outlined"
-                                      hiddenLabel
-                                      value={form.onlineExamDisplayChapter}
-                                      onChange={handleChange(
-                                        "onlineExamDisplayChapter",
-                                      )}
-                                      disabled={saving}
-                                      InputProps={{ readOnly: fieldReadOnly }}
-                                      inputProps={{ maxLength: 100 }}
-                                      placeholder="e.g. 1,2,"
-                                      sx={lookupFieldSx}
-                                    />
-                                  </Box>
-                                </Tooltip>
-                              </TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                      <Box
-                        sx={{
-                          mt: 2,
-                          display: "flex",
-                          justifyContent: "center",
-                          flexWrap: "wrap",
-                          gap: 1,
-                        }}
-                      >
-                        <Button
-                          type="button"
-                          variant="outlined"
-                          color="primary"
-                          size="small"
-                          startIcon={<RefreshIcon />}
-                          onClick={load}
-                          disabled={loading || saving}
-                          sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
-                        >
-                          Refresh
-                        </Button>
-                        <Button
-                          type="submit"
-                          variant="contained"
-                          color="success"
-                          size="small"
-                          startIcon={<SaveIcon />}
-                          disabled={!canUpdate || saving}
-                          sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
-                        >
-                          {saving ? "Saving…" : "Submit"}
-                        </Button>
-                      </Box>
-                    </>
-                  )}
+              {loading ? (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+                  <CircularProgress size={32} />
                 </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+              ) : (
+                <>
+                  <TableContainer sx={lookupTableContainerSx}>
+                    <Table size="small" sx={{ tableLayout: "fixed", width: "100%" }}>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell colSpan={2} sx={categoryHeaderCellSx}>
+                            Semester
+                          </TableCell>
+                          <TableCell colSpan={2} sx={categoryHeaderCellSx}>
+                            Registration
+                          </TableCell>
+                          <TableCell colSpan={2} sx={categoryHeaderCellSx}>
+                            Class Capacity
+                          </TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {Array.from({ length: mainRowCount }).map((_, index) => (
+                          <TableRow key={index}>
+                            {renderCategoryPair(semesterRows[index])}
+                            {renderCategoryPair(registrationRows[index])}
+                            {renderCategoryPair(capacityRows[index])}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+
+                  <TableContainer sx={{ ...lookupTableContainerSx, mt: 2 }}>
+                    <Table size="small" sx={{ tableLayout: "fixed", width: "100%" }}>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell colSpan={2} sx={categoryHeaderCellSx}>
+                            Exam Settings
+                          </TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {examRows.map((row) => (
+                          <TableRow key={row.label}>
+                            <LabelCell tooltip={row.tooltip} sx={examLabelCellSx}>
+                              {row.label}
+                            </LabelCell>
+                            <TableCell sx={lookupInputCellSx}>{row.render()}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+
+                  <Stack direction="row" spacing={1.5} justifyContent="center" sx={{ mt: 2, mb: 3, pb: 1 }}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      size="medium"
+                      startIcon={<SaveIcon />}
+                      disabled={!canUpdate || saving}
+                      sx={portalModalSendButtonSx}
+                    >
+                      {saving ? "Saving…" : "Submit"}
+                    </Button>
+                  </Stack>
+                </>
+              )}
+            </Box>
+          </CardContent>
+        </Card>
       </Container>
 
       <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />

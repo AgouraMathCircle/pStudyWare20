@@ -361,12 +361,23 @@ const adminReportCardTableWrapSx = {
   alignSelf: "stretch",
 };
 
-const reportCardCommentsCellSx = {
+const reportCardTruncateCellSx = {
   display: "block",
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
   maxWidth: "100%",
+};
+
+const ReportCardTruncatedCell = ({ value }) => {
+  const text = value ?? "";
+  return (
+    <Tooltip title={text} disableHoverListener={!text}>
+      <Box component="span" sx={reportCardTruncateCellSx}>
+        {text}
+      </Box>
+    </Tooltip>
+  );
 };
 
 const reportCardLayoutSx = {
@@ -425,17 +436,17 @@ const reportCardColumnWidths = {
   edit: 52,
   delete: 56,
   studentId: 72,
-  studentName: null,
+  studentName: 168,
   class: 140,
   grade: 56,
-  session: null,
-  examType: null,
+  session: 80,
+  examType: 72,
   examDate: 88,
   total: 72,
   topScore: 72,
   avg: 72,
   yourScore: 72,
-  comments: 180,
+  comments: 100,
 };
 
 const reportCardColWidthsPx = [
@@ -549,14 +560,15 @@ const AdminReportCard = () => {
   };
 
   const reportCardBodyCellSx = (options = {}) => {
+    const truncateWidth =
+      options.truncateWidth ??
+      (options.truncate ? reportCardColumnWidths.comments : undefined);
     if (isAdminView) {
       return {
         ...adminSessionListTableBodyCellSx(options),
         whiteSpace: "nowrap",
-        width: options.truncate ? reportCardColumnWidths.comments : "auto",
-        maxWidth: options.truncate
-          ? reportCardColumnWidths.comments
-          : undefined,
+        width: options.truncate ? truncateWidth : "auto",
+        maxWidth: options.truncate ? truncateWidth : undefined,
         minWidth: options.autoFit
           ? "max-content"
           : options.truncate
@@ -573,7 +585,7 @@ const AdminReportCard = () => {
     if (options.truncate) {
       return {
         ...base,
-        maxWidth: reportCardColumnWidths.comments,
+        maxWidth: truncateWidth,
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
@@ -1892,10 +1904,14 @@ const AdminReportCard = () => {
                                       </TableCell>
                                       <TableCell
                                         sx={reportCardBodyCellSx({
-                                          autoFit: true,
+                                          truncate: true,
+                                          truncateWidth:
+                                            reportCardColumnWidths.studentName,
                                         })}
                                       >
-                                        {o.studentName}
+                                        <ReportCardTruncatedCell
+                                          value={o.studentName}
+                                        />
                                       </TableCell>
                                       <TableCell
                                         sx={reportCardBodyCellSx({
@@ -1909,17 +1925,25 @@ const AdminReportCard = () => {
                                       </TableCell>
                                       <TableCell
                                         sx={reportCardBodyCellSx({
-                                          autoFit: true,
+                                          truncate: true,
+                                          truncateWidth:
+                                            reportCardColumnWidths.session,
                                         })}
                                       >
-                                        {o.semester}
+                                        <ReportCardTruncatedCell
+                                          value={o.semester}
+                                        />
                                       </TableCell>
                                       <TableCell
                                         sx={reportCardBodyCellSx({
-                                          autoFit: true,
+                                          truncate: true,
+                                          truncateWidth:
+                                            reportCardColumnWidths.examType,
                                         })}
                                       >
-                                        {o.examType}
+                                        <ReportCardTruncatedCell
+                                          value={o.examType}
+                                        />
                                       </TableCell>
                                       <TableCell sx={reportCardBodyCellSx()}>
                                         {formatReportCardDate(o.examDate)}
@@ -1956,19 +1980,13 @@ const AdminReportCard = () => {
                                         sx={reportCardBodyCellSx({
                                           isLast: true,
                                           truncate: true,
+                                          truncateWidth:
+                                            reportCardColumnWidths.comments,
                                         })}
                                       >
-                                        <Tooltip
-                                          title={o.comments || ""}
-                                          disableHoverListener={!o.comments}
-                                        >
-                                          <Box
-                                            component="span"
-                                            sx={reportCardCommentsCellSx}
-                                          >
-                                            {o.comments}
-                                          </Box>
-                                        </Tooltip>
+                                        <ReportCardTruncatedCell
+                                          value={o.comments}
+                                        />
                                       </TableCell>
                                     </TableRow>
                                   );

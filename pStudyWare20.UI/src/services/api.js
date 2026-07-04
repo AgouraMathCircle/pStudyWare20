@@ -7,7 +7,9 @@ const isPublicAuthEndpoint = (url = "") => {
     normalized.includes("/auth/login") ||
     normalized.includes("/auth/forgot-password") ||
     normalized.includes("/auth/reset-password") ||
-    normalized.includes("/auth/refresh-token")
+    normalized.includes("/auth/refresh-token") ||
+    normalized.includes("/contact") ||
+    normalized.includes("/newsletter")
   );
 };
 

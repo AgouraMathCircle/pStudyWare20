@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -8,6 +8,8 @@ import {
   Button,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import newsletterService from "../services/newsletterService";
+import { getNewsletterStatusClass } from "../utils/newsletterStatus";
 import "../styles/NewsletterSection.css";
 
 const NewsletterSectionBox = styled(Box)(({ theme }) => ({
@@ -32,6 +34,7 @@ const NewsletterForm = styled("form")(({ theme }) => ({
   margin: "0 0 0 auto",
   position: "relative",
   display: "flex",
+  flexWrap: "wrap",
   [theme.breakpoints.down("md")]: {
     margin: "20px auto 0",
   },
@@ -67,10 +70,49 @@ const NewsletterButton = styled(Button)(({ theme }) => ({
 }));
 
 const NewsletterSection = () => {
-  const handleNewsletterSubmit = (e) => {
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+
+  useEffect(() => {
+    if (!statusMessage) return undefined;
+
+    const timer = setTimeout(() => {
+      setStatusMessage("");
+      setIsError(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [statusMessage]);
+
+  const handleNewsletterSubmit = async (e) => {
     e.preventDefault();
-    // Handle newsletter subscription logic here
-    console.log("Newsletter subscription submitted");
+    setStatusMessage("");
+    setIsError(false);
+    setIsSubmitting(true);
+
+    try {
+      const response = await newsletterService.subscribe(email);
+
+      if (response?.isSuccess) {
+        setStatusMessage(
+          response.message || "Thank you for subscribing!"
+        );
+        setEmail("");
+      } else {
+        setIsError(true);
+        setStatusMessage(
+          response?.errorMessage ||
+            "Unable to subscribe. Please try again."
+        );
+      }
+    } catch (error) {
+      setIsError(true);
+      setStatusMessage(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -121,12 +163,30 @@ const NewsletterSection = () => {
                   type="email"
                   name="email"
                   placeholder="E-mail Address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   fullWidth
+                  disabled={isSubmitting}
                 />
-                <NewsletterButton type="submit" variant="contained">
-                  Subscribe →
+                <NewsletterButton
+                  type="submit"
+                  variant="contained"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Subscribing..." : "Subscribe →"}
                 </NewsletterButton>
+                {statusMessage && (
+                  <Typography
+                    className={`newsletter-status ${getNewsletterStatusClass(
+                      statusMessage,
+                      isError
+                    )}`}
+                    sx={{ width: "100%", mt: 1.5 }}
+                  >
+                    {statusMessage}
+                  </Typography>
+                )}
               </NewsletterForm>
             </Box>
           </Grid>

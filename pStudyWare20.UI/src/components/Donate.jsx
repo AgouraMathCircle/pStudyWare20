@@ -12,9 +12,8 @@ import {
   AccordionDetails,
   Chip,
   CircularProgress,
+  Alert,
 } from "@mui/material";
-import AppSnackbar from "./pstudyware/Common/AppSnackbar";
-import { useAppSnackbar } from "./pstudyware/Common/useAppSnackbar";
 import {
   Description,
   ExpandMore,
@@ -32,6 +31,7 @@ import pageHeaderImg from "../assets/images/about/page-header.jpg";
 import donateButtonImg from "../assets/images/donate_button.jpg";
 import boxImg from "../assets/images/donatebox.png";
 import Sponsors from "./common/Sponsors";
+import paymentOptionsImg from "../assets/images/paymentOptions.png";
 
 const Donate = () => {
   const [donorsData, setDonorsData] = useState({
@@ -40,8 +40,8 @@ const Donate = () => {
     statistics: null,
   });
   const [donorsLoading, setDonorsLoading] = useState(true);
-  const [expandedYear, setExpandedYear] = useState("2020");
-  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("error");
+  const [donorsError, setDonorsError] = useState(null);
+  const [expandedYear, setExpandedYear] = useState("current");
 
   // Financial reports data
   const financialReports = [
@@ -71,6 +71,7 @@ const Donate = () => {
     const fetchDonorsData = async () => {
       try {
         setDonorsLoading(true);
+        setDonorsError(null);
 
         const response = await donateService.getDashboardData();
 
@@ -81,14 +82,13 @@ const Donate = () => {
             statistics: response.statistics,
           });
         } else {
-          showSnackbar(
-            response.errorMessage || "Failed to load donors data.",
-            "error",
+          setDonorsError(
+            response.errorMessage || "Failed to load donors data."
           );
         }
       } catch (err) {
         console.error("Error fetching donors:", err);
-        showSnackbar("Failed to load donors. Please try again later.", "error");
+        setDonorsError("Failed to load donors. Please try again later.");
       } finally {
         setDonorsLoading(false);
       }
@@ -111,7 +111,6 @@ const Donate = () => {
   };
 
   return (
-    <>
     <div className="main-content">
       {/* Breadcrumbs Start */}
       <div className="sc-breadcrumbs breadcrumbs-overlay">
@@ -134,7 +133,7 @@ const Donate = () => {
 
       {/* Main Content */}
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Grid container spacing={3}>
+        <Grid container spacing={1}>
           {/* Left Column - Donate to AMC Section */}
           <Grid item size={{ xs: 12, md: 6 }}>
             <Card
@@ -144,7 +143,8 @@ const Donate = () => {
                 backgroundColor: "white",
                 borderRadius: "12px",
                 overflow: "hidden",
-                padding: 2
+                padding: 2,
+                height: "100%",
               }}
             >
               <CardContent sx={{ p: 0 }}>
@@ -218,7 +218,7 @@ const Donate = () => {
                 borderRadius: "12px",
                 overflow: "hidden",
                 padding: 6.3,
-                
+                height: "100%",
               }}
             >
               <Box
@@ -273,22 +273,22 @@ const Donate = () => {
 
               <CardContent sx={{ p: 0 }}>
                 <Box sx={{ mb: 4, textAlign: "center" }}>
-<Box
-  component="form"
-  action="https://www.paypal.com/cgi-bin/webscr"
-  method="post"
-  target="_blank"
-  onSubmit={handlePayPalSubmit}
-  sx={{
-    width: "90%",
-    mx: "auto",
-    display: "block",
-    "&:hover": {
-      transform: "scale(1.02)",
-    },
-    transition: "transform 0.3s ease",
-  }}
->
+                  <Box
+                    component="form"
+                    action="https://www.paypal.com/cgi-bin/webscr"
+                    method="post"
+                    target="_blank"
+                    onSubmit={handlePayPalSubmit}
+                    sx={{
+                      width: "90%",
+                      mx: "auto",
+                      display: "block",
+                      "&:hover": {
+                        transform: "scale(1.02)",
+                      },
+                      transition: "transform 0.3s ease",
+                    }}
+                  >
                     <input type="hidden" name="cmd" value="_s-xclick" />
                     <input
                       type="hidden"
@@ -307,7 +307,7 @@ const Donate = () => {
                         },
                         textTransform: "none",
                         fontWeight: 600,
-                        fontSize:20,
+                        fontSize: 20,
                         mx: "auto",        // centers horizontally
                         display: "block",   // required for mx auto to work
                         py: 1.5,
@@ -336,98 +336,23 @@ const Donate = () => {
                     mt: 2,
                   }}
                 >
-                  <Typography variant="body2" sx={{ color: "#666", mr: 1 }}>
-                    We accept:
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1.5,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 25,
-                        backgroundColor: "#f0f0f0",
-                        borderRadius: "4px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.8rem",
-                        fontWeight: "bold",
-                        color: "#666",
-                      }}
-                    >
-                      VISA
-                    </Box>
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 25,
-                        backgroundColor: "#f0f0f0",
-                        borderRadius: "4px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.8rem",
-                        fontWeight: "bold",
-                        color: "#666",
-                      }}
-                    >
-                      MC
-                    </Box>
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 25,
-                        backgroundColor: "#f0f0f0",
-                        borderRadius: "4px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.8rem",
-                        fontWeight: "bold",
-                        color: "#666",
-                      }}
-                    >
-                      AMEX
-                    </Box>
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 25,
-                        backgroundColor: "#f0f0f0",
-                        borderRadius: "4px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.8rem",
-                        fontWeight: "bold",
-                        color: "#666",
-                      }}
-                    >
-                      DISC
-                    </Box>
-                    <Box
-                      sx={{
-                        width: 50,
-                        height: 25,
-                        backgroundColor: "#f0f0f0",
-                        borderRadius: "4px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.8rem",
-                        fontWeight: "bold",
-                        color: "#666",
-                      }}
-                    >
-                      PayPal
-                    </Box>
-                  </Box>
+                  <Grid container spacing={0} alignItems="center" justifyContent="flex-start">
+                    <Grid size={"auto"}>
+                      <Typography variant="body2" sx={{ color: "#666", fontSize: "1.2rem" }}>
+                        We accept:
+                      </Typography>
+                    </Grid>
+                    <Grid size={"grow"}>
+                      <img
+                        src={paymentOptionsImg}
+                        alt="Payment Options"
+                        style={{ width: '100%', aspectRatio: '5/1', objectFit: 'cover' }}
+                      />
+                    </Grid>
+                  </Grid>
+
                 </Box>
+
               </CardContent>
             </Card>
           </Grid>
@@ -437,12 +362,13 @@ const Donate = () => {
 
             {/* Financial Reports Section */}
             <Card
-              elevation={2}
+              elevation={0}
               sx={{
                 backgroundColor: "white",
                 borderRadius: "12px",
                 overflow: "hidden",
-                padding: 1
+                padding: 1.5,
+                height: "100%",
               }}
             >
               <CardContent sx={{ p: 3 }}>
@@ -514,7 +440,8 @@ const Donate = () => {
                 backgroundColor: "white",
                 borderRadius: "12px",
                 overflow: "hidden",
-                padding: 1.5
+                padding: 1.5,
+                height: "100%",
               }}
             >
               <CardContent sx={{ p: 0 }}>
@@ -532,188 +459,202 @@ const Donate = () => {
 
         </Grid>
 
+        <Card
+          elevation={0}
+          sx={{
+            backgroundColor: "white",
+            borderRadius: "12px",
+            overflow: "hidden",
+            padding: 1.5,
+            height: "100%",
+            mt: 1
+          }}
+        >
+          {/* Donors of AMC Section */}
+          <Box sx={{ mt: 2, mb: 1 }}>
 
-        {/* Donors of AMC Section */}
-        <Box sx={{ mt: 8, mb: 6 }}>
-          <Typography
-            variant="h3"
-            sx={{
-              color: "#2c3e50",
-              fontWeight: 700,
-              textAlign: "center",
-              mb: 2,
-              fontSize: { xs: "2rem", md: "2.5rem" },
-            }}
-          >
-            DONORS OF AMC
-          </Typography>
+            <Typography
+              variant="h3"
+              sx={{
+                color: "#2c3e50",
+                fontWeight: 700,
+                textAlign: "center",
+                fontSize: { xs: "2rem", md: "2.5rem" },
+              }}
+            >
+              DONORS OF AMC
+            </Typography>
 
-          <Typography
-            variant="body1"
-            sx={{
-              color: "#666",
-              textAlign: "center",
-              mb: 4,
-              fontSize: "1.1rem",
-              maxWidth: 600,
-              mx: "auto",
-            }}
-          >
-            Agoura Math Circle thanks the following donors for their generous
-            support of our organization.
-          </Typography>
+            <Typography
+              variant="body1"
+              sx={{
+                color: "#666",
+                textAlign: "center",
+                mb: 4,
+                fontSize: "1.1rem",
+                maxWidth: 600,
+                mx: "auto",
+              }}
+            >
+              Agoura Math Circle thanks the following donors for their generous
+              support of our organization.
+            </Typography>
 
-          {donorsLoading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <Box sx={{ maxWidth: 800, mx: "auto" }}>
-              {/* Current Year Donors */}
-              {donorsData.currentYearDonors.length > 0 && (
-                <Accordion
-                  expanded={expandedYear === "current"}
-                  onChange={() => handleYearChange("current")}
-                  sx={{ mb: 2 }}
-                >
-                  <AccordionSummary
-                    expandIcon={<ExpandMore />}
-                    sx={{
-                      backgroundColor: "#53b50a",
-                      color: "white",
-                      "&:hover": {
-                        backgroundColor: "#4a9d0a",
-                      },
-                    }}
+            {donorsLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : donorsError ? (
+              <Alert severity="error" sx={{ maxWidth: 600, mx: "auto" }}>
+                {donorsError}
+              </Alert>
+            ) : (
+              <Box sx={{ mx: "auto" }}>
+                {/* Current Year Donors */}
+                {donorsData.currentYearDonors.length > 0 && (
+                  <Accordion
+                    expanded={expandedYear === "current"}
+                    onChange={() => handleYearChange("current")}
+                    sx={{ mb: 2 }}
                   >
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {donorsData.statistics?.currentYear ||
-                        new Date().getFullYear()}{" "}
-                      Donors
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ p: 0 }}>
-                    {Object.entries(
-                      donorService.groupDonorsByLevel(donorsData.currentYearDonors),
-                    ).map(([level, donors]) => (
-                      <Box key={level} sx={{ mb: 2 }}>
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            color: "#2c3e50",
-                            fontWeight: 600,
-                            mb: 1,
-                            pl: 2,
-                            pt: 2,
-                          }}
-                        >
-                          {level} Level Donors
-                        </Typography>
-                        <Grid container spacing={1} sx={{ px: 2, pb: 2 }}>
-                          {donors.map((donor, index) => (
-                            <Grid item xs={12} sm={6} md={4} key={index}>
-                              <Chip
-                                label={donor.donorName || "Anonymous"}
-                                sx={{
-                                  backgroundColor:
-                                    donorLevels[level]?.color || "#f5f5f5",
-                                  color:
-                                    donorLevels[level]?.textColor || "#666",
-                                  fontWeight: 500,
-                                  width: "100%",
-                                  justifyContent: "flex-start",
-                                }}
-                                icon={
-                                  donorLevels[level]?.icon
-                                    ? React.createElement(
-                                      donorLevels[level].icon,
-                                    )
-                                    : undefined
-                                }
-                              />
-                            </Grid>
-                          ))}
-                        </Grid>
-                      </Box>
-                    ))}
-                  </AccordionDetails>
-                </Accordion>
+                    <AccordionSummary
+                      expandIcon={<ExpandMore />}
+                      sx={{
+                        backgroundColor: "#53b50a",
+                        color: "white",
+                        "&:hover": {
+                          backgroundColor: "#4a9d0a",
+                        },
+                      }}
+                    >
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        {donorsData.statistics?.currentYear ||
+                          new Date().getFullYear()}{" "}
+                        Donors
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ p: 0 }}>
+                      {Object.entries(
+                        donorService.groupDonorsByLevel(donorsData.currentYearDonors),
+                      ).map(([level, donors]) => (
+                        <Box key={level} sx={{ mb: 2 }}>
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              color: "#2c3e50",
+                              fontWeight: 600,
+                              mb: 1,
+                              pl: 2,
+                              pt: 2,
+                            }}
+                          >
+                            {level} Level Donors
+                          </Typography>
+                          <Grid container spacing={1} sx={{ px: 2, pb: 2 }}>
+                            {donors.map((donor, index) => (
+                              <Grid item xs={12} sm={6} md={4} key={index}>
+                                <Chip
+                                  label={donor.donorName || "Anonymous"}
+                                  sx={{
+                                    backgroundColor:
+                                      donorLevels[level]?.color || "#f5f5f5",
+                                    color:
+                                      donorLevels[level]?.textColor || "#666",
+                                    fontWeight: 500,
+                                    width: "100%",
+                                    justifyContent: "flex-start",
+                                  }}
+                                  icon={
+                                    donorLevels[level]?.icon
+                                      ? React.createElement(
+                                        donorLevels[level].icon,
+                                      )
+                                      : undefined
+                                  }
+                                />
+                              </Grid>
+                            ))}
+                          </Grid>
+                        </Box>
+                      ))}
+                    </AccordionDetails>
+                  </Accordion>
 
-              )}
+                )}
 
-              {/* Past Year Donors */}
-              {Object.keys(donorsData.pastYearDonors).map((year) => (
-                <Accordion
-                  key={year}
-                  expanded={expandedYear === year}
-                  onChange={() => handleYearChange(year)}
-                  sx={{ mb: 2 }}
-                >
-                  <AccordionSummary
-                    expandIcon={<ExpandMore />}
-                    sx={{
-                      backgroundColor: "#53b50a",
-                      color: "white",
-                      "&:hover": {
-                        backgroundColor: "#4a9d0a",
-                      },
-                    }}
+                {/* Past Year Donors */}
+                {Object.keys(donorsData.pastYearDonors).map((year) => (
+                  <Accordion
+                    key={year}
+                    expanded={expandedYear === year}
+                    onChange={() => handleYearChange(year)}
+                    sx={{ mb: 2 }}
                   >
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      {year} Donors
-                    </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ p: 0 }}>
-                    {Object.entries(
-                      donorService.groupDonorsByLevel(donorsData.pastYearDonors[year] || []),
-                    ).map(([level, donors]) => (
-                      <Box key={level} sx={{ mb: 2 }}>
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            color: "#2c3e50",
-                            fontWeight: 600,
-                            mb: 1,
-                            pl: 2,
-                            pt: 2,
-                          }}
-                        >
-                          {level} Level Donors
-                        </Typography>
-                        <Grid container spacing={1} sx={{ px: 2, pb: 2 }}>
-                          {donors.map((donor, index) => (
-                            <Grid item xs={12} sm={6} md={4} key={index}>
-                              <Chip
-                                label={donor.donorName || "Anonymous"}
-                                sx={{
-                                  backgroundColor:
-                                    donorLevels[level]?.color || "#f5f5f5",
-                                  color:
-                                    donorLevels[level]?.textColor || "#666",
-                                  fontWeight: 500,
-                                  width: "100%",
-                                  justifyContent: "flex-start",
-                                }}
-                                icon={
-                                  donorLevels[level]?.icon
-                                    ? React.createElement(
-                                      donorLevels[level].icon,
-                                    )
-                                    : undefined
-                                }
-                              />
-                            </Grid>
-                          ))}
-                        </Grid>
-                      </Box>
-                    ))}
-                  </AccordionDetails>
-                </Accordion>
-              ))}
-            </Box>
-          )}
-        </Box>
-
+                    <AccordionSummary
+                      expandIcon={<ExpandMore />}
+                      sx={{
+                        backgroundColor: "#53b50a",
+                        color: "white",
+                        "&:hover": {
+                          backgroundColor: "#4a9d0a",
+                        },
+                      }}
+                    >
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        {year} Donors
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ p: 0 }}>
+                      {Object.entries(
+                        donorService.groupDonorsByLevel(donorsData.pastYearDonors[year] || []),
+                      ).map(([level, donors]) => (
+                        <Box key={level} sx={{ mb: 2 }}>
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              color: "#2c3e50",
+                              fontWeight: 600,
+                              mb: 1,
+                              pl: 2,
+                              pt: 2,
+                            }}
+                          >
+                            {level} Level Donors
+                          </Typography>
+                          <Grid container spacing={1} sx={{ px: 2, pb: 2 }}>
+                            {donors.map((donor, index) => (
+                              <Grid item xs={12} sm={6} md={4} key={index}>
+                                <Chip
+                                  label={donor.donorName || "Anonymous"}
+                                  sx={{
+                                    backgroundColor:
+                                      donorLevels[level]?.color || "#f5f5f5",
+                                    color:
+                                      donorLevels[level]?.textColor || "#666",
+                                    fontWeight: 500,
+                                    width: "100%",
+                                    justifyContent: "flex-start",
+                                  }}
+                                  icon={
+                                    donorLevels[level]?.icon
+                                      ? React.createElement(
+                                        donorLevels[level].icon,
+                                      )
+                                      : undefined
+                                  }
+                                />
+                              </Grid>
+                            ))}
+                          </Grid>
+                        </Box>
+                      ))}
+                    </AccordionDetails>
+                  </Accordion>
+                ))}
+              </Box>
+            )}
+          </Box>
+        </Card>
       </Container>
 
 
@@ -744,8 +685,6 @@ const Donate = () => {
       </Button>
 
     </div>
-    <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
-    </>
   );
 };
 

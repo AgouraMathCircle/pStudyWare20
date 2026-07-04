@@ -1,17 +1,55 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Typography, Container, Grid } from "@mui/material";
 import { ArrowForward } from "@mui/icons-material";
 import footerSubscribeBgImg from "../assets/images/bg/footer-subscribe-bg.jpg";
+import newsletterService from "../services/newsletterService";
+import { getNewsletterStatusClass } from "../utils/newsletterStatus";
 import "../styles/Newsletter.css";
 
 const Newsletter = () => {
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [isError, setIsError] = useState(false);
 
-  const handleNewsletterSubmit = (e) => {
+  useEffect(() => {
+    if (!statusMessage) return undefined;
+
+    const timer = setTimeout(() => {
+      setStatusMessage("");
+      setIsError(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [statusMessage]);
+
+  const handleNewsletterSubmit = async (e) => {
     e.preventDefault();
-    // Handle newsletter subscription logic here
-    console.log("Newsletter subscription submitted:", email);
-    setEmail("");
+    setStatusMessage("");
+    setIsError(false);
+    setIsSubmitting(true);
+
+    try {
+      const response = await newsletterService.subscribe(email);
+
+      if (response?.isSuccess) {
+        setStatusMessage(
+          response.message || "Thank you for subscribing!"
+        );
+        setEmail("");
+      } else {
+        setIsError(true);
+        setStatusMessage(
+          response?.errorMessage ||
+            "Unable to subscribe. Please try again."
+        );
+      }
+    } catch (error) {
+      setIsError(true);
+      setStatusMessage(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -78,10 +116,22 @@ const Newsletter = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isSubmitting}
               />
-              <button type="submit">
-                Subscribe <ArrowForward className="arrow-icon" />
+              <button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Subscribing..." : "Subscribe"}{" "}
+                <ArrowForward className="arrow-icon" />
               </button>
+              {statusMessage && (
+                <div
+                  className={`newsletter-status ${getNewsletterStatusClass(
+                    statusMessage,
+                    isError
+                  )}`}
+                >
+                  {statusMessage}
+                </div>
+              )}
             </form>
           </Grid>
         </Grid>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Container,
   Box,
@@ -9,10 +9,6 @@ import {
   Grid,
   Card,
   CardContent,
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
   Button,
   Select,
   MenuItem,
@@ -22,26 +18,33 @@ import {
   RadioGroup,
   FormControlLabel,
   Link,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
 } from "@mui/material";
 import { Send as SendIcon } from "@mui/icons-material";
-import AppConfirmDialog from "../Common/AppConfirmDialog";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import finalExamService from "../../../services/finalExamService";
+import {
+  getStudentListItemText,
+  getStudentListItemValue,
+  getSessionLabel,
+  parseStudentDropdownValue,
+  buildFinalExamSubmitSuccessUrl,
+  formatExamSubmitSuccessMessage,
+  splitQuestionsIntoGroups,
+} from "../../../utils/studentChapterRouting";
 import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import FinalExamScoresGrid from "./FinalExamScoresGrid";
+import AppConfirmDialog from "../Common/AppConfirmDialog";
 import {
-  APPLICATION_ADMIN_TITLE_COLOR,
-  APPLICATION_SURFACE_BG,
-  APPLICATION_SURFACE_BORDER,
-  PORTAL_CARD_BOX_SHADOW,
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
   adminSessionListTitleSx,
 } from "../styles/applicationSurfaces";
 import "../../../styles/StudentDashboard.css";
-
-const EXAM_TYPE = "Final Exam";
 
 /** Legacy FinalExam.aspx / style.css palette */
 const LEGACY_CONTROL_BOX_BG = "#54B50A";
@@ -246,10 +249,15 @@ const examQuestionTableSx = {
   },
 };
 
+const parseStudentValue = parseStudentDropdownValue;
+
+const isScoreUpdateEnabled = (response) =>
+  response?.enableScoreUpdate ?? response?.EnableScoreUpdate ?? false;
+
 const FinalExam = () => {
   const { user, isAuthenticated } = useAuth();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -260,6 +268,7 @@ const FinalExam = () => {
   const [selectedStudent, setSelectedStudent] = useState("");
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState("");
+  const EXAM_TYPE = "Final Exam";
   const [selectedExamType] = useState(EXAM_TYPE);
 
   // Questions and answers state
@@ -282,135 +291,271 @@ const FinalExam = () => {
   const [showForm, setShowForm] = useState(true);
   const [showNoQuestions, setShowNoQuestions] = useState(false);
   const [showAlreadySubmitted, setShowAlreadySubmitted] = useState(false);
-  const [showExamCompleted, setShowExamCompleted] = useState(false);
-  const [showFormError, setShowFormError] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(null);
+  const [showFinalExamUnavailable, setShowFinalExamUnavailable] =
+    useState(false);
 
-  const applyScoreValidationResult = useCallback((validationResponse) => {
-    if (!validationResponse.isSuccess) {
-      setShowQuestions(false);
-      setShowAlreadySubmitted(true);
-      setShowNoQuestions(false);
-      setShowExamCompleted(false);
-      return false;
-    }
+  const studentChangeReadyRef = useRef(false);
+  const pageInitKeyRef = useRef("");
+  const skipNextSessionLoadRef = useRef(false);
+  const pendingAutoBindQuestionsRef = useRef(false);
 
-    if (!validationResponse.enableScoreUpdate) {
-      setShowQuestions(false);
-      setShowAlreadySubmitted(true);
-      setShowNoQuestions(false);
-      setShowExamCompleted(false);
-      return false;
-    }
+  const applyScoreValidationResult = useCallback(
+    (validationResponse) => {
+      const action = searchParams.get("Action") || "";
 
-    setShowAlreadySubmitted(false);
-    setShowExamCompleted(false);
-    return true;
-  }, []);
+      if (
+        !validationResponse?.isSuccess ||
+        !isScoreUpdateEnabled(validationResponse)
+      ) {
+        setShowQuestions(false);
+        setQuestions([]);
+        setAnswers({});
+        setShowNoQuestions(false);
+        if (action !== "U") {
+          setShowAlreadySubmitted(true);
+        }
+        return false;
+      }
+
+      setShowAlreadySubmitted(false);
+      setShowForm(true);
+      return true;
+    },
+    [searchParams],
+  );
 
   const runScoreValidation = useCallback(
-    async (studentValue, session) => {
-      const studentInfo = studentValue.split("~");
-      const classValue = studentInfo[0];
-      const studentID = parseInt(studentInfo[1], 10);
+    async (studentValue, session, examType = selectedExamType) => {
+      const { classCode, studentId } = parseStudentValue(studentValue);
+
+      if (!studentId || !session) {
+        return false;
+      }
 
       const validationResponse = await finalExamService.validateScoreUpdate({
-        studentID,
+        studentID: parseInt(studentId, 10),
         session,
-        class: classValue,
-        examType: selectedExamType,
+        class: classCode,
+        examType,
       });
+
+      if (!validationResponse?.isSuccess && validationResponse?.errorMessage) {
+        showSnackbar(validationResponse.errorMessage, "error");
+      }
 
       return applyScoreValidationResult(validationResponse);
     },
-    [applyScoreValidationResult, selectedExamType]
+    [applyScoreValidationResult, selectedExamType],
   );
+
+  // Legacy OnlineExam.aspx.cs BindQuestions()
+  const loadAnswerSheet = useCallback(
+    async (studentValue, session, examType = selectedExamType) => {
+      if (!studentValue || !session || !examType) {
+        return false;
+      }
+
+      const { classCode, studentId } = parseStudentValue(studentValue);
+      if (!classCode || !studentId) {
+        return false;
+      }
+
+      try {
+        setQuestionsLoading(true);
+        const questionsResponse = await finalExamService.getExamQuestions({
+          studentID: parseInt(studentId, 10),
+          class: classCode,
+          examType,
+          session,
+        });
+
+        if (!questionsResponse?.isSuccess) {
+          setShowQuestions(false);
+          setShowNoQuestions(false);
+          showSnackbar(
+            questionsResponse?.errorMessage ||
+              "You are not eligible to load this answer sheet.",
+            "error",
+          );
+          return false;
+        }
+
+        if (
+          questionsResponse.questions?.length > 0
+        ) {
+          setQuestions(questionsResponse.questions);
+          setShowQuestions(true);
+          setShowNoQuestions(false);
+          setShowAlreadySubmitted(false);
+          setCanSubmit(true);
+
+          const initialAnswers = {};
+          questionsResponse.questions.forEach((q) => {
+            initialAnswers[q.question] = "";
+          });
+          setAnswers(initialAnswers);
+          return true;
+        }
+
+        setShowQuestions(false);
+        setShowNoQuestions(true);
+        setShowAlreadySubmitted(false);
+        return false;
+      } catch (error) {
+        console.error("Error loading answer sheet:", error);
+        showSnackbar("Error loading questions. Please try again.", "error");
+        return false;
+      } finally {
+        setQuestionsLoading(false);
+      }
+    },
+    [selectedExamType],
+  );
+
+  const loadStudentScores = useCallback(async () => {
+    if (!user) return;
+    try {
+      const scoresResponse = await finalExamService.getStudentScores();
+
+      if (scoresResponse.isSuccess && scoresResponse.scores) {
+        setStudentScores(scoresResponse.scores);
+      }
+    } catch (error) {
+      console.error("Error loading student scores:", error);
+    }
+  }, [user]);
 
   // Load initial data
   useEffect(() => {
     const loadInitialData = async () => {
       if (!isAuthenticated || !user) {
+        setLoading(false);
         return;
       }
 
+      const action = searchParams.get("Action") || "";
+      const source = searchParams.get("Source") || "";
+      const studentName = searchParams.get("Student") || "";
+      const chapterID = searchParams.get("ChapterID") || "";
+      const receivedScore = searchParams.get("ReceivedScore") || "";
+      const totalScore = searchParams.get("TotalScore") || "";
+
+      const initKey = [
+        user.username || user.email,
+        studentName,
+        action,
+        source,
+        chapterID,
+        receivedScore,
+        totalScore,
+      ].join("|");
+
+      if (pageInitKeyRef.current === initKey) {
+        return;
+      }
+      pageInitKeyRef.current = initKey;
+      studentChangeReadyRef.current = false;
+
       try {
         setLoading(true);
-        console.log("OnlineExam: Fetching student list");
 
-        // Check URL parameters
-        const action = searchParams.get("Action");
-        const source = searchParams.get("Source");
-        const studentName = searchParams.get("Student");
-        const chapterID = searchParams.get("ChapterID");
-        const receivedScore = searchParams.get("ReceivedScore");
-        const totalScore = searchParams.get("TotalScore");
-
-        // Handle success messages from URL parameters
-        if (action === "U") {
-          setShowQuestions(false);
-        }
-
+        // Legacy FinalExam.aspx?Action=U&ReceivedScore=…&TotalScore=… (divMessage)
         if (action === "U" && source !== "S" && receivedScore && totalScore) {
-          showSnackbar(
-            `You have successfully submitted. You have received the score: ${receivedScore} out of ${totalScore}.`,
-            "success"
-          );
+          setSubmitSuccess({ receivedScore, totalScore });
           setShowAlreadySubmitted(false);
-          setShowExamCompleted(false);
+          setShowQuestions(false);
+          setCanSubmit(false);
         } else if (action === "U" && source === "S") {
           showSnackbar("You have successfully updated the scores.", "success");
           setShowAlreadySubmitted(false);
-          setShowExamCompleted(false);
+        } else if (action !== "U") {
+          setSubmitSuccess(null);
+        }
+
+        const availabilityResponse =
+          await finalExamService.getExamAvailability();
+        const finalExamAvailable =
+          availabilityResponse?.isSuccess !== false &&
+          (availabilityResponse?.showFinalExam === true ||
+            availabilityResponse?.ShowFinalExam === true);
+
+        if (!finalExamAvailable) {
+          setShowFinalExamUnavailable(true);
+          setShowForm(false);
+          setShowQuestions(false);
+          setCanSubmit(false);
+          await loadStudentScores();
+          return;
+        }
+
+        setShowFinalExamUnavailable(false);
+
+        if (action === "R" && source === "S") {
+          setShowForm(true);
+          setShowAlreadySubmitted(false);
+          setShowNoQuestions(false);
+          // Legacy Page_Load: EnbleScoreUpdate then BindQuestions when score window open
+          pendingAutoBindQuestionsRef.current = true;
         }
 
         // Get student list
-        const studentListResponse = await finalExamService.getStudentList(
-          user.email || user.username
-        );
+        const studentListResponse = await finalExamService.getStudentList();
 
+        let list = [];
         if (studentListResponse.isSuccess && studentListResponse.students) {
-          const list = studentListResponse.students;
+          list = studentListResponse.students;
           setStudents(list);
 
           if (list.length === 0) {
-            showSnackbar("No students found for your account.", "warning");
+            setShowForm(false);
+            setShowFinalExamUnavailable(true);
           } else if (list.length === 1) {
-            setSelectedStudent(list[0].value);
+            setSelectedStudent(getStudentListItemValue(list[0]));
           } else if (studentName) {
-            const matchingStudent = list.find((s) => s.text === studentName);
+            const matchingStudent = list.find(
+              (s) => getStudentListItemText(s) === studentName,
+            );
             if (matchingStudent) {
-              setSelectedStudent(matchingStudent.value);
-            } else {
-              setSelectedStudent("0");
+              setSelectedStudent(getStudentListItemValue(matchingStudent));
             }
-          } else {
-            setSelectedStudent("0");
           }
 
           setShowForm(true);
         } else {
           showSnackbar(
             studentListResponse.errorMessage || "Error loading student list.",
-            "error"
+            "error",
           );
         }
 
         // Load student scores
         await loadStudentScores();
 
-        // If Action=R and Source=S with ChapterID, load sessions for that chapter
-        if (action === "R" && source === "S" && chapterID) {
+        let sessionChapterId = chapterID;
+        if (!sessionChapterId && list?.length) {
+          const selected =
+            list.find((s) => getStudentListItemText(s) === studentName) ??
+            list[0];
+          sessionChapterId = parseStudentValue(
+            getStudentListItemValue(selected),
+          ).chapterId;
+        }
+
+        if (sessionChapterId) {
           try {
-            const sessionResponse = await finalExamService.getCurrentSession(
-              chapterID
-            );
+            const sessionResponse =
+              await finalExamService.getCurrentSession(sessionChapterId);
             if (sessionResponse.isSuccess && sessionResponse.sessions) {
               setSessions(sessionResponse.sessions);
-              if (sessionResponse.sessions.length > 0) {
-                setSelectedSession(sessionResponse.sessions[0].session);
+              const firstSession = getSessionLabel(sessionResponse.sessions[0]);
+              if (firstSession) {
+                setSelectedSession(firstSession);
               }
             }
+            skipNextSessionLoadRef.current = true;
           } catch (error) {
-            console.error("Error loading sessions from ChapterID:", error);
+            console.error("Error loading sessions:", error);
           }
         }
       } catch (error) {
@@ -418,46 +563,36 @@ const FinalExam = () => {
         showSnackbar("Error loading data. Please try again.", "error");
       } finally {
         setLoading(false);
+        studentChangeReadyRef.current = true;
       }
     };
 
     loadInitialData();
-  }, [isAuthenticated, user, searchParams]);
+  }, [isAuthenticated, user, searchParams, loadStudentScores]);
 
-  // Load sessions when student changes
+  // Load sessions when student changes (skip during initial page load — init handles URL ChapterID)
   useEffect(() => {
+    if (!studentChangeReadyRef.current || loading || !selectedStudent) {
+      return;
+    }
+
+    if (skipNextSessionLoadRef.current) {
+      skipNextSessionLoadRef.current = false;
+      return;
+    }
+
     const loadSessions = async () => {
-      if (!selectedStudent) return;
-
-      // Don't reload if sessions were already loaded from URL parameters
-      const chapterIDParam = searchParams.get("ChapterID");
-      const actionParam = searchParams.get("Action");
-      const sourceParam = searchParams.get("Source");
-
-      // Skip if sessions already loaded from URL
-      if (
-        actionParam === "R" &&
-        sourceParam === "S" &&
-        chapterIDParam &&
-        sessions.length > 0
-      ) {
-        return;
-      }
+      const { chapterId } = parseStudentValue(selectedStudent);
+      if (!chapterId) return;
 
       try {
-        const studentInfo = selectedStudent.split("~");
-        if (studentInfo.length >= 3) {
-          const chapterID = studentInfo[2].trim();
-          const sessionResponse = await finalExamService.getCurrentSession(
-            chapterID
-          );
+        const sessionResponse =
+          await finalExamService.getCurrentSession(chapterId);
 
-          if (sessionResponse.isSuccess && sessionResponse.sessions) {
-            setSessions(sessionResponse.sessions);
-            if (sessionResponse.sessions.length > 0) {
-              setSelectedSession(sessionResponse.sessions[0].session);
-            }
-          }
+        if (sessionResponse.isSuccess && sessionResponse.sessions) {
+          setSessions(sessionResponse.sessions);
+          const firstSession = getSessionLabel(sessionResponse.sessions[0]);
+          setSelectedSession(firstSession || "");
         }
       } catch (error) {
         console.error("Error loading sessions:", error);
@@ -466,67 +601,82 @@ const FinalExam = () => {
     };
 
     loadSessions();
-  }, [selectedStudent]);
+  }, [selectedStudent, loading]);
 
-  // EnbleScoreUpdate on student/session change (multi-student — FinalExam.aspx.cs)
+  // Legacy OnlineExam.aspx.cs EnbleScoreUpdate on student/session/exam type change
   useEffect(() => {
-    if (loading) return;
-    if (students.length <= 1) return;
-    if (!selectedStudent || selectedStudent === "0" || !selectedSession) return;
+    if (loading || !isAuthenticated || !selectedStudent || !selectedSession) {
+      return;
+    }
 
     const validateAccess = async () => {
       try {
-        await runScoreValidation(selectedStudent, selectedSession);
+        const canUpdate = await runScoreValidation(
+          selectedStudent,
+          selectedSession,
+        );
+        if (!canUpdate) {
+          pendingAutoBindQuestionsRef.current = false;
+          await loadStudentScores();
+          return;
+        }
+
+        // Legacy Page_Load BindQuestions() after EnbleScoreUpdate when Source=S Action=R
+        if (pendingAutoBindQuestionsRef.current) {
+          pendingAutoBindQuestionsRef.current = false;
+          await loadAnswerSheet(selectedStudent, selectedSession);
+        }
       } catch (error) {
         console.error("Error validating exam access:", error);
+        pendingAutoBindQuestionsRef.current = false;
       }
     };
 
     validateAccess();
   }, [
     loading,
-    students.length,
+    isAuthenticated,
     selectedStudent,
     selectedSession,
+    selectedExamType,
     runScoreValidation,
+    loadStudentScores,
+    loadAnswerSheet,
   ]);
 
-  // Load student scores
-  const loadStudentScores = async () => {
-    try {
-      const scoresResponse = await finalExamService.getStudentScores(
-        user.email || user.username
-      );
-
-      if (scoresResponse.isSuccess && scoresResponse.scores) {
-        setStudentScores(scoresResponse.scores);
-      }
-    } catch (error) {
-      console.error("Error loading student scores:", error);
-    }
-  };
-
-  // Handle student selection change
-  const handleStudentChange = (event) => {
-    const value = event.target.value;
-    setSelectedStudent(value);
+  const resetQuestionState = () => {
     setShowQuestions(false);
     setQuestions([]);
     setAnswers({});
+    setCanSubmit(false);
     setShowNoQuestions(false);
-    setShowFormError(false);
-
-    if (!value || value === "0") {
-      setShowAlreadySubmitted(false);
-      setShowExamCompleted(false);
-      setShowForm(true);
-    }
   };
 
-  // Handle get answer sheet button click (btnGenerateQuestion_Click)
+  const handleStudentChange = (event) => {
+    if (!studentChangeReadyRef.current) {
+      return;
+    }
+
+    const value = event.target.value;
+    if (value === selectedStudent) {
+      return;
+    }
+
+    setSelectedStudent(value);
+    resetQuestionState();
+    setShowAlreadySubmitted(false);
+  };
+
+  const handleSessionChange = (event) => {
+    setSelectedSession(event.target.value);
+    resetQuestionState();
+    setShowAlreadySubmitted(false);
+  };
+
+  // Handle get answer sheet button click
   const handleGetAnswerSheet = async () => {
     if (!selectedStudent || selectedStudent === "0") {
-      setShowFormError(true);
+      showSnackbar("Please select a student.", "warning");
       return;
     }
     if (!selectedSession) {
@@ -534,56 +684,16 @@ const FinalExam = () => {
       return;
     }
 
-    setShowFormError(false);
-
-    try {
-      setQuestionsLoading(true);
-
-      const canProceed = await runScoreValidation(
-        selectedStudent,
-        selectedSession
-      );
-      if (!canProceed) {
-        return;
-      }
-
-      const studentInfo = selectedStudent.split("~");
-      const classValue = studentInfo[0];
-
-      const questionsResponse = await finalExamService.getExamQuestions({
-        class: classValue,
-        examType: selectedExamType,
-        session: selectedSession,
-      });
-
-      if (
-        questionsResponse.isSuccess &&
-        questionsResponse.questions.length > 0
-      ) {
-        setQuestions(questionsResponse.questions);
-        setShowQuestions(true);
-        setShowNoQuestions(false);
-        setShowAlreadySubmitted(false);
-        setShowExamCompleted(false);
-        setCanSubmit(true);
-
-        const initialAnswers = {};
-        questionsResponse.questions.forEach((q) => {
-          initialAnswers[q.question] = "";
-        });
-        setAnswers(initialAnswers);
-      } else {
-        setShowQuestions(false);
-        setShowNoQuestions(true);
-        setShowAlreadySubmitted(false);
-        setShowExamCompleted(false);
-      }
-    } catch (error) {
-      console.error("Error getting answer sheet:", error);
-      showSnackbar("Error loading questions. Please try again.", "error");
-    } finally {
-      setQuestionsLoading(false);
+    const canProceed = await runScoreValidation(
+      selectedStudent,
+      selectedSession,
+    );
+    if (!canProceed) {
+      await loadStudentScores();
+      return;
     }
+
+    await loadAnswerSheet(selectedStudent, selectedSession);
   };
 
   // Handle answer change
@@ -594,28 +704,11 @@ const FinalExam = () => {
     }));
   };
 
-  const handleSubmitClick = () => {
-    if (!selectedStudent || selectedStudent === "0") {
-      showSnackbar("Please select a student.", "warning");
-      return;
-    }
-
-    const answeredCount = questions.filter((q) => answers[q.question]).length;
-    if (answeredCount === 0) {
-      showSnackbar("Please select at least one answer before submitting.", "warning");
-      return;
-    }
-
+  // Handle submit
+  const handleSubmit = () => {
     setSubmitConfirmOpen(true);
   };
 
-  const handleSubmitConfirmClose = () => {
-    if (!submitting) {
-      setSubmitConfirmOpen(false);
-    }
-  };
-
-  // Handle submit (btnSubmit_Click — FinalExam.aspx.cs)
   const handleSubmitConfirm = async () => {
     setSubmitConfirmOpen(false);
 
@@ -630,7 +723,7 @@ const FinalExam = () => {
         .map((q) => ({
           studentID: parseInt(studentID, 10),
           answerKey: answers[q.question],
-          question: Number(q.question),
+          question: q.question,
           class: classValue,
           semester: "",
           points: 0,
@@ -639,47 +732,40 @@ const FinalExam = () => {
           session: selectedSession,
         }));
 
-      const submitResponse = await finalExamService.submitExam({
-        studentID,
+      const submitData = {
+        studentID: studentID,
         class: classValue,
         examType: selectedExamType,
         session: selectedSession,
         answers: answersArray,
         scoreID: "0",
-      });
+      };
+
+      const submitResponse = await finalExamService.submitExam(submitData);
 
       if (submitResponse.isSuccess) {
-        const receivedScore = submitResponse.receivedScore ?? "0";
-        const totalScore = submitResponse.totalScore ?? "0";
+        const receivedScore =
+          submitResponse.receivedScore ?? submitResponse.ReceivedScore ?? "";
+        const totalScore =
+          submitResponse.totalScore ?? submitResponse.TotalScore ?? "";
 
+        setSubmitSuccess({ receivedScore, totalScore });
         setShowQuestions(false);
         setCanSubmit(false);
-        setShowForm(false);
-        setShowExamCompleted(false);
         setShowAlreadySubmitted(false);
-
+        navigate(buildFinalExamSubmitSuccessUrl(receivedScore, totalScore), {
+          replace: true,
+        });
         await loadStudentScores();
-
-        navigate(
-          `/pstudyware/student/final-exam?Action=U&ReceivedScore=${encodeURIComponent(receivedScore)}&TotalScore=${encodeURIComponent(totalScore)}`,
-          { replace: true }
-        );
       } else {
         showSnackbar(
           submitResponse.errorMessage || "Error submitting exam.",
-          "error"
+          "error",
         );
       }
     } catch (error) {
       console.error("Error submitting exam:", error);
-      const apiMessage =
-        error.response?.data?.message ||
-        error.response?.data?.errorMessage ||
-        error.response?.data?.error;
-      showSnackbar(
-        apiMessage || "Error submitting exam. Please try again.",
-        "error"
-      );
+      showSnackbar("Error submitting exam. Please try again.", "error");
     } finally {
       setSubmitting(false);
     }
@@ -695,25 +781,22 @@ const FinalExam = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Split questions into 3 groups for display
-  const splitQuestionsIntoGroups = () => {
-    if (questions.length === 0) return [[], [], []];
+  const [group1, group2, group3] = splitQuestionsIntoGroups(questions);
 
-    if (questions.length <= 10) {
-      return [questions, [], []];
+  useEffect(() => {
+    if (
+      !loading &&
+      students.length === 1 &&
+      selectedStudent &&
+      selectedSession &&
+      !showQuestions &&
+      !showAlreadySubmitted &&
+      !questionsLoading
+    ) {
+      handleGetAnswerSheet();
     }
-
-    const totalCount = questions.length;
-    const groupSize = Math.ceil(totalCount / 3);
-
-    const group1 = questions.slice(0, groupSize);
-    const group2 = questions.slice(groupSize, groupSize * 2);
-    const group3 = questions.slice(groupSize * 2);
-
-    return [group1, group2, group3];
-  };
-
-  const [group1, group2, group3] = splitQuestionsIntoGroups();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, students.length, selectedStudent, selectedSession]);
 
   const renderQuestionRow = (question) => (
     <TableRow key={question.question} sx={{ height: "auto" }}>
@@ -784,22 +867,6 @@ const FinalExam = () => {
     );
   };
 
-  // Auto-load answer sheet when only one student (legacy FinalExam.aspx behavior)
-  useEffect(() => {
-    if (
-      !loading &&
-      students.length === 1 &&
-      selectedStudent &&
-      selectedSession &&
-      !showQuestions &&
-      !showAlreadySubmitted &&
-      !questionsLoading
-    ) {
-      handleGetAnswerSheet();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, students.length, selectedStudent, selectedSession]);
-
   if (loading) {
     return (
       <Box className="student-dashboard final-exam-page">
@@ -828,63 +895,78 @@ const FinalExam = () => {
     <Box className="student-dashboard final-exam-page">
       <StudentHeader user={user} />
       <StudentRoleHeaderSpacer />
+
       <Container maxWidth="xl" sx={{ mb: 4, mt: 0 }}>
-        {/* Instructions — legacy green panel above Answer Sheet */}
+        {showFinalExamUnavailable && (
+          <Alert severity="info" sx={{ mb: 3 }}>
+            <Typography variant="body1">
+              <strong>
+                The Final Exam is not available for any students on your account
+                at this time.
+              </strong>{" "}
+              This may be because the exam is closed for this semester or is only
+              open for certain chapters. Please check your dashboard for updates
+              or contact us via Message Center if you have questions.
+            </Typography>
+          </Alert>
+        )}
+
         {showForm && (
           <Paper
             className="final-exam-instructions"
             elevation={0}
             sx={{ ...answerSheetPanelSx, mb: 2 }}
           >
-            <Box sx={answerSheetTitleSx}>On Line Exam</Box>
+            <Box sx={answerSheetTitleSx}>Final Exam</Box>
             <Box sx={legacyInstructionBodySx}>
               <Typography component="p" sx={legacyInstructionStepSx}>
-                <strong>Step 1:</strong> Download the questions (Quiz, Classwork,
-                Homework, Final exam) and answer each question carefully.{" "}
+                <strong>Step 1:</strong> Download the Final Exam questions and
+                answer each question carefully.{" "}
                 <Link
                   href="/pstudyware/student/class-material"
                   sx={legacyInstructionLinkSx}
                 >
-                  Click here to download the Questions (Quiz, Classwork, Homework,
-                  Final exam).
+                  Click here to download the Final Exam questions.
                 </Link>
               </Typography>
               <Typography component="p" sx={legacyInstructionStepSx}>
-                <strong>Step 2:</strong> Select the student from the list. (If you
-                have multiple kids enrolled, pay attention to the Student Name,
-                Session and Exam Type from the dropdown menu. You will only be able
-                to submit your answers once and they cannot be changed.)
+                <strong>Step 2:</strong> Select the student from the list. Only
+                students in chapters where the Final Exam is open for this
+                semester are shown. (If you have multiple kids enrolled, pay
+                attention to the Student Name and Session from the dropdown
+                menu. You will only be able to submit your answers once and they
+                cannot be changed.)
               </Typography>
               <Typography component="p" sx={legacyInstructionStepSx}>
-                <strong>Step 3:</strong> Select the Correct Answer. If you did not
-                know the answer, skip it so you don&apos;t waste time.
+                <strong>Step 3:</strong> Select the Correct Answer. If you did
+                not know the answer, skip it so you don&apos;t waste time.
               </Typography>
               <Typography component="p" sx={legacyInstructionStepSx}>
-                <strong>Step 4:</strong> Click the submit button after updating all
-                answers. Do not forget this step.
+                <strong>Step 4:</strong> Click the submit button after updating
+                all answers. Do not forget this step.
               </Typography>
-              <Typography component="p" sx={{ ...legacyInstructionStepSx, mb: 1.5 }}>
+              <Typography
+                component="p"
+                sx={{ ...legacyInstructionStepSx, mb: 1.5 }}
+              >
                 <strong>Step 5:</strong> The answer sheet update option will be
-                disabled after you submitted. You can submit only one time. If you
-                have any questions, please contact us via Message Center.
+                disabled after you submitted. You can submit only one time. If
+                you have any questions, please contact us via Message Center.
               </Typography>
-
-              {showFormError && (
-                <Alert severity="error" sx={{ mb: 1.5, py: 0.5 }}>
-                  Please Select Student.
-                </Alert>
-              )}
 
               {students.length === 0 ? (
                 <Alert severity="info" sx={{ backgroundColor: "#edfce9" }}>
-                  No students found for your account. Please contact support if you
-                  believe this is an error.
+                  No students on your account are eligible for the Final Exam
+                  this semester. Please contact support if you believe this is
+                  an error.
                 </Alert>
               ) : (
                 <Box sx={legacyFormRowSx}>
                   <Box sx={legacyFormGroupSx}>
                     <Box sx={legacyFormCaptionCellSx}>Student Name</Box>
-                    <Box sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}>
+                    <Box
+                      sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}
+                    >
                       <FormControl size="small" fullWidth>
                         <Select
                           value={selectedStudent}
@@ -893,13 +975,17 @@ const FinalExam = () => {
                           sx={legacyInputSelectInlineSx}
                         >
                           {students.length > 1 && (
-                            <MenuItem value="0">Select Student</MenuItem>
+                            <MenuItem value="">Select Student</MenuItem>
                           )}
-                          {students.map((student, index) => (
-                            <MenuItem key={index} value={student.value}>
-                              {student.text}
-                            </MenuItem>
-                          ))}
+                          {students.map((student) => {
+                            const studentValue =
+                              getStudentListItemValue(student);
+                            return (
+                              <MenuItem key={studentValue} value={studentValue}>
+                                {getStudentListItemText(student)}
+                              </MenuItem>
+                            );
+                          })}
                         </Select>
                       </FormControl>
                     </Box>
@@ -907,18 +993,26 @@ const FinalExam = () => {
 
                   <Box sx={legacyFormGroupSx}>
                     <Box sx={legacyFormCaptionCellSx}>Session</Box>
-                    <Box sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}>
+                    <Box
+                      sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}
+                    >
                       <FormControl size="small" fullWidth>
                         <Select
                           value={selectedSession}
-                          onChange={(e) => setSelectedSession(e.target.value)}
+                          onChange={handleSessionChange}
                           sx={legacyInputSelectInlineSx}
                         >
-                          {sessions.map((session, index) => (
-                            <MenuItem key={index} value={session.session}>
-                              {session.session}
-                            </MenuItem>
-                          ))}
+                          {sessions.map((session, index) => {
+                            const sessionLabel = getSessionLabel(session);
+                            return (
+                              <MenuItem
+                                key={`${sessionLabel}-${index}`}
+                                value={sessionLabel}
+                              >
+                                {sessionLabel}
+                              </MenuItem>
+                            );
+                          })}
                         </Select>
                       </FormControl>
                     </Box>
@@ -926,7 +1020,9 @@ const FinalExam = () => {
 
                   <Box sx={legacyFormGroupSx}>
                     <Box sx={legacyFormCaptionCellSx}>Exam Type</Box>
-                    <Box sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}>
+                    <Box
+                      sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}
+                    >
                       <FormControl size="small" fullWidth>
                         <Select
                           value={selectedExamType}
@@ -942,7 +1038,7 @@ const FinalExam = () => {
                   <Button
                     variant="contained"
                     onClick={handleGetAnswerSheet}
-                    disabled={questionsLoading}
+                    disabled={questionsLoading || showAlreadySubmitted}
                     sx={legacyGetAnswerSheetButtonSx}
                   >
                     {questionsLoading ? "Loading..." : "Get Answer Sheet"}
@@ -953,7 +1049,6 @@ const FinalExam = () => {
           </Paper>
         )}
 
-        {/* No Questions Available Message */}
         {showNoQuestions && (
           <Alert severity="warning" sx={{ mb: 3 }}>
             <Typography variant="body1">
@@ -964,33 +1059,29 @@ const FinalExam = () => {
           </Alert>
         )}
 
-        {/* Already Submitted Message */}
         {showAlreadySubmitted && (
           <Alert severity="error" sx={{ mb: 3 }}>
             <Typography variant="body1">
               <strong>
-                You have already submitted. You can't submit more than one time.
-                Here is your score. If you have a question, please contact us
-                via Message Center.
+                You have already submitted. You can&apos;t submit more than one
+                time. Here is your score. If you have a question, please contact
+                us via Message Center.
               </strong>
             </Typography>
           </Alert>
         )}
 
-        {/* Exam Completed Message */}
-        {showExamCompleted && (
+        {submitSuccess && (
           <Alert severity="success" sx={{ mb: 3 }}>
             <Typography variant="body1">
-              <strong>
-                You have already taken the Exam. You can't take the Exam more
-                than one time. Here is your Exam Score. If you have a question,
-                please contact us via Message Center.
-              </strong>
+              {formatExamSubmitSuccessMessage(
+                submitSuccess.receivedScore,
+                submitSuccess.totalScore,
+              )}
             </Typography>
           </Alert>
         )}
 
-        {/* Questions Display */}
         {showQuestions && questions.length > 0 && (
           <Card
             className="final-exam-answer-sheet"
@@ -1010,7 +1101,6 @@ const FinalExam = () => {
                 {renderQuestionGroup(group3, "Group 3")}
               </Grid>
 
-              {/* Submit Button */}
               {canSubmit && (
                 <Box sx={{ mt: 2, textAlign: "center" }}>
                   {submitting && (
@@ -1021,7 +1111,7 @@ const FinalExam = () => {
                   )}
                   <Button
                     variant="contained"
-                    onClick={handleSubmitClick}
+                    onClick={handleSubmit}
                     disabled={submitting}
                     sx={legacySubmitButtonSx}
                   >
@@ -1033,15 +1123,16 @@ const FinalExam = () => {
           </Card>
         )}
 
-        {/* Student Scores Table */}
-        {studentScores.length > 0 && (
-          <FinalExamScoresGrid scores={studentScores} />
-        )}
+        <FinalExamScoresGrid scores={studentScores} />
       </Container>
 
       <AppConfirmDialog
         open={submitConfirmOpen}
-        onClose={handleSubmitConfirmClose}
+        onClose={() => {
+          if (!submitting) {
+            setSubmitConfirmOpen(false);
+          }
+        }}
         onConfirm={handleSubmitConfirm}
         title="Confirm Submit"
         message="Are you sure you want to submit your answers?"
@@ -1050,7 +1141,6 @@ const FinalExam = () => {
         loading={submitting}
       />
 
-      {/* Snackbar for messages */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

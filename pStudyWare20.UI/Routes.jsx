@@ -50,8 +50,9 @@ import StudentChangePassword from "./src/components/pstudyware/Student/StudentCh
 import ClassMaterial from "./src/components/pstudyware/Student/ClassMaterial";
 import { UpdateProfileRouteOpener } from "./src/contexts/UpdateProfileModalContext";
 import StudentDocuments from "./src/components/pstudyware/Student/StudentDocuments";
-import StudentScore from "./src/components/pstudyware/Student/StudentScore";
 import OnlineExam from "./src/components/pstudyware/Student/OnlineExam";
+import FinalExam from "./src/components/pstudyware/Student/FinalExam";
+import StudentScore from "./src/components/pstudyware/Student/StudentScore";
 import ReportCard from "./src/components/pstudyware/Student/ReportCard";
 import AdminDashboard from "./src/components/pstudyware/Admin/AdminDashboard";
 import AdminInstructors from "./src/components/pstudyware/Admin/AdminInstructors";
@@ -84,7 +85,6 @@ import {
   VolunteerShell,
   VolunteerDashboard,
   VolunteerTimeSheet,
-  VolunteerClassMaterial,
 } from "./src/components/pstudyware/Volunteer";
 import SentEmail from "./src/components/pstudyware/Common/SentEmail";
 import {
@@ -236,10 +236,6 @@ const AppRoutes = () => {
               }
             />
             <Route
-              path="/student/final-exam"
-              element={<Navigate to="/student/online-exam" replace />}
-            />
-            <Route
               path="/student/online-exam"
               element={
                 <RoleProtectedRoute
@@ -251,12 +247,6 @@ const AppRoutes = () => {
               }
             />
             <Route
-              path="/pstudyware/student/final-exam"
-              element={
-                <Navigate to="/pstudyware/student/online-exam" replace />
-              }
-            />
-            <Route
               path="/pstudyware/student/online-exam"
               element={
                 <RoleProtectedRoute
@@ -264,6 +254,28 @@ const AppRoutes = () => {
                   allowedMemberTypes={["S"]}
                 >
                   <OnlineExam />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/final-exam"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Student", "User"]}
+                  allowedMemberTypes={["S", "P"]}
+                >
+                  <FinalExam />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/student/final-exam"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Student", "User"]}
+                  allowedMemberTypes={["S", "P"]}
+                >
+                  <FinalExam />
                 </RoleProtectedRoute>
               }
             />
@@ -915,19 +927,6 @@ const AppRoutes = () => {
                 >
                   <VolunteerShell>
                     <VolunteerTimeSheet />
-                  </VolunteerShell>
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
-              path="/pstudyware/volunteer/class-material"
-              element={
-                <RoleProtectedRoute
-                  allowedRoles={["Volunteer"]}
-                  allowedMemberTypes={["V"]}
-                >
-                  <VolunteerShell>
-                    <VolunteerClassMaterial />
                   </VolunteerShell>
                 </RoleProtectedRoute>
               }

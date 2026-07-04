@@ -11,11 +11,16 @@ namespace pStudyWare20.Services.Implementations
     public class StudentDashboardService : IStudentDashboardService
     {
         private readonly IStudentDashboardRepository _repository;
+        private readonly IFinalExamService _finalExamService;
         private readonly IEmailUtility _emailUtility;
 
-        public StudentDashboardService(IStudentDashboardRepository repository, IEmailUtility emailUtility)
+        public StudentDashboardService(
+            IStudentDashboardRepository repository,
+            IFinalExamService finalExamService,
+            IEmailUtility emailUtility)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _finalExamService = finalExamService ?? throw new ArgumentNullException(nameof(finalExamService));
             _emailUtility = emailUtility ?? throw new ArgumentNullException(nameof(emailUtility));
         }
 
@@ -45,6 +50,7 @@ namespace pStudyWare20.Services.Implementations
                 var dataTable = await messagesTask;
                 var reportCardTable = await reportCardTask;
                 var semesterLookup = await semesterLookupTask;
+                var finalExamAvailability = _finalExamService.GetExamAvailability(username);
 
                 var importantNotice = string.Empty;
                 var announcement = string.Empty;
@@ -74,7 +80,7 @@ namespace pStudyWare20.Services.Implementations
                     Competitions = competitions,
                     TodoList = todoList,
                     ReportCardEntries = reportCardEntries,
-                    ShowFinalExam = semesterLookup.ShowFinalExam,
+                    ShowFinalExam = finalExamAvailability.IsSuccess && finalExamAvailability.ShowFinalExam,
                     ActiveSemester = semesterLookup.Semester,
                     RegistrationCloseDate = semesterLookup.RegCloseDate
                 };

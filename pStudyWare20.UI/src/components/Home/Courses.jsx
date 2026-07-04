@@ -31,6 +31,8 @@ const fadeInAnimation = keyframes`
   }
 `;
 
+const currentYear = new Date().getFullYear();
+
 const Courses = () => {
   return (
     <Box

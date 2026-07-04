@@ -5,6 +5,21 @@
   background-color: #ffffff;
 }
 
+.contact-success-message .color2 {
+  color: #53b50a;
+}
+
+.contact-error-message {
+  color: #dc3545;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.btn-common:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 /* Breadcrumbs Section */
 .sc-breadcrumbs {
   position: relative;

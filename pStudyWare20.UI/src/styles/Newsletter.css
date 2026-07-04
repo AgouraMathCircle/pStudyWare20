@@ -87,6 +87,35 @@
   left: 6px;
 }
 
+.footer-newsletter .newsletter-form button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.footer-newsletter .newsletter-status {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 10px);
+  font-weight: 600;
+  text-align: center;
+}
+
+.footer-newsletter .newsletter-success {
+  color: #a8e063;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+.footer-newsletter .newsletter-status-info {
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+.footer-newsletter .newsletter-status-error {
+  color: #ffb4b4;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
 .footer-newsletter .text-right {
   text-align: right;
 }

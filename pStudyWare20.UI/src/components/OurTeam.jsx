@@ -37,6 +37,12 @@ import shreyamImg from "../assets/images/team/volunteers/SHREYAM.jpg";
 import prabakaranImg from "../assets/images/team/prabakaran.jpg";
 import jonesImg from "../assets/images/team/volunteers/Jones.jpg";
 import suhaImg from "../assets/images/team/volunteers/Suha.jpg";
+import syleshImg from "../assets/images/team/volunteers/Sylesh.jpg";
+import ValliImg from "../assets/images/team/volunteers/Kanagavalli_Mani.jpeg";
+import UshaImg from "../assets/images/team/volunteers/Usha_Sekar.jpg";
+import ReshmaImg from "../assets/images/team/volunteers/Reshma.jpeg";
+
+import hussainImg from "../assets/images/team/volunteers/Hussain.jpg";
 import "../styles/OurTeam.css";
 
 const OurTeam = () => {
@@ -130,18 +136,24 @@ const OurTeam = () => {
 
         <Grid container spacing={2} justifyContent="flex-start" alignItems="stretch">
           {[
-            { img: sathyaImg, name: "SATHYA", role: "Senior Software Engineer" },
-            { img: srihariImg, name: "SRI HARI", role: "Software Engineer (Team Lead)" },
-            { img: jonesImg, name: "JONES", role: "Developer" },
+            { img: hussainImg, name: "HUSSAIN PATEL", role: "EVP Technology Executive" },
+            { img: srihariImg, name: "SRI HARI", role: "VP Software Engineer" },
+            { img: sathyaImg, name: "SATHYA", role: "SVP Software Engineer" },
+            { img: syleshImg, name: "SYLESH SUNDARESAN", role: "Developer" },
             { img: harshaImg, name: "HARSHA MULLANGI", role: "Developer" },
-            { img: haridevImg, name: "HARIDEV", role: "Developer" },
-            { img: neelabhImg, name: "NEELABH", role: "Developer" },
-            { img: personIcon, name: "DHARSHANA", role: "Developer" },
+            { img: jonesImg, name: "JONES", role: "Developer" },
+
+            { img: UshaImg, name: "USHA", role: "QA Analyst" },
+            { img: ReshmaImg, name: "RESHMA", role: "QA lead" },
+            { img: ValliImg, name: "KANAGAVALLI MANI", role: "Service Delivery Manager" },
+            //{ img: haridevImg, name: "HARIDEV", role: "Developer" },
+            { img: neelabhImg, name: "NEELABH", role: "Programmer" },
+            //{ img: personIcon, name: "DHARSHANA", role: "Developer" },
           ].map((m) => (
             <Grid key={m.name} item xs={12} sm={3} md={3}>
               <Box className="ourteam-card">
                 <Box className="ourteam-image">
-                  <img src={m.img} alt="Technology Team Member" />
+                  <img src={m.img} style={{aspectRatio: "1/1", objectFit: "cover"}} alt="Technology Team Member" />
                   <Box className="social-overlay">
                     <Box className="social-icon">
                       <FacebookIcon />
@@ -210,7 +222,7 @@ const OurTeam = () => {
             <Grid key={m.name} item xs={12} sm={3} md={3}>
               <Box className="ourteam-card">
                 <Box className="ourteam-image">
-                  <img src={m.img} alt="Team Member" />
+                  <img src={m.img} style={{aspectRatio: "1/1", objectFit: "cover"}} alt=" Team Member" />
                   <Box className="social-overlay">
                     <Box className="social-icon">
                       <FacebookIcon />

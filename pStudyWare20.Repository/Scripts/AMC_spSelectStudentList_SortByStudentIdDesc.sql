@@ -5,5 +5,3 @@
 --   Order by TS.[colStudentFName]
 -- to:
 --   Order by TS.[colStudentID] Desc
---
--- Or redeploy the procedure from AllDbScripts.sql after this repository change.

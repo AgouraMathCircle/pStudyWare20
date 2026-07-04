@@ -196,6 +196,8 @@ namespace pStudyWare20.Repository.Implementations
                     SELECT TOP 1
                         ISNULL(Semester, '') AS Semester,
                         ISNULL(FinalExamDisplay, 'N') AS FinalExamDisplay,
+                        ISNULL(FinalExamDisplayChapter, '') AS FinalExamDisplayChapter,
+                        ISNULL(OnlineExamDisplayChapter, '') AS OnlineExamDisplayChapter,
                         CONVERT(VARCHAR(10), RegCloseDate, 101) AS RegCloseDate
                     FROM dbo.AMC_tblLookupSemester WITH (NOLOCK)
                     WHERE Active = 1
@@ -205,13 +207,22 @@ namespace pStudyWare20.Repository.Implementations
                 using var reader = await command.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
+                    var finalExamDisplay = string.Equals(
+                        reader["FinalExamDisplay"]?.ToString()?.Trim(),
+                        "Y",
+                        StringComparison.OrdinalIgnoreCase);
+                    var finalExamDisplayChapter =
+                        reader["FinalExamDisplayChapter"]?.ToString()?.Trim() ?? string.Empty;
+                    var onlineExamDisplayChapter =
+                        reader["OnlineExamDisplayChapter"]?.ToString()?.Trim() ?? string.Empty;
+
                     return new ActiveSemesterLookupDto
                     {
                         Semester = reader["Semester"]?.ToString()?.Trim() ?? string.Empty,
-                        ShowFinalExam = string.Equals(
-                            reader["FinalExamDisplay"]?.ToString()?.Trim(),
-                            "Y",
-                            StringComparison.OrdinalIgnoreCase),
+                        FinalExamDisplay = finalExamDisplay,
+                        FinalExamDisplayChapter = finalExamDisplayChapter,
+                        OnlineExamDisplayChapter = onlineExamDisplayChapter,
+                        ShowFinalExam = finalExamDisplay,
                         RegCloseDate = reader["RegCloseDate"]?.ToString()?.Trim() ?? string.Empty
                     };
                 }

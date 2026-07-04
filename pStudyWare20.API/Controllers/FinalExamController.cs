@@ -1,13 +1,16 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Cors;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
+using System.Security.Claims;
 
 namespace pStudyWare20.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [EnableCors("AllowReactApp")]
+    [Authorize]
     public class FinalExamController : ControllerBase
     {
         private readonly IFinalExamService _finalExamService;
@@ -17,20 +20,26 @@ namespace pStudyWare20.API.Controllers
             _finalExamService = finalExamService;
         }
 
-        /// <summary>
-        /// Get student list (matches legacy controller exactly)
-        /// </summary>
-        /// <param name="request">Student list request</param>
-        /// <returns>Student list result</returns>
+        private string GetPortalUsername()
+        {
+            return User.FindFirst("Username")?.Value
+                ?? User.FindFirst(ClaimTypes.Email)?.Value
+                ?? User.FindFirst(ClaimTypes.Name)?.Value
+                ?? string.Empty;
+        }
+
         [HttpPost]
         [Route("GetStudentList")]
-        public object GetStudentList([FromBody] StudentListRequest request)
+        public object GetStudentList([FromBody] StudentListRequest? request)
         {
             try
             {
-                if (!ModelState.IsValid)
+                request ??= new StudentListRequest();
+                request.Username = GetPortalUsername();
+
+                if (string.IsNullOrWhiteSpace(request.Username))
                 {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                    return Unauthorized(new { message = "Unable to resolve portal username from token." });
                 }
 
                 var response = _finalExamService.GetStudentList(request);
@@ -42,11 +51,6 @@ namespace pStudyWare20.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get exam questions (matches legacy controller exactly)
-        /// </summary>
-        /// <param name="request">Exam questions request</param>
-        /// <returns>Exam questions result</returns>
         [HttpPost]
         [Route("GetExamQuestions")]
         public object GetExamQuestions([FromBody] ExamQuestionsRequest request)
@@ -58,6 +62,12 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
+                request.PortalUsername = GetPortalUsername();
+                if (string.IsNullOrWhiteSpace(request.PortalUsername))
+                {
+                    return Unauthorized(new { message = "Unable to resolve portal username from token." });
+                }
+
                 var response = _finalExamService.GetExamQuestions(request);
                 return response;
             }
@@ -67,11 +77,6 @@ namespace pStudyWare20.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Validate score update (matches legacy controller exactly)
-        /// </summary>
-        /// <param name="request">Score validation request</param>
-        /// <returns>Score validation result</returns>
         [HttpPost]
         [Route("ValidateScoreUpdate")]
         public object ValidateScoreUpdate([FromBody] ScoreValidationRequest request)
@@ -83,6 +88,12 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
+                request.PortalUsername = GetPortalUsername();
+                if (string.IsNullOrWhiteSpace(request.PortalUsername))
+                {
+                    return Unauthorized(new { message = "Unable to resolve portal username from token." });
+                }
+
                 var response = _finalExamService.ValidateScoreUpdate(request);
                 return response;
             }
@@ -92,11 +103,6 @@ namespace pStudyWare20.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get current session (matches legacy controller exactly)
-        /// </summary>
-        /// <param name="request">Current session request</param>
-        /// <returns>Current session result</returns>
         [HttpPost]
         [Route("GetCurrentSession")]
         public object GetCurrentSession([FromBody] CurrentSessionRequest request)
@@ -117,20 +123,18 @@ namespace pStudyWare20.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Get student scores (matches legacy controller exactly)
-        /// </summary>
-        /// <param name="request">Student scores request</param>
-        /// <returns>Student scores result</returns>
         [HttpPost]
         [Route("GetStudentScores")]
-        public object GetStudentScores([FromBody] StudentScoresRequest request)
+        public object GetStudentScores([FromBody] StudentScoresRequest? request)
         {
             try
             {
-                if (!ModelState.IsValid)
+                request ??= new StudentScoresRequest();
+                request.Username = GetPortalUsername();
+
+                if (string.IsNullOrWhiteSpace(request.Username))
                 {
-                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                    return Unauthorized(new { message = "Unable to resolve portal username from token." });
                 }
 
                 var response = _finalExamService.GetStudentScores(request);
@@ -142,11 +146,27 @@ namespace pStudyWare20.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Submit exam (matches legacy controller exactly)
-        /// </summary>
-        /// <param name="request">Submit exam request</param>
-        /// <returns>Submit exam result</returns>
+        [HttpGet]
+        [Route("GetExamAvailability")]
+        public object GetExamAvailability()
+        {
+            try
+            {
+                var username = GetPortalUsername();
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    return Unauthorized(new { message = "Unable to resolve portal username from token." });
+                }
+
+                var response = _finalExamService.GetExamAvailability(username);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while checking final exam availability", error = ex.Message });
+            }
+        }
+
         [HttpPost]
         [Route("SubmitExam")]
         public object SubmitExam([FromBody] SubmitExamRequest request)
@@ -156,6 +176,12 @@ namespace pStudyWare20.API.Controllers
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                request.PortalUsername = GetPortalUsername();
+                if (string.IsNullOrWhiteSpace(request.PortalUsername))
+                {
+                    return Unauthorized(new { message = "Unable to resolve portal username from token." });
                 }
 
                 var response = _finalExamService.SubmitExam(request);

@@ -15,5 +15,6 @@ namespace pStudyWare20.Services.Interfaces
         bool SendChangePassword(string emailAddress, string password);
         Task<string> SendEmailAsync(string to, string from, string subject, string body);
         Task<string> SendEmailGroupAsync(string to, string from, string subject, string body, string group);
+        bool SendContactEnquiryEmail(string name, string email, string subject, string message);
     }
 }

@@ -2,13 +2,12 @@ using Microsoft.Extensions.Configuration;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
-using System.Linq;
 using System.Text.Json;
 
 namespace pStudyWare20.Services.Implementations
 {
     /// <summary>
-    /// Online exam business logic — mirrors legacy OnlineExam.aspx.cs.
+    /// Implementation of online exam business logic operations (matches legacy controller)
     /// </summary>
     public class OnlineExamService : IOnlineExamService
     {
@@ -21,50 +20,54 @@ namespace pStudyWare20.Services.Implementations
             _configuration = configuration;
         }
 
-        public StudentListResponse GetStudentList(StudentListRequest request)
+        /// <summary>
+        /// Get student list (matches legacy controller exactly)
+        /// </summary>
+        public OnlineExamStudentListResponse GetStudentList(OnlineExamStudentListRequest request)
         {
-            var response = new StudentListResponse();
+            OnlineExamStudentListResponse response = new OnlineExamStudentListResponse();
             try
             {
-                if (string.IsNullOrWhiteSpace(request.Mode))
-                {
-                    request.Mode = "E";
-                }
-
                 var result = _onlineExamRepository.GetStudentListAsync(request).Result;
+
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
+                    var rows = JsonSerializer.Deserialize<List<System.Text.Json.JsonElement>>(result);
                     if (rows != null)
                     {
                         foreach (var row in rows)
                         {
-                            response.Students.Add(new StudentListItem
+                            response.StudentList.Add(new StudentListItem
                             {
-                                Value = GetStringFromElement(row, "StudentID"),
-                                Text = GetStringFromElement(row, "StudentName")
+                                Value = GetStringFromElement(row, "StudentID", "Value"),
+                                Text = GetStringFromElement(row, "StudentName", "Text"),
                             });
                         }
                     }
                 }
 
                 response.IsSuccess = true;
+                response.ErrorMessage = "";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.ErrorMessage = ex.GetBaseException().Message;
+                response.ErrorMessage = ex.Message;
             }
 
             return response;
         }
 
-        public ExamQuestionsResponse GetExamQuestions(ExamQuestionsRequest request)
+        /// <summary>
+        /// Get online exam questions (matches legacy controller exactly)
+        /// </summary>
+        public OnlineExamQuestionsResponse GetOnlineExamQuestions(OnlineExamQuestionsRequest request)
         {
-            var response = new ExamQuestionsResponse();
+            OnlineExamQuestionsResponse response = new OnlineExamQuestionsResponse();
             try
             {
-                var result = _onlineExamRepository.GetExamQuestionsAsync(request).Result;
+                var result = _onlineExamRepository.GetOnlineExamQuestionsAsync(request).Result;
+
                 if (!string.IsNullOrEmpty(result))
                 {
                     var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
@@ -72,66 +75,72 @@ namespace pStudyWare20.Services.Implementations
                     {
                         foreach (var row in rows)
                         {
-                            response.Questions.Add(new ExamQuestion
+                            response.Questions.Add(new OnlineExamQuestion
                             {
-                                Question = GetIntFromElement(row, "Question"),
+                                Question = GetInt(row, "Question"),
                                 AnswerKey = GetStringFromElement(row, "AnswerKey"),
-                                Points = GetIntFromElement(row, "Points"),
-                                CreatedDate = GetDateFromElement(row, "CreatedDate")
+                                Points = GetInt(row, "Points"),
+                                CreatedDate = GetDate(row, "CreatedDate"),
                             });
                         }
                     }
                 }
 
                 response.IsSuccess = true;
+                response.ErrorMessage = "";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.ErrorMessage = ex.GetBaseException().Message;
+                response.ErrorMessage = ex.Message;
             }
 
             return response;
         }
 
-        public ScoreValidationResponse ValidateScoreUpdate(ScoreValidationRequest request)
+        /// <summary>
+        /// Validate score update (matches legacy controller exactly)
+        /// </summary>
+        public OnlineExamScoreValidationResponse ValidateScoreUpdate(OnlineExamScoreValidationRequest request)
         {
-            var response = new ScoreValidationResponse();
+            OnlineExamScoreValidationResponse response = new OnlineExamScoreValidationResponse();
             try
             {
-                if (string.IsNullOrWhiteSpace(request.Source))
-                {
-                    request.Source = "OnlineExam";
-                }
-
                 var result = _onlineExamRepository.ValidateScoreUpdateAsync(request).Result;
+
                 if (!string.IsNullOrEmpty(result))
                 {
                     var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
                     if (rows != null && rows.Count > 0)
                     {
-                        var enableScoreUpdate = GetStringFromElement(rows[0], "EnableScoreUpdate");
-                        response.EnableScoreUpdate = enableScoreUpdate == "Y";
+                        var flag = GetStringFromElement(rows[0], "EnableScoreUpdate");
+                        response.EnableScoreUpdate = string.Equals(flag, "Y", StringComparison.OrdinalIgnoreCase);
                     }
                 }
 
                 response.IsSuccess = true;
+                response.ErrorMessage = "";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.ErrorMessage = ex.GetBaseException().Message;
+                response.ErrorMessage = ex.Message;
             }
 
             return response;
         }
 
-        public CurrentSessionResponse GetCurrentSession(CurrentSessionRequest request)
+        /// <summary>
+        /// Get current session (matches legacy controller exactly)
+        /// </summary>
+        public OnlineExamCurrentSessionResponse GetCurrentSession(OnlineExamCurrentSessionRequest request)
         {
-            var response = new CurrentSessionResponse();
+            OnlineExamCurrentSessionResponse response = new OnlineExamCurrentSessionResponse();
             try
             {
+                request.ChapterID = (request.ChapterID ?? string.Empty).Trim();
                 var result = _onlineExamRepository.GetCurrentSessionAsync(request).Result;
+
                 if (!string.IsNullOrEmpty(result))
                 {
                     var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
@@ -141,29 +150,34 @@ namespace pStudyWare20.Services.Implementations
                         {
                             response.Sessions.Add(new SessionItem
                             {
-                                Session = GetStringFromElement(row, "Session")
+                                Session = GetStringFromElement(row, "Session"),
                             });
                         }
                     }
                 }
 
                 response.IsSuccess = true;
+                response.ErrorMessage = "";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.ErrorMessage = ex.GetBaseException().Message;
+                response.ErrorMessage = ex.Message;
             }
 
             return response;
         }
 
-        public StudentScoresResponse GetStudentScores(StudentScoresRequest request)
+        /// <summary>
+        /// Get student scores (matches legacy controller exactly)
+        /// </summary>
+        public OnlineExamStudentScoresResponse GetStudentScores(OnlineExamStudentScoresRequest request)
         {
-            var response = new StudentScoresResponse();
+            OnlineExamStudentScoresResponse response = new OnlineExamStudentScoresResponse();
             try
             {
                 var result = _onlineExamRepository.GetStudentScoresAsync(request).Result;
+
                 if (!string.IsNullOrEmpty(result))
                 {
                     var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
@@ -173,138 +187,146 @@ namespace pStudyWare20.Services.Implementations
                         {
                             response.Scores.Add(new StudentScore
                             {
-                                StudentID = GetIntFromElement(row, "StudentID"),
+                                StudentID = GetInt(row, "StudentID"),
                                 StudentName = GetStringFromElement(row, "StudentName"),
-                                Group = GetStringFromElement(row, "Group"),
+                                Group = GetStringFromElement(row, "Group", "Class"),
                                 Grade = GetStringFromElement(row, "Grade"),
-                                Semester = GetStringFromElement(row, "CurrentSession"),
+                                Semester = GetStringFromElement(row, "Semester", "CurrentSession"),
                                 ExamType = GetStringFromElement(row, "ExamType"),
-                                ExamDate = GetDateFromElement(row, "ExamDate") ?? DateTime.MinValue,
-                                TotalCredit = GetFloatFromElement(row, "TotalCredit"),
-                                ReceivedCredit = GetFloatFromElement(row, "ReceivedCredit"),
+                                ExamDate = GetDate(row, "ExamDate") ?? DateTime.MinValue,
+                                TotalCredit = GetFloat(row, "TotalCredit", "TotalScore"),
+                                ReceivedCredit = GetFloat(row, "ReceivedCredit", "ReceivedScore"),
                                 Comments = GetStringFromElement(row, "Comments"),
-                                SubmittedDate = GetStringFromElement(row, "SubmittedDate")
                             });
                         }
                     }
                 }
 
                 response.IsSuccess = true;
+                response.ErrorMessage = "";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.ErrorMessage = ex.GetBaseException().Message;
+                response.ErrorMessage = ex.Message;
             }
 
             return response;
         }
 
-        public SubmitExamResponse SubmitExam(SubmitExamRequest request)
+        /// <summary>
+        /// Submit online exam (matches legacy controller exactly)
+        /// </summary>
+        public SubmitOnlineExamResponse SubmitOnlineExam(SubmitOnlineExamRequest request)
         {
-            var response = new SubmitExamResponse();
+            SubmitOnlineExamResponse response = new SubmitOnlineExamResponse();
             try
             {
-                if (request.Answers == null ||
-                    request.Answers.All(a => string.IsNullOrWhiteSpace(a.AnswerKey)))
-                {
-                    response.IsSuccess = false;
-                    response.ErrorMessage = "Please select at least one answer before submitting.";
-                    return response;
-                }
+                var result = _onlineExamRepository.SubmitOnlineExamAsync(request).Result;
 
-                var result = _onlineExamRepository.SubmitExamAsync(request).Result;
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
-                    if (rows != null && rows.Count > 0)
+                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
+                    if (dataTable != null && dataTable.Rows.Count > 0)
                     {
-                        response.TotalScore = GetStringFromElement(rows[0], "FinalExamTotalScore");
-                        response.ReceivedScore = GetStringFromElement(rows[0], "FinalExamReceivedScore");
-                        response.Message = "Exam submitted successfully";
-                        response.IsSuccess = true;
-                        return response;
+                        response.TotalScore = dataTable.Rows[0]["FinalExamTotalScore"]?.ToString() ?? "0";
+                        response.ReceivedScore = dataTable.Rows[0]["FinalExamReceivedScore"]?.ToString() ?? "0";
+                        response.Message = "Online exam submitted successfully";
                     }
                 }
 
-                response.IsSuccess = false;
-                response.ErrorMessage = "Exam submission did not return a score. Please contact support.";
+                response.IsSuccess = true;
+                response.ErrorMessage = "";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.ErrorMessage = ex.GetBaseException().Message;
-                response.Message = string.Empty;
+                response.ErrorMessage = ex.Message;
+                response.Message = "";
             }
 
             return response;
         }
 
-        private static string GetStringFromElement(JsonElement row, string propertyName)
+        private static string GetStringFromElement(JsonElement row, params string[] propertyNames)
         {
-            if (row.TryGetProperty(propertyName, out var prop))
+            foreach (var propertyName in propertyNames)
             {
-                return prop.ValueKind switch
+                if (row.TryGetProperty(propertyName, out var prop))
                 {
-                    JsonValueKind.Null or JsonValueKind.Undefined => string.Empty,
-                    JsonValueKind.String => prop.GetString() ?? string.Empty,
-                    _ => prop.ToString()
-                };
+                    return prop.ValueKind == JsonValueKind.Null || prop.ValueKind == JsonValueKind.Undefined
+                        ? string.Empty
+                        : prop.GetString() ?? string.Empty;
+                }
             }
+
             return string.Empty;
         }
 
-        private static int GetIntFromElement(JsonElement row, string propertyName)
+        private static int GetInt(JsonElement row, params string[] propertyNames)
         {
-            if (row.TryGetProperty(propertyName, out var prop) &&
-                prop.ValueKind != JsonValueKind.Null &&
-                prop.ValueKind != JsonValueKind.Undefined)
+            foreach (var propertyName in propertyNames)
             {
-                if (prop.TryGetInt32(out var intVal))
+                if (!row.TryGetProperty(propertyName, out var prop))
                 {
-                    return intVal;
+                    continue;
                 }
-                if (int.TryParse(prop.ToString(), out var parsed))
+
+                if (prop.ValueKind == JsonValueKind.Number && prop.TryGetInt32(out var number))
+                {
+                    return number;
+                }
+
+                if (prop.ValueKind == JsonValueKind.String &&
+                    int.TryParse(prop.GetString(), out var parsed))
                 {
                     return parsed;
                 }
             }
+
             return 0;
         }
 
-        private static float GetFloatFromElement(JsonElement row, string propertyName)
+        private static float GetFloat(JsonElement row, params string[] propertyNames)
         {
-            if (row.TryGetProperty(propertyName, out var prop) &&
-                prop.ValueKind != JsonValueKind.Null &&
-                prop.ValueKind != JsonValueKind.Undefined)
+            foreach (var propertyName in propertyNames)
             {
-                if (prop.TryGetSingle(out var floatVal))
+                if (!row.TryGetProperty(propertyName, out var prop))
                 {
-                    return floatVal;
+                    continue;
                 }
-                if (float.TryParse(prop.ToString(), out var parsed))
+
+                if (prop.ValueKind == JsonValueKind.Number && prop.TryGetSingle(out var number))
+                {
+                    return number;
+                }
+
+                if (prop.ValueKind == JsonValueKind.String &&
+                    float.TryParse(prop.GetString(), out var parsed))
                 {
                     return parsed;
                 }
             }
+
             return 0;
         }
 
-        private static DateTime? GetDateFromElement(JsonElement row, string propertyName)
+        private static DateTime? GetDate(JsonElement row, params string[] propertyNames)
         {
-            if (row.TryGetProperty(propertyName, out var prop) &&
-                prop.ValueKind != JsonValueKind.Null &&
-                prop.ValueKind != JsonValueKind.Undefined)
+            foreach (var propertyName in propertyNames)
             {
-                if (prop.TryGetDateTime(out var dateVal))
+                if (!row.TryGetProperty(propertyName, out var prop))
                 {
-                    return dateVal;
+                    continue;
                 }
-                if (DateTime.TryParse(prop.ToString(), out var parsed))
+
+                if (prop.ValueKind == JsonValueKind.String &&
+                    DateTime.TryParse(prop.GetString(), out var parsed))
                 {
                     return parsed;
                 }
             }
+
             return null;
         }
     }
