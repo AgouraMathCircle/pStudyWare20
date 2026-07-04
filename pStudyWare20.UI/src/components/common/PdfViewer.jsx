@@ -26,6 +26,7 @@ import {
   FullscreenExit as FullscreenExitIcon,
 } from "@mui/icons-material";
 import { Document, Page, pdfjs } from "react-pdf";
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import config, { getPublicDocumentUrl, getSessionDocumentUrl } from "../../utils/config";
@@ -33,11 +34,8 @@ import documentService from "../../services/documentService";
 import AppSnackbar from "../pstudyware/Common/AppSnackbar";
 import { useAppSnackbar } from "../pstudyware/Common/useAppSnackbar";
 
-// react-pdf v10 requires the bundled pdfjs worker (.mjs), not the legacy CDN .min.js URL.
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+// Vite ?url import ensures the worker is bundled and served from the same origin in production.
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 const ZOOM_STEP = 0.2;
 const MIN_ZOOM = 0.5;
@@ -71,6 +69,7 @@ const PdfViewer = ({
   const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar();
   const [fullscreen, setFullscreen] = useState(false);
   const [pageInput, setPageInput] = useState("1");
+  const [pdfBlob, setPdfBlob] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
   const [loadingDocument, setLoadingDocument] = useState(true);
   const containerRef = React.useRef(null);
@@ -96,16 +95,16 @@ const PdfViewer = ({
   const fallbackViewerUrl = pdfFile || fullPdfUrl;
 
   const documentOptions = useMemo(() => ({
-    cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+    cMapUrl: `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/cmaps/`,
     cMapPacked: true,
-    standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
+    standardFontDataUrl: `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
   }), []);
 
   useEffect(() => {
-    if (error) {
+    if (error && !useFallback) {
       showSnackbar(error, "error");
     }
-  }, [error, showSnackbar]);
+  }, [error, useFallback, showSnackbar]);
 
   const revokeBlobUrl = useCallback(() => {
     if (blobUrlRef.current) {
@@ -125,6 +124,7 @@ const PdfViewer = ({
       }
 
       revokeBlobUrl();
+      setPdfBlob(null);
       setPdfFile(null);
       setLoadingDocument(true);
       setError(null);
@@ -200,6 +200,7 @@ const PdfViewer = ({
 
         const objectUrl = URL.createObjectURL(pdfBlob);
         blobUrlRef.current = objectUrl;
+        setPdfBlob(pdfBlob);
         setPdfFile(objectUrl);
       } catch (loadError) {
         if (cancelled) {
@@ -230,24 +231,13 @@ const PdfViewer = ({
   };
 
   const onDocumentLoadError = (loadError) => {
-    console.error("Error loading PDF:", loadError, fullPdfUrl);
-
-    let errorMessage =
-      loadError?.message || loadError?.toString?.() || "Failed to load PDF";
-
-    if (
-      errorMessage.includes("Invalid PDF") ||
-      errorMessage.includes("CORS") ||
-      errorMessage.includes("cross-origin") ||
-      errorMessage.includes("fetch") ||
-      errorMessage.includes("Failed to fetch")
-    ) {
-      errorMessage =
-        "Unable to load PDF in the embedded viewer. Using the browser viewer instead.";
-      setUseFallback(true);
-    }
-
-    setError(errorMessage);
+    console.warn(
+      "Embedded PDF viewer failed, using browser viewer:",
+      loadError,
+      fullPdfUrl,
+    );
+    setUseFallback(true);
+    setError(null);
   };
 
   const goToPrevPage = () => {
@@ -354,7 +344,7 @@ const PdfViewer = ({
     return null;
   }
 
-  const toolbar = (
+  const toolbar = useFallback ? null : (
     <Box
       sx={{
         display: "flex",
@@ -567,9 +557,10 @@ const PdfViewer = ({
             </Button>
           </Stack>
         </Box>
-      ) : pdfFile ? (
+      ) : pdfBlob ? (
         <Document
-          file={pdfFile}
+          key={pdfUrl}
+          file={pdfBlob}
           onLoadSuccess={onDocumentLoadSuccess}
           onLoadError={onDocumentLoadError}
           options={documentOptions}
@@ -581,16 +572,8 @@ const PdfViewer = ({
           }
           error={
             <Box sx={{ color: "white", p: 3, textAlign: "center" }}>
-              <Typography variant="body1" color="error" sx={{ mb: 2, maxWidth: "500px" }}>
-                Failed to load PDF.
-              </Typography>
-              <Button
-                variant="contained"
-                onClick={() => setUseFallback(true)}
-                sx={{ backgroundColor: "#4caf50" }}
-              >
-                Open in Browser Viewer
-              </Button>
+              <LinearProgress sx={{ mb: 2, maxWidth: "400px" }} />
+              <Typography variant="body2">Opening in browser viewer...</Typography>
             </Box>
           }
         >

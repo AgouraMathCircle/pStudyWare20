@@ -302,6 +302,9 @@ namespace pStudyWare20.Shared
     public class ActiveSemesterLookupDto
     {
         public string Semester { get; set; } = string.Empty;
+        public bool FinalExamDisplay { get; set; }
+        public string FinalExamDisplayChapter { get; set; } = string.Empty;
+        public string OnlineExamDisplayChapter { get; set; } = string.Empty;
         public bool ShowFinalExam { get; set; }
         public string RegCloseDate { get; set; } = string.Empty;
     }

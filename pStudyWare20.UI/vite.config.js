@@ -53,6 +53,9 @@ const legacyDocumentsPlugin = () => ({
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), legacyDocumentsPlugin()],
+  optimizeDeps: {
+    include: ["pdfjs-dist"],
+  },
   server: {
     host: true,
     proxy: {

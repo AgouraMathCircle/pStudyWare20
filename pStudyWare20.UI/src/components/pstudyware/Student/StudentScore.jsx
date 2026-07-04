@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Container,
   Box,
+  Alert,
+  Snackbar,
   Typography,
   Grid,
   Card,
@@ -20,8 +22,6 @@ import {
 } from "@mui/material";
 import { Send as SendIcon } from "@mui/icons-material";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
-import AppSnackbar from "../Common/AppSnackbar";
-import { useAppSnackbar } from "../Common/useAppSnackbar";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
 import studentScoreService, {
@@ -29,10 +29,18 @@ import studentScoreService, {
 } from "../../../services/studentScoreService";
 import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import StudentScoreScoresGrid from "./StudentScoreScoresGrid";
+import { STUDENT_SCORE_DEFAULTS } from "../../../constants/studentScoreDefaults";
 import {
   parseStudentDropdownValue,
-  parseOnlineExamDisplayChapters,
+  getSessionLabel,
+  getStudentListItemText,
+  getStudentListItemValue,
+  findStudentListItem,
   shouldRedirectToOnlineExam,
+  ONLINE_EXAM_PATH,
+  buildOnlineExamRedirectQuery,
+  buildOnlineExamRedirectState,
+  getOnlineExamDisplayChapterFromResponse,
 } from "../../../utils/studentChapterRouting";
 import {
   adminSessionListPanelCardSx,
@@ -244,6 +252,12 @@ const normalizeScores = (rows) =>
     comments: row.comments ?? row.Comments ?? "",
   }));
 
+const resetScoreEntryFields = (setQuiz, setClassTest, setHomeWork) => {
+  setQuiz((prev) => ({ ...prev, received: "", comments: "" }));
+  setClassTest((prev) => ({ ...prev, received: "", comments: "" }));
+  setHomeWork((prev) => ({ ...prev, received: "", comments: "" }));
+};
+
 const StudentScore = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -258,31 +272,38 @@ const StudentScore = () => {
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const onlineExamRedirectChaptersRef = useRef(null);
+  const [onlineExamDisplayChapter, setOnlineExamDisplayChapter] = useState("");
   const pageInitKeyRef = useRef("");
   const [enableScoreUpdate, setEnableScoreUpdate] = useState(false);
   const [studentContextLoading, setStudentContextLoading] = useState(false);
   const [studentScores, setStudentScores] = useState([]);
-  const scoreWindowClosedToastShownRef = useRef(false);
-  const accessDeniedShownRef = useRef(false);
-
-  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("info");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [quiz, setQuiz] = useState({
-    total: "5",
+    total: STUDENT_SCORE_DEFAULTS.quizTotal,
     received: "",
     comments: "",
   });
   const [classTest, setClassTest] = useState({
-    total: "20",
+    total: STUDENT_SCORE_DEFAULTS.classTestTotal,
     received: "",
     comments: "",
   });
   const [homeWork, setHomeWork] = useState({
-    total: "10",
+    total: STUDENT_SCORE_DEFAULTS.homeWorkTotal,
     received: "",
     comments: "",
   });
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
+
+  const showSnackbar = (message, severity = "info") => {
+    setSnackbar({ open: true, message, severity });
+  };
 
   const loadScores = useCallback(async () => {
     if (!username) return;
@@ -335,7 +356,11 @@ const StudentScore = () => {
   }, []);
 
   const loadSessionsForStudent = useCallback(
-    async (studentValue, studentText, chaptersOverride) => {
+    async (
+      studentValue,
+      studentText,
+      { redirectToOnlineExam = false, onlineExamDisplayChapter: chapterConfig = "" } = {},
+    ) => {
       setStudentContextLoading(true);
       setEnableScoreUpdate(false);
 
@@ -353,22 +378,24 @@ const StudentScore = () => {
         return false;
       }
 
-      const redirectChapters =
-        chaptersOverride !== undefined
-          ? chaptersOverride
-          : onlineExamRedirectChaptersRef.current;
-
-      if (shouldRedirectToOnlineExam(chapterId, redirectChapters)) {
-        const params = new URLSearchParams({
-          Source: "S",
-          Action: "R",
-          Student: studentText || "",
-          ChapterID: chapterId,
-        });
+      // Legacy ddlStudentList_SelectedIndexChanged → RedirectToOnline()
+      if (
+        redirectToOnlineExam &&
+        shouldRedirectToOnlineExam(chapterId, chapterConfig)
+      ) {
         setStudentContextLoading(false);
         setLoading(false);
-        navigate(`/student/online-exam?${params.toString()}`, {
+        const query = buildOnlineExamRedirectQuery({
+          studentText,
+          chapterId,
+        });
+        navigate(`${ONLINE_EXAM_PATH}?${query}`, {
           replace: true,
+          state: buildOnlineExamRedirectState({
+            studentText,
+            studentValue: studentValue,
+            chapterId,
+          }),
         });
         return true;
       }
@@ -383,14 +410,13 @@ const StudentScore = () => {
           );
           setSessions([]);
           setSelectedSession("");
-          return false;
+          return;
         }
 
         const sessionRows =
           sessionResponse?.sessions ?? sessionResponse?.Sessions ?? [];
         setSessions(sessionRows);
-        const firstSession =
-          sessionRows[0]?.session ?? sessionRows[0]?.Session ?? "";
+        const firstSession = getSessionLabel(sessionRows[0]);
         setSelectedSession(firstSession);
 
         if (!firstSession) {
@@ -398,6 +424,7 @@ const StudentScore = () => {
           return false;
         }
 
+        // Legacy EnbleScoreUpdate() after AMC_spSelectCurrentSession
         await validateWindow(studentId, firstSession, classCode);
         return false;
       } finally {
@@ -428,7 +455,7 @@ const StudentScore = () => {
       try {
         setLoading(true);
         if (searchParams.get("Action") === "U") {
-          showSnackbar("Scores have been updated successfully.", "success");
+          setSuccessMessage("Scores have been updated successfully.");
         }
 
         const [listResponse, dueDateResponse] = await Promise.all([
@@ -447,16 +474,11 @@ const StudentScore = () => {
           listResponse?.studentList ?? listResponse?.StudentList ?? [];
         setStudents(studentList);
 
-        const configuredChapters = dueDateResponse?.isSuccess
-          ? parseOnlineExamDisplayChapters(
-              dueDateResponse.onlineExamDisplayChapter ??
-                dueDateResponse.OnlineExamDisplayChapter,
-            )
-          : null;
-
         if (dueDateResponse?.isSuccess) {
           setDueDate(dueDateResponse.dueDate ?? dueDateResponse.DueDate ?? "");
-          onlineExamRedirectChaptersRef.current = configuredChapters;
+          setOnlineExamDisplayChapter(
+            getOnlineExamDisplayChapterFromResponse(dueDateResponse),
+          );
         } else if (dueDateResponse?.errorMessage) {
           showSnackbar(dueDateResponse.errorMessage, "warning");
         }
@@ -464,18 +486,20 @@ const StudentScore = () => {
         if (studentList.length > 0) {
           const queryStudent = searchParams.get("Student");
           const match = queryStudent
-            ? studentList.find((s) => (s.text ?? s.Text) === queryStudent)
+            ? findStudentListItem(studentList, { studentName: queryStudent })
             : null;
           const initial = match ?? studentList[0];
-          const value = initial.value ?? initial.Value ?? "";
-          const text = initial.text ?? initial.Text ?? "";
+          const value = getStudentListItemValue(initial);
+          const text = getStudentListItemText(initial);
           setSelectedStudent(value);
-          const redirected = await loadSessionsForStudent(
-            value,
-            text,
-            configuredChapters,
+          const chapterConfig = getOnlineExamDisplayChapterFromResponse(
+            dueDateResponse,
           );
-          if (redirected) return;
+          // Legacy OnlineExam → studentscore.aspx?Student= only: stay on Update Score, load sessions.
+          // Redirect to Online Exam runs only on dropdown change (ddlStudentList_SelectedIndexChanged).
+          await loadSessionsForStudent(value, text, {
+            onlineExamDisplayChapter: chapterConfig,
+          });
         }
 
         await loadScores();
@@ -495,11 +519,35 @@ const StudentScore = () => {
 
   const handleStudentChange = async (event) => {
     const value = event.target.value;
+    if (value === selectedStudent) {
+      return;
+    }
+
     setSelectedStudent(value);
-    scoreWindowClosedToastShownRef.current = false;
-    const student = students.find((s) => (s.value ?? s.Value) === value);
-    const text = student?.text ?? student?.Text ?? "";
-    await loadSessionsForStudent(value, text);
+    setSuccessMessage("");
+    resetScoreEntryFields(setQuiz, setClassTest, setHomeWork);
+
+    const student = students.find(
+      (s) => (s.value ?? s.Value) === value,
+    );
+    const studentText = getStudentListItemText(student);
+
+    try {
+      const redirected = await loadSessionsForStudent(value, studentText, {
+        redirectToOnlineExam: true,
+        onlineExamDisplayChapter,
+      });
+      if (redirected) {
+        return;
+      }
+      await loadScores();
+    } catch (error) {
+      console.error("Error changing student:", error);
+      showSnackbar(
+        getErrorMessage(error, "Failed to load data for the selected student."),
+        "error",
+      );
+    }
   };
 
   const handleSessionChange = async (event) => {
@@ -573,6 +621,7 @@ const StudentScore = () => {
       if (response?.isSuccess) {
         const message =
           response.message || "Scores have been updated successfully.";
+        setSuccessMessage(message);
         showSnackbar(message, "success");
         setQuiz((prev) => ({ ...prev, received: "", comments: "" }));
         setClassTest((prev) => ({ ...prev, received: "", comments: "" }));
@@ -600,36 +649,6 @@ const StudentScore = () => {
     comments: "62%",
   };
 
-  useEffect(() => {
-    if (
-      !enableScoreUpdate &&
-      !loading &&
-      !studentContextLoading &&
-      students.length > 0 &&
-      selectedStudent &&
-      !scoreWindowClosedToastShownRef.current
-    ) {
-      scoreWindowClosedToastShownRef.current = true;
-      showSnackbar("The Score Update window has closed.", "error");
-    }
-  }, [
-    enableScoreUpdate,
-    loading,
-    studentContextLoading,
-    students.length,
-    selectedStudent,
-    showSnackbar,
-  ]);
-
-  useEffect(() => {
-    if (!isAuthenticated || !user) {
-      if (!accessDeniedShownRef.current) {
-        accessDeniedShownRef.current = true;
-        showSnackbar("Access denied. Please log in to update scores.", "error");
-      }
-    }
-  }, [isAuthenticated, user, showSnackbar]);
-
   if (!isAuthenticated || !user) {
     return (
       <Box
@@ -640,7 +659,9 @@ const StudentScore = () => {
           height: "400px",
         }}
       >
-        <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />
+        <Alert severity="error">
+          Access denied. Please log in to update scores.
+        </Alert>
       </Box>
     );
   }
@@ -664,12 +685,35 @@ const StudentScore = () => {
                     {/* Update Score */}
                   </Typography>
 
+                  {successMessage && (
+                    <Alert
+                      severity="success"
+                      sx={{ mb: 1, fontSize: "0.75rem" }}
+                    >
+                      {successMessage}
+                    </Alert>
+                  )}
+
+                  {!enableScoreUpdate &&
+                    !loading &&
+                    !studentContextLoading &&
+                    students.length > 0 &&
+                    selectedStudent && (
+                      <Alert
+                        severity="error"
+                        sx={{ mb: 1, fontSize: "0.75rem" }}
+                      >
+                        <strong>The Score Update window has closed.</strong>
+                      </Alert>
+                    )}
+
                   {studentContextLoading && (
-                    <Typography
-                      sx={{ mb: 1, fontSize: "0.75rem", color: "#ffffff" }}
+                    <Alert
+                      severity="info"
+                      sx={{ mb: 1, fontSize: "0.75rem" }}
                     >
                       Loading student session...
-                    </Typography>
+                    </Alert>
                   )}
 
                   {enableScoreUpdate && !studentContextLoading && (
@@ -749,17 +793,19 @@ const StudentScore = () => {
                   </Box>
 
                   {loading ? (
-                    <Typography
-                      sx={{ mb: 1, fontSize: "0.75rem", color: "#ffffff" }}
+                    <Alert
+                      severity="info"
+                      sx={{ mb: 1, fontSize: "0.75rem" }}
                     >
                       Loading students...
-                    </Typography>
+                    </Alert>
                   ) : students.length === 0 ? (
-                    <Typography
-                      sx={{ mb: 1, fontSize: "0.75rem", color: "#ffffff" }}
+                    <Alert
+                      severity="info"
+                      sx={{ mb: 1, fontSize: "0.75rem" }}
                     >
                       No students found for your account.
-                    </Typography>
+                    </Alert>
                   ) : (
                     <Box sx={legacyFieldBarSx}>
                       <Box
@@ -779,15 +825,20 @@ const StudentScore = () => {
                           sx={{ ...legacyFieldSelectSx, minWidth: 200 }}
                           disabled={loading || studentContextLoading}
                         >
-                          {students.map((student, index) => (
-                            <MenuItem
-                              key={index}
-                              value={student.value ?? student.Value}
-                              sx={adminSessionListMenuItemSx}
-                            >
-                              {student.text ?? student.Text}
-                            </MenuItem>
-                          ))}
+                          {students.map((student) => {
+                            const studentValue =
+                              student.value ?? student.Value ?? "";
+                            const studentText = student.text ?? student.Text ?? "";
+                            return (
+                              <MenuItem
+                                key={studentValue}
+                                value={studentValue}
+                                sx={adminSessionListMenuItemSx}
+                              >
+                                {studentText}
+                              </MenuItem>
+                            );
+                          })}
                         </Select>
                       </Box>
                       <Box
@@ -811,15 +862,18 @@ const StudentScore = () => {
                             sessions.length === 0
                           }
                         >
-                          {sessions.map((session, index) => (
-                            <MenuItem
-                              key={index}
-                              value={session.session ?? session.Session}
-                              sx={adminSessionListMenuItemSx}
-                            >
-                              {session.session ?? session.Session}
-                            </MenuItem>
-                          ))}
+                          {sessions.map((session, index) => {
+                            const sessionLabel = getSessionLabel(session);
+                            return (
+                              <MenuItem
+                                key={`${sessionLabel}-${index}`}
+                                value={sessionLabel}
+                                sx={adminSessionListMenuItemSx}
+                              >
+                                {sessionLabel}
+                              </MenuItem>
+                            );
+                          })}
                         </Select>
                       </Box>
                     </Box>
@@ -1000,7 +1054,21 @@ const StudentScore = () => {
         loading={submitting}
       />
 
-      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} autoHideDuration={6000} />
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

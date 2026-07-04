@@ -150,10 +150,6 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Score ID")]
         public string ScoreID { get; set; } = "0";
-
-        /// <summary>Portal username (parent email) — legacy Session["Username"] for score notification.</summary>
-        [Display(Name = "Username")]
-        public string Username { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -229,6 +225,57 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Scores")]
         public List<StudentScore> Scores { get; set; } = new List<StudentScore>();
+    }
+
+    /// <summary>
+    /// Shared student dropdown item (online exam, student score).
+    /// </summary>
+    public class StudentListItem
+    {
+        [Display(Name = "Value")]
+        public string Value { get; set; } = string.Empty;
+
+        [Display(Name = "Text")]
+        public string Text { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Shared session dropdown item.
+    /// </summary>
+    public class SessionItem
+    {
+        [Display(Name = "Session")]
+        public string Session { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Shared current session response (student score service).
+    /// </summary>
+    public class CurrentSessionResponse
+    {
+        [Display(Name = "Is Success")]
+        public bool IsSuccess { get; set; }
+
+        [Display(Name = "Error Message")]
+        public string ErrorMessage { get; set; } = string.Empty;
+
+        [Display(Name = "Sessions")]
+        public List<SessionItem> Sessions { get; set; } = new List<SessionItem>();
+    }
+
+    /// <summary>
+    /// Shared score validation response (student score service).
+    /// </summary>
+    public class ScoreValidationResponse
+    {
+        [Display(Name = "Is Success")]
+        public bool IsSuccess { get; set; }
+
+        [Display(Name = "Error Message")]
+        public string ErrorMessage { get; set; } = string.Empty;
+
+        [Display(Name = "Enable Score Update")]
+        public bool EnableScoreUpdate { get; set; }
     }
 
     /// <summary>

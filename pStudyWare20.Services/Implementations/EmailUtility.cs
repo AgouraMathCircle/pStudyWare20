@@ -578,6 +578,27 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
+        /// Sends contact enquiry notification to admin (matches ContactUs.aspx.cs InformMe).
+        /// </summary>
+        public bool SendContactEnquiryEmail(string name, string email, string subject, string message)
+        {
+            try
+            {
+                string emailSendTo = _configuration.GetSection("AppSettings")["Email"] ?? "support@agouramathcircle.org";
+                string emailSubject = "Agoura Math Circle :Inquiry from " + name;
+                string emailBody = string.IsNullOrWhiteSpace(subject)
+                    ? message
+                    : $"<strong>Subject:</strong> {subject}<br/><br/>{message}";
+
+                return SendEmail(emailSendTo, email, emailSubject, emailBody);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Sends change password email - matches SendChangePassword from AMCWebServices/EmailUtility.cs
         /// </summary>
         public bool SendChangePassword(string emailAddress, string password)

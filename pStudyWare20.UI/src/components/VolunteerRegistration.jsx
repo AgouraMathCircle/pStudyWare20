@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   TextField,
   FormControl,
@@ -51,6 +51,22 @@ const countrySelectMenuProps = createSelectMenuProps(10);
 const currentYear = new Date().getFullYear();
 
 const ABOUT_YOURSELF_MAX_CHARS = 500;
+const AGREEMENT_SCROLL_THRESHOLD = 24;
+
+const isAgreementContentFullyRead = (element) => {
+  if (!element) {
+    return false;
+  }
+
+  if (element.scrollHeight <= element.clientHeight + 1) {
+    return true;
+  }
+
+  return (
+    element.scrollHeight - element.scrollTop - element.clientHeight <=
+    AGREEMENT_SCROLL_THRESHOLD
+  );
+};
 
 const isEmptySelectValue = (value) =>
   value === undefined ||
@@ -83,10 +99,7 @@ const validationSchema = yup.object({
   phoneNo: yup
     .string()
     .required("Phone number is required")
-    .matches(
-      /^[01]?[- .]?(\([2-9]\d{2}\)|[2-9]\d{2})[- .]?\d{3}[- .]?\d{4}$/,
-      "Please enter a valid phone number",
-    ),
+    .matches(/^\d{10}$/, "Phone number must be exactly 10 digits"),
   city: yup
     .string()
     .required("City is required")
@@ -151,6 +164,18 @@ const VolunteerRegistration = () => {
   const [loading, setLoading] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
+  const [termsOpened, setTermsOpened] = useState(false);
+  const [rulesOpened, setRulesOpened] = useState(false);
+  const [termsScrolled, setTermsScrolled] = useState(false);
+  const [rulesScrolled, setRulesScrolled] = useState(false);
+  const [highlightTermsButton, setHighlightTermsButton] = useState(false);
+  const [highlightRulesButton, setHighlightRulesButton] = useState(false);
+  const [termsButtonError, setTermsButtonError] = useState("");
+  const [rulesButtonError, setRulesButtonError] = useState("");
+  const termsContentRef = useRef(null);
+  const rulesContentRef = useRef(null);
+  const termsButtonRef = useRef(null);
+  const rulesButtonRef = useRef(null);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -175,6 +200,118 @@ const VolunteerRegistration = () => {
     reValidateMode: "onChange",
     shouldFocusError: true,
   });
+
+  const checkAgreementScrollState = useCallback((element, setScrolled) => {
+    if (isAgreementContentFullyRead(element)) {
+      setScrolled(true);
+    }
+  }, []);
+
+  const openTermsDialog = () => {
+    setTermsOpened(true);
+    setTermsOpen(true);
+  };
+
+  const openRulesDialog = () => {
+    setRulesOpened(true);
+    setRulesOpen(true);
+  };
+
+  const scrollToAgreementButton = (buttonRef) => {
+    buttonRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  };
+
+  const resetAgreementReview = () => {
+    setTermsOpened(false);
+    setRulesOpened(false);
+    setTermsScrolled(false);
+    setRulesScrolled(false);
+    setHighlightTermsButton(false);
+    setHighlightRulesButton(false);
+    setTermsButtonError("");
+    setRulesButtonError("");
+  };
+
+  const getAgreementButtonError = (opened, scrolled, label) => {
+    if (opened && scrolled) {
+      return "";
+    }
+
+    if (!opened) {
+      return `Please click ${label} and scroll to the end.`;
+    }
+
+    return `Please scroll ${label} to the end.`;
+  };
+
+  const validateAgreementReview = () => {
+    const termsComplete = termsOpened && termsScrolled;
+    const rulesComplete = rulesOpened && rulesScrolled;
+
+    if (termsComplete && rulesComplete) {
+      setHighlightTermsButton(false);
+      setHighlightRulesButton(false);
+      setTermsButtonError("");
+      setRulesButtonError("");
+      return true;
+    }
+
+    setHighlightTermsButton(!termsComplete);
+    setHighlightRulesButton(!rulesComplete);
+    setTermsButtonError(getAgreementButtonError(termsOpened, termsScrolled, "Terms"));
+    setRulesButtonError(getAgreementButtonError(rulesOpened, rulesScrolled, "Rules"));
+
+    window.requestAnimationFrame(() => {
+      if (!termsComplete) {
+        scrollToAgreementButton(termsButtonRef);
+      } else {
+        scrollToAgreementButton(rulesButtonRef);
+      }
+    });
+
+    return false;
+  };
+
+  useEffect(() => {
+    if (termsOpened && termsScrolled) {
+      setHighlightTermsButton(false);
+      setTermsButtonError("");
+    }
+  }, [termsOpened, termsScrolled]);
+
+  useEffect(() => {
+    if (rulesOpened && rulesScrolled) {
+      setHighlightRulesButton(false);
+      setRulesButtonError("");
+    }
+  }, [rulesOpened, rulesScrolled]);
+
+  useEffect(() => {
+    if (!termsOpen) {
+      return undefined;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      checkAgreementScrollState(termsContentRef.current, setTermsScrolled);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [termsOpen, checkAgreementScrollState]);
+
+  useEffect(() => {
+    if (!rulesOpen) {
+      return undefined;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      checkAgreementScrollState(rulesContentRef.current, setRulesScrolled);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [rulesOpen, checkAgreementScrollState]);
 
   useEffect(() => {
     const loadDropdownData = async () => {
@@ -232,6 +369,10 @@ const VolunteerRegistration = () => {
   }, [snackbar.open]);
 
   const onSubmit = async (data) => {
+    if (!validateAgreementReview()) {
+      return;
+    }
+
     setLoading(true);
     try {
       const volunteerData = {
@@ -261,6 +402,7 @@ const VolunteerRegistration = () => {
       );
 
       reset(defaultFormValues);
+      resetAgreementReview();
 
       setTimeout(() => {
         navigate("/");
@@ -295,11 +437,7 @@ const VolunteerRegistration = () => {
                 Home &gt;
               </a>
             </li>
-            <li>
-              <a className="active" href="/registration">
-                Registration &gt;
-              </a>
-            </li>
+            <li className="active">Registration &gt;</li>
             <li className="active">Volunteer Registration</li>
           </ul>
         </div>
@@ -413,13 +551,23 @@ const VolunteerRegistration = () => {
                       <Controller
                         name="phoneNo"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field: { onChange, value, ...field } }) => (
                           <TextField
                             {...field}
+                            value={value}
+                            onChange={(event) => {
+                              onChange(
+                                event.target.value.replace(/\D/g, "").slice(0, 10),
+                              );
+                            }}
                             fullWidth
                             required
-                            label="Phone (999-999-9999)"
-                            placeholder="999-999-9999"
+                            label="Phone"
+                            placeholder="10 digit phone number"
+                            inputProps={{
+                              inputMode: "numeric",
+                              maxLength: 10,
+                            }}
                             error={!!errors.phoneNo}
                             helperText={errors.phoneNo?.message}
                             variant="outlined"
@@ -777,41 +925,53 @@ const VolunteerRegistration = () => {
                     <p className="agreement-text">
                       Pressing the "Submit" button I agree the Agoura Math
                       Circle{" "}
-                      <button
-                        type="button"
-                        onClick={() => setTermsOpen(true)}
-                        style={{
-                          backgroundColor: "#53b50a",
-                          color: "#ffffff",
-                          border: "none",
-                          padding: "4px 12px",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          fontSize: "0.875rem",
-                          fontWeight: "500",
-                          margin: "0 2px",
-                        }}
-                      >
-                        Terms
-                      </button>{" "}
-                      and{" "}
-                      <button
-                        type="button"
-                        onClick={() => setRulesOpen(true)}
-                        style={{
-                          backgroundColor: "#53b50a",
-                          color: "#ffffff",
-                          border: "none",
-                          padding: "4px 12px",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          fontSize: "0.875rem",
-                          fontWeight: "500",
-                          margin: "0 2px",
-                        }}
-                      >
-                        Rules
-                      </button>
+                      <span className="agreement-inline-actions">
+                        <span className="agreement-button-wrap">
+                          <button
+                            type="button"
+                            ref={termsButtonRef}
+                            className={`agreement-action-button${
+                              highlightTermsButton
+                                ? " agreement-action-button--highlight"
+                                : ""
+                            }`}
+                            onClick={openTermsDialog}
+                          >
+                            Terms
+                          </button>
+                          {termsButtonError && (
+                            <FormHelperText
+                              error
+                              className="agreement-button-error"
+                            >
+                              {termsButtonError}
+                            </FormHelperText>
+                          )}
+                        </span>
+                        <span className="agreement-and">and</span>
+                        <span className="agreement-button-wrap">
+                          <button
+                            type="button"
+                            ref={rulesButtonRef}
+                            className={`agreement-action-button${
+                              highlightRulesButton
+                                ? " agreement-action-button--highlight"
+                                : ""
+                            }`}
+                            onClick={openRulesDialog}
+                          >
+                            Rules
+                          </button>
+                          {rulesButtonError && (
+                            <FormHelperText
+                              error
+                              className="agreement-button-error"
+                            >
+                              {rulesButtonError}
+                            </FormHelperText>
+                          )}
+                        </span>
+                      </span>
                     </p>
                     <p className="signature-help-text">
                       Please sign the waiver (Liability Signature)
@@ -1024,7 +1184,11 @@ const VolunteerRegistration = () => {
               </IconButton>
             </DialogTitle>
             <DialogContent
+              ref={rulesContentRef}
               dividers
+              onScroll={(event) => {
+                checkAgreementScrollState(event.currentTarget, setRulesScrolled);
+              }}
               sx={{
                 padding: "24px",
                 backgroundColor: "#f5f5f5",
@@ -1185,7 +1349,11 @@ const VolunteerRegistration = () => {
               </IconButton>
             </DialogTitle>
             <DialogContent
+              ref={termsContentRef}
               dividers
+              onScroll={(event) => {
+                checkAgreementScrollState(event.currentTarget, setTermsScrolled);
+              }}
               sx={{
                 padding: "24px",
                 backgroundColor: "#f5f5f5",

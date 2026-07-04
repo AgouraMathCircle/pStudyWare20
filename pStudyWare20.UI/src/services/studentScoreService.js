@@ -1,4 +1,5 @@
 import api from "./api";
+import { STUDENT_SCORE_DEFAULTS } from "../constants/studentScoreDefaults";
 
 const getErrorMessage = (error, fallback) => {
   const data = error?.response?.data;
@@ -79,14 +80,32 @@ const studentScoreService = {
       studentID,
       session,
       class: classCode ?? "",
-      quizTotalScore: normalizeScoreValue(quizTotalScore, "5"),
-      quizReceivedScore: normalizeScoreValue(quizReceivedScore, "0"),
+      quizTotalScore: normalizeScoreValue(
+        quizTotalScore,
+        STUDENT_SCORE_DEFAULTS.quizTotal,
+      ),
+      quizReceivedScore: normalizeScoreValue(
+        quizReceivedScore,
+        STUDENT_SCORE_DEFAULTS.receivedEmpty,
+      ),
       quizComments: quizComments ?? "",
-      classTestTotalScore: normalizeScoreValue(classTestTotalScore, "20"),
-      classTestReceivedScore: normalizeScoreValue(classTestReceivedScore, "0"),
+      classTestTotalScore: normalizeScoreValue(
+        classTestTotalScore,
+        STUDENT_SCORE_DEFAULTS.classTestTotal,
+      ),
+      classTestReceivedScore: normalizeScoreValue(
+        classTestReceivedScore,
+        STUDENT_SCORE_DEFAULTS.receivedEmpty,
+      ),
       classTestComments: classTestComments ?? "",
-      homeWorkTotalScore: normalizeScoreValue(homeWorkTotalScore, "10"),
-      homeWorkReceivedScore: normalizeScoreValue(homeWorkReceivedScore, "0"),
+      homeWorkTotalScore: normalizeScoreValue(
+        homeWorkTotalScore,
+        STUDENT_SCORE_DEFAULTS.homeWorkTotal,
+      ),
+      homeWorkReceivedScore: normalizeScoreValue(
+        homeWorkReceivedScore,
+        STUDENT_SCORE_DEFAULTS.receivedEmpty,
+      ),
       homeWorkComments: homeWorkComments ?? "",
       finalExamTotalScore: "0",
       finalExamReceivedScore: "0",

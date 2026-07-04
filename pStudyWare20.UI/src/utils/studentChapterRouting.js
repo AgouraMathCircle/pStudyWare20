@@ -1,16 +1,10 @@
 /**
- * Legacy StudentScore.aspx.cs RedirectToOnline / FinalExam.aspx.cs ddlStudentList_SelectedIndexChanged.
- * Dropdown value format: Class~StudentID~ChapterID
+ * Legacy StudentScore.aspx.cs RedirectToOnline / OnlineExam.aspx.cs ddlStudentList_SelectedIndexChanged.
+ * Dropdown value format: Class~StudentID~ChapterID (legacy Split('~') indices 0, 1, 2).
  *
- * Redirect chapters come from AMC_tblLookupSemester.OnlineExamDisplayChapter (comma-separated).
- * Fallback matches legacy StudentScore.aspx.cs hard-coded list when lookup is empty.
+ * Online exam vs manual Update Score routing uses AMC_tblLookupSemester.OnlineExamDisplayChapter
+ * (comma-separated chapter IDs, e.g. "3,5,6,") — configured in Update Lookup Semester admin.
  */
-
-/** Legacy fallback when OnlineExamDisplayChapter is not configured in semester lookup. */
-export const LEGACY_ONLINE_EXAM_REDIRECT_CHAPTERS = new Set(["3", "5", "6"]);
-
-/** Chapter that stays on online exam when changing student (legacy OnlineExam.aspx.cs). */
-export const ONLINE_EXAM_STAY_CHAPTER = "6";
 
 export const normalizeChapterId = (chapterId) => {
   const trimmed = String(chapterId ?? "").trim();
@@ -22,6 +16,7 @@ export const normalizeChapterId = (chapterId) => {
 export const parseStudentDropdownValue = (value) => {
   const parts = String(value || "").split("~");
   if (parts.length >= 3) {
+    // Legacy StudentScore.aspx.cs: sStudentinfo[0]=Class, [1]=StudentID, [2]=ChapterID
     return {
       classCode: parts[0] || "",
       studentId: (parts[1] || "").trim(),
@@ -42,41 +37,224 @@ export const parseStudentDropdownValue = (value) => {
   };
 };
 
-/** Parse "1,3,5,6," from AMC_tblLookupSemester.OnlineExamDisplayChapter. */
-export const parseOnlineExamDisplayChapters = (raw) => {
-  const text = String(raw ?? "").trim();
-  if (!text) return null;
+/** Parse AMC_tblLookupSemester.OnlineExamDisplayChapter CSV into normalized chapter IDs. */
+export const parseOnlineExamDisplayChapters = (onlineExamDisplayChapter) => {
+  const raw = String(onlineExamDisplayChapter ?? "").trim();
+  if (!raw) return [];
 
-  const chapters = new Set();
-  text.split(",").forEach((part) => {
-    const id = normalizeChapterId(part);
-    if (id) {
-      chapters.add(id);
-    }
-  });
-
-  return chapters.size > 0 ? chapters : null;
+  return raw
+    .split(",")
+    .map((chapter) => normalizeChapterId(chapter))
+    .filter(Boolean);
 };
 
-/**
- * StudentScore.aspx.cs RedirectToOnline — redirect when chapter is in configured list.
- * @param {string} chapterId
- * @param {Set<string>|null} configuredChapters from OnlineExamDisplayChapter; null uses legacy fallback
- */
-export const shouldRedirectToOnlineExam = (chapterId, configuredChapters = null) => {
+/** True when chapter is listed in OnlineExamDisplayChapter — redirect to Online Exam. */
+export const shouldRedirectToOnlineExam = (
+  chapterId,
+  onlineExamDisplayChapter,
+) => {
+  const chapters = parseOnlineExamDisplayChapters(onlineExamDisplayChapter);
+  if (chapters.length === 0) return false;
+
   const normalized = normalizeChapterId(chapterId);
   if (!normalized) return false;
 
-  const chapters = configuredChapters ?? LEGACY_ONLINE_EXAM_REDIRECT_CHAPTERS;
-  return chapters.has(normalized);
+  return chapters.includes(normalized);
 };
 
-/** OnlineExam.aspx.cs — only chapter 6 stays on online exam when student changes. */
-export const shouldRedirectToManualScoreUpdate = (chapterId) =>
-  normalizeChapterId(chapterId) !== ONLINE_EXAM_STAY_CHAPTER;
+/** True when chapter is not in OnlineExamDisplayChapter — redirect to manual Update Score. */
+export const shouldRedirectToManualScoreUpdate = (
+  chapterId,
+  onlineExamDisplayChapter,
+) => {
+  const chapterList = String(onlineExamDisplayChapter ?? "").trim();
+  if (!chapterList) return true;
 
+  return !shouldRedirectToOnlineExam(chapterId, onlineExamDisplayChapter);
+};
+
+export const getOnlineExamDisplayChapterFromResponse = (response) =>
+  response?.onlineExamDisplayChapter ??
+  response?.OnlineExamDisplayChapter ??
+  "";
 export const getStudentListItemText = (student) =>
   student?.text ?? student?.Text ?? "";
 
 export const getStudentListItemValue = (student) =>
   student?.value ?? student?.Value ?? "";
+
+export const getSessionLabel = (session) =>
+  session?.session ?? session?.Session ?? "";
+
+export const ONLINE_EXAM_PATH = "/pstudyware/student/online-exam";
+export const FINAL_EXAM_PATH = "/pstudyware/student/final-exam";
+export const UPDATE_SCORE_PATH = "/pstudyware/student/update-score";
+
+/** Legacy FinalExam.aspx.cs / OnlineExam.aspx.cs BindQuestions() — 3 columns when count > 10. */
+export const splitQuestionsIntoGroups = (questions) => {
+  if (!questions?.length) return [[], [], []];
+  if (questions.length <= 10) return [questions, [], []];
+
+  const questionCount = questions.length;
+  const actualcount =
+    questionCount % 3 === 0
+      ? Math.floor(questionCount / 3)
+      : Math.floor(questionCount / 3) + 1;
+  const remainder = questionCount % 3;
+  const totalrowCount = remainder === 0 ? actualcount : actualcount + 1;
+
+  return [
+    questions.filter((q) => q.question >= 1 && q.question <= totalrowCount),
+    questions.filter(
+      (q) =>
+        q.question >= totalrowCount + 1 &&
+        q.question <= totalrowCount + totalrowCount,
+    ),
+    questions.filter((q) => q.question >= totalrowCount + totalrowCount + 1),
+  ];
+};
+
+/** @deprecated Use splitQuestionsIntoGroups */
+export const splitFinalExamQuestionsIntoGroups = splitQuestionsIntoGroups;
+
+/** Legacy exam submit redirect — FinalExam.aspx / OnlineExam.aspx ?Action=U&ReceivedScore=… */
+export const buildExamSubmitSuccessUrl = (basePath, receivedScore, totalScore) => {
+  const params = new URLSearchParams();
+  params.set("Action", "U");
+  params.set("ReceivedScore", String(receivedScore ?? ""));
+  params.set("TotalScore", String(totalScore ?? ""));
+  return `${basePath}?${params.toString()}`;
+};
+
+export const buildFinalExamSubmitSuccessUrl = (receivedScore, totalScore) =>
+  buildExamSubmitSuccessUrl(FINAL_EXAM_PATH, receivedScore, totalScore);
+
+export const buildOnlineExamSubmitSuccessUrl = (receivedScore, totalScore) =>
+  buildExamSubmitSuccessUrl(ONLINE_EXAM_PATH, receivedScore, totalScore);
+
+/** Legacy exam.aspx.cs divMessage text after successful submit. */
+export const formatExamSubmitSuccessMessage = (receivedScore, totalScore) =>
+  `You have successfuly submitted. You have received the score : ${receivedScore} out of ${totalScore}.`;
+
+/** @deprecated Use formatExamSubmitSuccessMessage */
+export const formatFinalExamSubmitSuccessMessage = formatExamSubmitSuccessMessage;
+
+/** Legacy studentscore.aspx?Student={Text} — encode like ASP.NET (%20 for spaces). */
+export const buildUpdateScoreStudentQuery = (studentText) => {
+  const name = String(studentText ?? "").trim();
+  if (!name) return "";
+  return `Student=${encodeURIComponent(name)}`;
+};
+
+/** Legacy onLineExam.aspx?Source=S&Action=R&Student=…&ChapterID=… */
+export const buildOnlineExamRedirectQuery = ({ studentText, chapterId }) => {
+  const parts = ["Source=S", "Action=R"];
+  const name = String(studentText ?? "").trim();
+  if (name) {
+    parts.push(`Student=${encodeURIComponent(name)}`);
+  }
+  const chapter = normalizeChapterId(chapterId);
+  if (chapter) {
+    parts.push(`ChapterID=${encodeURIComponent(chapter)}`);
+  }
+  return parts.join("&");
+};
+
+const normalizeStudentName = (name) =>
+  decodeURIComponent(String(name || ""))
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
+/** Match dropdown row by value first, then by display name (legacy uses item.Text). */
+export const findStudentListItem = (studentList, { studentValue, studentName } = {}) => {
+  if (!studentList?.length) return null;
+
+  const value = String(studentValue || "").trim();
+  if (value) {
+    const byValue = studentList.find(
+      (student) => getStudentListItemValue(student) === value,
+    );
+    if (byValue) return byValue;
+  }
+
+  const normalizedName = normalizeStudentName(studentName);
+  if (!normalizedName) return null;
+
+  return (
+    studentList.find(
+      (student) =>
+        normalizeStudentName(getStudentListItemText(student)) === normalizedName,
+    ) ||
+    studentList.find((student) =>
+      normalizeStudentName(getStudentListItemText(student)).includes(normalizedName),
+    ) ||
+    studentList.find((student) =>
+      normalizedName.includes(normalizeStudentName(getStudentListItemText(student))),
+    )
+  );
+};
+
+/** Legacy RedirectToOnline → onLineExam.aspx?Source=S&Action=R&Student=…&ChapterID=… */
+export const buildOnlineExamRedirectState = ({
+  studentText,
+  studentValue,
+  chapterId,
+}) => ({
+  source: "S",
+  action: "R",
+  student: studentText || "",
+  studentValue: studentValue || "",
+  chapterID: normalizeChapterId(chapterId),
+});
+
+/** Read entry context from React Router state (clean URL) or legacy query string. */
+export const getOnlineExamEntryParams = (searchParams, locationState) => {
+  const state = locationState || {};
+  return {
+    action: String(state.action ?? searchParams.get("Action") ?? ""),
+    source: String(state.source ?? searchParams.get("Source") ?? ""),
+    studentName: String(state.student ?? searchParams.get("Student") ?? ""),
+    studentValue: String(state.studentValue ?? ""),
+    chapterID: normalizeChapterId(
+      state.chapterID ?? searchParams.get("ChapterID") ?? "",
+    ),
+  };
+};
+
+/** True when this row matches the student passed from Update Score redirect (Source=S, Action=R). */
+export const isUpdateScoreRedirectEntry = (entry) =>
+  entry?.source === "S" && entry?.action === "R";
+
+export const isSameStudentAsUpdateScoreEntry = (
+  studentList,
+  studentValue,
+  entry,
+) => {
+  if (!isUpdateScoreRedirectEntry(entry)) {
+    return false;
+  }
+
+  const value = String(studentValue || "").trim();
+  if (entry.studentValue && value === entry.studentValue) {
+    return true;
+  }
+
+  if (!studentList?.length) {
+    return false;
+  }
+
+  const selected = findStudentListItem(studentList, { studentValue: value });
+  const entryStudent = findStudentListItem(studentList, {
+    studentValue: entry.studentValue,
+    studentName: entry.studentName,
+  });
+
+  if (!selected || !entryStudent) {
+    return false;
+  }
+
+  return (
+    getStudentListItemValue(selected) === getStudentListItemValue(entryStudent)
+  );
+};

@@ -106,6 +106,8 @@ const CtaSection = () => {
     },
   ];
 
+  const currentYear = new Date().getFullYear();
+
   // Auto-rotate class images
   useEffect(() => {
     const interval = setInterval(() => {
@@ -165,7 +167,7 @@ const CtaSection = () => {
                     },
                   }}
                 >
-                  AMC's Fall Semester 2026 starts on Saturday, August 29, 2026.
+                  AMC's Fall Semester {currentYear} starts on Saturday, August 29, {currentYear}.
                 </Typography>
                 <Button
                   variant="contained"

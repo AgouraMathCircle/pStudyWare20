@@ -67,6 +67,7 @@ namespace pStudyWare20.Services.Implementations
             var response = new CurrentSessionResponse();
             try
             {
+                request.ChapterID = NormalizeChapterId(request.ChapterID);
                 var result = _studentScoreRepository.GetCurrentSessionAsync(request).Result;
                 if (!string.IsNullOrEmpty(result))
                 {
@@ -99,9 +100,20 @@ namespace pStudyWare20.Services.Implementations
             var response = new ScoreValidationResponse();
             try
             {
-                if (string.IsNullOrWhiteSpace(request.Source))
+                NormalizeValidateScoreUpdateRequest(request);
+
+                if (string.IsNullOrWhiteSpace(request.StudentID))
                 {
-                    request.Source = "UpdateScore";
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "Student ID is required.";
+                    return response;
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Session))
+                {
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "Session is required.";
+                    return response;
                 }
 
                 var result = _studentScoreRepository.ValidateScoreUpdateAsync(request).Result;
@@ -138,7 +150,10 @@ namespace pStudyWare20.Services.Implementations
                     if (rows != null && rows.Count > 0)
                     {
                         response.DueDate = GetString(rows[0], "DueDate");
-                        response.OnlineExamDisplayChapter = GetString(rows[0], "OnlineExamDisplayChapter");
+                        response.OnlineExamDisplayChapter = GetString(
+                            rows[0],
+                            "OnlineExamDisplayChapter",
+                            "onlineExamDisplayChapter");
                     }
                 }
 
@@ -306,12 +321,12 @@ namespace pStudyWare20.Services.Implementations
             request.StudentID = ExtractStudentId(request.StudentID);
             request.Group = request.Group?.Trim() ?? string.Empty;
             request.Session = request.Session?.Trim() ?? string.Empty;
-            request.QuizTotalScore = NormalizeScoreValue(request.QuizTotalScore, "5");
-            request.QuizReceivedScore = NormalizeScoreValue(request.QuizReceivedScore, "0");
-            request.ClassTestTotalScore = NormalizeScoreValue(request.ClassTestTotalScore, "20");
-            request.ClassTestReceivedScore = NormalizeScoreValue(request.ClassTestReceivedScore, "0");
-            request.HomeWorkTotalScore = NormalizeScoreValue(request.HomeWorkTotalScore, "10");
-            request.HomeWorkReceivedScore = NormalizeScoreValue(request.HomeWorkReceivedScore, "0");
+            request.QuizTotalScore = NormalizeScoreValue(request.QuizTotalScore, StudentScoreDefaults.QuizTotal);
+            request.QuizReceivedScore = NormalizeScoreValue(request.QuizReceivedScore, StudentScoreDefaults.ReceivedEmpty);
+            request.ClassTestTotalScore = NormalizeScoreValue(request.ClassTestTotalScore, StudentScoreDefaults.ClassTestTotal);
+            request.ClassTestReceivedScore = NormalizeScoreValue(request.ClassTestReceivedScore, StudentScoreDefaults.ReceivedEmpty);
+            request.HomeWorkTotalScore = NormalizeScoreValue(request.HomeWorkTotalScore, StudentScoreDefaults.HomeWorkTotal);
+            request.HomeWorkReceivedScore = NormalizeScoreValue(request.HomeWorkReceivedScore, StudentScoreDefaults.ReceivedEmpty);
             request.FinalExamTotalScore = NormalizeScoreValue(request.FinalExamTotalScore, "0");
             request.FinalExamReceivedScore = NormalizeScoreValue(request.FinalExamReceivedScore, "0");
             request.PlacementTestTotalScore = NormalizeScoreValue(request.PlacementTestTotalScore, "0");
@@ -333,6 +348,53 @@ namespace pStudyWare20.Services.Implementations
 
             var parts = value.Split('~');
             return parts.Length >= 2 ? parts[1].Trim() : value;
+        }
+
+        private static string ExtractClassCode(string? studentId)
+        {
+            var value = (studentId ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            var parts = value.Split('~');
+            return parts.Length >= 1 ? parts[0].Trim() : string.Empty;
+        }
+
+        private static string NormalizeChapterId(string? chapterId) =>
+            (chapterId ?? string.Empty).Trim();
+
+        /// <summary>
+        /// Legacy dropdown value: Class~StudentID~ChapterID (StudentScore.aspx.cs RedirectToOnline / EnbleScoreUpdate).
+        /// </summary>
+        private static void NormalizeValidateScoreUpdateRequest(ValidateScoreUpdateRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Source))
+            {
+                request.Source = "UpdateScore";
+            }
+
+            var rawStudentId = (request.StudentID ?? string.Empty).Trim();
+            if (rawStudentId.Contains('~', StringComparison.Ordinal))
+            {
+                if (string.IsNullOrWhiteSpace(request.Class))
+                {
+                    request.Class = ExtractClassCode(rawStudentId);
+                }
+
+                request.StudentID = ExtractStudentId(rawStudentId);
+            }
+            else
+            {
+                request.StudentID = ExtractStudentId(rawStudentId);
+            }
+
+            request.Session = request.Session?.Trim() ?? string.Empty;
+            request.Class = request.Class?.Trim() ?? string.Empty;
+            request.ExamType = string.IsNullOrWhiteSpace(request.ExamType)
+                ? "Quiz"
+                : request.ExamType.Trim();
         }
 
         private static string NormalizeScoreValue(string? value, string defaultValue)

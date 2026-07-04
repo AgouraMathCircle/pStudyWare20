@@ -116,9 +116,6 @@ namespace pStudyWare20.Repository.Implementations
             using var connection = new SqlConnection(_connectionString);
             await connection.OpenAsync();
 
-            var dueDate = string.Empty;
-            var onlineExamDisplayChapter = string.Empty;
-
             try
             {
                 using var command = new SqlCommand(
@@ -126,7 +123,7 @@ namespace pStudyWare20.Repository.Implementations
                     SELECT TOP 1
                         CurrentExamDueTime,
                         ISNULL(OnlineExamDisplayChapter, '') AS OnlineExamDisplayChapter
-                    FROM [AMC_tblLookupSemester] WITH (NOLOCK)
+                    FROM dbo.AMC_tblLookupSemester WITH (NOLOCK)
                     WHERE Active = 1
                     """,
                     connection)
@@ -137,13 +134,21 @@ namespace pStudyWare20.Repository.Implementations
                 using var reader = await command.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
-                    var rawDueDate = reader["CurrentExamDueTime"];
-                    if (rawDueDate != null && rawDueDate != DBNull.Value)
-                    {
-                        dueDate = Convert.ToDateTime(rawDueDate).ToString("MM/dd/yyyy");
-                    }
+                    var dueDateValue = reader["CurrentExamDueTime"];
+                    var formatted = dueDateValue != null && dueDateValue != DBNull.Value
+                        ? Convert.ToDateTime(dueDateValue).ToString("MM/dd/yyyy")
+                        : string.Empty;
+                    var onlineExamDisplayChapter =
+                        reader["OnlineExamDisplayChapter"]?.ToString()?.Trim() ?? string.Empty;
 
-                    onlineExamDisplayChapter = reader["OnlineExamDisplayChapter"]?.ToString()?.Trim() ?? string.Empty;
+                    return JsonSerializer.Serialize(new[]
+                    {
+                        new
+                        {
+                            DueDate = formatted,
+                            OnlineExamDisplayChapter = onlineExamDisplayChapter,
+                        }
+                    });
                 }
             }
             catch (SqlException)
@@ -151,30 +156,19 @@ namespace pStudyWare20.Repository.Implementations
                 // OnlineExamDisplayChapter column may not exist until DB script is applied.
             }
 
-            if (string.IsNullOrEmpty(dueDate))
+            using var fallbackCommand = new SqlCommand(
+                "SELECT TOP 1 CurrentExamDueTime FROM dbo.AMC_tblLookupSemester WITH (NOLOCK) WHERE Active = 1",
+                connection)
             {
-                using var legacyCommand = new SqlCommand(
-                    "SELECT TOP 1 CurrentExamDueTime FROM [AMC_tblLookupSemester] WITH (NOLOCK)",
-                    connection)
-                {
-                    CommandType = CommandType.Text
-                };
+                CommandType = CommandType.Text
+            };
 
-                var legacyDueDate = await legacyCommand.ExecuteScalarAsync();
-                if (legacyDueDate != null && legacyDueDate != DBNull.Value)
-                {
-                    dueDate = Convert.ToDateTime(legacyDueDate).ToString("MM/dd/yyyy");
-                }
-            }
+            var dueDate = await fallbackCommand.ExecuteScalarAsync();
+            var fallbackFormatted = dueDate != null && dueDate != DBNull.Value
+                ? Convert.ToDateTime(dueDate).ToString("MM/dd/yyyy")
+                : string.Empty;
 
-            return JsonSerializer.Serialize(new[]
-            {
-                new
-                {
-                    DueDate = dueDate,
-                    OnlineExamDisplayChapter = onlineExamDisplayChapter,
-                },
-            });
+            return JsonSerializer.Serialize(new[] { new { DueDate = fallbackFormatted, OnlineExamDisplayChapter = "" } });
         }
 
         public async Task<string> AddStudentScoreAsync(AddStudentScoreRequest request)
@@ -190,14 +184,14 @@ namespace pStudyWare20.Repository.Implementations
                 };
 
                 command.Parameters.Add(new SqlParameter("@StudentID", request.StudentID ?? ""));
-                command.Parameters.Add(new SqlParameter("@QuizTotalScore", request.QuizTotalScore ?? "5"));
-                command.Parameters.Add(new SqlParameter("@QuizReceivedScore", request.QuizReceivedScore ?? "0"));
+                command.Parameters.Add(new SqlParameter("@QuizTotalScore", request.QuizTotalScore ?? StudentScoreDefaults.QuizTotal));
+                command.Parameters.Add(new SqlParameter("@QuizReceivedScore", request.QuizReceivedScore ?? StudentScoreDefaults.ReceivedEmpty));
                 command.Parameters.Add(new SqlParameter("@QuizComments", request.QuizComments ?? ""));
-                command.Parameters.Add(new SqlParameter("@ClassTestTotalScore", request.ClassTestTotalScore ?? "20"));
-                command.Parameters.Add(new SqlParameter("@ClassTestReceivedScore", request.ClassTestReceivedScore ?? "0"));
+                command.Parameters.Add(new SqlParameter("@ClassTestTotalScore", request.ClassTestTotalScore ?? StudentScoreDefaults.ClassTestTotal));
+                command.Parameters.Add(new SqlParameter("@ClassTestReceivedScore", request.ClassTestReceivedScore ?? StudentScoreDefaults.ReceivedEmpty));
                 command.Parameters.Add(new SqlParameter("@ClassTestComments", request.ClassTestComments ?? ""));
-                command.Parameters.Add(new SqlParameter("@HomeWorkTotalScore", request.HomeWorkTotalScore ?? "10"));
-                command.Parameters.Add(new SqlParameter("@HomeWorkReceivedScore", request.HomeWorkReceivedScore ?? "0"));
+                command.Parameters.Add(new SqlParameter("@HomeWorkTotalScore", request.HomeWorkTotalScore ?? StudentScoreDefaults.HomeWorkTotal));
+                command.Parameters.Add(new SqlParameter("@HomeWorkReceivedScore", request.HomeWorkReceivedScore ?? StudentScoreDefaults.ReceivedEmpty));
                 command.Parameters.Add(new SqlParameter("@HomeWorkComments", request.HomeWorkComments ?? ""));
                 command.Parameters.Add(new SqlParameter("@FinalExamTotalScore", request.FinalExamTotalScore ?? "0"));
                 command.Parameters.Add(new SqlParameter("@FinalExamReceivedScore", request.FinalExamReceivedScore ?? "0"));

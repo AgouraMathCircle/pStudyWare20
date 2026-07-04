@@ -25,6 +25,8 @@ const fadeInAnimation = keyframes`
   }
 `;
 
+const currentYear = new Date().getFullYear();
+
 const WhatWeDo = () => {
   return (
     <Box className="what-we-do-section">
@@ -90,13 +92,12 @@ const WhatWeDo = () => {
               </Box>
             </Box>
           </Box>
-
-          {/* Fall Semester 2026 Card */}
+  
           <Box className="what-we-do-card">
             <Box className="img-p">
               <Box className="img-part position-relative">
                 <a href="#">
-                  <img src={scheduleImage} alt="Fall Semester 2026" />
+                  <img src={scheduleImage} alt={`Fall Semester ${currentYear}`} />
                 </a>
               </Box>
             </Box>

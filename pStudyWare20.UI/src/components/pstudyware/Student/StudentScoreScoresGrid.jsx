@@ -93,7 +93,7 @@ const StudentScoreScoresGrid = ({ scores = [], loading = false }) => {
   const [goToPageInput, setGoToPageInput] = useState("1");
   const [sortField, setSortField] = useState("examDate");
   const [sortOrder, setSortOrder] = useState("desc");
-  const pageSize = 10;
+  const pageSize = 25;
 
   const handleSort = (field) => {
     const isAsc = sortField === field && sortOrder === "asc";

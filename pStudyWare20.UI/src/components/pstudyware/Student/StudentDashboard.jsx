@@ -17,7 +17,7 @@ import DashboardMessages from "./DashboardMessages";
 import StudentProfile from "./StudentProfile";
 import ReportCard from "./ReportCard";
 import RegistrationSection from "./RegistrationSection";
-import OnlineExamSection from "./OnlineExamSection";
+import FinalExamSection from "./FinalExamSection";
 import StudentMeetingSchedule from "./StudentMeetingSchedule";
 import studentDashboardService from "../../../services/studentDashboardService";
 import {
@@ -391,7 +391,7 @@ const StudentDashboard = () => {
             <Grid item xs={12} sx={{ pt: "0 !important", mt: "-4px !important" }}>
               <Card sx={panelCardSx}>
                 <CardContent sx={panelContentSx}>
-                  <OnlineExamSection />
+                  <FinalExamSection />
                 </CardContent>
               </Card>
             </Grid>

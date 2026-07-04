@@ -6,6 +6,7 @@ import pageHeaderImg from "../assets/images/about/page-header.jpg";
 import {
   Facebook as FacebookIcon,
   Twitter as TwitterIcon,
+  X as XIcon,
   LinkedIn as LinkedInIcon,
   Instagram as InstagramIcon,
   YouTube as YouTubeIcon,
@@ -202,7 +203,7 @@ const Contact = () => {
                                 );
                               }}
                             >
-                              <TwitterIcon />
+                              <XIcon />
                             </a>
                           </li>
                           <li>

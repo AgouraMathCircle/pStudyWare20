@@ -209,36 +209,16 @@ namespace pStudyWare20.Repository.Implementations
                 };
                 command.Parameters.Add(tableParam);
 
-                // Legacy SqlDataAdapter.Fill(DataSet) captures nested proc result sets;
-                // filling a single DataTable only reads the first (often empty) batch.
-                var dataSet = new DataSet();
+                var resultTable = new DataTable();
                 using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataSet);
+                adapter.Fill(resultTable);
 
-                var resultTable = FindScoreResultTable(dataSet);
                 return DataTableToJson(resultTable);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error submitting final exam: {ex.Message}", ex);
             }
-        }
-
-        private static DataTable FindScoreResultTable(DataSet dataSet)
-        {
-            for (var i = dataSet.Tables.Count - 1; i >= 0; i--)
-            {
-                var table = dataSet.Tables[i];
-                if (table.Columns.Contains("FinalExamTotalScore") ||
-                    table.Columns.Contains("FinalExamReceivedScore"))
-                {
-                    return table;
-                }
-            }
-
-            return dataSet.Tables.Count > 0
-                ? dataSet.Tables[dataSet.Tables.Count - 1]
-                : new DataTable();
         }
 
         private static DataTable BuildAnswerTable(SubmitExamRequest request, string semester)
@@ -254,39 +234,23 @@ namespace pStudyWare20.Repository.Implementations
             dt.Columns.Add("ExamType", typeof(string));
             dt.Columns.Add("Session", typeof(string));
 
-            var classValue = (request.Class ?? string.Empty).Trim();
-            if (classValue.Length > 2)
-            {
-                classValue = classValue.Substring(0, 2);
-            }
-
             foreach (var answer in request.Answers ?? new List<StudentExamAnswer>())
             {
-                var answerKey = (answer.AnswerKey ?? string.Empty).Trim();
-                if (string.IsNullOrWhiteSpace(answerKey))
+                if (string.IsNullOrWhiteSpace(answer.AnswerKey))
                 {
                     continue;
                 }
 
-                if (answerKey.Length > 1)
-                {
-                    answerKey = answerKey.Substring(0, 1);
-                }
-
                 var rowSemester = !string.IsNullOrWhiteSpace(answer.Semester)
-                    ? answer.Semester.Trim()
-                    : semester.Trim();
-                if (rowSemester.Length > 5)
-                {
-                    rowSemester = rowSemester.Substring(0, 5);
-                }
+                    ? answer.Semester
+                    : semester;
 
                 dt.Rows.Add(
                     int.Parse(request.StudentID),
                     rowSemester,
-                    classValue,
+                    request.Class ?? answer.Class,
                     answer.Question,
-                    answerKey,
+                    answer.AnswerKey,
                     0,
                     DateTime.Now,
                     request.ExamType ?? answer.ExamType,

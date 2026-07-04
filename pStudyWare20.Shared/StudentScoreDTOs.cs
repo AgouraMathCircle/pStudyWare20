@@ -73,7 +73,7 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Quiz Total Score")]
         [Required(ErrorMessage = "Quiz Total Score is required")]
-        public string QuizTotalScore { get; set; } = "10";
+        public string QuizTotalScore { get; set; } = StudentScoreDefaults.QuizTotal;
 
         [Display(Name = "Quiz Received Score")]
         public string QuizReceivedScore { get; set; } = string.Empty;
@@ -83,7 +83,7 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Class Test Total Score")]
         [Required(ErrorMessage = "Class Test Total Score is required")]
-        public string ClassTestTotalScore { get; set; } = "10";
+        public string ClassTestTotalScore { get; set; } = StudentScoreDefaults.ClassTestTotal;
 
         [Display(Name = "Class Test Received Score")]
         public string ClassTestReceivedScore { get; set; } = string.Empty;
@@ -93,7 +93,7 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Home Work Total Score")]
         [Required(ErrorMessage = "Home Work Total Score is required")]
-        public string HomeWorkTotalScore { get; set; } = "10";
+        public string HomeWorkTotalScore { get; set; } = StudentScoreDefaults.HomeWorkTotal;
 
         [Display(Name = "Home Work Received Score")]
         public string HomeWorkReceivedScore { get; set; } = string.Empty;
@@ -230,7 +230,7 @@ namespace pStudyWare20.Shared
         public string DueDate { get; set; } = string.Empty;
 
         /// <summary>
-        /// Comma-separated chapter IDs that use Online Exam from Update Score (AMC_tblLookupSemester).
+        /// Comma-separated chapter IDs from AMC_tblLookupSemester.OnlineExamDisplayChapter (e.g. 3,5,6,).
         /// </summary>
         [Display(Name = "Online Exam Display Chapter")]
         public string OnlineExamDisplayChapter { get; set; } = string.Empty;

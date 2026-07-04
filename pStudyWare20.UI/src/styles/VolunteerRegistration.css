@@ -1,7 +1,7 @@
 /* pStudyWare20.UI/src/styles/VolunteerRegistration.css */
 .volunteer-registration-container {
   width: 100%;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background-color: #e8f5e9;
   min-height: 100vh;
   padding: 0;
   margin: 0;
@@ -162,6 +162,69 @@
   color: #495057;
   line-height: 1.4;
   margin: 0 0 8px;
+}
+
+.volunteer-registration-container .agreement-action-button {
+  background-color: #53b50a;
+  color: #ffffff;
+  border: 2px solid transparent;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 2px;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.volunteer-registration-container .agreement-action-button:hover {
+  background-color: #4a7c59;
+}
+
+.volunteer-registration-container .agreement-inline-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 12px;
+  vertical-align: top;
+}
+
+.volunteer-registration-container .agreement-button-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.volunteer-registration-container .agreement-and {
+  align-self: center;
+  font-size: 0.875rem;
+  color: #495057;
+}
+
+.volunteer-registration-container .agreement-button-error {
+  margin: 0;
+  line-height: 1.3;
+  max-width: 180px;
+}
+
+.volunteer-registration-container .agreement-action-button--highlight {
+  background-color: #ffffff;
+  color: #d32f2f;
+  border-color: #d32f2f;
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2);
+  animation: volunteerAgreementButtonPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes volunteerAgreementButtonPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px rgba(211, 47, 47, 0.35);
+  }
 }
 
 .volunteer-registration-container .signature-section .signature-help-text {

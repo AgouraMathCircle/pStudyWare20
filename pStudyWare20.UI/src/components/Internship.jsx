@@ -1,20 +1,111 @@
 import React from "react";
+import { Box, Container, Typography, Link } from "@mui/material";
 import {
-  Box,
-  Container,
-  Typography,
-  Card,
-  CardContent,
-  Link,
-  Grid,
-  Chip,
-} from "@mui/material";
-import {
-  ArrowForward as ArrowForwardIcon,
-  SchoolOutlined as SchoolIcon,
+  PersonOutline as PersonIcon,
   CalendarTodayOutlined as CalendarIcon,
+  SchoolOutlined as SchoolIcon,
+  NotesOutlined as NotesIcon,
 } from "@mui/icons-material";
+import { Link as RouterLink } from "react-router-dom";
 import "../styles/Internship.css";
+
+import pageHeaderImg from "../assets/images/about/page-header.jpg";
+import arrow1Img from "../assets/images/arrow-1.png";
+import arrow2Img from "../assets/images/arrow-2.png";
+import arrow3Img from "../assets/images/arrow-3.png";
+
+const getStatusBadge = (applicationDates) => {
+  if (!applicationDates) return null;
+  const lower = applicationDates.toLowerCase();
+  if (lower.includes("currently open")) {
+    return { label: "Now Open", className: "status-now-open" };
+  }
+  if (lower.includes("first come first serve")) {
+    return { label: "FCFS", className: "status-deadline" };
+  }
+  if (lower.includes("anytime")) {
+    return { label: "Open", className: "status-now-open" };
+  }
+  return { label: "Apply", className: "status-deadline" };
+};
+
+const InternshipCard = ({ program }) => {
+  const status = getStatusBadge(program.applicationDates);
+
+  return (
+    <div className="internship-card">
+      {status && (
+        <span className={`status-badge ${status.className}`}>
+          {status.label}
+        </span>
+      )}
+      <h3>{program.title}</h3>
+      {program.subtitle && (
+        <p className="subtitle">{program.subtitle}</p>
+      )}
+      <div className="card-info">
+        {program.gradeLevel && (
+          <div className="info-item">
+            {program.gradeLevel.toLowerCase().startsWith("age") ? (
+              <PersonIcon className="info-icon" fontSize="small" />
+            ) : (
+              <SchoolIcon className="info-icon" fontSize="small" />
+            )}
+            <span>
+              <span className="info-label">
+                {program.gradeLevel.toLowerCase().startsWith("age")
+                  ? "Age:"
+                  : "Grade:"}
+              </span>
+              {program.gradeLevel}
+            </span>
+          </div>
+        )}
+        {program.date && (
+          <div className="info-item">
+            <CalendarIcon className="info-icon" fontSize="small" />
+            <span>
+              <span className="info-label">Start:</span>
+              {program.date}
+            </span>
+          </div>
+        )}
+        {program.applicationDates && (
+          <div className="info-item">
+            <CalendarIcon className="info-icon" fontSize="small" />
+            <span>{program.applicationDates}</span>
+          </div>
+        )}
+        {program.notes && (
+          <div className="info-item">
+            <NotesIcon className="info-icon" fontSize="small" />
+            <span>{program.notes}</span>
+          </div>
+        )}
+      </div>
+      <div className="card-actions">
+        {program.links && program.links.length > 0 ? (
+          program.links.map((link, index) => (
+            <Link
+              key={index}
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="apply-btn"
+              sx={{ mb: index < program.links.length - 1 ? 1 : 0 }}
+            >
+              {program.links.length > 1
+                ? `Program Link ${index + 1}`
+                : "Program Link"}
+            </Link>
+          ))
+        ) : (
+          <span className="apply-btn no-link-btn">No Link Available</span>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const Internship = () => {
   const internshipPrograms = [
@@ -23,7 +114,9 @@ const Internship = () => {
       title: "Volunteering at Cedar Sinai (Teen Volunteer Program - Summer)",
       date: "June 15th",
       gradeLevel: "Age 14 & Above",
-      links: ["https://www.cedars-sinai.org/volunteer-services/high-school-students.html"],
+      links: [
+        "https://www.cedars-sinai.org/volunteer-services/high-school-students.html",
+      ],
       applicationDates: "Opens March 30th, 2026 - Closes April 2nd, 2026",
     },
     {
@@ -31,14 +124,18 @@ const Internship = () => {
       title: "Volunteering at Cedar Sinai (Teen Volunteer Program - Fall)",
       date: "Oct 5th, 2026",
       gradeLevel: "Age 14 & Above",
-      links: ["https://www.cedars-sinai.org/volunteer-services/high-school-students.html"],
+      links: [
+        "https://www.cedars-sinai.org/volunteer-services/high-school-students.html",
+      ],
       applicationDates: "Opens August 3rd, 2026 - Closes August 6th, 2026",
     },
     {
       id: 3,
       title: "Kaiser - Teen Summer Program (New Teens during Summer only)",
       gradeLevel: "9th to 12th",
-      links: ["https://kpvolunteer.samaritan.com/custom/511/volunteer_registration"],
+      links: [
+        "https://kpvolunteer.samaritan.com/custom/511/volunteer_registration",
+      ],
       applicationDates: "Opens March 9th, 2026 - Closes April 13th, 2026",
     },
     {
@@ -54,7 +151,8 @@ const Internship = () => {
     {
       id: 5,
       title: "City of Hope - Summer Internship",
-      subtitle: "Arthur Riggs Diabetes & Metabolism Research Institute Summer Research Program",
+      subtitle:
+        "Arthur Riggs Diabetes & Metabolism Research Institute Summer Research Program",
       gradeLevel: "Age 16",
       links: [
         "https://www.cityofhope.org/academics/students-and-youth/dmri-summer-research-program",
@@ -64,7 +162,8 @@ const Internship = () => {
     },
     {
       id: 6,
-      title: "Scripps Research Translational Institute (SRTI): Research Internship Program",
+      title:
+        "Scripps Research Translational Institute (SRTI): Research Internship Program",
       gradeLevel: "Age 16",
       links: [
         "https://www.scripps.edu/science-and-medicine/translational-institute/education-and-training/student-research-internship/index.html",
@@ -101,7 +200,8 @@ const Internship = () => {
     },
     {
       id: 11,
-      title: "City of Hope - Eugene and Ruth Roberts Summer Student Academy Internship",
+      title:
+        "City of Hope - Eugene and Ruth Roberts Summer Student Academy Internship",
       gradeLevel: "Age 16 & Above",
       links: [
         "https://www.imgs-coh.edu/summer-student-academy/summer-student-academy-how-to-apply",
@@ -112,7 +212,9 @@ const Internship = () => {
       id: 12,
       title: "Biotech Summer Experience",
       gradeLevel: "Age 16",
-      links: ["https://st.llnl.gov/sci-ed/summer-workshops/biotech-summer-experience"],
+      links: [
+        "https://st.llnl.gov/sci-ed/summer-workshops/biotech-summer-experience",
+      ],
       applicationDates: "Opens January 19th, 2026 - Closes February 26th, 2026",
     },
     {
@@ -129,7 +231,9 @@ const Internship = () => {
       id: 14,
       title: "Keck Graduate Institute (KGI) Super Heroes of STEM Internship",
       gradeLevel: "9th to 12th",
-      links: ["https://www.kgi.edu/academics/summer-programs/super-heroes-of-stem/"],
+      links: [
+        "https://www.kgi.edu/academics/summer-programs/super-heroes-of-stem/",
+      ],
       applicationDates: "Currently open",
     },
     {
@@ -169,200 +273,116 @@ const Internship = () => {
 
   return (
     <Box className="internship-page">
-      {/* Main Content Section */}
-      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
-        {/* Section Title */}
-        <Box sx={{ mb: 5, textAlign: "center" }}>
-          <Typography
-            variant="h2"
-            sx={{
-              fontSize: { xs: "28px", md: "36px" },
-              fontWeight: 700,
-              color: "#1c3d5a",
-              mb: 2,
-            }}
-          >
-            Research Internships and Volunteering Opportunities
+      {/* Breadcrumbs Start */}
+      <Box className="sc-breadcrumbs breadcrumbs-overlay">
+        <Box className="breadcrumbs-img">
+          <img src={pageHeaderImg} alt="Breadcrumbs Image" />
+        </Box>
+        <Box className="breadcrumbs-text white-color">
+          <Typography variant="h1" className="page-title">
+            INTERNSHIP
           </Typography>
           <Box
+            component="ul"
             sx={{
-              width: "80px",
-              height: "4px",
-              background: "linear-gradient(135deg, #53b50a 0%, #2a5298 100%)",
-              margin: "0 auto",
+              listStyle: "none",
+              p: 0,
+              m: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              justifyContent: "center",
+              flexWrap: "wrap",
             }}
-          ></Box>
-        </Box>
-
-        {/* Internship Programs Grid */}
-        <Grid container spacing={3} sx={{ mb: 6 }}>
-          {internshipPrograms.map((program) => (
-            <Grid item xs={12} sm={6} md={4} key={program.id}>
-              <Card
-                className="internship-card"
+          >
+            <Box component="li" sx={{ display: "inline-block" }}>
+              <Link
+                component={RouterLink}
+                to="/"
+                className="active"
                 sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  transition: "all 0.3s ease",
-                  border: "1px solid #e0e0e0",
-                  "&:hover": {
-                    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
-                    transform: "translateY(-4px)",
-                  },
+                  color: "#2a5298",
+                  textDecoration: "underline",
+                  p: 0,
+                  minWidth: "auto",
+                  fontSize: "inherit",
+                  textTransform: "none",
                 }}
               >
-                <CardContent
-                  sx={{
-                    flexGrow: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  {/* Title */}
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      fontWeight: 700,
-                      color: "#1c3d5a",
-                      mb: 1.5,
-                      lineHeight: 1.3,
-                      fontSize: "16px",
-                    }}
-                  >
-                    {program.title}
-                  </Typography>
+                Home &gt;
+              </Link>
+            </Box>
+            <Box component="li" sx={{ display: "inline-block" }}>
+              <Link
+                component={RouterLink}
+                to="/resources"
+                className="active"
+                sx={{
+                  color: "#2a5298",
+                  textDecoration: "underline",
+                  p: 0,
+                  minWidth: "auto",
+                  fontSize: "inherit",
+                  textTransform: "none",
+                }}
+              >
+                Resources &gt;
+              </Link>
+            </Box>
+            <Box component="li" sx={{ display: "inline-block" }}>
+              <Typography component="span" sx={{ color: "#2a5298" }}>
+                Internship
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+      {/* Breadcrumbs End */}
 
-                  {/* Subtitle if exists */}
-                  {program.subtitle && (
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "#666",
-                        mb: 1.5,
-                        fontStyle: "italic",
-                        fontSize: "13px",
-                      }}
-                    >
-                      {program.subtitle}
-                    </Typography>
-                  )}
+      {/* About Section Start */}
+      <Box
+        id="sc-about"
+        className="sc-about pt-80 pb-70 md-pt-40 position-relative arrow-animation-1"
+      >
+        <Container maxWidth="lg">
+          <Box className="animated-arrow-1 animated-arrow left-right-new">
+            <img src={arrow1Img} alt="" />
+          </Box>
+          <Box className="animated-arrow-2 animated-arrow up-down-new">
+            <img src={arrow2Img} alt="" />
+          </Box>
+          <Box className="animated-arrow-3 animated-arrow up-down-new">
+            <img src={arrow3Img} alt="" />
+          </Box>
+          <Box className="animated-arrow-4 animated-arrow left-right-new">
+            <img src={arrow3Img} alt="" />
+          </Box>
 
-                  {/* Date Badge */}
-                  {program.date && (
-                    <Box sx={{ mb: 1.5 }}>
-                      <Chip
-                        icon={<CalendarIcon />}
-                        label={program.date}
-                        size="small"
-                        sx={{
-                          background: "#f0f0f0",
-                          color: "#1c3d5a",
-                          fontWeight: 500,
-                        }}
-                      />
-                    </Box>
-                  )}
+          <Typography
+            variant="h3"
+            className="heading"
+            sx={{ marginBottom: "20px" }}
+          >
+            Research{" "}
+            <Box component="span" className="color2">
+              Internships and Volunteering Opportunities
+            </Box>
+          </Typography>
 
-                  {/* Grade Level */}
-                  {program.gradeLevel && (
-                    <Box sx={{ mb: 1.5, display: "flex", alignItems: "center" }}>
-                      <SchoolIcon
-                        sx={{
-                          width: "18px",
-                          height: "18px",
-                          color: "#53b50a",
-                          mr: 1,
-                        }}
-                      />
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: "#555",
-                          fontSize: "13px",
-                          fontWeight: 500,
-                        }}
-                      >
-                        {program.gradeLevel}
-                      </Typography>
-                    </Box>
-                  )}
+          <Typography variant="body1" className="internship-intro">
+            Explore curated opportunities for students to gain hands-on experience
+            and contribute to the community. These programs range from
+            high-level research to community-driven service.
+          </Typography>
 
-                  {/* Application Dates */}
-                  {program.applicationDates && (
-                    <Box sx={{ mb: 1.5, display: "flex", alignItems: "flex-start" }}>
-                      <CalendarIcon
-                        sx={{
-                          width: "18px",
-                          height: "18px",
-                          color: "#2a5298",
-                          mr: 1,
-                          mt: 0.3,
-                          flexShrink: 0,
-                        }}
-                      />
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: "#555",
-                          fontSize: "12px",
-                        }}
-                      >
-                        {program.applicationDates}
-                      </Typography>
-                    </Box>
-                  )}
-
-                  {/* Notes */}
-                  {program.notes && (
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "#666",
-                        mb: 1.5,
-                        fontSize: "12px",
-                      }}
-                    >
-                      {program.notes}
-                    </Typography>
-                  )}
-
-                  {/* Program Links */}
-                  <Box sx={{ mt: "auto", display: "flex", flexDirection: "column", gap: 1 }}>
-                    {program.links && program.links.length > 0 && (
-                      <>
-                        {program.links.map((link, index) => (
-                          <Link
-                            key={index}
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            sx={{
-                              color: "#2a5298",
-                              textDecoration: "none",
-                              fontSize: "13px",
-                              fontWeight: 600,
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 0.5,
-                              "&:hover": {
-                                textDecoration: "underline",
-                                color: "#53b50a",
-                              },
-                            }}
-                          >
-                            Program Link <ArrowForwardIcon sx={{ width: "14px", height: "14px" }} />
-                          </Link>
-                        ))}
-                      </>
-                    )}
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
+          <div className="internship-grid">
+            {internshipPrograms.map((program) => (
+              <InternshipCard key={program.id} program={program} />
+            ))}
+          </div>
+        </Container>
+      </Box>
+      {/* About Section End */}
     </Box>
   );
 };

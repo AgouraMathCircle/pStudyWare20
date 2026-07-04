@@ -4,7 +4,6 @@ import {
   Typography,
   Box,
   Button,
-  Alert,
   CircularProgress,
 } from "@mui/material";
 import {
@@ -16,13 +15,32 @@ import {
   adminSessionListTitleSx,
 } from "../styles/applicationSurfaces";
 
-const FINAL_EXAM_PATH = "/pstudyware/student/final-exam";
+import { FINAL_EXAM_PATH } from "../../../utils/studentChapterRouting";
 const sectionTitle = "Final Exam Information";
+
+const noticePanelSx = (variant) => ({
+  mb: 1.5,
+  p: 2,
+  borderRadius: 1,
+  display: "flex",
+  gap: 1.5,
+  alignItems: "flex-start",
+  backgroundColor: variant === "warning" ? "#fff4e5" : "#fdeded",
+  border: `1px solid ${variant === "warning" ? "#ffcc80" : "#ef9a9a"}`,
+  color: variant === "warning" ? "#663c00" : "#5f2120",
+});
+
+const ExamNoticePanel = ({ variant, children }) => (
+  <Box sx={noticePanelSx(variant)}>
+    <WarningIcon sx={{ mt: 0.25, flexShrink: 0 }} />
+    <Box>{children}</Box>
+  </Box>
+);
 
 const FinalExamSection = ({ loading = false }) => {
   return (
     <Box className="final-exam-information" sx={{ width: "100%" }}>
-      <Box sx={{ ...adminSessionListHeaderBarSx, mb: 0.5 }}>
+      <Box sx={adminSessionListHeaderBarSx}>
         <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
           {sectionTitle}
         </Typography>
@@ -34,7 +52,7 @@ const FinalExamSection = ({ loading = false }) => {
         </Box>
       ) : (
         <>
-      <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: 1.5 }}>
+      <ExamNoticePanel variant="warning">
         <Typography variant="body1" sx={{ mb: 0.75, fontWeight: 600 }}>
           OnSite Students
         </Typography>
@@ -45,9 +63,9 @@ const FinalExamSection = ({ loading = false }) => {
           students. By participating in the final exam, you will receive priority
           in next year&apos;s registration process.
         </Typography>
-      </Alert>
+      </ExamNoticePanel>
 
-      <Alert severity="error" icon={<WarningIcon />} sx={{ mb: 1.5 }}>
+      <ExamNoticePanel variant="error">
         <Typography variant="body1" sx={{ mb: 0.75, fontWeight: 600 }}>
           OnLine Students
         </Typography>
@@ -74,7 +92,7 @@ const FinalExamSection = ({ loading = false }) => {
           For the Spring 2026 Registration, it will open during the first week of
           Aug 2025. You will receive an email notification regarding this.
         </Typography>
-      </Alert>
+      </ExamNoticePanel>
 
       <Box sx={{ textAlign: "center", mb: 0.75 }}>
         <Button
