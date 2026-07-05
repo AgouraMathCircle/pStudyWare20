@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -212,6 +213,7 @@ const RegisteredListCopyCell = ({ value, onCopied }) => {
 
 const RegisteredStudentList = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
 
   // State management
   const [students, setStudents] = useState([]);
@@ -268,6 +270,22 @@ const RegisteredStudentList = () => {
     fetchData();
     checkPrivileges();
   }, []);
+
+  useEffect(() => {
+    const searchByParam = searchParams.get("searchBy");
+    const searchCriteriaParam = searchParams.get("searchCriteria");
+    const searchTextParam = searchParams.get("searchText");
+
+    if (!searchByParam || !searchTextParam) {
+      return;
+    }
+
+    setSearchBy(searchByParam);
+    setSearchCriteria(searchCriteriaParam || "equals");
+    setSearchText(searchTextParam);
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  }, [searchParams]);
 
   // Fetch dashboard data
   const fetchData = async ({ quiet = false } = {}) => {
