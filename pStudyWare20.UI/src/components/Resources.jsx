@@ -34,6 +34,11 @@ import referenceImage from "../assets/images/more-pics/60961218_818756365160501_
 import arrow1Img from "../assets/images/arrow-1.png";
 import arrow2Img from "../assets/images/arrow-2.png";
 import arrow3Img from "../assets/images/arrow-3.png";
+import collegeBragSheet from "../assets/files/CollegeApplication_BragSheet_Template.docx?url";
+import collegeApplicationTracker from "../assets/files/CollegeApplication_Tracker_Template.xlsx?url";
+import medicalPathwayOverview from "../assets/files/Medical_Pathway_Overview.pdf?url";
+import bsmdBamdProgram from "../assets/files/BSMD_BAMD.pdf?url";
+import bsdoBadoProgram from "../assets/files/BSDO_BADO.pdf?url";
 
 const linkSx = { color: "#000000", textDecoration: "none" };
 const buyOnlineLinkSx = {
@@ -65,14 +70,6 @@ const BuyOnlineListItem = ({ item, icon: Icon }) => (
     </ListItemText>
   </ListItem>
 );
-const prodDocumentsBase = "https://agouramathcircle.org/Pstudyware/Documents";
-
-const collegeBragSheet = `${prodDocumentsBase}/CollegeApplication_BragSheet_Template.docx`;
-const collegeApplicationTracker = `${prodDocumentsBase}/CollegeApplication_Tracker_Template.xlsx`;
-const medicalPathwayOverview = `${prodDocumentsBase}/Medical_Pathway_Overview.pdf`;
-const bsmdBamdProgram = `${prodDocumentsBase}/BSMD_BAMD.pdf`;
-const bsdoBadoProgram = `${prodDocumentsBase}/BSDO_%20BADO.pdf`;
-
 const listSx = {
   "& .MuiListItem-root": {
     paddingTop: "2px",
@@ -385,7 +382,12 @@ const Resources = () => {
                     <DocumentIcon />
                   </ListItemIcon>
                   <ListItemText>
-                    <Link href={collegeBragSheet} target="_blank" sx={linkSx}>
+                    <Link
+                      href={collegeBragSheet}
+                      target="_blank"
+                      download="CollegeApplication_BragSheet_Template.docx"
+                      sx={linkSx}
+                    >
                       College Brag Sheet
                     </Link>
                   </ListItemText>
@@ -398,6 +400,7 @@ const Resources = () => {
                     <Link
                       href={collegeApplicationTracker}
                       target="_blank"
+                      download="CollegeApplication_Tracker_Template.xlsx"
                       sx={linkSx}
                     >
                       College Application Tracking
