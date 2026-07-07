@@ -65,7 +65,7 @@ const BuyOnlineListItem = ({ item, icon: Icon }) => (
     </ListItemText>
   </ListItem>
 );
-const prodDocumentsBase = "https://agouramathcircle.org/documents";
+const prodDocumentsBase = "https://agouramathcircle.org/Pstudyware/Documents";
 
 const collegeBragSheet = `${prodDocumentsBase}/CollegeApplication_BragSheet_Template.docx`;
 const collegeApplicationTracker = `${prodDocumentsBase}/CollegeApplication_Tracker_Template.xlsx`;
