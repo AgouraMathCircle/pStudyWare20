@@ -349,15 +349,16 @@ const StudentRegistration = () => {
     return () => window.cancelAnimationFrame(frameId);
   }, [rulesOpen, checkAgreementScrollState]);
 
-  // Auto-dismiss snackbar after 5 seconds
+  // Auto-dismiss snackbar after 5s (errors) or 7s (success)
   useEffect(() => {
     if (snackbar.open) {
+      const dismissMs = snackbar.severity === "success" ? 7000 : 5000;
       const timer = setTimeout(() => {
         setSnackbar((prev) => ({ ...prev, open: false }));
-      }, 5000);
+      }, dismissMs);
       return () => clearTimeout(timer);
     }
-  }, [snackbar.open]);
+  }, [snackbar.open, snackbar.severity]);
 
   // Load dropdown data
   useEffect(() => {
@@ -1264,42 +1265,18 @@ const StudentRegistration = () => {
           {/* Success/Error Snackbar */}
           {snackbar.open && (
             <div
-              style={{
-                position: "fixed",
-                top: "100px",
-                left: "50%",
-                transform: "translateX(-50%)",
-                zIndex: 99999,
-                minWidth: "150px",
-                maxWidth: "250px",
-                padding: "6px 8px",
-                backgroundColor:
-                  snackbar.severity === "error" ? "#f44336" : "#1976d2",
-                color: "#ffffff",
-                borderRadius: "2px",
-                boxShadow: "0 2px 3px rgba(0,0,0,0.3)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                fontSize: "0.75rem",
-                lineHeight: "1.3",
-              }}
+              className={`registration-snackbar registration-snackbar--${snackbar.severity}`}
+              role="alert"
+              aria-live="polite"
             >
-              <span style={{ flex: 1, paddingRight: "5px" }}>
+              <span className="registration-snackbar__message">
                 {snackbar.message}
               </span>
               <button
+                type="button"
+                className="registration-snackbar__close"
                 onClick={handleCloseSnackbar}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#ffffff",
-                  fontSize: "16px",
-                  cursor: "pointer",
-                  padding: "0",
-                  lineHeight: "1",
-                  flexShrink: 0,
-                }}
+                aria-label="Close notification"
               >
                 ×
               </button>

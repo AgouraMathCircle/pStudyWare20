@@ -42,6 +42,7 @@ const StudentDashboard = () => {
   // Final Exam state
   const [showFinalExam, setShowFinalExam] = useState(false);
   const [activeSemester, setActiveSemester] = useState("");
+  const [activeSemesterName, setActiveSemesterName] = useState("");
   const [registrationCloseDate, setRegistrationCloseDate] = useState("");
 
   // Global message state
@@ -193,6 +194,9 @@ const StudentDashboard = () => {
           );
           setActiveSemester(
             response.activeSemester ?? response.ActiveSemester ?? ""
+          );
+          setActiveSemesterName(
+            response.activeSemesterName ?? response.ActiveSemesterName ?? ""
           );
           setRegistrationCloseDate(
             response.registrationCloseDate ?? response.RegistrationCloseDate ?? ""
@@ -366,6 +370,7 @@ const StudentDashboard = () => {
                     registrationData={registrationData}
                     username={username}
                     activeSemester={activeSemester}
+                    activeSemesterName={activeSemesterName}
                     registrationCloseDate={registrationCloseDate}
                     onSuccess={handleRegistrationSuccess}
                     onError={handleRegistrationError}

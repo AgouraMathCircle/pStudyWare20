@@ -70,9 +70,9 @@ const instructorHeaderActionButtonSx = {
 
 const instructorDeleteLinkSx = adminSessionListTableDeleteLinkSx;
 
-/** Matches AMC_spSelectInstructorList default: ORDER BY Class ASC */
-const DEFAULT_SORT_FIELD = "class";
-const DEFAULT_SORT_ORDER = "asc";
+/** Requested default: newest instructors first (ID DESC). */
+const DEFAULT_SORT_FIELD = "instructorID";
+const DEFAULT_SORT_ORDER = "desc";
 
 const InstructorList = ({
   instructors,
@@ -191,59 +191,63 @@ const InstructorList = ({
     return isActive ? "Active" : "Inactive";
   };
 
+  const applySearchCriteria = (fieldValue, search, criteria) => {
+    const value = String(fieldValue ?? "").toLowerCase();
+
+    switch (criteria) {
+      case "equals":
+        return value === search;
+      case "starts_with":
+        return value.startsWith(search);
+      case "contains":
+      default:
+        return value.includes(search);
+    }
+  };
+
   // Filter and sort instructors
   const filteredAndSortedInstructors = useMemo(() => {
     if (!instructors || instructors.length === 0) return [];
 
     // Filter
     let filtered = instructors;
-    if (searchBy !== "ALL" && searchText.trim()) {
+    const normalizedSearch = searchText.trim().toLowerCase();
+    if (normalizedSearch) {
       filtered = instructors.filter((instructor) => {
+        if (searchBy === "ALL") {
+          const allValues = [
+            instructor.instructorID,
+            instructor.firstName,
+            instructor.lastName,
+            instructor.emailID,
+            instructor.chapterName,
+            instructor.class ?? instructor.Class,
+            instructor.instructorType,
+            instructor.userName,
+            instructor.contactPhone,
+            getStatusDisplay(instructor.memberStatus),
+          ];
+
+          return allValues.some((value) =>
+            applySearchCriteria(value, normalizedSearch, searchCriteria),
+          );
+        }
+
         let fieldValue = "";
+        if (searchBy === "INSTRUCTOR_ID") fieldValue = instructor.instructorID;
+        else if (searchBy === "FIRST_NAME") fieldValue = instructor.firstName;
+        else if (searchBy === "LAST_NAME") fieldValue = instructor.lastName;
+        else if (searchBy === "EMAIL") fieldValue = instructor.emailID;
+        else if (searchBy === "CHAPTER") fieldValue = instructor.chapterName;
+        else if (searchBy === "CLASS")
+          fieldValue = instructor.class ?? instructor.Class;
+        else if (searchBy === "TYPE") fieldValue = instructor.instructorType;
 
-        switch (searchBy) {
-          case "INSTRUCTOR_ID":
-            fieldValue = instructor.instructorID?.toString() || "";
-            break;
-          case "FIRST_NAME":
-            fieldValue = instructor.firstName || "";
-            break;
-          case "LAST_NAME":
-            fieldValue = instructor.lastName || "";
-            break;
-          case "EMAIL":
-            fieldValue = instructor.emailID || "";
-            break;
-          case "CHAPTER":
-            fieldValue = instructor.chapterName || "";
-            break;
-          case "CLASS":
-            fieldValue = instructor.class ?? instructor.Class ?? "";
-            break;
-          case "TYPE":
-            fieldValue = instructor.instructorType || "";
-            break;
-          default:
-            return true;
-        }
-
-        fieldValue = fieldValue.toString().toLowerCase();
-        const search = searchText.toLowerCase();
-
-        switch (searchCriteria) {
-          case "equals":
-            return fieldValue === search;
-          case "contains":
-            return fieldValue.includes(search);
-          case "starts_with":
-            return fieldValue.startsWith(search);
-          default:
-            return fieldValue.includes(search);
-        }
+        return applySearchCriteria(fieldValue, normalizedSearch, searchCriteria);
       });
     }
 
-    // Sort — preserve API order when using the backend default (Class ASC)
+    // Sort — preserve API order when using the configured default
     if (orderBy === DEFAULT_SORT_FIELD && order === DEFAULT_SORT_ORDER) {
       return filtered;
     }
@@ -251,6 +255,12 @@ const InstructorList = ({
     const sorted = [...filtered].sort((a, b) => {
       let aValue = a[orderBy];
       let bValue = b[orderBy];
+
+      if (orderBy === "instructorID") {
+        const aNumber = Number(aValue ?? 0);
+        const bNumber = Number(bValue ?? 0);
+        return order === "asc" ? aNumber - bNumber : bNumber - aNumber;
+      }
 
       // Handle null/undefined values
       if (aValue == null) aValue = "";

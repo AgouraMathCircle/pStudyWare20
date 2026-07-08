@@ -74,6 +74,7 @@ namespace pStudyWare20.Shared
         public string Semester { get; set; } = string.Empty;
         public string SemesterName { get; set; } = string.Empty;
         public string EventLocation { get; set; } = string.Empty;
+        public int ChapterID { get; set; }
         public string ParentName { get; set; } = string.Empty;
         public string Class { get; set; } = string.Empty;
         public int? OpenSpace { get; set; }
@@ -96,6 +97,7 @@ namespace pStudyWare20.Shared
         public string Semester { get; set; } = string.Empty;
         public string SemesterName { get; set; } = string.Empty;
         public string EventLocation { get; set; } = string.Empty;
+        public int ChapterID { get; set; }
         public string ParentEmail { get; set; } = string.Empty;
     }
 
@@ -292,6 +294,8 @@ namespace pStudyWare20.Shared
         public bool ShowFinalExam { get; set; }
         /// <summary>Active AMC_tblLookupSemester Semester code, e.g. S2026.</summary>
         public string ActiveSemester { get; set; } = string.Empty;
+        /// <summary>Active AMC_tblLookupSemester SemesterName display label.</summary>
+        public string ActiveSemesterName { get; set; } = string.Empty;
         /// <summary>Active semester registration close date (MM/DD/YYYY).</summary>
         public string RegistrationCloseDate { get; set; } = string.Empty;
     }
@@ -302,6 +306,7 @@ namespace pStudyWare20.Shared
     public class ActiveSemesterLookupDto
     {
         public string Semester { get; set; } = string.Empty;
+        public string SemesterName { get; set; } = string.Empty;
         public bool FinalExamDisplay { get; set; }
         public string FinalExamDisplayChapter { get; set; } = string.Empty;
         public string OnlineExamDisplayChapter { get; set; } = string.Empty;

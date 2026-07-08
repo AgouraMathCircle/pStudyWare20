@@ -136,8 +136,8 @@ namespace pStudyWare20.Services.Implementations
                 var gradeDisplay = studentDetail.StudentGrade ?? string.Empty;
 
 
-                emailSubject = "Agoura Engineering Circle: New Registration confirmation for " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + ".";
-                registrationInfo = "Thank you very much for registering in Agoura Engineering Circle. We have recieved your application for " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + ".<br/>"
+                emailSubject = "Agoura Math Circle: New Registration confirmation for " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + ".";
+                registrationInfo = "Thank you very much for registering in Agoura Math Circle. We have recieved your application for " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + ".<br/>"
                                 + " Semester: " + sessionDisplay + "<br/>"
                                 + " Student Grade: " + gradeDisplay + "<br/><hr>"
                                 + " Course/Location: " + locationDisplay + "<br/>"

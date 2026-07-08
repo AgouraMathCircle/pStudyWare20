@@ -1,5 +1,13 @@
 -- Semester lookup: OnlineExamDisplayChapter — comma-separated chapter numbers (e.g. 1,2,).
 
+IF COL_LENGTH('dbo.AMC_tblLookupSemester', 'FinalExamDisplayChapter') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[AMC_tblLookupSemester]
+    ADD FinalExamDisplayChapter [varchar](100) NULL
+        CONSTRAINT [DF_AMC_tblLookupSemester_FinalExamDisplayChapter] DEFAULT ('');
+END
+GO
+
 IF COL_LENGTH('dbo.AMC_tblLookupSemester', 'OnlineExamDisplayChapter') IS NULL
 BEGIN
     ALTER TABLE [dbo].[AMC_tblLookupSemester]
@@ -7,6 +15,32 @@ BEGIN
         CONSTRAINT [DF_AMC_tblLookupSemester_OnlineExamDisplayChapter] DEFAULT ('');
 END
 GO
+
+IF COL_LENGTH('dbo.AMC_tblLookupSemester', 'VolunteerAvailability') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[AMC_tblLookupSemester]
+    ADD [VolunteerAvailability] [char](1) NOT NULL
+        CONSTRAINT [DF_AMC_tblLookupSemester_VolunteerAvailability] DEFAULT ('N');
+END
+GO
+
+IF COL_LENGTH('dbo.AMC_tblLookupSemester', 'LastSemesterName') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[AMC_tblLookupSemester]
+    ADD [LastSemesterName] [varchar](50) NULL
+        CONSTRAINT [DF_AMC_tblLookupSemester_LastSemesterName] DEFAULT ('');
+END
+GO
+
+IF COL_LENGTH('dbo.AMC_tblLookupSemester', 'NextSemesterName') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[AMC_tblLookupSemester]
+    ADD [NextSemesterName] [varchar](50) NULL
+        CONSTRAINT [DF_AMC_tblLookupSemester_NextSemesterName] DEFAULT ('');
+END
+GO
+
+
 
 IF OBJECT_ID(N'dbo.AMC_spSelectSemesterLookup', N'P') IS NOT NULL
     DROP PROCEDURE dbo.AMC_spSelectSemesterLookup;
