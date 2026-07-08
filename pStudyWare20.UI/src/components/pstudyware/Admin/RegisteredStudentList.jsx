@@ -113,6 +113,18 @@ function mapSessionOptions(options) {
     .filter((option) => option.value);
 }
 
+function getRegisteredChapterLabel(chapterId, chapters) {
+  const id = String(chapterId ?? "").trim();
+  if (!id) return "";
+  const match = (chapters || []).find(
+    (chapter) => String(chapter.chapterID ?? chapter.ChapterID ?? "") === id
+  );
+  if (!match) return `Chapter ${id}`;
+  return String(
+    match.chapterName ?? match.ChapterName ?? match.label ?? match.Label ?? id
+  ).trim();
+}
+
 const CLASS_OPTIONS = [
   { value: "JB", label: "Junior Beginner" },
   { value: "JI", label: "Junior Intermediate" },
@@ -1094,32 +1106,61 @@ const RegisteredStudentList = () => {
                       />
                     </Grid>
                     <Grid item xs={12}>
-                      <FormControl fullWidth size="small" sx={portalModalFieldSx}>
-                        <InputLabel>Chapter</InputLabel>
-                        <PortalModalSelect
-                          value={String(updateFormData.chapterId ?? "")}
-                          label="Chapter"
-                          onChange={(e) =>
-                            setUpdateFormData({
-                              ...updateFormData,
-                              chapterId: e.target.value,
-                            })
-                          }
-                        >
-                          {chapterLocations.map((chapter) => {
-                            const chapterId = String(
-                              chapter.chapterID ?? chapter.ChapterID ?? ""
-                            );
-                            const chapterName =
-                              chapter.chapterName ?? chapter.ChapterName ?? chapterId;
-                            return (
-                              <MenuItem key={chapterId} value={chapterId}>
-                                {chapterName}
-                              </MenuItem>
-                            );
-                          })}
-                        </PortalModalSelect>
-                      </FormControl>
+                      <Tooltip
+                        title={
+                          getRegisteredChapterLabel(
+                            updateFormData.chapterId,
+                            chapterLocations
+                          ) || "Select chapter"
+                        }
+                        placement="top-start"
+                        enterDelay={400}
+                      >
+                        <Box sx={{ width: "100%" }}>
+                          <FormControl
+                            fullWidth
+                            size="small"
+                            sx={portalModalFieldSx}
+                          >
+                            <InputLabel>Chapter</InputLabel>
+                            <PortalModalSelect
+                              value={String(updateFormData.chapterId ?? "")}
+                              label="Chapter"
+                              renderValue={(selected) =>
+                                getRegisteredChapterLabel(
+                                  selected,
+                                  chapterLocations
+                                ) || selected
+                              }
+                              onChange={(e) =>
+                                setUpdateFormData({
+                                  ...updateFormData,
+                                  chapterId: e.target.value,
+                                })
+                              }
+                            >
+                              {chapterLocations.map((chapter) => {
+                                const chapterId = String(
+                                  chapter.chapterID ?? chapter.ChapterID ?? ""
+                                );
+                                const chapterName =
+                                  chapter.chapterName ??
+                                  chapter.ChapterName ??
+                                  chapterId;
+                                return (
+                                  <MenuItem
+                                    key={chapterId}
+                                    value={chapterId}
+                                    title={chapterName}
+                                  >
+                                    {chapterName}
+                                  </MenuItem>
+                                );
+                              })}
+                            </PortalModalSelect>
+                          </FormControl>
+                        </Box>
+                      </Tooltip>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                       <FormControl fullWidth size="small" sx={portalModalFieldSx}>

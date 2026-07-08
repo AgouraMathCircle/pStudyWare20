@@ -20,7 +20,6 @@ import studentDashboardService from "../../../services/studentDashboardService";
 import { countries } from "../../../constants/countries";
 
 const GRADES = Array.from({ length: 12 }, (_, i) => i + 1);
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const emptyFormData = {
   studentID: "",
@@ -39,15 +38,8 @@ const getPhoneDigits = (phoneNumber) => String(phoneNumber || "").replace(/\D/g,
 
 const validateProfileForm = (data) => {
   const errors = {};
-  const email = String(data.studentEmail || "").trim();
   const phoneNumber = String(data.phoneNumber || "").trim();
   const phoneDigits = getPhoneDigits(phoneNumber);
-
-  // if (!email) {
-  //   errors.studentEmail = "Student email address is required.";
-  // } else if (!EMAIL_PATTERN.test(email)) {
-  //   errors.studentEmail = "Enter a valid email address.";
-  // }
 
   if (phoneNumber && phoneDigits.length !== 10) {
     errors.phoneNumber = "Enter a valid 10-digit phone number.";
@@ -276,13 +268,9 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
                 fullWidth
                 label="Student Email Address"
                 name="studentEmail"
-                type="email"
                 value={formData.studentEmail}
                 onChange={handleInputChange}
-                required
                 size="small"
-                error={Boolean(validationErrors.studentEmail)}
-                helperText={validationErrors.studentEmail}
                 sx={portalModalFieldSx}
               />
             </Grid>

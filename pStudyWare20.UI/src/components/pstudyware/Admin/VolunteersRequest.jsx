@@ -63,7 +63,6 @@ import {
 } from "../styles/applicationSurfaces";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
-import studentWaitingListService from "../../../services/studentWaitingListService";
 import "../../../styles/AdminVolunteersRequest.css";
 
 const volunteersRequestPageSx = {
@@ -206,12 +205,15 @@ function getVolunteerChapterLabel(chapterID, chapterLocations) {
   const match = chapterLocations.find(
     (ch) => String(ch.chapterID ?? ch.ChapterID ?? "") === id,
   );
-  if (match) {
-    const name = match.chapterName ?? match.ChapterName ?? "";
-    const loc = match.location ?? match.Location ?? "";
-    return loc ? `${name} - ${loc}` : name;
-  }
-  return `Chapter ${id}`;
+  if (!match) return `Chapter ${id}`;
+
+  const label = match.label ?? match.Label;
+  if (label) return String(label).trim();
+
+  const name = match.name ?? match.Name ?? match.chapterName ?? match.ChapterName ?? "";
+  const loc = match.location ?? match.Location ?? "";
+  const city = match.city ?? match.City ?? "";
+  return [name, loc, city].map((p) => String(p || "").trim()).filter(Boolean).join(" - ");
 }
 
 function renderVolunteerSelectDisplayValue(label, { placeholder = false } = {}) {
@@ -475,15 +477,19 @@ const VolunteersRequest = () => {
 
   const loadChapterLocations = async () => {
     try {
-      const res = await studentWaitingListService.getChapterLocation({
-        Mode: "N",
-      });
+      const res = await volunteersRequestService.getChapterLocations();
       const chapters = res?.chapterLocations ?? res?.ChapterLocations;
-      if (res?.isSuccess && Array.isArray(chapters)) {
+      if (res?.isSuccess !== false && Array.isArray(chapters)) {
         setChapterLocations(chapters);
+      } else {
+        setChapterLocations([]);
+        if (res?.errorMessage || res?.ErrorMessage) {
+          console.error("Error loading chapter locations:", res?.errorMessage ?? res?.ErrorMessage);
+        }
       }
     } catch (err) {
       console.error("Error loading chapter locations:", err);
+      setChapterLocations([]);
     }
   };
 
@@ -684,17 +690,23 @@ const VolunteersRequest = () => {
 
     setSubmitting(true);
     try {
-      const res = await volunteersRequestService.updateVolunteerStatus({
-        VolundeerID: String(selectedRow.volunteerID),
-        ChapterID: form.chapterID,
-        Class: form.class,
-        Section: form.section,
-        Type: form.type,
-      });
-      if (res?.isSuccess) {
+      // Match legacy VolunteersRequest.aspx.cs btnSubmit_Click + AMC_spUpdateVolunteerStatus params.
+      const payload = {
+        VolundeerID: String(selectedRow.volunteerID ?? ""),
+        ChapterID: String(form.chapterID ?? "").trim(),
+        Class: String(form.class ?? "").trim(),
+        Section: String(form.section ?? "A").trim(),
+        Type: String(form.type ?? "V").trim(),
+      };
+      const res = await volunteersRequestService.updateVolunteerStatus(payload);
+      const ok = res?.isSuccess === true || res?.IsSuccess === true;
+      if (ok) {
         setSnackbar({
           open: true,
-          message: res.message || "Volunteer has approved successfully.",
+          message:
+            res?.message ||
+            res?.Message ||
+            "Volunteer has approved successfully.",
           severity: "success",
         });
         handleCloseUpdateForm();
@@ -702,14 +714,19 @@ const VolunteersRequest = () => {
       } else {
         setSnackbar({
           open: true,
-          message: res?.errorMessage || "Update failed.",
+          message:
+            res?.errorMessage || res?.ErrorMessage || "Update failed.",
           severity: "error",
         });
       }
     } catch (err) {
       setSnackbar({
         open: true,
-        message: err?.response?.data?.errorMessage || "Update failed.",
+        message:
+          err?.response?.data?.errorMessage ||
+          err?.response?.data?.ErrorMessage ||
+          err?.message ||
+          "Update failed.",
         severity: "error",
       });
     } finally {
@@ -1271,11 +1288,21 @@ const VolunteersRequest = () => {
                   )}
                 {chapterLocations.map((ch) => {
                   const id = String(ch.chapterID ?? ch.ChapterID ?? "");
-                  const name = ch.chapterName ?? ch.ChapterName ?? "";
-                  const loc = ch.location ?? ch.Location ?? "";
+                  const label =
+                    ch.label ??
+                    ch.Label ??
+                    [
+                      ch.name ?? ch.Name ?? ch.chapterName ?? ch.ChapterName ?? "",
+                      ch.location ?? ch.Location ?? "",
+                      ch.city ?? ch.City ?? "",
+                    ]
+                      .map((p) => String(p || "").trim())
+                      .filter(Boolean)
+                      .join(" - ");
+                  const display = label || `Chapter ${id}`;
                   return (
-                    <MenuItem key={id} value={id}>
-                      {name} - {loc}
+                    <MenuItem key={id} value={id} title={display}>
+                      {display}
                     </MenuItem>
                   );
                 })}

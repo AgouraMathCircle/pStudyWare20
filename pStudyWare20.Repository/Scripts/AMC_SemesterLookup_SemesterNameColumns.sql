@@ -1,10 +1,20 @@
--- Semester lookup: OnlineExamDisplayChapter — comma-separated chapter numbers (e.g. 1,2,).
+-- Semester lookup display names: LastSemesterName, NextSemesterName (new).
+-- Also exposes existing SemesterName and NextSemester in select/update procs.
 
-IF COL_LENGTH('dbo.AMC_tblLookupSemester', 'OnlineExamDisplayChapter') IS NULL
+
+IF COL_LENGTH('dbo.AMC_tblLookupSemester', 'LastSemesterName') IS NULL
 BEGIN
     ALTER TABLE [dbo].[AMC_tblLookupSemester]
-    ADD [OnlineExamDisplayChapter] [varchar](100) NULL
-        CONSTRAINT [DF_AMC_tblLookupSemester_OnlineExamDisplayChapter] DEFAULT ('');
+    ADD [LastSemesterName] [varchar](50) NULL
+        CONSTRAINT [DF_AMC_tblLookupSemester_LastSemesterName] DEFAULT ('');
+END
+GO
+
+IF COL_LENGTH('dbo.AMC_tblLookupSemester', 'NextSemesterName') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[AMC_tblLookupSemester]
+    ADD [NextSemesterName] [varchar](50) NULL
+        CONSTRAINT [DF_AMC_tblLookupSemester_NextSemesterName] DEFAULT ('');
 END
 GO
 
@@ -90,7 +100,6 @@ BEGIN
           ,[RegStartDate] = @RegStartDate
           ,[RegCloseDate] = @RegCloseDate
           ,[DisplayDocumentsFrom] = @DisplayDocumentsFrom
-          ,[LastSemester] = @LastSemester
           ,[JBTotalSpace] = @JBTotalSpace
           ,[JITotalSpace] = @JITotalSpace
           ,[JATotalSpace] = @JATotalSpace

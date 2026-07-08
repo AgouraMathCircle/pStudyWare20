@@ -12,7 +12,7 @@ import { useAppSnackbar } from "../Common/useAppSnackbar";
 import AppSnackbar from "../Common/AppSnackbar";
 import { useAuth } from "../../../contexts/AuthContext";
 import instructorService from "../../../services/instructorService";
-import studentWaitingListService from "../../../services/studentWaitingListService";
+import volunteersRequestService from "../../../services/volunteersRequestService";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import InstructorList from "./InstructorList";
 import InstructorForm from "./InstructorForm";
@@ -78,14 +78,37 @@ const normalizeInstructorRow = (row) => {
   };
 };
 
+/** Map AMC_ChapterMaster rows (Name, Location, City) for the Chapter dropdown. */
 const mapChapterOptions = (chapterRows) =>
-  (chapterRows || []).map((chapter) => ({
-    value: String(chapter.chapterID ?? chapter.ChapterID ?? ""),
-    label: chapter.chapterName ?? chapter.ChapterName ?? "",
-    chapterID: chapter.chapterID ?? chapter.ChapterID ?? "",
-    chapterName: chapter.chapterName ?? chapter.ChapterName ?? "",
-    location: chapter.location ?? chapter.Location ?? "",
-  }));
+  (chapterRows || [])
+    .map((chapter) => {
+      const chapterID = String(chapter.chapterID ?? chapter.ChapterID ?? "").trim();
+      if (!chapterID) return null;
+
+      const name = String(
+        chapter.name ??
+          chapter.Name ??
+          chapter.chapterName ??
+          chapter.ChapterName ??
+          "",
+      ).trim();
+      const location = String(chapter.location ?? chapter.Location ?? "").trim();
+      const city = String(chapter.city ?? chapter.City ?? "").trim();
+      const label =
+        String(chapter.label ?? chapter.Label ?? "").trim() ||
+        [name, location, city].filter(Boolean).join(" - ");
+
+      return {
+        value: chapterID,
+        chapterID,
+        chapterName: name,
+        name,
+        location,
+        city,
+        label: label || `Chapter ${chapterID}`,
+      };
+    })
+    .filter(Boolean);
 
 const InstructorManagement = () => {
   const { user, isAuthenticated } = useAuth();
@@ -106,17 +129,16 @@ const InstructorManagement = () => {
 
   const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("info");
 
-  // Load chapter dropdown data
+  // Load chapter dropdown from AMC_ChapterMaster via VolunteersRequest API
   useEffect(() => {
     const loadChapters = async () => {
       try {
-        const chapterResponse =
-          await studentWaitingListService.getChapterLocation({ Mode: "N" });
+        const chapterResponse = await volunteersRequestService.getChapterLocations();
         const chapterRows =
           chapterResponse?.chapterLocations ??
           chapterResponse?.ChapterLocations ??
           [];
-        if (chapterResponse?.isSuccess && Array.isArray(chapterRows)) {
+        if (chapterResponse?.isSuccess !== false && Array.isArray(chapterRows)) {
           setChapters(mapChapterOptions(chapterRows));
         } else {
           setChapters([]);
@@ -256,7 +278,28 @@ const InstructorManagement = () => {
         "info"
       );
 
-      const response = await instructorService.addOrUpdateInstructor(formData);
+      const chapterID = String(
+        formData?.chapterID ?? formData?.ChapterID ?? "",
+      ).trim();
+      if (!chapterID) {
+        showSnackbar("Chapter is required.", "error");
+        throw new Error("Chapter is required");
+      }
+
+      const response = await instructorService.addOrUpdateInstructor({
+        ...formData,
+        instructorID,
+        chapterID,
+        class:
+          formData?.class ??
+          formData?.Class ??
+          formData?.classCode ??
+          "",
+        section: formData?.section ?? formData?.Section ?? "A",
+        instructorType:
+          formData?.instructorType ?? formData?.InstructorType ?? "P",
+        memberStatus: formData?.memberStatus ?? formData?.MemberStatus ?? "1",
+      });
 
       if (response.isSuccess) {
         showSnackbar(

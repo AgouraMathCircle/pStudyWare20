@@ -1,17 +1,9 @@
 import api from "./api";
-import { formatSemesterLabel } from "../utils/semesterFormat";
-import {
-  formatLocationDropdownLabel,
-  formatLocationEmailLabel,
-} from "../utils/registrationFormat";
+import { formatLocationEmailLabel } from "../utils/registrationFormat";
 
-const toDropdownOption = (option) => {
+const toSemesterOption = (option) => {
   const value = String(option?.value ?? option?.Value ?? "").trim();
-  const rawLabel = String(option?.label ?? option?.Label ?? "").trim();
-  const label =
-    rawLabel && rawLabel.toLowerCase() !== value.toLowerCase()
-      ? rawLabel
-      : formatSemesterLabel(value);
+  const label = String(option?.label ?? option?.Label ?? "").trim();
 
   return {
     id: value,
@@ -20,6 +12,10 @@ const toDropdownOption = (option) => {
 };
 
 class RegistrationLookupService {
+  /**
+   * Register For: id = Semester / NextSemester, name = SemesterName / NextSemesterName
+   * (from AMC_spRegistrationSemesterLookup — no F/S formatting).
+   */
   async getSemesters() {
     const response = await api.get("/RegistrationLookup/semesters");
     const payload = response.data ?? {};
@@ -29,9 +25,12 @@ class RegistrationLookupService {
       throw new Error(payload.errorMessage || "Failed to load semester options");
     }
 
-    return options.map(toDropdownOption).filter((option) => option.id);
+    return options.map(toSemesterOption).filter((option) => option.id);
   }
 
+  /**
+   * Course/Location: id = chapterId, name/emailLabel = Name - Location - City
+   */
   async getLocations() {
     const response = await api.get("/RegistrationLookup/locations");
     const payload = response.data ?? {};
@@ -47,20 +46,22 @@ class RegistrationLookupService {
         const name = String(option?.name ?? option?.Name ?? "").trim();
         const location = String(option?.location ?? option?.Location ?? "").trim();
         const city = String(option?.city ?? option?.City ?? "").trim();
-        const label = formatLocationDropdownLabel({
-          chapterId: id,
-          name,
-          location,
-          city,
-          label: option?.label ?? option?.Label,
-        });
         const emailLabel = formatLocationEmailLabel({
           name,
           location,
-          emailLabel: option?.emailLabel ?? option?.EmailLabel,
+          city,
+          emailLabel: option?.emailLabel ?? option?.EmailLabel ?? "",
         });
+        const label = emailLabel;
 
-        return { id, name: label, emailLabel, chapterName: name, location, city };
+        return {
+          id,
+          name: label,
+          emailLabel,
+          chapterName: name,
+          location,
+          city,
+        };
       })
       .filter((option) => option.id > 0);
   }

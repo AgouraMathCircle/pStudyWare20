@@ -139,6 +139,54 @@ namespace pStudyWare20.Repository.Implementations
         {
             try
             {
+                if (request == null)
+                {
+                    return new OperationResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Request is required.",
+                        Message = ""
+                    };
+                }
+
+                if (!int.TryParse(request.StudentID, out var studentId) || studentId <= 0)
+                {
+                    return new OperationResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Invalid student ID.",
+                        Message = ""
+                    };
+                }
+
+                if (!int.TryParse(request.ChapterID, out var chapterId) || chapterId <= 0)
+                {
+                    return new OperationResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Invalid chapter ID.",
+                        Message = ""
+                    };
+                }
+
+                var classCode = (request.Class ?? "").Trim();
+                var section = (request.Section ?? "").Trim();
+                var location = (request.Location ?? "").Trim();
+                var session = (request.Session ?? "").Trim();
+
+                if (string.IsNullOrWhiteSpace(classCode) ||
+                    string.IsNullOrWhiteSpace(section) ||
+                    string.IsNullOrWhiteSpace(location) ||
+                    string.IsNullOrWhiteSpace(session))
+                {
+                    return new OperationResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Class, section, location, and session are required.",
+                        Message = ""
+                    };
+                }
+
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
@@ -148,12 +196,12 @@ namespace pStudyWare20.Repository.Implementations
                 };
 
                 // Legacy StudentWaitingList.aspx.cs — AMC_spUpdateStudentWaitingListStatus: six parameters only (no @ApplicationStatus).
-                command.Parameters.Add(new SqlParameter("@StudentID", request.StudentID ?? ""));
-                command.Parameters.Add(new SqlParameter("@Class", request.Class ?? ""));
-                command.Parameters.Add(new SqlParameter("@Section", request.Section ?? ""));
-                command.Parameters.Add(new SqlParameter("@ChapterID", request.ChapterID ?? ""));
-                command.Parameters.Add(new SqlParameter("@Location", request.Location ?? ""));
-                command.Parameters.Add(new SqlParameter("@Session", request.Session ?? ""));
+                command.Parameters.Add(new SqlParameter("@StudentID", SqlDbType.Int) { Value = studentId });
+                command.Parameters.Add(new SqlParameter("@Class", SqlDbType.VarChar, 2) { Value = classCode });
+                command.Parameters.Add(new SqlParameter("@Section", SqlDbType.Char, 1) { Value = section });
+                command.Parameters.Add(new SqlParameter("@ChapterID", SqlDbType.Int) { Value = chapterId });
+                command.Parameters.Add(new SqlParameter("@Location", SqlDbType.Char, 1) { Value = location });
+                command.Parameters.Add(new SqlParameter("@Session", SqlDbType.VarChar, 10) { Value = session });
 
                 // Legacy StudentWaitingList.aspx.cs uses SqlDataAdapter.Fill, not ExecuteNonQuery.
                 // Many SPs return 0 / -1 from ExecuteNonQuery (NOCOUNT, result sets), which incorrectly failed the API.
@@ -223,7 +271,7 @@ namespace pStudyWare20.Repository.Implementations
         }
 
         /// <summary>
-        /// Get chapter locations (legacy StudentWaitingList uses Utils.BindChapterLocation → AMC_spSelectChapter).
+        /// Active chapters from AMC_ChapterMaster (Name, Location, City).
         /// </summary>
         public async Task<ChapterLocationResponse> GetChapterLocationAsync(GetChapterLocationRequest request)
         {
@@ -232,23 +280,39 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spSelectChapter", connection)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+                using var command = new SqlCommand(@"
+                    SELECT
+                        ChapterID,
+                        LTRIM(RTRIM(Name)) AS Name,
+                        LTRIM(RTRIM(Location)) AS Location,
+                        LTRIM(RTRIM(City)) AS City
+                    FROM dbo.AMC_ChapterMaster WITH (NOLOCK)
+                    WHERE Active = 1
+                    ORDER BY Name, Location, City", connection);
 
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
-
+                using var reader = await command.ExecuteReaderAsync();
                 var chapterLocations = new List<ChapterLocation>();
-                foreach (DataRow row in dataTable.Rows)
+                while (await reader.ReadAsync())
                 {
+                    var chapterId = reader.IsDBNull(reader.GetOrdinal("ChapterID"))
+                        ? 0
+                        : Convert.ToInt32(reader["ChapterID"]);
+                    if (chapterId <= 0)
+                    {
+                        continue;
+                    }
+
+                    var name = ReadTrimmedString(reader, "Name");
+                    var location = ReadTrimmedString(reader, "Location");
+                    var city = ReadTrimmedString(reader, "City");
+
                     chapterLocations.Add(new ChapterLocation
                     {
-                        ChapterID = dataTable.Columns.Contains("ChapterID") ? row["ChapterID"]?.ToString() ?? "" : "",
-                        ChapterName = dataTable.Columns.Contains("ChapterName") ? row["ChapterName"]?.ToString() ?? "" : "",
-                        Location = dataTable.Columns.Contains("Location") ? row["Location"]?.ToString() ?? "" : ""
+                        ChapterID = chapterId.ToString(),
+                        ChapterName = name,
+                        Location = location,
+                        City = city,
+                        Label = RegistrationFormatHelper.FormatLocationEmailText(name, location, city)
                     });
                 }
 
@@ -268,6 +332,90 @@ namespace pStudyWare20.Repository.Implementations
                     ChapterLocations = new List<ChapterLocation>()
                 };
             }
+        }
+
+        /// <summary>
+        /// Active session options from AMC_tblLookupSemester:
+        /// Semester, LastSemester, NextSemester (with display names).
+        /// </summary>
+        public async Task<StudentWaitingListSessionOptionsResponse> GetActiveSessionOptionsAsync()
+        {
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand(@"
+                    SELECT TOP 1
+                        LTRIM(RTRIM(semester)) AS Semester,
+                        LTRIM(RTRIM(LastSemester)) AS LastSemester,
+                        LTRIM(RTRIM(NextSemester)) AS NextSemester,
+                        LTRIM(RTRIM(SemesterName)) AS SemesterName,
+                        LTRIM(RTRIM(LastSemesterName)) AS LastSemesterName,
+                        LTRIM(RTRIM(NextSemesterName)) AS NextSemesterName
+                    FROM AMC_tblLookupSemester WITH (NOLOCK)
+                    WHERE Active = 1", connection);
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (!await reader.ReadAsync())
+                {
+                    return new StudentWaitingListSessionOptionsResponse
+                    {
+                        IsSuccess = true,
+                        ErrorMessage = "",
+                        SessionOptions = new List<StudentWaitingListSessionOption>()
+                    };
+                }
+
+                var options = new List<StudentWaitingListSessionOption>();
+                AddSessionOption(options, ReadTrimmedString(reader, "Semester"), ReadTrimmedString(reader, "SemesterName"));
+                AddSessionOption(options, ReadTrimmedString(reader, "LastSemester"), ReadTrimmedString(reader, "LastSemesterName"));
+                AddSessionOption(options, ReadTrimmedString(reader, "NextSemester"), ReadTrimmedString(reader, "NextSemesterName"));
+
+                return new StudentWaitingListSessionOptionsResponse
+                {
+                    IsSuccess = true,
+                    ErrorMessage = "",
+                    SessionOptions = options
+                };
+            }
+            catch (Exception ex)
+            {
+                return new StudentWaitingListSessionOptionsResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"Error getting session options: {ex.Message}",
+                    SessionOptions = new List<StudentWaitingListSessionOption>()
+                };
+            }
+        }
+
+        private static string ReadTrimmedString(SqlDataReader reader, string columnName)
+        {
+            var ordinal = reader.GetOrdinal(columnName);
+            return reader.IsDBNull(ordinal) ? string.Empty : reader.GetString(ordinal).Trim();
+        }
+
+        private static void AddSessionOption(
+            List<StudentWaitingListSessionOption> options,
+            string value,
+            string? label = null)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            if (options.Any(option => option.Value.Equals(value, StringComparison.OrdinalIgnoreCase)))
+            {
+                return;
+            }
+
+            options.Add(new StudentWaitingListSessionOption
+            {
+                Value = value.Trim(),
+                Label = string.IsNullOrWhiteSpace(label) ? value.Trim() : label.Trim(),
+            });
         }
 
         /// <summary>
@@ -291,11 +439,17 @@ namespace pStudyWare20.Repository.Implementations
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
+                var password = "";
+                if (dataTable.Rows.Count > 0)
+                {
+                    password = GetString(dataTable.Rows[0], "Password");
+                }
+
                 return new PasswordResponse
                 {
                     IsSuccess = true,
                     ErrorMessage = "",
-                    Password = "" // Extract password from DataTable
+                    Password = password
                 };
             }
             catch (Exception ex)

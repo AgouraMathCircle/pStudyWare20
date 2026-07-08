@@ -281,9 +281,9 @@ class AuthService {
           return new Error(data.message || "An error occurred");
       }
     } else if (error.request) {
-      // Network error - provide more helpful message
+      // Network/CORS error - the API may be down or returned a response without CORS headers.
       return new Error(
-        "Network error. Please check if the API server is running on https://localhost:7146",
+        `Unable to reach the API at ${config.api.url}. Please verify the API server is running and accessible.`,
       );
     } else {
       // Other error

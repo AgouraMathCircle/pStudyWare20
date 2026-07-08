@@ -18,7 +18,7 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Submit a contact enquiry (matches ContactUs.aspx btnSubmit_Click).
+        /// Submit a contact enquiry — sends email only (no DB save).
         /// </summary>
         [HttpPost]
         public ActionResult<ContactEnquiryResponse> SubmitEnquiry([FromBody] ContactEnquiryRequest request)

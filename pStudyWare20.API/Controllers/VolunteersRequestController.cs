@@ -73,6 +73,31 @@ namespace pStudyWare20.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Chapter dropdown for Update Volunteer Request Status.
+        /// Source: AMC_ChapterMaster (Name, Location, City). Label format: Name - Location - City.
+        /// </summary>
+        [HttpGet("GetChapterLocations")]
+        public async Task<ActionResult<GetVolunteerChapterLocationsResponse>> GetChapterLocations()
+        {
+            try
+            {
+                var response = await _service.GetChapterLocationsAsync();
+                if (!response.IsSuccess && !string.IsNullOrEmpty(response.ErrorMessage))
+                    _logger.LogWarning("GetChapterLocations failed: {Message}", response.ErrorMessage);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetChapterLocations error: {Message}", ex.Message);
+                return StatusCode(500, new GetVolunteerChapterLocationsResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                });
+            }
+        }
+
         [HttpPost("ExportToExcel")]
         public async Task<IActionResult> ExportToExcel([FromBody] ExportExcelRequest request)
         {

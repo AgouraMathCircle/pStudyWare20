@@ -127,7 +127,7 @@ class StudentService {
     return registrationLookupService.getLocations();
   }
 
-  // Get session options from AMC_tblLookupSemester (Semester + LastSemester)
+  // Get session options from AMC_tblLookupSemester (SemesterName + NextSemesterName)
   async getSessions() {
     return registrationLookupService.getSemesters();
   }

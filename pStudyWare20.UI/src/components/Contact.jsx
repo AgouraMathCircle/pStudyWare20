@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "../styles/Contact.css";
+import contactService from "../services/contactService";
 // Import images from src/assets
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
 import {
@@ -17,6 +18,9 @@ const Contact = () => {
     subject: "",
     message: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -26,17 +30,38 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log("Contact form submitted:", formData);
-    // Reset form
-    setFormData({
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-    });
+    setSubmitError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await contactService.submitEnquiry({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        subject: formData.subject.trim(),
+        message: formData.message.trim(),
+      });
+
+      if (response?.isSuccess) {
+        setIsSubmitted(true);
+        setFormData({
+          name: "",
+          email: "",
+          subject: "",
+          message: "",
+        });
+      } else {
+        setSubmitError(
+          response?.errorMessage ||
+            "Unable to send your message. Please try again."
+        );
+      }
+    } catch (error) {
+      setSubmitError(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -142,88 +167,111 @@ const Contact = () => {
                   </div>
                 </div>
 
-                {/* Contact Form */}
+                {/* Contact Form — legacy divMessage / divInputContainer */}
                 <div
                   className="col-md-5 wow animated fadeInRight"
                   data-wow-delay=".2s"
                 >
-                  <form onSubmit={handleSubmit}>
-                    {/* Name */}
-                    <div className="form-group label-floating">
-                      <label className="control-label" htmlFor="name">
-                        Your Name
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                      />
-                      <div className="help-block with-errors"></div>
+                  {isSubmitted ? (
+                    <div id="divMessage" className="contact-success-message">
+                      <h4 className="heading">
+                        <span className="color2">
+                          Your request has successfully submitted.
+                        </span>
+                      </h4>
                     </div>
-                    {/* Email */}
-                    <div className="form-group label-floating">
-                      <label className="control-label" htmlFor="email">
-                        Email ID
-                      </label>
-                      <input
-                        type="email"
-                        className="form-control"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                      />
-                      <div className="help-block with-errors"></div>
+                  ) : (
+                    <div id="divInputContainer">
+                      <form onSubmit={handleSubmit}>
+                        {/* Name */}
+                        <div className="form-group label-floating">
+                          <label className="control-label" htmlFor="name">
+                            Your Name
+                          </label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            id="name"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            required
+                            disabled={isSubmitting}
+                          />
+                          <div className="help-block with-errors"></div>
+                        </div>
+                        {/* Email */}
+                        <div className="form-group label-floating">
+                          <label className="control-label" htmlFor="email">
+                            Email ID
+                          </label>
+                          <input
+                            type="email"
+                            className="form-control"
+                            id="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            required
+                            disabled={isSubmitting}
+                          />
+                          <div className="help-block with-errors"></div>
+                        </div>
+                        {/* Subject */}
+                        <div className="form-group label-floating">
+                          <label className="control-label" htmlFor="subject">
+                            Subject
+                          </label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            id="subject"
+                            name="subject"
+                            value={formData.subject}
+                            onChange={handleInputChange}
+                            required
+                            disabled={isSubmitting}
+                          />
+                          <div className="help-block with-errors"></div>
+                        </div>
+                        {/* Message */}
+                        <div className="form-group label-floating">
+                          <label className="control-label" htmlFor="message">
+                            Message
+                          </label>
+                          <textarea
+                            className="form-control"
+                            id="message"
+                            name="message"
+                            rows="6"
+                            value={formData.message}
+                            onChange={handleInputChange}
+                            required
+                            disabled={isSubmitting}
+                          ></textarea>
+                          <div className="help-block with-errors"></div>
+                        </div>
+                        {submitError && (
+                          <div className="contact-error-message">{submitError}</div>
+                        )}
+                        {/* Form Submit */}
+                        <div>
+                          <button
+                            type="submit"
+                            className="btn btn-common"
+                            disabled={isSubmitting}
+                          >
+                            {isSubmitting ? "Sending..." : "Send Message"}
+                          </button>
+                          <div
+                            id="msgSubmit"
+                            className="h3 text-center hidden"
+                          ></div>
+                          <div className="clearfix"></div>
+                        </div>
+                      </form>
                     </div>
-                    {/* Subject */}
-                    <div className="form-group label-floating">
-                      <label className="control-label" htmlFor="subject">
-                        Subject
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="subject"
-                        name="subject"
-                        value={formData.subject}
-                        onChange={handleInputChange}
-                        required
-                      />
-                      <div className="help-block with-errors"></div>
-                    </div>
-                    {/* Message */}
-                    <div className="form-group label-floating">
-                      <label className="control-label" htmlFor="message">
-                        Message
-                      </label>
-                      <textarea
-                        className="form-control"
-                        id="message"
-                        name="message"
-                        rows="6"
-                        value={formData.message}
-                        onChange={handleInputChange}
-                        required
-                      ></textarea>
-                      <div className="help-block with-errors"></div>
-                    </div>
-                    {/* Form Submit */}
-                    <div>
-                      <button type="submit" className="btn btn-common">
-                        Send Message
-                      </button>
-                      <div
-                        id="msgSubmit"
-                        className="h3 text-center hidden"
-                      ></div>
-                      <div className="clearfix"></div>
-                    </div>
-                  </form>
+                  )}
                 </div>
               </div>
             </div>

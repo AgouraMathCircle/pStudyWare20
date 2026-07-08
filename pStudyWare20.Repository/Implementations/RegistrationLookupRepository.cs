@@ -23,13 +23,10 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand(@"
-                    SELECT TOP 1
-                        LTRIM(RTRIM(semester)) AS Semester,
-                        LTRIM(RTRIM(LastSemester)) AS LastSemester,
-                        LTRIM(RTRIM(SemesterName)) AS SemesterName
-                    FROM dbo.AMC_tblLookupSemester WITH (NOLOCK)
-                    WHERE Active = 1", connection);
+                using var command = new SqlCommand("AMC_spRegistrationSemesterLookup", connection)
+                {
+                    CommandType = CommandType.StoredProcedure,
+                };
 
                 using var reader = await command.ExecuteReaderAsync();
                 if (!await reader.ReadAsync())
@@ -40,16 +37,11 @@ namespace pStudyWare20.Repository.Implementations
                 var options = new List<RegistrationSemesterOption>();
                 var semester = ReadString(reader, "Semester");
                 var semesterName = ReadString(reader, "SemesterName");
-                var lastSemester = ReadString(reader, "LastSemester");
+                var nextSemester = ReadString(reader, "NextSemester");
+                var nextSemesterName = ReadString(reader, "NextSemesterName");
 
-                AddOption(
-                    options,
-                    semester,
-                    SemesterFormatHelper.FormatSemesterDisplayName(semester, semesterName));
-                AddOption(
-                    options,
-                    lastSemester,
-                    SemesterFormatHelper.FormatSemesterDisplayName(lastSemester));
+                AddOption(options, semester, semesterName);
+                AddOption(options, nextSemester, nextSemesterName);
 
                 return options;
             }
@@ -91,6 +83,8 @@ namespace pStudyWare20.Repository.Implementations
                     var name = ReadString(reader, "Name");
                     var location = ReadString(reader, "Location");
                     var city = ReadString(reader, "City");
+                    // Dropdown + email use the same text: Name - Location - City
+                    var displayLabel = RegistrationFormatHelper.FormatLocationEmailText(name, location, city);
 
                     options.Add(new RegistrationLocationOption
                     {
@@ -98,12 +92,8 @@ namespace pStudyWare20.Repository.Implementations
                         Name = name,
                         Location = location,
                         City = city,
-                        Label = RegistrationFormatHelper.FormatLocationDropdownLabel(
-                            chapterId,
-                            name,
-                            location,
-                            city),
-                        EmailLabel = RegistrationFormatHelper.FormatLocationEmailText(name, location),
+                        Label = displayLabel,
+                        EmailLabel = displayLabel,
                     });
                 }
 
@@ -143,6 +133,5 @@ namespace pStudyWare20.Repository.Implementations
                 Label = string.IsNullOrWhiteSpace(label) ? value.Trim() : label.Trim(),
             });
         }
-
     }
 }

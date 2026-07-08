@@ -436,7 +436,8 @@ const StudentRegistration = () => {
         SessionId: data.sessionId,
         SessionName: selectedSession?.name ?? "",
         LocationId: Number(data.locationId),
-        LocationName: selectedLocation?.emailLabel ?? "",
+        // Email label: Name - Location - City
+        LocationName: selectedLocation?.emailLabel ?? selectedLocation?.name ?? "",
         UserName: data.userName,
         UserNameType: data.userName,
         LiabilitySignature: data.liabilitySignature,

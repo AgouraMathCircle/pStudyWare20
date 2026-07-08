@@ -149,6 +149,9 @@ namespace pStudyWare20.Repository.Implementations
         {
             try
             {
+                // Match legacy VolunteersRequest.aspx.cs → AMC_spUpdateVolunteerStatus only.
+                // SP uses @ChapterID for AMC_spAddInstructor, then sets Approved=1.
+                // It does not UPDATE AMC_tblVolunteersRequest.ChapterID.
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
@@ -162,12 +165,12 @@ namespace pStudyWare20.Repository.Implementations
                 command.Parameters.Add(new SqlParameter("@Section", request.Section ?? ""));
                 command.Parameters.Add(new SqlParameter("@Type", request.Type ?? ""));
 
-                var result = await command.ExecuteNonQueryAsync();
+                await command.ExecuteNonQueryAsync();
                 return new OperationResponse
                 {
-                    IsSuccess = result >= 0,
+                    IsSuccess = true,
                     ErrorMessage = "",
-                    Message = "Volunteer status updated successfully."
+                    Message = "Volunteer has approved successfully."
                 };
             }
             catch (Exception ex)
@@ -211,6 +214,87 @@ namespace pStudyWare20.Repository.Implementations
                     Message = ""
                 };
             }
+        }
+
+        /// <summary>
+        /// Active chapters for Update Volunteer Request Status dropdown.
+        /// Source: AMC_ChapterMaster (Name, Location, City) — not AMC_tblLookupSemester.
+        /// </summary>
+        public async Task<GetVolunteerChapterLocationsResponse> GetChapterLocationsAsync()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_connectionString))
+                {
+                    return new GetVolunteerChapterLocationsResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Database connection is not configured.",
+                        ChapterLocations = new List<VolunteerChapterLocation>()
+                    };
+                }
+
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand(@"
+                    SELECT
+                        ChapterID,
+                        LTRIM(RTRIM(Name)) AS Name,
+                        LTRIM(RTRIM(Location)) AS Location,
+                        LTRIM(RTRIM(City)) AS City
+                    FROM dbo.AMC_ChapterMaster WITH (NOLOCK)
+                    WHERE Active = 1
+                    ORDER BY Name, Location, City", connection);
+
+                using var reader = await command.ExecuteReaderAsync();
+                var chapters = new List<VolunteerChapterLocation>();
+                while (await reader.ReadAsync())
+                {
+                    var chapterId = reader.IsDBNull(reader.GetOrdinal("ChapterID"))
+                        ? 0
+                        : reader.GetInt32(reader.GetOrdinal("ChapterID"));
+                    if (chapterId <= 0)
+                    {
+                        continue;
+                    }
+
+                    var name = ReadTrimmedString(reader, "Name");
+                    var location = ReadTrimmedString(reader, "Location");
+                    var city = ReadTrimmedString(reader, "City");
+
+                    chapters.Add(new VolunteerChapterLocation
+                    {
+                        ChapterID = chapterId.ToString(),
+                        Name = name,
+                        Location = location,
+                        City = city,
+                        Label = RegistrationFormatHelper.FormatLocationEmailText(name, location, city)
+                    });
+                }
+
+                return new GetVolunteerChapterLocationsResponse
+                {
+                    IsSuccess = true,
+                    ErrorMessage = "",
+                    ChapterLocations = chapters
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GetVolunteerChapterLocationsResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = $"Error loading chapter locations: {ex.Message}",
+                    ChapterLocations = new List<VolunteerChapterLocation>()
+                };
+            }
+        }
+
+        private static string ReadTrimmedString(SqlDataReader reader, string columnName)
+        {
+            var ordinal = reader.GetOrdinal(columnName);
+            return reader.IsDBNull(ordinal) ? string.Empty : reader.GetString(ordinal).Trim();
         }
     }
 }

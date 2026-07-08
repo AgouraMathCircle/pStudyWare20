@@ -10,4 +10,4 @@ WHERE Active = 1
 ORDER BY Name, Location, City;
 
 -- Dropdown label: ChapterID - Name - Location - City
--- Email label: Name - Location
+-- Email label: Name - Location - City

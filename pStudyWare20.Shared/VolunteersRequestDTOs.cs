@@ -68,4 +68,25 @@ namespace pStudyWare20.Shared
         [Required]
         public string RequestID { get; set; } = string.Empty;
     }
+
+    /// <summary>
+    /// Chapter option for Update Volunteer Request Status dropdown.
+    /// Source: AMC_ChapterMaster (Name, Location, City).
+    /// </summary>
+    public class VolunteerChapterLocation
+    {
+        public string ChapterID { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        /// <summary>Display label: Name - Location - City</summary>
+        public string Label { get; set; } = string.Empty;
+    }
+
+    public class GetVolunteerChapterLocationsResponse
+    {
+        public bool IsSuccess { get; set; }
+        public string ErrorMessage { get; set; } = string.Empty;
+        public List<VolunteerChapterLocation> ChapterLocations { get; set; } = new List<VolunteerChapterLocation>();
+    }
 }

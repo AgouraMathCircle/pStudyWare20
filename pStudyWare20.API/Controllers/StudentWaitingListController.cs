@@ -126,7 +126,7 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Get chapter location
+        /// Get chapter locations from AMC_ChapterMaster (Name, Location, City).
         /// </summary>
         /// <param name="request">GetChapterLocationRequest</param>
         /// <returns>ChapterLocationResponse</returns>
@@ -146,6 +146,27 @@ namespace pStudyWare20.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new ChapterLocationResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Active session options from AMC_tblLookupSemester (Semester, LastSemester, NextSemester).
+        /// </summary>
+        [HttpGet("GetActiveSessionOptions")]
+        public async Task<ActionResult<StudentWaitingListSessionOptionsResponse>> GetActiveSessionOptions()
+        {
+            try
+            {
+                var response = await _service.GetActiveSessionOptionsAsync();
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new StudentWaitingListSessionOptionsResponse
                 {
                     IsSuccess = false,
                     ErrorMessage = ex.Message

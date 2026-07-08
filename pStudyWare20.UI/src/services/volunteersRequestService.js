@@ -9,6 +9,11 @@ const volunteersRequestService = {
     return response.data;
   },
 
+  getChapterLocations: async () => {
+    const response = await api.get(`${BASE}/GetChapterLocations`);
+    return response.data;
+  },
+
   updateVolunteerStatus: async (request) => {
     const response = await api.post(`${BASE}/UpdateVolunteerStatus`, request);
     return response.data;

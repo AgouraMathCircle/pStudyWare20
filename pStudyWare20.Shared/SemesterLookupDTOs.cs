@@ -10,6 +10,10 @@ namespace pStudyWare20.Shared
         public int Id { get; set; }
         public string Semester { get; set; } = "";
         public string LastSemester { get; set; } = "";
+        public string SemesterName { get; set; } = "";
+        public string NextSemester { get; set; } = "";
+        public string LastSemesterName { get; set; } = "";
+        public string NextSemesterName { get; set; } = "";
         public string StartingDate { get; set; } = "";
         public string RegStartDate { get; set; } = "";
         public string RegCloseDate { get; set; } = "";
@@ -48,6 +52,14 @@ namespace pStudyWare20.Shared
         [Required]
         public string Semester { get; set; } = "";
         public string LastSemester { get; set; } = "";
+        [MaxLength(50)]
+        public string SemesterName { get; set; } = "";
+        [MaxLength(5)]
+        public string NextSemester { get; set; } = "";
+        [MaxLength(50)]
+        public string LastSemesterName { get; set; } = "";
+        [MaxLength(50)]
+        public string NextSemesterName { get; set; } = "";
         public string StartingDate { get; set; } = "";
         public string RegStartDate { get; set; } = "";
         public string RegCloseDate { get; set; } = "";

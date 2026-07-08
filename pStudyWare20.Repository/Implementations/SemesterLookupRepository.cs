@@ -65,6 +65,10 @@ namespace pStudyWare20.Repository.Implementations
 
                 command.Parameters.Add(new SqlParameter("@semester", request.Semester ?? (object)DBNull.Value));
                 command.Parameters.Add(new SqlParameter("@LastSemester", request.LastSemester ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@SemesterName", request.SemesterName ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@NextSemester", request.NextSemester ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@LastSemesterName", request.LastSemesterName ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@NextSemesterName", request.NextSemesterName ?? (object)DBNull.Value));
                 command.Parameters.Add(new SqlParameter("@StartingDate", ToDbDateTime(request.StartingDate)));
                 command.Parameters.Add(new SqlParameter("@RegStartDate", ToDbDateTime(request.RegStartDate)));
                 command.Parameters.Add(new SqlParameter("@RegCloseDate", ToDbDateTime(request.RegCloseDate)));
@@ -148,6 +152,10 @@ namespace pStudyWare20.Repository.Implementations
 
             var supplementalColumns = new (string Column, string SqlExpr)[]
             {
+                ("SemesterName", "ISNULL(SemesterName, '')"),
+                ("NextSemester", "ISNULL(NextSemester, '')"),
+                ("LastSemesterName", "ISNULL(LastSemesterName, '')"),
+                ("NextSemesterName", "ISNULL(NextSemesterName, '')"),
                 ("FinalExamDisplay", "ISNULL(FinalExamDisplay, 'N')"),
                 ("FinalExamDisplayChapter", "ISNULL(FinalExamDisplayChapter, '')"),
                 ("OnlineExamDisplayChapter", "ISNULL(OnlineExamDisplayChapter, '')"),

@@ -5,7 +5,7 @@ namespace pStudyWare20.Repository.Interfaces
     public interface IRegistrationLookupRepository
     {
         /// <summary>
-        /// Active AMC_tblLookupSemester row: Semester and LastSemester for registration.
+        /// Active AMC_tblLookupSemester row: Semester + NextSemester for registration (display names from DB).
         /// </summary>
         Task<List<RegistrationSemesterOption>> GetRegistrationSemesterOptionsAsync();
 

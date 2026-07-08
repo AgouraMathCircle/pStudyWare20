@@ -32,7 +32,7 @@ const IMPORTANT_NOTICE_LINKS = [
     label: "AMC Curriculum",
     prefix: "View: ",
     prefixColor: "#c62828",
-    href: "/pstudyware/Documents/AMC_curriculam.pdf",
+    href: "/pstudyware/Documents/AMC_Curriculam.pdf",
     isPdf: true,
     color: "#1976d2",
   },

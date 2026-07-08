@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace pStudyWare20.Data.Models;
@@ -46,6 +46,10 @@ public partial class AmcTblLookupSemester
     public string? SemesterName { get; set; }
 
     public string? NextSemester { get; set; }
+
+    public string? LastSemesterName { get; set; }
+
+    public string? NextSemesterName { get; set; }
 
     public int? AitotalSpace { get; set; }
 
