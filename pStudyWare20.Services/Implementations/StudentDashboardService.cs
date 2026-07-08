@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
@@ -13,16 +14,26 @@ namespace pStudyWare20.Services.Implementations
         private readonly IStudentDashboardRepository _repository;
         private readonly IFinalExamService _finalExamService;
         private readonly IEmailUtility _emailUtility;
+        private readonly IConfiguration _configuration;
+        private readonly IRegistrationLookupRepository _registrationLookupRepository;
 
         public StudentDashboardService(
             IStudentDashboardRepository repository,
             IFinalExamService finalExamService,
-            IEmailUtility emailUtility)
+            IEmailUtility emailUtility,
+            IConfiguration configuration,
+            IRegistrationLookupRepository registrationLookupRepository)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _finalExamService = finalExamService ?? throw new ArgumentNullException(nameof(finalExamService));
             _emailUtility = emailUtility ?? throw new ArgumentNullException(nameof(emailUtility));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _registrationLookupRepository = registrationLookupRepository
+                ?? throw new ArgumentNullException(nameof(registrationLookupRepository));
         }
+
+        private string RegistrationEmailId => _configuration.GetSection("AppSettings")["RegistrationEmailGroup"] ?? "Registration@agouramathcircle.net";
+        private string InfoEmailId => _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
 
         /// <summary>
         /// Gets dashboard messages and report card in one round trip (parallel DB calls).
@@ -82,6 +93,7 @@ namespace pStudyWare20.Services.Implementations
                     ReportCardEntries = reportCardEntries,
                     ShowFinalExam = finalExamAvailability.IsSuccess && finalExamAvailability.ShowFinalExam,
                     ActiveSemester = semesterLookup.Semester,
+                    ActiveSemesterName = semesterLookup.SemesterName,
                     RegistrationCloseDate = semesterLookup.RegCloseDate
                 };
             }
@@ -282,6 +294,8 @@ namespace pStudyWare20.Services.Implementations
                     {
                         registrationStatuses.Add(MapDataRowToRegistrationStatus(row));
                     }
+
+                    await EnrichRegistrationStatusesAsync(registrationStatuses);
                 }
 
                 return new GetRegistrationStatusResponse
@@ -377,6 +391,7 @@ namespace pStudyWare20.Services.Implementations
                 }
 
                 var registrationInfo = MapDataRowToRegistrationInfo(dataSet.Tables[0].Rows[0]);
+                await EnrichRegistrationInfoAsync(registrationInfo);
 
                 return new GetRegistrationInfoResponse
                 {
@@ -696,6 +711,7 @@ namespace pStudyWare20.Services.Implementations
                 Semester = GetRowString(row, "Semester", "EventSession"),
                 SemesterName = GetRowString(row, "SemesterName"),
                 EventLocation = GetRowString(row, "EventLocation"),
+                ChapterID = GetRowNullableInt(row, "ChapterID", "EventChapterID", "LocationID") ?? 0,
                 ParentName = GetRowString(row, "ParentName"),
                 Class = GetRowString(row, "Class"),
                 OpenSpace = GetRowNullableInt(row, "OpenSpace"),
@@ -719,27 +735,147 @@ namespace pStudyWare20.Services.Implementations
                 Semester = row.Table.Columns.Contains("Semester") ? row["Semester"]?.ToString() ?? string.Empty : string.Empty,
                 SemesterName = row.Table.Columns.Contains("SemesterName") ? row["SemesterName"]?.ToString() ?? string.Empty : string.Empty,
                 EventLocation = row.Table.Columns.Contains("EventLocation") ? row["EventLocation"]?.ToString() ?? string.Empty : string.Empty,
+                ChapterID = GetRowNullableInt(row, "ChapterID", "EventChapterID", "LocationID") ?? 0,
                 ParentEmail = row.Table.Columns.Contains("ParentEmail") ? row["ParentEmail"]?.ToString() ?? string.Empty : string.Empty
             };
+        }
+
+        private async Task EnrichRegistrationStatusesAsync(List<RegistrationStatus> registrationStatuses)
+        {
+            if (registrationStatuses.Count == 0)
+            {
+                return;
+            }
+
+            var context = await LoadRegistrationDisplayContextAsync();
+            foreach (var status in registrationStatuses)
+            {
+                EnrichRegistrationDisplay(status, context);
+            }
+        }
+
+        private async Task EnrichRegistrationInfoAsync(RegistrationInfo registrationInfo)
+        {
+            var context = await LoadRegistrationDisplayContextAsync();
+            EnrichRegistrationDisplay(registrationInfo, context);
+        }
+
+        private async Task<RegistrationDisplayContext> LoadRegistrationDisplayContextAsync()
+        {
+            var semestersTask = _registrationLookupRepository.GetRegistrationSemesterOptionsAsync();
+            var locationsTask = _registrationLookupRepository.GetRegistrationLocationOptionsAsync();
+            await Task.WhenAll(semestersTask, locationsTask);
+
+            return new RegistrationDisplayContext
+            {
+                Semesters = await semestersTask,
+                Locations = await locationsTask,
+            };
+        }
+
+        private static void EnrichRegistrationDisplay(RegistrationStatus status, RegistrationDisplayContext context)
+        {
+            status.SemesterName = ResolveSessionDisplayName(
+                status.Semester,
+                status.SemesterName,
+                context);
+            status.EventLocation = ResolveLocationDisplayName(
+                status.EventLocation,
+                status.ChapterID,
+                context);
+        }
+
+        private static void EnrichRegistrationDisplay(RegistrationInfo info, RegistrationDisplayContext context)
+        {
+            info.SemesterName = ResolveSessionDisplayName(
+                info.Semester,
+                info.SemesterName,
+                context);
+            info.EventLocation = ResolveLocationDisplayName(
+                info.EventLocation,
+                info.ChapterID,
+                context);
+        }
+
+        private static string ResolveSessionDisplayName(
+            string semester,
+            string semesterName,
+            RegistrationDisplayContext context)
+        {
+            if (!string.IsNullOrWhiteSpace(semesterName))
+            {
+                return semesterName.Trim();
+            }
+
+            var match = context.Semesters.FirstOrDefault(option =>
+                option.Value.Equals(semester?.Trim() ?? string.Empty, StringComparison.OrdinalIgnoreCase));
+
+            return match?.Label ?? semester?.Trim() ?? string.Empty;
+        }
+
+        private static string ResolveLocationDisplayName(
+            string eventLocation,
+            int chapterId,
+            RegistrationDisplayContext context)
+        {
+            var resolvedChapterId = chapterId;
+            if (resolvedChapterId <= 0 && int.TryParse(eventLocation?.Trim(), out var parsedChapterId))
+            {
+                resolvedChapterId = parsedChapterId;
+            }
+
+            if (resolvedChapterId > 0)
+            {
+                var byId = context.Locations.FirstOrDefault(option => option.ChapterId == resolvedChapterId);
+                if (byId != null)
+                {
+                    return byId.EmailLabel;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(eventLocation))
+            {
+                return string.Empty;
+            }
+
+            var trimmedLocation = eventLocation.Trim();
+            if (trimmedLocation.Split(" - ", StringSplitOptions.None).Length >= 3)
+            {
+                return trimmedLocation;
+            }
+
+            var byName = context.Locations.FirstOrDefault(option =>
+                option.Name.Equals(trimmedLocation, StringComparison.OrdinalIgnoreCase)
+                || option.Label.Equals(trimmedLocation, StringComparison.OrdinalIgnoreCase));
+
+            return byName?.EmailLabel ?? trimmedLocation;
+        }
+
+        private sealed class RegistrationDisplayContext
+        {
+            public List<RegistrationSemesterOption> Semesters { get; init; } = new();
+            public List<RegistrationLocationOption> Locations { get; init; } = new();
         }
 
         private async Task<bool> SendAdminNotificationEmail(RegistrationInfo registrationInfo)
         {
             try
             {
+                var sessionName = !string.IsNullOrWhiteSpace(registrationInfo.SemesterName)
+                    ? registrationInfo.SemesterName
+                    : registrationInfo.Semester;
                 var subject = $"Agoura Math Circle : Registration request from: {registrationInfo.StudentName}.";
                 var body = $"Just Received registration from {registrationInfo.StudentName}<br/>" +
                           $"Student Name: {registrationInfo.StudentName}<br/>" +
-                          $"Session: {registrationInfo.Semester}<br/>" +
+                          $"Session: {sessionName}<br/>" +
                           $"Student Level: {registrationInfo.Grade}<br/>" +
                           $"Location: {registrationInfo.EventLocation}<br/>" +
                           $"Regards <br> Agoura Math Circle<br/> <br/>www.agouramathcircle.org";
 
-                // Note: You'll need to configure these email addresses in your app settings
-                var adminEmail = "admin@agouramathcircle.org"; // Should come from configuration
-                var fromEmail = "noreply@agouramathcircle.org"; // Should come from configuration
+                var registrationEmailId = RegistrationEmailId;
+                var fromEmail = InfoEmailId;
 
-                var result = await _emailUtility.SendEmailAsync(adminEmail, fromEmail, subject, body);
+                var result = await _emailUtility.SendEmailAsync(registrationEmailId, fromEmail, subject, body);
                 return !string.IsNullOrEmpty(result) && result.Contains("success");
             }
             catch
@@ -752,15 +888,18 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                var subject = $"Agoura Math Circle : Registration Confirmation {registrationInfo.SemesterName} for: {registrationInfo.StudentName}.";
+                var sessionName = !string.IsNullOrWhiteSpace(registrationInfo.SemesterName)
+                    ? registrationInfo.SemesterName
+                    : registrationInfo.Semester;
+                var subject = $"Agoura Math Circle : Registration Confirmation {sessionName} for: {registrationInfo.StudentName}.";
                 var body = $"You have successfully registered {registrationInfo.StudentName}<br/>" +
                           $"Student Name: {registrationInfo.StudentName}<br/>" +
-                          $"Session: {registrationInfo.SemesterName}<br/>" +
+                          $"Session: {sessionName}<br/>" +
                           $"Student Level: {registrationInfo.Grade}<br/>" +
                           $"Location: {registrationInfo.EventLocation}<br/>" +
                           $"Regards <br> Agoura Math Circle<br/> <br/>www.agouramathcircle.org";
 
-                var fromEmail = "noreply@agouramathcircle.org"; // Should come from configuration
+                var fromEmail = InfoEmailId;
 
                 var result = await _emailUtility.SendEmailAsync(parentEmail, fromEmail, subject, body);
                 return !string.IsNullOrEmpty(result) && result.Contains("success");

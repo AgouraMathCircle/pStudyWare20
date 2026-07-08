@@ -195,6 +195,7 @@ namespace pStudyWare20.Repository.Implementations
                     """
                     SELECT TOP 1
                         ISNULL(Semester, '') AS Semester,
+                        ISNULL(SemesterName, '') AS SemesterName,
                         ISNULL(FinalExamDisplay, 'N') AS FinalExamDisplay,
                         ISNULL(FinalExamDisplayChapter, '') AS FinalExamDisplayChapter,
                         ISNULL(OnlineExamDisplayChapter, '') AS OnlineExamDisplayChapter,
@@ -219,6 +220,7 @@ namespace pStudyWare20.Repository.Implementations
                     return new ActiveSemesterLookupDto
                     {
                         Semester = reader["Semester"]?.ToString()?.Trim() ?? string.Empty,
+                        SemesterName = reader["SemesterName"]?.ToString()?.Trim() ?? string.Empty,
                         FinalExamDisplay = finalExamDisplay,
                         FinalExamDisplayChapter = finalExamDisplayChapter,
                         OnlineExamDisplayChapter = onlineExamDisplayChapter,

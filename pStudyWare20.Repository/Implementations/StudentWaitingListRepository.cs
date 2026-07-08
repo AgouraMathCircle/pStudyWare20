@@ -114,11 +114,24 @@ namespace pStudyWare20.Repository.Implementations
                     });
                 }
 
+                // Defensive dedupe: some environments can return duplicate waiting-list rows
+                // for the same StudentID from the legacy SP join path. Keep the latest row only.
+                var dedupedList = list
+                    .Where(item => item.StudentID > 0)
+                    .GroupBy(item => item.StudentID)
+                    .Select(group => group
+                        .OrderByDescending(item => item.RegisteredDate)
+                        .First())
+                    .ToList();
+
+                // Preserve any edge rows without a valid student id.
+                dedupedList.AddRange(list.Where(item => item.StudentID <= 0));
+
                 return new StudentWaitingListResponse
                 {
                     IsSuccess = true,
                     ErrorMessage = "",
-                    StudentWaitingList = list
+                    StudentWaitingList = dedupedList
                 };
             }
             catch (Exception ex)
@@ -336,7 +349,7 @@ namespace pStudyWare20.Repository.Implementations
 
         /// <summary>
         /// Active session options from AMC_tblLookupSemester:
-        /// Semester, LastSemester, NextSemester (with display names).
+        /// current Semester and LastSemester only (legacy drSession).
         /// </summary>
         public async Task<StudentWaitingListSessionOptionsResponse> GetActiveSessionOptionsAsync()
         {
@@ -370,7 +383,6 @@ namespace pStudyWare20.Repository.Implementations
                 var options = new List<StudentWaitingListSessionOption>();
                 AddSessionOption(options, ReadTrimmedString(reader, "Semester"), ReadTrimmedString(reader, "SemesterName"));
                 AddSessionOption(options, ReadTrimmedString(reader, "LastSemester"), ReadTrimmedString(reader, "LastSemesterName"));
-                AddSessionOption(options, ReadTrimmedString(reader, "NextSemester"), ReadTrimmedString(reader, "NextSemesterName"));
 
                 return new StudentWaitingListSessionOptionsResponse
                 {

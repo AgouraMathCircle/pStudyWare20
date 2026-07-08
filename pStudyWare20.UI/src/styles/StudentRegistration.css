@@ -561,6 +561,68 @@
   animation-delay: 0.4s;
 }
 
+/* Registration feedback snackbar */
+.student-registration-container .registration-snackbar {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+  min-width: 320px;
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 16px 20px;
+  color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.student-registration-container .registration-snackbar--success {
+  background-color: #2e7d32;
+  border: 1px solid #1b5e20;
+}
+
+.student-registration-container .registration-snackbar--error {
+  background-color: #d32f2f;
+  border: 1px solid #b71c1c;
+}
+
+.student-registration-container .registration-snackbar__message {
+  flex: 1;
+}
+
+.student-registration-container .registration-snackbar__close {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.student-registration-container .registration-snackbar__close:hover {
+  opacity: 1;
+}
+
+@media (max-width: 600px) {
+  .student-registration-container .registration-snackbar {
+    top: 16px;
+    min-width: 0;
+    width: calc(100vw - 24px);
+    max-width: none;
+    padding: 14px 16px;
+    font-size: 0.9375rem;
+  }
+}
+
 /* Print styles */
 @media print {
   .sc-breadcrumbs,

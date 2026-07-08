@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import studentDashboardService from "../../../services/studentDashboardService";
 import { formatSemesterLabel, formatRegistrationCloseDate } from "../../../utils/semesterFormat";
+import { formatLocationEmailLabel } from "../../../utils/registrationFormat";
 
 const MESSAGE_CENTER_PATH = "/pstudyware/student/message-center";
 const PAGE_SIZE = 10;
@@ -56,10 +57,33 @@ const isRegistrationWaitingList = (student) => {
   return getRegistrationStatus(student).toLowerCase().includes("waiting");
 };
 
+const getLocationLabel = (student) => {
+  const directLabel = pickField(
+    student,
+    "eventLocation",
+    "EventLocation",
+    "eventLocationLabel",
+    "EventLocationLabel"
+  );
+  if (directLabel && !/^\d+$/.test(String(directLabel).trim())) {
+    return directLabel;
+  }
+
+  const formatted = formatLocationEmailLabel({
+    name: pickField(student, "chapterName", "ChapterName", "name", "Name"),
+    location: pickField(student, "location", "Location"),
+    city: pickField(student, "city", "City"),
+    emailLabel: directLabel,
+  });
+
+  return formatted || directLabel || "—";
+};
+
 const RegistrationSection = ({
   registrationData,
   username,
   activeSemester,
+  activeSemesterName,
   registrationCloseDate,
   onSuccess,
   onError,
@@ -92,19 +116,20 @@ const RegistrationSection = ({
   }, [registrationData, currentPage]);
 
   const semesterLabel = useMemo(() => {
-    const fromLookup = formatSemesterLabel(activeSemester);
+    const fromLookup = String(activeSemesterName || "").trim();
     if (fromLookup) {
       return fromLookup;
     }
 
     const fromRegistration =
+      pickField(registrationData?.[0], "semesterName", "SemesterName") ||
       formatSemesterLabel(
         pickField(registrationData?.[0], "semester", "Semester")
       ) ||
-      pickField(registrationData?.[0], "semesterName", "SemesterName");
+      formatSemesterLabel(activeSemester);
 
     return fromRegistration || "the upcoming semester";
-  }, [activeSemester, registrationData]);
+  }, [activeSemester, activeSemesterName, registrationData]);
 
   const sessionLabel = semesterLabel;
 
@@ -248,9 +273,7 @@ const RegistrationSection = ({
                       <TableCell>
                         {pickField(student, "studentName", "StudentName")}
                       </TableCell>
-                      <TableCell>
-                        {pickField(student, "eventLocation", "EventLocation")}
-                      </TableCell>
+                      <TableCell>{getLocationLabel(student)}</TableCell>
                       <TableCell>{pickField(student, "grade", "Grade")}</TableCell>
                       <TableCell>{pickField(student, "school", "School")}</TableCell>
                       <TableCell>

@@ -310,14 +310,103 @@ function getSelectedChapterLabel(chapterID, chapters) {
 }
 
 function waitingListClassCode(parsedClass, rowClass) {
-  const code = (parsedClass || rowClass || "").trim();
-  return code || "JB";
+  const code = (parsedClass || "").trim();
+  if (code && CLASS_OPTIONS.some((option) => option.value === code)) {
+    return code;
+  }
+  const display = (rowClass || code || "").trim();
+  const byLabel = CLASS_OPTIONS.find(
+    (option) => option.label === display || option.value === display,
+  );
+  if (byLabel) return byLabel.value;
+  return code || display || "JB";
+}
+
+function buildWaitingListLocationLabel(chapterID, locationCode, chapters) {
+  const chapterPart = getSelectedChapterLabel(chapterID, chapters);
+  const locationPart =
+    LOCATION_OPTIONS.find((option) => option.value === locationCode)?.label ??
+    locationCode;
+  return `${chapterPart} - ${locationPart}`;
 }
 
 function waitingListApplicationStatus(status) {
   const value = String(status ?? "").trim().toLowerCase();
   if (value === "d" || value === "declined") return "D";
   return "A";
+}
+
+function applyWaitingListSearchCriteria(fieldValue, search, criteria) {
+  const value = String(fieldValue ?? "").toLowerCase();
+
+  switch (criteria) {
+    case "equals":
+      return value === search;
+    case "starts_with":
+      return value.startsWith(search);
+    case "contains":
+    default:
+      return value.includes(search);
+  }
+}
+
+function getWaitingListSearchFieldValue(row, searchBy) {
+  switch (searchBy) {
+    case "STUDENT_ID":
+      return row.studentID ?? "";
+    case "STUDENT_NAME":
+      return row.studentName ?? "";
+    case "CLASS":
+      return row.class ?? "";
+    case "GRADE":
+      return row.grade ?? "";
+    case "SCHOOL":
+      return row.school ?? "";
+    case "PARENT":
+      return row.parentName ?? "";
+    case "EMAIL":
+      return row.emailAddress ?? "";
+    case "STATUS":
+      return row.applicationStatus ?? "";
+    case "LOCATION":
+      return row.eventLocation ?? "";
+    case "SESSION":
+      return row.eventSession ?? "";
+    case "PHONE":
+      return row.phoneNumber ?? "";
+    default:
+      return "";
+  }
+}
+
+function getWaitingListAllSearchValues(row) {
+  const registeredDate = row.registeredDate
+    ? new Date(row.registeredDate)
+    : null;
+  const formattedDate =
+    registeredDate && !Number.isNaN(registeredDate.getTime())
+      ? registeredDate.toLocaleDateString()
+      : "";
+
+  return [
+    row.applicationStatus,
+    row.studentID,
+    row.studentName,
+    row.eventLocation,
+    row.class,
+    row.grade,
+    row.school,
+    row.parentName,
+    row.phoneNumber,
+    row.emailAddress,
+    row.eventSession,
+    formattedDate,
+    row.registeredDate,
+    row.city,
+    row.state,
+    row.country,
+    getRowPassword(row),
+  ];
 }
 
 function isWaitingListRequestTimeout(err) {
@@ -368,6 +457,7 @@ const StudentWaitingList = () => {
     lastName: "",
     chapterID: "",
     location: "O",
+    originalLocation: "O",
     session: "",
     class: "",
     section: "A",
@@ -375,13 +465,17 @@ const StudentWaitingList = () => {
     reason: "",
   });
   const [submitting, setSubmitting] = useState(false);
-  const [orderBy, setOrderBy] = useState("registeredDate");
+  const [orderBy, setOrderBy] = useState("studentID");
   const [order, setOrder] = useState("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
   const [searchBy, setSearchBy] = useState("ALL");
-  const [searchCriteria, setSearchCriteria] = useState("");
+  const [searchCriteria, setSearchCriteria] = useState("contains");
   const [searchText, setSearchText] = useState("");
+  const [appliedSearchBy, setAppliedSearchBy] = useState("ALL");
+  const [appliedSearchCriteria, setAppliedSearchCriteria] =
+    useState("contains");
+  const [appliedSearchText, setAppliedSearchText] = useState("");
   const pageSize = 20;
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -516,7 +610,7 @@ const StudentWaitingList = () => {
       setLoading(false);
       return;
     }
-    setOrderBy("registeredDate");
+    setOrderBy("studentID");
     setOrder("desc");
     setCurrentPage(1);
     setGoToPageInput("1");
@@ -541,6 +635,9 @@ const StudentWaitingList = () => {
   };
 
   const handleSearch = () => {
+    setAppliedSearchBy(searchBy);
+    setAppliedSearchCriteria(searchCriteria || "contains");
+    setAppliedSearchText(searchText.trim());
     setCurrentPage(1);
     setGoToPageInput("1");
   };
@@ -570,45 +667,26 @@ const StudentWaitingList = () => {
   const filteredAndSortedList = useMemo(() => {
     if (!list.length) return [];
     let filtered = list;
-    if (searchBy !== "ALL" && searchText.trim()) {
+    const normalizedSearch = appliedSearchText.trim().toLowerCase();
+    const criteria = appliedSearchCriteria || "contains";
+
+    if (normalizedSearch) {
       filtered = list.filter((row) => {
-        let fieldValue = "";
-        switch (searchBy) {
-          case "STUDENT_ID":
-            fieldValue = (row.studentID ?? "").toString();
-            break;
-          case "STUDENT_NAME":
-            fieldValue = row.studentName ?? "";
-            break;
-          case "CLASS":
-            fieldValue = row.class ?? "";
-            break;
-          case "GRADE":
-            fieldValue = row.grade ?? "";
-            break;
-          case "SCHOOL":
-            fieldValue = row.school ?? "";
-            break;
-          case "PARENT":
-            fieldValue = row.parentName ?? "";
-            break;
-          case "EMAIL":
-            fieldValue = row.emailAddress ?? "";
-            break;
-          case "STATUS":
-            fieldValue = row.applicationStatus ?? "";
-            break;
-          default:
-            return true;
+        if (appliedSearchBy === "ALL") {
+          return getWaitingListAllSearchValues(row).some((value) =>
+            applyWaitingListSearchCriteria(value, normalizedSearch, criteria),
+          );
         }
-        fieldValue = String(fieldValue).toLowerCase();
-        const search = searchText.trim().toLowerCase();
-        if (searchCriteria === "equals") return fieldValue === search;
-        if (searchCriteria === "starts_with")
-          return fieldValue.startsWith(search);
-        return fieldValue.includes(search);
+
+        const fieldValue = getWaitingListSearchFieldValue(row, appliedSearchBy);
+        return applyWaitingListSearchCriteria(
+          fieldValue,
+          normalizedSearch,
+          criteria,
+        );
       });
     }
+
     const key = orderBy;
     return [...filtered].sort((a, b) => {
       let aVal = a[key];
@@ -617,9 +695,13 @@ const StudentWaitingList = () => {
       if (key === "studentID") {
         const aNum = Number(aVal);
         const bNum = Number(bVal);
-        if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+        const aValid = !Number.isNaN(aNum);
+        const bValid = !Number.isNaN(bNum);
+        if (aValid && bValid) {
           return order === "asc" ? aNum - bNum : bNum - aNum;
         }
+        if (!aValid && !bValid) return 0;
+        return order === "asc" ? (aValid ? -1 : 1) : aValid ? -1 : 1;
       }
 
       if (key === "registeredDate") {
@@ -639,7 +721,14 @@ const StudentWaitingList = () => {
         ? aVal.localeCompare(bVal)
         : bVal.localeCompare(aVal);
     });
-  }, [list, orderBy, order, searchBy, searchCriteria, searchText]);
+  }, [
+    list,
+    orderBy,
+    order,
+    appliedSearchBy,
+    appliedSearchCriteria,
+    appliedSearchText,
+  ]);
 
   const paginatedList = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
@@ -656,11 +745,13 @@ const StudentWaitingList = () => {
     const nameParts = (row.studentName || "").trim().split(/\s+/);
     const classCode = waitingListClassCode(parsed.class, row.class);
     const chapterID = resolveWaitingListChapterId(row, parsed, chapterLocations);
+    const locationCode = waitingListLocationCode(parsed.location, row.eventLocation);
     setForm({
       firstName: parsed.firstName || nameParts[0] || "",
       lastName: parsed.lastName || nameParts.slice(1).join(" ") || "",
       chapterID,
-      location: waitingListLocationCode(parsed.location, row.eventLocation),
+      location: locationCode,
+      originalLocation: locationCode,
       session:
         parsed.session ||
         row.eventSession ||
@@ -751,6 +842,17 @@ const StudentWaitingList = () => {
 
     const parsed = parseStudentClassInfo(selectedRow.studentClassInfo);
     const nameParts = (selectedRow.studentName || "").trim().split(/\s+/);
+    const sessionLabel =
+      sessionSelectOptions.find((option) => option.value === form.session)?.label ??
+      form.session;
+    const classLabel =
+      CLASS_OPTIONS.find((option) => option.value === form.class)?.label ??
+      form.class;
+    const locationLabel = buildWaitingListLocationLabel(
+      form.chapterID,
+      form.location,
+      chapterLocations,
+    );
 
     // camelCase payload — matches API DTOs / RegisteredStudentList update-class pattern.
     const payload = {
@@ -760,6 +862,10 @@ const StudentWaitingList = () => {
       chapterID: String(form.chapterID ?? "").trim(),
       location: String(form.location ?? "").trim(),
       session: String(form.session ?? "").trim(),
+      sessionLabel: String(sessionLabel ?? "").trim(),
+      classLabel: String(classLabel ?? "").trim(),
+      locationLabel: String(locationLabel ?? "").trim(),
+      originalLocation: String(form.originalLocation ?? "").trim(),
       applicationStatus: String(form.applicationStatus ?? "A").trim(),
       firstName: parsed.firstName || nameParts[0] || "",
       lastName: parsed.lastName || nameParts.slice(1).join(" ") || "",
@@ -774,12 +880,16 @@ const StudentWaitingList = () => {
         await studentWaitingListService.updateStudentWaitingListStatus(payload);
       const ok = res?.isSuccess === true || res?.IsSuccess === true;
       if (ok) {
+        const defaultMessage =
+          form.applicationStatus === "D"
+            ? "You have declined the student successfully."
+            : "You have registered the student successfully.";
         setSnackbar({
           open: true,
           message:
             res.message ||
             res.Message ||
-            "Application updated successfully.",
+            defaultMessage,
           severity: "success",
         });
         setReviewOpen(false);
@@ -1023,9 +1133,6 @@ const StudentWaitingList = () => {
                           size="small"
                           sx={adminSessionListSearchSelectSx}
                         >
-                          <MenuItem value="" sx={adminSessionListMenuItemSx}>
-                            Select Criteria
-                          </MenuItem>
                           <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
                             Equals
                           </MenuItem>
@@ -1048,6 +1155,11 @@ const StudentWaitingList = () => {
                         placeholder="Search Text"
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleSearch();
+                          }
+                        }}
                         sx={adminSessionListSearchFieldSx}
                       />
                       <Button
@@ -1220,7 +1332,7 @@ const StudentWaitingList = () => {
                           {paginatedList.length > 0 ? (
                             paginatedList.map((row, index) => (
                               <TableRow
-                                key={row.studentID ?? `row-${index}`}
+                                key={`${row.studentID ?? "row"}-${row.registeredDate ?? ""}-${index}`}
                                 sx={adminSessionListTableBodyRowSx}
                               >
                                 <TableCell
@@ -1287,7 +1399,7 @@ const StudentWaitingList = () => {
                                   color="textSecondary"
                                   sx={adminSessionListEmptyTextSx}
                                 >
-                                  {searchText
+                                  {appliedSearchText
                                     ? "No records found matching your search criteria."
                                     : "No records found."}
                                 </Typography>

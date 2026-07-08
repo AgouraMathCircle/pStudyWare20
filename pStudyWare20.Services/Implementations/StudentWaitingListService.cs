@@ -13,21 +13,37 @@ namespace pStudyWare20.Services.Implementations
     public class StudentWaitingListService : IStudentWaitingListService
     {
         private readonly IStudentWaitingListRepository _repository;
-        private readonly IServiceScopeFactory _serviceScopeFactory;        
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IConfiguration _configuration;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="repository">IStudentWaitingListRepository</param>
         /// <param name="serviceScopeFactory">IServiceScopeFactory</param>
+        /// <param name="configuration">IConfiguration</param>
         public StudentWaitingListService(
             IStudentWaitingListRepository repository,
-            IServiceScopeFactory serviceScopeFactory)
+            IServiceScopeFactory serviceScopeFactory,
+            IConfiguration configuration)
         {
             _repository = repository;
             _serviceScopeFactory = serviceScopeFactory;
-            
+            _configuration = configuration;
         }
+
+        private string RegistrationNotificationEmail =>
+            _configuration.GetSection("AppSettings")["RegistrationEmailGroup"]
+            ?? _configuration.GetSection("AppSettings")["Email"]
+            ?? "info@agouramathcircle.net";
+
+        private string SystemEmail =>
+            _configuration.GetSection("AppSettings")["Email"]
+            ?? "info@agouramathcircle.net";
+
+        private string SupportEmail =>
+            _configuration.GetSection("AppSettings")["AMCEmailID"]
+            ?? "support@agouramathcircle.org";
 
         /// <summary>
         /// Get student waiting list
@@ -90,10 +106,17 @@ namespace pStudyWare20.Services.Implementations
                     response = await _repository.UpdateStudentWaitingListStatusAsync(request);
                 }
                 else
+                {
                     response = await _repository.DeleteStudentAsync(new DeleteStudentRequest
                     {
                         StudentId = request.StudentID ?? ""
                     });
+
+                    if (response.IsSuccess)
+                    {
+                        response.Message = "You have declined the student successfully.";
+                    }
+                }
 
                 if (response.IsSuccess)
                 {
@@ -121,6 +144,10 @@ namespace pStudyWare20.Services.Implementations
             request.ChapterID = (request.ChapterID ?? "").Trim();
             request.Location = (request.Location ?? "").Trim().ToUpperInvariant();
             request.Session = (request.Session ?? "").Trim();
+            request.SessionLabel = (request.SessionLabel ?? "").Trim();
+            request.ClassLabel = (request.ClassLabel ?? "").Trim();
+            request.LocationLabel = (request.LocationLabel ?? "").Trim();
+            request.OriginalLocation = (request.OriginalLocation ?? "").Trim().ToUpperInvariant();
             request.ApplicationStatus = string.IsNullOrWhiteSpace(request.ApplicationStatus)
                 ? "A"
                 : request.ApplicationStatus.Trim().ToUpperInvariant();
@@ -417,6 +444,9 @@ namespace pStudyWare20.Services.Implementations
         private void QueueReviewEmailNotifications(UpdateStudentWaitingListStatusRequest request)
         {
             var emailRequest = CloneReviewEmailRequest(request);
+            var adminNotificationEmail = RegistrationNotificationEmail;
+            var systemEmail = SystemEmail;
+            var supportEmail = SupportEmail;
 
             _ = Task.Run(async () =>
             {
@@ -424,7 +454,12 @@ namespace pStudyWare20.Services.Implementations
                 {
                     using var scope = _serviceScopeFactory.CreateScope();
                     var emailUtility = scope.ServiceProvider.GetRequiredService<IEmailUtility>();
-                    await SendEmailNotificationsAsync(emailRequest, emailUtility);
+                    await SendEmailNotificationsAsync(
+                        emailRequest,
+                        emailUtility,
+                        adminNotificationEmail,
+                        systemEmail,
+                        supportEmail);
                 }
                 catch (Exception ex)
                 {
@@ -444,6 +479,10 @@ namespace pStudyWare20.Services.Implementations
                 ChapterID = request.ChapterID,
                 Location = request.Location,
                 Session = request.Session,
+                SessionLabel = request.SessionLabel,
+                ClassLabel = request.ClassLabel,
+                LocationLabel = request.LocationLabel,
+                OriginalLocation = request.OriginalLocation,
                 ApplicationStatus = request.ApplicationStatus,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
@@ -453,6 +492,50 @@ namespace pStudyWare20.Services.Implementations
             };
         }
 
+        private static string GetSessionDisplayLabel(UpdateStudentWaitingListStatusRequest request) =>
+            !string.IsNullOrWhiteSpace(request.SessionLabel)
+                ? request.SessionLabel
+                : request.Session;
+
+        private static string GetClassDisplayLabel(UpdateStudentWaitingListStatusRequest request) =>
+            !string.IsNullOrWhiteSpace(request.ClassLabel)
+                ? request.ClassLabel
+                : GetClassDisplayLabelFromCode(request.Class);
+
+        private static string GetLocationDisplayLabel(UpdateStudentWaitingListStatusRequest request) =>
+            !string.IsNullOrWhiteSpace(request.LocationLabel)
+                ? request.LocationLabel
+                : $"{request.ChapterID}-{GetLocationTypeLabel(request.Location)}";
+
+        private static string GetClassDisplayLabelFromCode(string? classCode)
+        {
+            return (classCode ?? string.Empty).Trim().ToUpperInvariant() switch
+            {
+                "JB" => "Junior Beginner",
+                "JI" => "Junior Intermediate",
+                "JA" => "Junior Advanced",
+                "SB" => "Senior Beginner",
+                "SI" => "Senior Intermediate",
+                "SA" => "Senior Advanced",
+                "DS" => "Data Science",
+                "AI" => "Artificial Intelligence",
+                "GD" => "Game Development",
+                "AD" => "App Development",
+                "DM" => "Data Management",
+                "ST" => "PSAT",
+                "AT" => "ACT",
+                "ED" => "Engineering Design",
+                _ => classCode ?? string.Empty
+            };
+        }
+
+        private static string GetLocationTypeLabel(string? locationCode) =>
+            (locationCode ?? string.Empty).Trim().ToUpperInvariant() switch
+            {
+                "I" => "Internet",
+                _ => "OnSite"
+            };
+
         /// <summary>
         /// Send email notifications
         /// </summary>
@@ -461,7 +544,10 @@ namespace pStudyWare20.Services.Implementations
         /// <returns>Task</returns>
         private static async Task SendEmailNotificationsAsync(
             UpdateStudentWaitingListStatusRequest request,
-            IEmailUtility emailUtility)
+            IEmailUtility emailUtility,
+            string adminNotificationEmail,
+            string systemEmail,
+            string supportEmail)
         {
             if (string.IsNullOrWhiteSpace(request.Email))
             {
@@ -469,8 +555,12 @@ namespace pStudyWare20.Services.Implementations
                 return;
             }
 
-            await SendEmailToAdminAsync(request, emailUtility);
-            await SendEmailToParentAsync(request, emailUtility);
+            await SendEmailToParentAsync(request, emailUtility, systemEmail, supportEmail);
+
+            if (string.Equals(request.ApplicationStatus, "A", StringComparison.OrdinalIgnoreCase))
+            {
+                await SendEmailToAdminAsync(request, emailUtility, systemEmail, adminNotificationEmail);
+            }
         }
 
         /// <summary>
@@ -478,23 +568,30 @@ namespace pStudyWare20.Services.Implementations
         /// </summary>
         /// <param name="request">UpdateStudentWaitingListStatusRequest</param>
         /// <param name="emailUtility">IEmailUtility</param>
+        /// <param name="adminNotificationEmail">Configured admin/recipient address</param>
         /// <returns>Task</returns>
         private static async Task SendEmailToAdminAsync(
             UpdateStudentWaitingListStatusRequest request,
-            IEmailUtility emailUtility)
+            IEmailUtility emailUtility,
+            string systemEmail,
+            string adminNotificationEmail)
         {
             try
             {
+                var sessionLabel = GetSessionDisplayLabel(request);
+                var classLabel = GetClassDisplayLabel(request);
+                var locationLabel = GetLocationDisplayLabel(request);
+
                 var subject = $"Agoura Math Circle : New Enrollment request from: {request.FirstName} {request.LastName}.";
                 var body = $@"Just Received New registration from {request.FirstName} {request.LastName}<br/>
                              Student Name: {request.FirstName} {request.LastName}<br/>
-                             Semester: {request.Session}<br/>
-                             Student Class: {request.Class}<br/>
+                             Semester: {sessionLabel}<br/>
+                             Student Class: {classLabel}<br/>
                              Student Section: {request.Section}<br/>
-                             Location: {request.ChapterID}-{request.Location}<br/><br/>
+                             Location: {locationLabel}<br/><br/>
                              Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                await emailUtility.SendEmailAsync("info@agouramathcircle.net", request.Email, subject, body);
+                await emailUtility.SendEmailAsync(adminNotificationEmail, systemEmail, subject, body);
             }
             catch (Exception ex)
             {
@@ -507,45 +604,77 @@ namespace pStudyWare20.Services.Implementations
         /// </summary>
         /// <param name="request">UpdateStudentWaitingListStatusRequest</param>
         /// <param name="emailUtility">IEmailUtility</param>
+        /// <param name="systemEmail">Configured system/from address</param>
+        /// <param name="supportEmail">Configured support address for body text</param>
         /// <returns>Task</returns>
         private static async Task SendEmailToParentAsync(
             UpdateStudentWaitingListStatusRequest request,
-            IEmailUtility emailUtility)
+            IEmailUtility emailUtility,
+            string systemEmail,
+            string supportEmail)
         {
             try
             {
                 string subject;
                 string body;
+                var sessionLabel = GetSessionDisplayLabel(request);
+                var classLabel = GetClassDisplayLabel(request);
+                var locationLabel = GetLocationDisplayLabel(request);
+                var originalLocation = string.IsNullOrWhiteSpace(request.OriginalLocation)
+                    ? request.Location
+                    : request.OriginalLocation;
+                var locationChanged = !string.Equals(
+                    originalLocation,
+                    request.Location,
+                    StringComparison.OrdinalIgnoreCase);
 
                 if (request.ApplicationStatus == "A")
                 {
-                    subject = $"Agoura Math Circle : Enrollment Confirmation for {request.FirstName} {request.LastName}.";
-                    body = $@"Congrats. We are happy to inform you that you are enrolled in Agoura Math Circle. We have approved your application for {request.FirstName} {request.LastName}.<br/>
-                             Semester: {request.Session}<br/>
-                             Student Class: {request.Class}<br/>
+                    if (!locationChanged)
+                    {
+                        subject = $"Agoura Math Circle : Enrollment Confirmation for {request.FirstName} {request.LastName}.";
+                        body = $@"Congrats. We are happy to inform you that you are enrolled in Agoura Math Circle. We have approved your application for {request.FirstName} {request.LastName}.<br/>
+                             Semester: {sessionLabel}<br/>
+                             Student Class: {classLabel}<br/>
                              Student Section: {request.Section}<br/>
-                             Location: {request.ChapterID}-{request.Location}<br/><br/>
+                             Location: {locationLabel}<br/><br/>
                              Your Login Information: <br/>
                              User Name: {request.Email}<br/>
                              Password: {request.Password}<br/><hr>
                              Note: please login and check your kids group and change your password ASAP. <br/><br/>
                              All the Lecture's Notes are available on our YOUTUBE Channel. Please subscribe and ask your kids watch it. It required for all students. <br/><br/>
-                             If you have any issues with login, please email support@agouramathcircle.org. <br/><br/>
+                             If you have any issues with login, please email {supportEmail}. <br/><br/>
                              Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
+                    }
+                    else
+                    {
+                        subject = $"Agoura Math Circle : Enrollment Application Status for {request.FirstName} {request.LastName}.";
+                        body = $@"Currently, we don't have any open spots for the onsite prgram. You are enrolled in Agoura Math Circle's OnLine/Internet Class. If a spot opens for the onsite class, we will inform you. We have approved your application for {request.FirstName} {request.LastName}.<br/>
+                             Semester: {sessionLabel}<br/>
+                             Student Class: {classLabel}<br/>
+                             Location: {locationLabel}<br/><br/>
+                             Your Login Information: <br/>
+                             User Name: {request.Email}<br/>
+                             Password: {request.Password}<br/><hr>
+                             Note: please login and check your kids group and change your password asap. <br/><br/>
+                             All the Lecture's Notes are available on our YOUTUBE Channel. Please subscribe and ask your kids watch it. It required for all students. <br/><br/>
+                             If you have any issue with login, please email {supportEmail}. <br/><br/>
+                             Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
+                    }
                 }
                 else
                 {
                     subject = $"Agoura Math Circle : Enrollment Application Status for {request.FirstName} {request.LastName}.";
                     body = $@"We can not approve your application for {request.FirstName} {request.LastName}.<br/>
-                             Semester: {request.Session}<br/>
-                             Student Class: {request.Class}<br/>
-                             Location: {request.ChapterID}-{request.Location}<br/><br/>
+                             Semester: {sessionLabel}<br/>
+                             Student Class: {classLabel}<br/>
+                             Location: {locationLabel}<br/><br/>
                              Reason: {request.Reason}<br/><br/>
-                             If you have any questions, please email support@agouramathcircle.org. <br/><br/>
+                             If you have any questions, please email {supportEmail}. <br/><br/>
                              Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
                 }
 
-                await emailUtility.SendEmailAsync(request.Email, "admin@agouramathcircle.org", subject, body);
+                await emailUtility.SendEmailAsync(request.Email, systemEmail, subject, body);
             }
             catch (Exception ex)
             {

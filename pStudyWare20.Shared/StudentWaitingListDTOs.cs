@@ -146,6 +146,18 @@ namespace pStudyWare20.Shared
         [Required(ErrorMessage = "Session is required")]
         public string Session { get; set; } = string.Empty;
 
+        [Display(Name = "Session Label")]
+        public string SessionLabel { get; set; } = string.Empty;
+
+        [Display(Name = "Class Label")]
+        public string ClassLabel { get; set; } = string.Empty;
+
+        [Display(Name = "Location Label")]
+        public string LocationLabel { get; set; } = string.Empty;
+
+        [Display(Name = "Original Location")]
+        public string OriginalLocation { get; set; } = string.Empty;
+
         [Display(Name = "Application Status")]
         [Required(ErrorMessage = "Application Status is required")]
         public string ApplicationStatus { get; set; } = string.Empty;
