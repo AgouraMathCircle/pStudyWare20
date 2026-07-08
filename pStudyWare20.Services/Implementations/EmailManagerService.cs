@@ -284,7 +284,7 @@ namespace pStudyWare20.Services.Implementations
                 }
                 else if (request.SendTo.Contains("ALL", StringComparison.OrdinalIgnoreCase))
                 {
-                    var adminEmail = configuration["Email"] ?? "info@agouramathcircle.org";
+                    var adminEmail = configuration["Email"] ?? "info@agouramathcircle.net";
                     await emailUtility.SendEmailGroupAsync(adminEmail, request.SendFrom, emailSubject, emailBody, request.SendTo);
                 }
                 else
@@ -301,7 +301,7 @@ namespace pStudyWare20.Services.Implementations
                 }
                 else
                 {
-                    var adminEmail = configuration["Email"] ?? "info@agouramathcircle.org";
+                    var adminEmail = configuration["Email"] ?? "info@agouramathcircle.net";
                     await emailUtility.SendEmailGroupAsync(adminEmail, request.SendFrom, emailSubject, emailBody, request.SendTo);
                 }
             }
@@ -313,7 +313,7 @@ namespace pStudyWare20.Services.Implementations
                 }
                 else if (request.SendTo.Contains("ALL", StringComparison.OrdinalIgnoreCase))
                 {
-                    var adminEmail = configuration["Email"] ?? "info@agouramathcircle.org";
+                    var adminEmail = configuration["Email"] ?? "info@agouramathcircle.net";
                     await emailUtility.SendEmailGroupAsync(adminEmail, request.SendFrom, emailSubject, emailBody, request.SendTo);
                 }
                 else

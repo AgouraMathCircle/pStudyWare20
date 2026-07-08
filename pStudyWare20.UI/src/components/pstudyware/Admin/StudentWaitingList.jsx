@@ -188,6 +188,12 @@ const WaitingListPasswordCell = ({ value, onCopied }) => {
   );
 };
 
+const STATUS_OPTIONS = [
+  { value: "A", label: "Approved" },
+  { value: "D", label: "Declined" },
+];
+
+// Class is hardcoded (same catalog used across admin pages; no class lookup table wired for this screen).
 const CLASS_OPTIONS = [
   { value: "JB", label: "Junior Beginner" },
   { value: "JI", label: "Junior Intermediate" },
@@ -208,16 +214,6 @@ const CLASS_OPTIONS = [
 const LOCATION_OPTIONS = [
   { value: "O", label: "OnSite" },
   { value: "I", label: "Internet" },
-];
-
-const STATUS_OPTIONS = [
-  { value: "A", label: "Approved" },
-  { value: "D", label: "Declined" },
-];
-
-const SESSION_OPTIONS = [
-  { value: "F2024", label: "Fall F2024" },
-  { value: "S2024", label: "Spring 2024" },
 ];
 
 // Parse StudentClassInfo legacy format: Fname E$~# Lname E$~# Class E$~# Email E$~# Sem E$~# Grade E$~# Location E$~# ChapterID E$~# Password
@@ -268,13 +264,49 @@ function resolveWaitingListChapterId(row, parsed, chapters) {
   const match = chapters.find((chapter) => {
     const name = String(chapter.chapterName ?? chapter.ChapterName ?? "").trim();
     const loc = String(chapter.location ?? chapter.Location ?? "").trim();
+    const city = String(chapter.city ?? chapter.City ?? "").trim();
+    const label = String(chapter.label ?? chapter.Label ?? "").trim();
     return (
       eventLocation === name ||
+      eventLocation === label ||
       eventLocation === `${name} - ${loc}` ||
+      eventLocation === `${name} - ${loc} - ${city}` ||
       eventLocation.startsWith(`${name} -`)
     );
   });
   return match ? String(match.chapterID ?? match.ChapterID ?? "") : "";
+}
+
+function mapWaitingListSessionOptions(options) {
+  if (!Array.isArray(options) || options.length === 0) {
+    return [];
+  }
+  return options
+    .map((option) => ({
+      value: String(option.value ?? option.Value ?? "").trim(),
+      label: String(
+        option.label ?? option.Label ?? option.value ?? option.Value ?? "",
+      ).trim(),
+    }))
+    .filter((option) => option.value);
+}
+
+function chapterOptionLabel(chapter) {
+  const label = String(chapter.label ?? chapter.Label ?? "").trim();
+  if (label) return label;
+  const name = String(chapter.chapterName ?? chapter.ChapterName ?? "").trim();
+  const loc = String(chapter.location ?? chapter.Location ?? "").trim();
+  const city = String(chapter.city ?? chapter.City ?? "").trim();
+  return [name, loc, city].filter(Boolean).join(" - ");
+}
+
+function getSelectedChapterLabel(chapterID, chapters) {
+  const id = String(chapterID ?? "").trim();
+  if (!id) return "";
+  const match = (chapters || []).find(
+    (chapter) => String(chapter.chapterID ?? chapter.ChapterID ?? "") === id,
+  );
+  return match ? chapterOptionLabel(match) : `Chapter ${id}`;
 }
 
 function waitingListClassCode(parsedClass, rowClass) {
@@ -327,6 +359,7 @@ const StudentWaitingList = () => {
   const [loading, setLoading] = useState(true);
   const [waitingForOnSite, setWaitingForOnSite] = useState("N");
   const [chapterLocations, setChapterLocations] = useState([]);
+  const [sessionOptions, setSessionOptions] = useState([]);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -335,7 +368,7 @@ const StudentWaitingList = () => {
     lastName: "",
     chapterID: "",
     location: "O",
-    session: "F2024",
+    session: "",
     class: "",
     section: "A",
     applicationStatus: "A",
@@ -359,7 +392,7 @@ const StudentWaitingList = () => {
   const username = user?.email || user?.username || "";
 
   const sessionSelectOptions = useMemo(() => {
-    const options = [...SESSION_OPTIONS];
+    const options = [...sessionOptions];
     const currentSession = form.session?.trim();
     if (
       currentSession &&
@@ -368,7 +401,7 @@ const StudentWaitingList = () => {
       options.unshift({ value: currentSession, label: currentSession });
     }
     return options;
-  }, [form.session]);
+  }, [sessionOptions, form.session]);
 
   const chapterSelectIds = useMemo(
     () =>
@@ -460,6 +493,24 @@ const StudentWaitingList = () => {
     }
   };
 
+  const loadSessionOptions = async () => {
+    try {
+      const res = await studentWaitingListService.getActiveSessionOptions();
+      const options = res?.sessionOptions ?? res?.SessionOptions;
+      if (res?.isSuccess && Array.isArray(options)) {
+        const mapped = mapWaitingListSessionOptions(options);
+        setSessionOptions(mapped);
+        setForm((f) =>
+          f.session || mapped.length === 0
+            ? f
+            : { ...f, session: mapped[0].value },
+        );
+      }
+    } catch (err) {
+      console.error("Error loading session options:", err);
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated || !user) {
       setLoading(false);
@@ -474,6 +525,7 @@ const StudentWaitingList = () => {
 
   useEffect(() => {
     loadChapterLocations();
+    loadSessionOptions();
   }, []);
 
   /** Legacy kGrid: first header click DESC, same column toggles ASC/DESC. */
@@ -609,7 +661,11 @@ const StudentWaitingList = () => {
       lastName: parsed.lastName || nameParts.slice(1).join(" ") || "",
       chapterID,
       location: waitingListLocationCode(parsed.location, row.eventLocation),
-      session: parsed.session || row.eventSession || SESSION_OPTIONS[0].value,
+      session:
+        parsed.session ||
+        row.eventSession ||
+        sessionOptions[0]?.value ||
+        "",
       class: classCode,
       section: waitingListDefaultSection(classCode, chapterID),
       applicationStatus: waitingListApplicationStatus(row.applicationStatus),
@@ -696,34 +752,42 @@ const StudentWaitingList = () => {
     const parsed = parseStudentClassInfo(selectedRow.studentClassInfo);
     const nameParts = (selectedRow.studentName || "").trim().split(/\s+/);
 
+    // camelCase payload — matches API DTOs / RegisteredStudentList update-class pattern.
+    const payload = {
+      studentID: String(selectedRow.studentID ?? "").trim(),
+      class: String(form.class ?? "").trim(),
+      section: String(form.section ?? "").trim(),
+      chapterID: String(form.chapterID ?? "").trim(),
+      location: String(form.location ?? "").trim(),
+      session: String(form.session ?? "").trim(),
+      applicationStatus: String(form.applicationStatus ?? "A").trim(),
+      firstName: parsed.firstName || nameParts[0] || "",
+      lastName: parsed.lastName || nameParts.slice(1).join(" ") || "",
+      email: selectedRow.emailAddress || parsed.email || "",
+      password: parsed.password || selectedRow.password || "",
+      reason: form.reason,
+    };
+
     setSubmitting(true);
     try {
       const res =
-        await studentWaitingListService.updateStudentWaitingListStatus({
-          StudentID: String(selectedRow.studentID),
-          Class: form.class,
-          Section: form.section,
-          ChapterID: form.chapterID,
-          Location: form.location,
-          Session: form.session,
-          ApplicationStatus: form.applicationStatus,
-          FirstName: parsed.firstName || nameParts[0] || "",
-          LastName: parsed.lastName || nameParts.slice(1).join(" ") || "",
-          Email: selectedRow.emailAddress || parsed.email || "",
-          Password: parsed.password || selectedRow.password || "",
-          Reason: form.reason,
-        });
-      if (res?.isSuccess) {
+        await studentWaitingListService.updateStudentWaitingListStatus(payload);
+      const ok = res?.isSuccess === true || res?.IsSuccess === true;
+      if (ok) {
         setSnackbar({
           open: true,
-          message: res.message || "Application updated successfully.",
+          message:
+            res.message ||
+            res.Message ||
+            "Application updated successfully.",
           severity: "success",
         });
         setReviewOpen(false);
         setSelectedRow(null);
         loadList();
       } else {
-        const message = res?.errorMessage || "Update failed.";
+        const message =
+          res?.errorMessage || res?.ErrorMessage || "Update failed.";
         setSnackbar({
           open: true,
           message,
@@ -1334,42 +1398,62 @@ const StudentWaitingList = () => {
             />
           </Grid>
           <Grid item xs={12}>
-            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
-              <InputLabel>Chapter</InputLabel>
-              <PortalModalSelect
-                value={String(form.chapterID ?? "")}
-                label="Chapter"
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    chapterID: e.target.value,
-                    section: waitingListDefaultSection(f.class, e.target.value),
-                  }))
-                }
-              >
-                {!form.chapterID && (
-                  <MenuItem value="">
-                    <em>Select chapter</em>
-                  </MenuItem>
-                )}
-                {form.chapterID &&
-                  !chapterSelectIds.includes(String(form.chapterID)) && (
-                    <MenuItem value={String(form.chapterID)}>
-                      Chapter {form.chapterID}
-                    </MenuItem>
-                  )}
-                {chapterLocations.map((ch) => {
-                  const id = String(ch.chapterID ?? ch.ChapterID ?? "");
-                  const name = ch.chapterName ?? ch.ChapterName ?? "";
-                  const loc = ch.location ?? ch.Location ?? "";
-                  return (
-                    <MenuItem key={id} value={id}>
-                      {name} - {loc}
-                    </MenuItem>
-                  );
-                })}
-              </PortalModalSelect>
-            </FormControl>
+            <Tooltip
+              title={
+                getSelectedChapterLabel(form.chapterID, chapterLocations) ||
+                "Select chapter"
+              }
+              placement="top-start"
+              enterDelay={400}
+            >
+              <Box sx={{ width: "100%" }}>
+                <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+                  <InputLabel>Chapter</InputLabel>
+                  <PortalModalSelect
+                    value={String(form.chapterID ?? "")}
+                    label="Chapter"
+                    renderValue={(selected) =>
+                      getSelectedChapterLabel(selected, chapterLocations) ||
+                      selected
+                    }
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        chapterID: e.target.value,
+                        section: waitingListDefaultSection(
+                          f.class,
+                          e.target.value,
+                        ),
+                      }))
+                    }
+                  >
+                    {!form.chapterID && (
+                      <MenuItem value="">
+                        <em>Select chapter</em>
+                      </MenuItem>
+                    )}
+                    {form.chapterID &&
+                      !chapterSelectIds.includes(String(form.chapterID)) && (
+                        <MenuItem
+                          value={String(form.chapterID)}
+                          title={`Chapter ${form.chapterID}`}
+                        >
+                          Chapter {form.chapterID}
+                        </MenuItem>
+                      )}
+                    {chapterLocations.map((ch) => {
+                      const id = String(ch.chapterID ?? ch.ChapterID ?? "");
+                      const label = chapterOptionLabel(ch);
+                      return (
+                        <MenuItem key={id} value={id} title={label}>
+                          {label}
+                        </MenuItem>
+                      );
+                    })}
+                  </PortalModalSelect>
+                </FormControl>
+              </Box>
+            </Tooltip>
           </Grid>
           <Grid item xs={12}>
             <FormControl fullWidth size="small" sx={portalModalFieldSx}>
@@ -1399,6 +1483,11 @@ const StudentWaitingList = () => {
                   setForm((f) => ({ ...f, session: e.target.value }))
                 }
               >
+                {!form.session && (
+                  <MenuItem value="">
+                    <em>Select session</em>
+                  </MenuItem>
+                )}
                 {sessionSelectOptions.map((opt) => (
                   <MenuItem key={opt.value} value={opt.value}>
                     {opt.label}

@@ -13,17 +13,25 @@ namespace pStudyWare20.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, ILogger<AuthController> logger)
         {
             _authService = authService;
+            _logger = logger;
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             try
             {
+                if (request == null)
+                {
+                    return BadRequest(new { message = "Login request body is required." });
+                }
+
                 var response = await _authService.AuthenticateAsync(request);
 
                 if (response == null)
@@ -33,9 +41,9 @@ namespace pStudyWare20.API.Controllers
 
                 return Ok(response);
             }
-            catch
+            catch (Exception ex)
             {
-                // Log the exception in production
+                _logger.LogError(ex, "Login failed for {Email}", request?.Email);
                 return StatusCode(500, new { message = "An error occurred during authentication" });
             }
         }
@@ -103,6 +111,7 @@ namespace pStudyWare20.API.Controllers
         }
 
         [HttpPost("refresh-token")]
+        [AllowAnonymous]
         public IActionResult RefreshToken([FromBody] RefreshTokenRequest request)
         {
             try

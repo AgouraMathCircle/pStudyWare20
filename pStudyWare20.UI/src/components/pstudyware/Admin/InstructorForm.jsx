@@ -8,6 +8,7 @@ import {
   MenuItem,
   Box,
   Typography,
+  Tooltip,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
@@ -139,15 +140,26 @@ const ensureClassCode = (classCode) => {
 };
 
 const getChapterNameOnly = (chapter) =>
-  chapter.label ?? chapter.chapterName ?? chapter.ChapterName ?? "";
+  String(
+    chapter?.name ??
+      chapter?.Name ??
+      chapter?.chapterName ??
+      chapter?.ChapterName ??
+      "",
+  ).trim();
 
 const getChapterOptionValue = (chapter) =>
-  String(chapter.value ?? chapter.chapterID ?? chapter.ChapterID ?? "");
+  String(chapter?.value ?? chapter?.chapterID ?? chapter?.ChapterID ?? "").trim();
 
+/** Display: prefer server Label, else Name - Location - City (AMC_ChapterMaster). */
 const getChapterOptionLabel = (chapter) => {
+  const label = String(chapter?.label ?? chapter?.Label ?? "").trim();
+  if (label) return label;
+
   const name = getChapterNameOnly(chapter);
-  const loc = chapter.location ?? chapter.Location ?? "";
-  return loc ? `${name} - ${loc}` : name;
+  const loc = String(chapter?.location ?? chapter?.Location ?? "").trim();
+  const city = String(chapter?.city ?? chapter?.City ?? "").trim();
+  return [name, loc, city].filter(Boolean).join(" - ");
 };
 
 const ensureChapterID = (chapterID, chapters, chapterName = "") => {
@@ -383,8 +395,17 @@ const InstructorForm = ({
 
     try {
       await onSubmit({
-        ...formData,
-        class: formData.classCode,
+        instructorID: Number(formData.instructorID ?? 0),
+        firstName: String(formData.firstName ?? "").trim(),
+        lastName: String(formData.lastName ?? "").trim(),
+        emailID: String(formData.emailID ?? "").trim(),
+        contactPhone: String(formData.contactPhone ?? "").trim(),
+        chapterID: String(formData.chapterID ?? "").trim(),
+        class: String(formData.classCode ?? "").trim(),
+        classCode: String(formData.classCode ?? "").trim(),
+        section: String(formData.section ?? "A").trim(),
+        instructorType: String(formData.instructorType ?? "P").trim(),
+        memberStatus: String(formData.memberStatus ?? "1").trim(),
       });
       handleClose();
     } catch (error) {
@@ -480,51 +501,76 @@ const InstructorForm = ({
           />
         </Grid>
 
-        {/* Row 2: Chapter, Type, Class, Section, Status */}
+        {/* Row 2: Chapter on its own line */}
         <Grid item xs={12}>
-          <Box sx={{ display: "flex", gap: 1.5, flexWrap: "nowrap" }}>
-            <FormControl
-              fullWidth
-              error={!!errors.chapterID}
-              required
-              size="small"
-              sx={{ ...portalModalFieldSx, flex: 1.4, minWidth: 0 }}
-            >
-              <InputLabel id="instructor-chapter-label">Chapter</InputLabel>
-              <PortalModalSelect
-                labelId="instructor-chapter-label"
-                name="chapterID"
-                value={ensureChapterID(
+          <Tooltip
+            title={
+              getChapterLabel(
+                ensureChapterID(
                   formData.chapterID,
                   chapters,
                   pickField(instructor || {}, "chapterName", "ChapterName"),
-                )}
-                onChange={handleChange}
-                label="Chapter"
-                renderValue={(selected) =>
-                  getChapterLabel(selected, chapters) || selected
-                }
+                ),
+                chapters,
+              ) || "Select chapter"
+            }
+            placement="top-start"
+            enterDelay={400}
+          >
+            <Box sx={{ width: "100%", minWidth: 0 }}>
+              <FormControl
+                fullWidth
+                error={!!errors.chapterID}
+                required
+                size="small"
+                sx={{ ...portalModalFieldSx, width: "100%", minWidth: 0 }}
               >
-                {chapters && chapters.length > 0 ? (
-                  chapters.map((chapter) => {
-                    const chapterValue = getChapterOptionValue(chapter);
-                    return (
-                      <MenuItem key={chapterValue} value={chapterValue}>
-                        {getChapterOptionLabel(chapter)}
-                      </MenuItem>
-                    );
-                  })
-                ) : (
-                  <MenuItem value="">No chapters available</MenuItem>
+                <InputLabel id="instructor-chapter-label">Chapter</InputLabel>
+                <PortalModalSelect
+                  labelId="instructor-chapter-label"
+                  name="chapterID"
+                  value={ensureChapterID(
+                    formData.chapterID,
+                    chapters,
+                    pickField(instructor || {}, "chapterName", "ChapterName"),
+                  )}
+                  onChange={handleChange}
+                  label="Chapter"
+                  renderValue={(selected) =>
+                    getChapterLabel(selected, chapters) || selected
+                  }
+                >
+                  {chapters && chapters.length > 0 ? (
+                    chapters.map((chapter) => {
+                      const chapterValue = getChapterOptionValue(chapter);
+                      const chapterLabel = getChapterOptionLabel(chapter);
+                      return (
+                        <MenuItem
+                          key={chapterValue}
+                          value={chapterValue}
+                          title={chapterLabel}
+                        >
+                          {chapterLabel}
+                        </MenuItem>
+                      );
+                    })
+                  ) : (
+                    <MenuItem value="">No chapters available</MenuItem>
+                  )}
+                </PortalModalSelect>
+                {errors.chapterID && (
+                  <Typography variant="caption" color="error">
+                    {errors.chapterID}
+                  </Typography>
                 )}
-              </PortalModalSelect>
-              {errors.chapterID && (
-                <Typography variant="caption" color="error">
-                  {errors.chapterID}
-                </Typography>
-              )}
-            </FormControl>
+              </FormControl>
+            </Box>
+          </Tooltip>
+        </Grid>
 
+        {/* Row 3: Type, Class, Section, Status */}
+        <Grid item xs={12}>
+          <Box sx={{ display: "flex", gap: 1.5, flexWrap: "nowrap" }}>
             <FormControl
               fullWidth
               error={!!errors.instructorType}

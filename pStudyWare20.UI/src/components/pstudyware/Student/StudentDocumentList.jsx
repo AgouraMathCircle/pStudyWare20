@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Box,
+  Button,
   Typography,
   Table,
   TableBody,
@@ -8,18 +9,24 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Paper,
+  Tooltip,
   TextField,
   Select,
   MenuItem,
-  Paper,
-  Button,
-  Tooltip,
+  CircularProgress,
 } from "@mui/material";
-import PdfViewerModal from "../../common/PdfViewerModal";
-import config from "../../../utils/config";
+import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
+import SortableHeader from "../Common/SortableHeader";
 import {
+  sortRows,
+  toSortableDate,
+  toSortableNumber,
+} from "../../../utils/tableSort";
+import {
+  adminSessionListEmptyCellSx,
+  adminSessionListEmptyTextSx,
   adminSessionListFindButtonSx,
-  adminSessionListGridTableSx,
   adminSessionListHeaderBarSx,
   adminSessionListMenuItemSx,
   adminSessionListSearchBarSx,
@@ -31,84 +38,67 @@ import {
   adminSessionListTableBodyRowSx,
   adminSessionListTableHeadCellSx,
   adminSessionListTableHeadRowSx,
-  adminSessionListTableContainerSx,
+  adminSessionListGridTableSx,
   adminSessionListTitleSx,
-  adminSessionListEmptyCellSx,
-  adminSessionListEmptyTextSx,
   studentPortalIntroTextSx,
   studentPortalLinkSx,
 } from "../styles/applicationSurfaces";
-import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
-import SortableHeader from "../Common/SortableHeader";
-import {
-  sortRows,
-  toSortableDate,
-  toSortableNumber,
-} from "../../../utils/tableSort";
 
-const documentColumnWidths = {
-  actions: "16%",
-  docNumber: "6%",
-  className: "7%",
-  topics: "12%",
-  description: "14%",
-  documentName: "16%",
-  session: "13%",
-  postedDate: "16%",
+/** Column layout aligned with AdminDocumentList (no Posted column for students). */
+const documentListColumnWidths = {
+  actions: "14%",
+  docId: "5%",
+  class: "9%",
+  topics: "10%",
+  description: "10%",
+  name: "11%",
+  session: "12%",
+  postedDate: "14%",
 };
 
 const actionDividerSx = {
+  color: "text.secondary",
   fontSize: "0.75rem",
-  color: "text.disabled",
   userSelect: "none",
-  lineHeight: 1,
 };
 
-const studentDocumentListSearchBarOverrideSx = {
-  ...adminSessionListSearchBarSx,
-  backgroundColor: "#f7fbf7",
-  border: "1px solid #c8e6c9",
-  boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+const YOUTUBE_URL =
+  "https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/videos";
+
+const getClassLabel = (classCode) => {
+  const classMap = {
+    JB: "Junior Beginner",
+    JI: "Junior Intermediate",
+    JA: "Junior Advanced",
+    SB: "Senior Beginner",
+    SI: "Senior Intermediate",
+    SA: "Senior Advanced",
+    DS: "Data Science",
+    AI: "Artificial Intelligence",
+    GD: "Game Development",
+    AD: "App Development",
+    DM: "Data Management",
+    ST: "PSAT/SAT",
+    AT: "ACT",
+  };
+  return classMap[classCode] || classCode || "—";
 };
 
-const studentDocumentListSearchLabelOverrideSx = {
-  ...adminSessionListSearchLabelSx,
-  color: "#1b5e20",
-};
-
-const studentDocumentListSearchSelectOverrideSx = {
-  ...adminSessionListSearchSelectSx,
-  color: "#1b5e20",
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "#a5d6a7",
-  },
-  "& .MuiSelect-icon": {
-    color: "#1b5e20",
-  },
-};
-
-const studentDocumentListFindButtonOverrideSx = {
-  ...adminSessionListFindButtonSx,
-  backgroundColor: "#4caf50",
-  color: "white",
-  "&:hover": { backgroundColor: "#43a047" },
-};
-
-const getClassMaterialFieldValue = (doc, field) => {
+const getStudentDocumentFieldValue = (doc, field) => {
   switch (field) {
-    case "docNumber":
+    case "docID":
       return toSortableNumber(doc.docID);
-    case "className":
+    case "class":
       return doc.class ?? "";
     case "topics":
       return doc.topics ?? "";
     case "description":
       return doc.description ?? "";
-    case "documentName":
+    case "docName":
       return doc.docName ?? "";
     case "session":
       return doc.session ?? "";
-    case "postedDate":
+    case "uploadedDate":
       return toSortableDate(doc.uploadedDate);
     default:
       return "";
@@ -117,60 +107,32 @@ const getClassMaterialFieldValue = (doc, field) => {
 
 const StudentDocumentList = ({
   documents,
-  loading = false,
-  onRefresh: _onRefresh,
   onView,
   onDownload,
   onOpenVideo,
-  selectedPdf,
-  onClosePdfViewer,
+  refreshing = false,
 }) => {
+  const safeDocuments = Array.isArray(documents) ? documents : [];
+  const [orderBy, setOrderBy] = useState("uploadedDate");
+  const [order, setOrder] = useState("desc");
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("");
   const [searchText, setSearchText] = useState("");
-  const [filteredData, setFilteredData] = useState(documents);
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
-  const [sortField, setSortField] = useState("postedDate");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const pageSize = 10;
 
-  const pageSize = 25;
+  const filteredDocuments = useMemo(() => {
+    if (!safeDocuments.length) return [];
 
-  const handleSort = (field) => {
-    const isAsc = sortField === field && sortOrder === "asc";
-    setSortOrder(isAsc ? "desc" : "asc");
-    setSortField(field);
-    setCurrentPage(1);
-    setGoToPageInput("1");
-  };
-
-  useEffect(() => {
-    setFilteredData(documents);
-    setCurrentPage(1);
-    setGoToPageInput("1");
-  }, [documents]);
-
-  const totalRecords = filteredData.length;
-  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
-
-  const sortedDocuments = useMemo(
-    () => sortRows(filteredData, sortField, sortOrder, getClassMaterialFieldValue),
-    [filteredData, sortField, sortOrder]
-  );
-
-  const paginatedDocuments = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return sortedDocuments.slice(start, start + pageSize);
-  }, [sortedDocuments, currentPage, pageSize]);
-
-  const handleSearch = () => {
-    let filtered = [...documents];
-
+    let filtered = safeDocuments;
     if (searchBy !== "ALL" && searchText.trim()) {
-      filtered = filtered.filter((doc) => {
+      filtered = safeDocuments.filter((doc) => {
         let fieldValue = "";
-
         switch (searchBy) {
+          case "DOC_ID":
+            fieldValue = doc.docID?.toString() || "";
+            break;
           case "CLASS":
             fieldValue = doc.class || "";
             break;
@@ -180,11 +142,11 @@ const StudentDocumentList = ({
           case "DESCRIPTION":
             fieldValue = doc.description || "";
             break;
-          case "SESSION":
-            fieldValue = doc.session || "";
-            break;
           case "DOC_NAME":
             fieldValue = doc.docName || "";
+            break;
+          case "SESSION":
+            fieldValue = doc.session || "";
             break;
           default:
             return true;
@@ -206,7 +168,32 @@ const StudentDocumentList = ({
       });
     }
 
-    setFilteredData(filtered);
+    return filtered;
+  }, [safeDocuments, searchBy, searchCriteria, searchText]);
+
+  const sortedDocuments = useMemo(
+    () =>
+      sortRows(filteredDocuments, orderBy, order, getStudentDocumentFieldValue),
+    [filteredDocuments, orderBy, order],
+  );
+
+  const totalRecords = sortedDocuments.length;
+  const totalPages = Math.ceil(totalRecords / pageSize) || 0;
+
+  const paginatedDocuments = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return sortedDocuments.slice(start, start + pageSize);
+  }, [sortedDocuments, currentPage, pageSize]);
+
+  const handleSearch = () => {
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  };
+
+  const handleSort = (field) => {
+    const isAsc = orderBy === field && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(field);
     setCurrentPage(1);
     setGoToPageInput("1");
   };
@@ -220,26 +207,33 @@ const StudentDocumentList = ({
 
   const handleGoToPage = () => {
     const page = parseInt(goToPageInput, 10);
-    if (!isNaN(page) && page >= 1 && page <= totalPages) {
+    if (!Number.isNaN(page) && page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     } else {
       setGoToPageInput(currentPage.toString());
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "—";
+  const formatDate = (date) => {
+    if (!date) return "—";
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
+      const parsed = new Date(date);
+      if (Number.isNaN(parsed.getTime())) return "—";
+      return parsed.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
       });
     } catch {
-      return dateString;
+      return "—";
     }
   };
+
+  const renderActionLink = (label, onClick) => (
+    <Box onClick={onClick} sx={adminSessionListTableActionLinkSx}>
+      {label}
+    </Box>
+  );
 
   const renderDocumentActions = (doc) => (
     <Box
@@ -251,105 +245,24 @@ const StudentDocumentList = ({
         whiteSpace: "nowrap",
       }}
     >
-      <Box onClick={() => onView(doc.docName)} sx={adminSessionListTableActionLinkSx}>
-        View
-      </Box>
+      {renderActionLink("View", () => onView(doc.docName))}
       <Typography component="span" sx={actionDividerSx}>
         /
       </Typography>
-      <Box onClick={() => onDownload(doc.docName)} sx={adminSessionListTableActionLinkSx}>
-        Download
-      </Box>
+      {renderActionLink("Download", () => onDownload(doc.docName))}
       {doc.videoURL ? (
         <>
           <Typography component="span" sx={actionDividerSx}>
             /
           </Typography>
-          <Box onClick={() => onOpenVideo(doc.videoURL)} sx={adminSessionListTableActionLinkSx}>
-            Video
-          </Box>
+          {renderActionLink("Video", () => onOpenVideo(doc.videoURL))}
         </>
       ) : null}
     </Box>
   );
 
-  const renderTableBody = () => {
-    if (loading) {
-      return (
-        <TableRow>
-          <TableCell colSpan={8} align="center" sx={adminSessionListEmptyCellSx}>
-            <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
-              Loading class materials...
-            </Typography>
-          </TableCell>
-        </TableRow>
-      );
-    }
-
-    if (paginatedDocuments.length === 0) {
-      return (
-        <TableRow>
-          <TableCell colSpan={8} align="center" sx={adminSessionListEmptyCellSx}>
-            <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
-              {searchText
-                ? "No documents found matching your search."
-                : "No class materials available."}
-            </Typography>
-          </TableCell>
-        </TableRow>
-      );
-    }
-
-    return paginatedDocuments.map((doc, index) => (
-      <TableRow key={doc.docID || index} sx={adminSessionListTableBodyRowSx}>
-        <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
-          {renderDocumentActions(doc)}
-        </TableCell>
-        <TableCell sx={adminSessionListTableBodyCellSx()}>{doc.docID ?? "—"}</TableCell>
-        <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-          <Tooltip title={doc.class || ""} disableHoverListener={!doc.class}>
-            <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {doc.class || "—"}
-            </Box>
-          </Tooltip>
-        </TableCell>
-        <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-          <Tooltip title={doc.topics || ""} disableHoverListener={!doc.topics}>
-            <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {doc.topics || "—"}
-            </Box>
-          </Tooltip>
-        </TableCell>
-        <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-          <Tooltip title={doc.description || ""} disableHoverListener={!doc.description}>
-            <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {doc.description || "—"}
-            </Box>
-          </Tooltip>
-        </TableCell>
-        <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-          <Tooltip title={doc.docName || ""} disableHoverListener={!doc.docName}>
-            <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {doc.docName || "—"}
-            </Box>
-          </Tooltip>
-        </TableCell>
-        <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-          <Tooltip title={doc.session || ""} disableHoverListener={!doc.session}>
-            <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {doc.session || "—"}
-            </Box>
-          </Tooltip>
-        </TableCell>
-        <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
-          {formatDate(doc.uploadedDate)}
-        </TableCell>
-      </TableRow>
-    ));
-  };
-
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box>
       <Box sx={adminSessionListHeaderBarSx}>
         <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
           Class Material List
@@ -358,42 +271,60 @@ const StudentDocumentList = ({
 
       <Box
         sx={{
-          mb: 2,
-          p: 2,
-          borderRadius: 2,
-          border: "1px solid #c8e6c9",
-          backgroundColor: "#e8f5e9",
-          color: "#1b5e20",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 2,
+          mb: 1,
+          flexWrap: "nowrap",
         }}
       >
-        <Typography component="div" sx={{ color: "#1b5e20" }}>
-          <span style={{ fontWeight: 600, marginRight: '8px' }}>
-            Watch Lecture Notes Video:
-          </span>
-          <a
-            href="https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/videos"
+        <Typography
+          component="div"
+          sx={{
+            ...studentPortalIntroTextSx,
+            mb: 0,
+            flex: 1,
+            whiteSpace: "nowrap",
+            fontSize: "calc(1rem - 1pt)",
+            lineHeight: 1.25,
+            overflow: "hidden",
+          }}
+        >
+          {" Lecture Notes Video "}
+          <Box
+            component="a"
+            href={YOUTUBE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            style={studentPortalLinkSx}
+            sx={{
+              ...studentPortalLinkSx,
+              fontSize: "inherit",
+              display: "inline",
+            }}
           >
             Agoura Math Circle YouTube Channel
-          </a>
-          {" — Subscription is required for all students. Please subscribe, it will help us to upload more videos."}
+          </Box>
+          {
+            " Note: Subscription is required for all students. Please subscribe, it will help us to upload more videos."
+          }
         </Typography>
       </Box>
 
-      <Box sx={studentDocumentListSearchBarOverrideSx}>
+      <Box sx={adminSessionListSearchBarSx}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography sx={studentDocumentListSearchLabelOverrideSx}>Search By:</Typography>
+          <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
           <Select
+            size="small"
             value={searchBy}
             onChange={(e) => setSearchBy(e.target.value)}
-            size="small"
-            sx={studentDocumentListSearchSelectOverrideSx}
-            disabled={loading}
+            sx={adminSessionListSearchSelectSx}
           >
             <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
               -ALL-
+            </MenuItem>
+            <MenuItem value="DOC_ID" sx={adminSessionListMenuItemSx}>
+              Doc #
             </MenuItem>
             <MenuItem value="CLASS" sx={adminSessionListMenuItemSx}>
               Class
@@ -404,23 +335,21 @@ const StudentDocumentList = ({
             <MenuItem value="DESCRIPTION" sx={adminSessionListMenuItemSx}>
               Description
             </MenuItem>
-            <MenuItem value="SESSION" sx={adminSessionListMenuItemSx}>
-              Session
-            </MenuItem>
             <MenuItem value="DOC_NAME" sx={adminSessionListMenuItemSx}>
               Document Name
             </MenuItem>
+            <MenuItem value="SESSION" sx={adminSessionListMenuItemSx}>
+              Session
+            </MenuItem>
           </Select>
         </Box>
-
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography sx={studentDocumentListSearchLabelOverrideSx}>Criteria:</Typography>
+          <Typography sx={adminSessionListSearchLabelSx}>Criteria:</Typography>
           <Select
+            size="small"
             value={searchCriteria}
             onChange={(e) => setSearchCriteria(e.target.value)}
-            size="small"
-            sx={studentDocumentListSearchSelectOverrideSx}
-            disabled={loading}
+            sx={adminSessionListSearchSelectSx}
           >
             <MenuItem value="" sx={adminSessionListMenuItemSx}>
               Select Criteria
@@ -436,95 +365,173 @@ const StudentDocumentList = ({
             </MenuItem>
           </Select>
         </Box>
-
         <TextField
           size="small"
           placeholder="Search Text"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           sx={adminSessionListSearchFieldSx}
-          disabled={loading}
         />
-
         <Button
           variant="contained"
           size="small"
           onClick={handleSearch}
-          sx={studentDocumentListFindButtonOverrideSx}
-          disabled={loading}
+          sx={adminSessionListFindButtonSx}
         >
           Find
         </Button>
       </Box>
 
-      <TableContainer component={Paper} sx={adminSessionListTableContainerSx}>
-        <Table size="small" sx={adminSessionListGridTableSx}>
-          <TableHead>
-            <TableRow sx={adminSessionListTableHeadRowSx}>
-              <TableCell sx={adminSessionListTableHeadCellSx(documentColumnWidths.actions)}>
-                Actions
-              </TableCell>
-              <SortableHeader
-                label="Doc #"
-                field="docNumber"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.docNumber)}
-              />
-              <SortableHeader
-                label="Class"
-                field="className"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.className)}
-              />
-              <SortableHeader
-                label="Topics"
-                field="topics"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.topics)}
-              />
-              <SortableHeader
-                label="Description"
-                field="description"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.description)}
-              />
-              <SortableHeader
-                label="Document Name"
-                field="documentName"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.documentName)}
-              />
-              <SortableHeader
-                label="Session"
-                field="session"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.session)}
-              />
-              <SortableHeader
-                label="Posted Date"
-                field="postedDate"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(documentColumnWidths.postedDate, true)}
-              />
-            </TableRow>
-          </TableHead>
-          <TableBody>{renderTableBody()}</TableBody>
-        </Table>
-      </TableContainer>
+      <Box sx={{ position: "relative", width: "100%" }}>
+        {refreshing ? (
+          <Box
+            sx={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: "rgba(255, 255, 255, 0.65)",
+            }}
+          >
+            <CircularProgress size={32} />
+          </Box>
+        ) : null}
+        <TableContainer component={Paper} sx={{ width: "100%" }}>
+          <Table sx={adminSessionListGridTableSx} size="small">
+            <TableHead>
+              <TableRow sx={adminSessionListTableHeadRowSx}>
+                <TableCell
+                  sx={adminSessionListTableHeadCellSx(documentListColumnWidths.actions)}
+                >
+                  Actions
+                </TableCell>
+                <SortableHeader
+                  label="Doc #"
+                  field="docID"
+                  sortField={orderBy}
+                  sortOrder={order}
+                  onSort={handleSort}
+                  headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.docId)}
+                />
+                <SortableHeader
+                  label="Class"
+                  field="class"
+                  sortField={orderBy}
+                  sortOrder={order}
+                  onSort={handleSort}
+                  headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.class)}
+                />
+                <SortableHeader
+                  label="Topics"
+                  field="topics"
+                  sortField={orderBy}
+                  sortOrder={order}
+                  onSort={handleSort}
+                  headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.topics)}
+                />
+                <SortableHeader
+                  label="Description"
+                  field="description"
+                  sortField={orderBy}
+                  sortOrder={order}
+                  onSort={handleSort}
+                  headCellSx={adminSessionListTableHeadCellSx(
+                    documentListColumnWidths.description,
+                  )}
+                />
+                <SortableHeader
+                  label="Name"
+                  field="docName"
+                  sortField={orderBy}
+                  sortOrder={order}
+                  onSort={handleSort}
+                  headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.name)}
+                />
+                <SortableHeader
+                  label="Session"
+                  field="session"
+                  sortField={orderBy}
+                  sortOrder={order}
+                  onSort={handleSort}
+                  headCellSx={adminSessionListTableHeadCellSx(documentListColumnWidths.session)}
+                />
+                <SortableHeader
+                  label="Posted Date"
+                  field="uploadedDate"
+                  sortField={orderBy}
+                  sortOrder={order}
+                  onSort={handleSort}
+                  headCellSx={adminSessionListTableHeadCellSx(
+                    documentListColumnWidths.postedDate,
+                    true,
+                  )}
+                />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedDocuments.length > 0 ? (
+                paginatedDocuments.map((doc, index) => (
+                  <TableRow
+                    key={doc.docID || index}
+                    sx={adminSessionListTableBodyRowSx}
+                  >
+                    <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
+                      {renderDocumentActions(doc)}
+                    </TableCell>
+                    <TableCell sx={adminSessionListTableBodyCellSx()}>
+                      {doc.docID || "—"}
+                    </TableCell>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                      <Tooltip title={getClassLabel(doc.class)}>
+                        <span>{getClassLabel(doc.class)}</span>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                      <Tooltip title={doc.topics || "—"}>
+                        <span>{doc.topics || "—"}</span>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                      <Tooltip title={doc.description || "—"}>
+                        <span>{doc.description || "—"}</span>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                      <Tooltip title={doc.docName || "—"}>
+                        <span>{doc.docName || "—"}</span>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
+                      <Tooltip title={doc.session || "—"}>
+                        <span>{doc.session || "—"}</span>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
+                      {formatDate(doc.uploadedDate)}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} align="center" sx={adminSessionListEmptyCellSx}>
+                    <Typography
+                      variant="body2"
+                      color="textSecondary"
+                      sx={adminSessionListEmptyTextSx}
+                    >
+                      {searchText
+                        ? "No documents found matching your search criteria."
+                        : "No class materials available."}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
 
       <AdminSessionListPagination
         currentPage={currentPage}
@@ -535,14 +542,6 @@ const StudentDocumentList = ({
         onGoToPageInputChange={setGoToPageInput}
         onPageChange={handlePageChange}
         onGoToPage={handleGoToPage}
-      />
-
-      <PdfViewerModal
-        open={Boolean(selectedPdf)}
-        pdfUrl={selectedPdf}
-        pdfName={selectedPdf}
-        onClose={onClosePdfViewer}
-        basePath={config.paths.publicDocuments}
       />
     </Box>
   );

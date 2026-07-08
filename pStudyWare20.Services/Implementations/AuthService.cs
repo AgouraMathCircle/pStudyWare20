@@ -4,6 +4,7 @@ using pStudyWare20.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using pStudyWare20.Data.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace pStudyWare20.Services.Implementations
 {
@@ -13,13 +14,20 @@ namespace pStudyWare20.Services.Implementations
         private readonly IJwtService _jwtService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IEmailUtility _emailUtility;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IMemberRepository memberRepository, IJwtService jwtService, IHttpContextAccessor httpContextAccessor, IEmailUtility emailUtility)
+        public AuthService(
+            IMemberRepository memberRepository,
+            IJwtService jwtService,
+            IHttpContextAccessor httpContextAccessor,
+            IEmailUtility emailUtility,
+            ILogger<AuthService> logger)
         {
             _memberRepository = memberRepository;
             _jwtService = jwtService;
             _httpContextAccessor = httpContextAccessor;
             _emailUtility = emailUtility;
+            _logger = logger;
         }
 
         //HP
@@ -79,10 +87,10 @@ namespace pStudyWare20.Services.Implementations
                     ExpiresAt = DateTime.UtcNow.AddMinutes(60)
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Log the exception in production
-                return null;
+                _logger.LogError(ex, "Authentication failed for {Email}", request.Email);
+                throw;
             }
         }
 

@@ -69,6 +69,17 @@ namespace pStudyWare20.Repository.Implementations
         {
             try
             {
+                if (request == null)
+                {
+                    throw new ArgumentNullException(nameof(request));
+                }
+
+                var chapterId = ParseChapterId(request.ChapterID);
+                if (chapterId <= 0)
+                {
+                    throw new ArgumentException("Valid ChapterID is required.");
+                }
+
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
@@ -94,7 +105,7 @@ namespace pStudyWare20.Repository.Implementations
                     command.Parameters.Add(new SqlParameter("@lastname", request.LastName ?? ""));
                     command.Parameters.Add(new SqlParameter("@emailId", request.EmailID ?? ""));
                     command.Parameters.Add(new SqlParameter("@Phone", request.ContactPhone ?? ""));
-                    command.Parameters.Add(new SqlParameter("@ChapterID", ParseChapterId(request.ChapterID)));
+                    command.Parameters.Add(new SqlParameter("@ChapterID", chapterId));
                     command.Parameters.Add(new SqlParameter("@Type", request.InstructorType ?? ""));
                     command.Parameters.Add(new SqlParameter("@Class", request.Class ?? ""));
                     command.Parameters.Add(new SqlParameter("@Section", request.Section ?? ""));

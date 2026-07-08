@@ -48,11 +48,20 @@ const studentWaitingListService = {
   },
 
   /**
-   * Get chapter/location dropdown data
+   * Get chapter/location dropdown data from AMC_ChapterMaster (Name, Location, City).
    * @param {object} request - { Mode: "N" }
    */
   getChapterLocation: async (request = { Mode: "N" }) => {
     const response = await api.post(`${BASE}/GetChapterLocation`, request);
+    return response.data;
+  },
+
+  /**
+   * Active session options from AMC_tblLookupSemester
+   * (Semester, LastSemester, NextSemester).
+   */
+  getActiveSessionOptions: async () => {
+    const response = await api.get(`${BASE}/GetActiveSessionOptions`);
     return response.data;
   },
 

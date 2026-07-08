@@ -30,11 +30,16 @@ namespace pStudyWare20.Repository.Interfaces
         Task<OperationResponse> DeleteStudentAsync(DeleteStudentRequest request);
 
         /// <summary>
-        /// Get chapter location
+        /// Get chapter location from AMC_ChapterMaster (Name, Location, City).
         /// </summary>
         /// <param name="request">GetChapterLocationRequest</param>
         /// <returns>Task&lt;ChapterLocationResponse&gt;</returns>
         Task<ChapterLocationResponse> GetChapterLocationAsync(GetChapterLocationRequest request);
+
+        /// <summary>
+        /// Active session options from AMC_tblLookupSemester (Semester, LastSemester, NextSemester).
+        /// </summary>
+        Task<StudentWaitingListSessionOptionsResponse> GetActiveSessionOptionsAsync();
 
         /// <summary>
         /// Get password

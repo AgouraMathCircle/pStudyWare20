@@ -29,6 +29,11 @@ namespace pStudyWare20.Services.Implementations
             return await _repository.DeleteVolunteerRequestAsync(request);
         }
 
+        public async Task<GetVolunteerChapterLocationsResponse> GetChapterLocationsAsync()
+        {
+            return await _repository.GetChapterLocationsAsync();
+        }
+
         public async Task<ExportExcelResponse> ExportToExcelAsync(ExportExcelRequest request)
         {
             try

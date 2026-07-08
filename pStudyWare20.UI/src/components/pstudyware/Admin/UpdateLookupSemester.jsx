@@ -112,6 +112,10 @@ const DATE_FIELDS = new Set([
 const emptyForm = {
   semester: "",
   lastSemester: "",
+  semesterName: "",
+  nextSemester: "",
+  lastSemesterName: "",
+  nextSemesterName: "",
   startingDate: "",
   regStartDate: "",
   regCloseDate: "",
@@ -172,11 +176,35 @@ const toApiDate = (val) => {
   return trimmed;
 };
 
+const padDatePart = (value) => String(value).padStart(2, "0");
+
+/** API datetime → YYYY-MM-DDTHH:mm for `<input type="datetime-local">` */
+const toInputDateTime = (val) => {
+  if (!val) return "";
+  const trimmed = String(val).trim();
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return `${parsed.getFullYear()}-${padDatePart(parsed.getMonth() + 1)}-${padDatePart(parsed.getDate())}T${padDatePart(parsed.getHours())}:${padDatePart(parsed.getMinutes())}`;
+};
+
+/** datetime-local → MM/DD/YYYY HH:mm:ss for API */
+const toApiDateTime = (val) => {
+  if (!val) return "";
+  const trimmed = String(val).trim();
+  const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (match) {
+    const [, year, month, day, hour, minute] = match;
+    return `${month}/${day}/${year} ${hour}:${minute}:00`;
+  }
+  return trimmed;
+};
+
 const normalizeFormDatesForInput = (formState) => {
   const next = { ...formState };
   DATE_FIELDS.forEach((field) => {
     next[field] = toInputDate(next[field]);
   });
+  next.currentExamDueTime = toInputDateTime(next.currentExamDueTime);
   return next;
 };
 
@@ -185,6 +213,7 @@ const normalizeFormDatesForApi = (formState) => {
   DATE_FIELDS.forEach((field) => {
     next[field] = toApiDate(next[field]);
   });
+  next.currentExamDueTime = toApiDateTime(next.currentExamDueTime);
   return next;
 };
 
@@ -255,6 +284,10 @@ const UpdateLookupSemester = () => {
         normalizeFormDatesForInput({
           semester: L.semester ?? "",
           lastSemester: L.lastSemester ?? "",
+          semesterName: L.semesterName ?? L.SemesterName ?? "",
+          nextSemester: L.nextSemester ?? L.NextSemester ?? "",
+          lastSemesterName: L.lastSemesterName ?? L.LastSemesterName ?? "",
+          nextSemesterName: L.nextSemesterName ?? L.NextSemesterName ?? "",
           startingDate: L.startingDate ?? "",
           regStartDate: L.regStartDate ?? "",
           regCloseDate: L.regCloseDate ?? "",
@@ -332,6 +365,10 @@ const UpdateLookupSemester = () => {
       const payload = {
         semester: apiForm.semester,
         lastSemester: apiForm.lastSemester,
+        semesterName: apiForm.semesterName,
+        nextSemester: apiForm.nextSemester,
+        lastSemesterName: apiForm.lastSemesterName,
+        nextSemesterName: apiForm.nextSemesterName,
         startingDate: apiForm.startingDate,
         regStartDate: apiForm.regStartDate,
         regCloseDate: apiForm.regCloseDate,
@@ -388,22 +425,31 @@ const UpdateLookupSemester = () => {
     }
   };
 
-  const renderTextInput = (field, extra = {}) => (
-    <TextField
-      fullWidth
-      size="small"
-      variant="outlined"
-      hiddenLabel
-      value={form[field]}
-      onChange={handleChange(field)}
-      disabled={saving}
-      InputProps={{ readOnly: fieldReadOnly }}
-      sx={lookupFieldSx}
-      {...extra}
-    />
-  );
+  const withInputTabIndex = (tabIndex, inputProps = {}) => ({
+    ...inputProps,
+    tabIndex,
+  });
 
-  const renderDateInput = (field) => (
+  const renderTextInput = (field, extra = {}) => {
+    const { tabIndex, inputProps, InputProps, ...rest } = extra;
+    return (
+      <TextField
+        fullWidth
+        size="small"
+        variant="outlined"
+        hiddenLabel
+        value={form[field]}
+        onChange={handleChange(field)}
+        disabled={saving}
+        InputProps={{ readOnly: fieldReadOnly, ...InputProps }}
+        inputProps={withInputTabIndex(tabIndex, inputProps)}
+        sx={lookupFieldSx}
+        {...rest}
+      />
+    );
+  };
+
+  const renderDateInput = (field, tabIndex) => (
     <TextField
       fullWidth
       size="small"
@@ -414,107 +460,147 @@ const UpdateLookupSemester = () => {
       onChange={handleChange(field)}
       disabled={saving || fieldReadOnly}
       InputLabelProps={{ shrink: true }}
+      inputProps={withInputTabIndex(tabIndex)}
       sx={lookupFieldSx}
     />
   );
 
-  const renderSelectInput = (field, options, extra = {}) => (
+  const renderDateTimeInput = (field, tabIndex) => (
     <TextField
       fullWidth
-      select
       size="small"
       variant="outlined"
       hiddenLabel
-      value={form[field]}
+      type="datetime-local"
+      value={form[field] || ""}
       onChange={handleChange(field)}
-      disabled={!canUpdate || saving}
+      disabled={saving || fieldReadOnly}
+      InputLabelProps={{ shrink: true }}
+      inputProps={withInputTabIndex(tabIndex, { step: 60 })}
       sx={lookupFieldSx}
-      {...extra}
-    >
-      {options.map((opt) => (
-        <MenuItem key={opt.value} value={opt.value} sx={adminSessionListMenuItemSx}>
-          {opt.label}
-        </MenuItem>
-      ))}
-    </TextField>
+    />
   );
 
+  const renderSelectInput = (field, options, extra = {}) => {
+    const { tabIndex, SelectProps, ...rest } = extra;
+    return (
+      <TextField
+        fullWidth
+        select
+        size="small"
+        variant="outlined"
+        hiddenLabel
+        value={form[field]}
+        onChange={handleChange(field)}
+        disabled={!canUpdate || saving}
+        SelectProps={{
+          ...SelectProps,
+          SelectDisplayProps: {
+            tabIndex,
+            ...(SelectProps?.SelectDisplayProps || {}),
+          },
+        }}
+        sx={lookupFieldSx}
+        {...rest}
+      >
+        {options.map((opt) => (
+          <MenuItem key={opt.value} value={opt.value} sx={adminSessionListMenuItemSx}>
+            {opt.label}
+          </MenuItem>
+        ))}
+      </TextField>
+    );
+  };
+
   const semesterRows = [
-    { label: "Current Semester", render: () => renderTextInput("semester", { inputProps: { maxLength: 5 } }) },
-    { label: "Last Semester", render: () => renderTextInput("lastSemester", { inputProps: { maxLength: 5 } }) },
-    { label: "Starting Date", render: () => renderDateInput("startingDate") },
+    { tabIndex: 1, label: "Starting Date", render: (tabIndex) => renderDateInput("startingDate", tabIndex) },
+    { tabIndex: 2, label: "Current Semester", render: (tabIndex) => renderTextInput("semester", { tabIndex, inputProps: { maxLength: 5 } }) },
+    { tabIndex: 3, label: "Semester Name", render: (tabIndex) => renderTextInput("semesterName", { tabIndex, inputProps: { maxLength: 50 } }) },
+    { tabIndex: 4, label: "Last Semester", render: (tabIndex) => renderTextInput("lastSemester", { tabIndex, inputProps: { maxLength: 5 } }) },
+    { tabIndex: 5, label: "Last Semester Name", render: (tabIndex) => renderTextInput("lastSemesterName", { tabIndex, inputProps: { maxLength: 50 } }) },
+    { tabIndex: 6, label: "Next Semester", render: (tabIndex) => renderTextInput("nextSemester", { tabIndex, inputProps: { maxLength: 5 } }) },
+    { tabIndex: 7, label: "Next Semester Name", render: (tabIndex) => renderTextInput("nextSemesterName", { tabIndex, inputProps: { maxLength: 50 } }) },
   ];
 
   const registrationRows = [
-    { label: "Registration Start Date", render: () => renderDateInput("regStartDate") },
-    { label: "Registration Close Date", render: () => renderDateInput("regCloseDate") },
+    { tabIndex: 8, label: "Registration Start Date", render: (tabIndex) => renderDateInput("regStartDate", tabIndex) },
+    { tabIndex: 9, label: "Registration Close Date", render: (tabIndex) => renderDateInput("regCloseDate", tabIndex) },
     {
+      tabIndex: 10,
       label: "Registration Status",
-      render: () =>
+      render: (tabIndex) =>
         renderSelectInput(
           "registrationStatus",
           [
             { value: "O", label: "Open" },
             { value: "C", label: "Close" },
           ],
-          { onChange: handleRegistrationStatusChange },
+          { tabIndex, onChange: handleRegistrationStatusChange },
         ),
     },
     {
+      tabIndex: 11,
       label: "Volunteer Availability",
-      render: () =>
+      render: (tabIndex) =>
         renderSelectInput("volunteerAvailability", [
           { value: "Y", label: "Open (Yes)" },
           { value: "N", label: "Close (No)" },
-        ]),
+        ], { tabIndex }),
     },
     {
+      tabIndex: 12,
       label: "Display Documents From",
-      render: () => renderTextInput("displayDocumentsFrom"),
+      render: (tabIndex) => renderTextInput("displayDocumentsFrom", { tabIndex }),
     },
   ];
 
   const capacityRows = [
-    { label: "Junior Beginner", render: () => renderTextInput("jbTotalSpace", { inputProps: { maxLength: 5 } }) },
-    { label: "Junior Intermediate", render: () => renderTextInput("jiTotalSpace", { inputProps: { maxLength: 5 } }) },
-    { label: "Junior Advanced", render: () => renderTextInput("jaTotalSpace", { inputProps: { maxLength: 5 } }) },
-    { label: "Senior Beginner", render: () => renderTextInput("sbTotalSpace", { inputProps: { maxLength: 5 } }) },
-    { label: "Senior Intermediate", render: () => renderTextInput("siTotalSpace", { inputProps: { maxLength: 5 } }) },
-    { label: "Senior Advanced", render: () => renderTextInput("saTotalSpace", { inputProps: { maxLength: 5 } }) },
+    { tabIndex: 13, label: "Junior Beginner", render: (tabIndex) => renderTextInput("jbTotalSpace", { tabIndex, inputProps: { maxLength: 5 } }) },
+    { tabIndex: 14, label: "Junior Intermediate", render: (tabIndex) => renderTextInput("jiTotalSpace", { tabIndex, inputProps: { maxLength: 5 } }) },
+    { tabIndex: 15, label: "Junior Advanced", render: (tabIndex) => renderTextInput("jaTotalSpace", { tabIndex, inputProps: { maxLength: 5 } }) },
+    { tabIndex: 16, label: "Senior Beginner", render: (tabIndex) => renderTextInput("sbTotalSpace", { tabIndex, inputProps: { maxLength: 5 } }) },
+    { tabIndex: 17, label: "Senior Intermediate", render: (tabIndex) => renderTextInput("siTotalSpace", { tabIndex, inputProps: { maxLength: 5 } }) },
+    { tabIndex: 18, label: "Senior Advanced", render: (tabIndex) => renderTextInput("saTotalSpace", { tabIndex, inputProps: { maxLength: 5 } }) },
   ];
 
   const examRows = [
-    { label: "Current Exam Date", render: () => renderDateInput("currentExamDate") },
+    { tabIndex: 19, label: "Current Exam Date", render: (tabIndex) => renderDateInput("currentExamDate", tabIndex) },
     {
+      tabIndex: 20,
       label: "Current Exam Due Time",
-      render: () => renderTextInput("currentExamDueTime", { inputProps: { maxLength: 25 } }),
+      render: (tabIndex) => renderDateTimeInput("currentExamDueTime", tabIndex),
     },
     {
+      tabIndex: 21,
       label: "Final Exam Display",
-      render: () =>
+      render: (tabIndex) =>
         renderSelectInput(
           "finalExamDisplay",
           [
             { value: "Y", label: "Yes" },
             { value: "N", label: "No" },
           ],
-          { disabled: !canUpdate || saving || isRegistrationOpen },
+          { tabIndex, disabled: !canUpdate || saving || isRegistrationOpen },
         ),
     },
     {
+      tabIndex: 22,
       label: "Final Exam Display Chapter",
       tooltip: "Enter chapter numbers separated by commas, e.g. 1,2,",
-      render: () =>
+      render: (tabIndex) =>
         renderTextInput("finalExamDisplayChapter", {
+          tabIndex,
           inputProps: { maxLength: 100 },
           placeholder: "e.g. 1,2,",
         }),
     },
     {
+      tabIndex: 23,
       label: "Online Exam Display Chapter",
       tooltip: "Enter chapter numbers separated by commas, e.g. 1,2,",
-      render: () =>
+      render: (tabIndex) =>
         renderTextInput("onlineExamDisplayChapter", {
+          tabIndex,
           inputProps: { maxLength: 100 },
           placeholder: "e.g. 1,2,",
         }),
@@ -526,7 +612,7 @@ const UpdateLookupSemester = () => {
     return (
       <>
         <LabelCell tooltip={row.tooltip}>{row.label}</LabelCell>
-        <TableCell sx={lookupInputCellSx}>{row.render()}</TableCell>
+        <TableCell sx={lookupInputCellSx}>{row.render(row.tabIndex)}</TableCell>
       </>
     );
   };
@@ -604,7 +690,7 @@ const UpdateLookupSemester = () => {
                             <LabelCell tooltip={row.tooltip} sx={examLabelCellSx}>
                               {row.label}
                             </LabelCell>
-                            <TableCell sx={lookupInputCellSx}>{row.render()}</TableCell>
+                            <TableCell sx={lookupInputCellSx}>{row.render(row.tabIndex)}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -619,6 +705,7 @@ const UpdateLookupSemester = () => {
                       startIcon={<SaveIcon />}
                       disabled={!canUpdate || saving}
                       sx={portalModalSendButtonSx}
+                      tabIndex={24}
                     >
                       {saving ? "Saving…" : "Submit"}
                     </Button>

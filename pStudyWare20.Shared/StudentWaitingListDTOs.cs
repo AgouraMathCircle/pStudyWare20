@@ -60,7 +60,7 @@ namespace pStudyWare20.Shared
     }
 
     /// <summary>
-    /// Model for chapter location (matches StudentWaitingList from legacy system)
+    /// Model for chapter location from AMC_ChapterMaster (Name, Location, City).
     /// </summary>
     public class ChapterLocation
     {
@@ -72,6 +72,36 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Location")]
         public string Location { get; set; } = string.Empty;
+
+        [Display(Name = "City")]
+        public string City { get; set; } = string.Empty;
+
+        [Display(Name = "Label")]
+        public string Label { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Session option from AMC_tblLookupSemester (Semester / LastSemester / NextSemester).
+    /// </summary>
+    public class StudentWaitingListSessionOption
+    {
+        public string Value { get; set; } = string.Empty;
+        public string Label { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Response for active session dropdown options.
+    /// </summary>
+    public class StudentWaitingListSessionOptionsResponse
+    {
+        [Display(Name = "Is Success")]
+        public bool IsSuccess { get; set; }
+
+        [Display(Name = "Error Message")]
+        public string ErrorMessage { get; set; } = string.Empty;
+
+        [Display(Name = "Session Options")]
+        public List<StudentWaitingListSessionOption> SessionOptions { get; set; } = new List<StudentWaitingListSessionOption>();
     }
 
     /// <summary>

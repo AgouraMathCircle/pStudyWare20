@@ -59,9 +59,33 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
+                if (request == null)
+                {
+                    return new OperationResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Request is required."
+                    };
+                }
+
+                NormalizeUpdateRequest(request);
+
                 OperationResponse response;
                 if (string.Equals(request.ApplicationStatus, "A", StringComparison.OrdinalIgnoreCase))
                 {
+                    if (string.IsNullOrWhiteSpace(request.StudentID) ||
+                        string.IsNullOrWhiteSpace(request.ChapterID) ||
+                        string.IsNullOrWhiteSpace(request.Class) ||
+                        string.IsNullOrWhiteSpace(request.Location) ||
+                        string.IsNullOrWhiteSpace(request.Session))
+                    {
+                        return new OperationResponse
+                        {
+                            IsSuccess = false,
+                            ErrorMessage = "Student ID, chapter, class, location, and session are required."
+                        };
+                    }
+
                     UpdateClassSectionDefault(request);
                     response = await _repository.UpdateStudentWaitingListStatusAsync(request);
                 }
@@ -72,7 +96,10 @@ namespace pStudyWare20.Services.Implementations
                     });
 
                 if (response.IsSuccess)
+                {
+                    await EnsureReviewEmailFieldsAsync(request);
                     QueueReviewEmailNotifications(request);
+                }
 
                 return response;
             }
@@ -84,6 +111,19 @@ namespace pStudyWare20.Services.Implementations
                     ErrorMessage = ex.Message
                 };
             }
+        }
+
+        private static void NormalizeUpdateRequest(UpdateStudentWaitingListStatusRequest request)
+        {
+            request.StudentID = (request.StudentID ?? "").Trim();
+            request.Class = (request.Class ?? "").Trim();
+            request.Section = (request.Section ?? "").Trim();
+            request.ChapterID = (request.ChapterID ?? "").Trim();
+            request.Location = (request.Location ?? "").Trim().ToUpperInvariant();
+            request.Session = (request.Session ?? "").Trim();
+            request.ApplicationStatus = string.IsNullOrWhiteSpace(request.ApplicationStatus)
+                ? "A"
+                : request.ApplicationStatus.Trim().ToUpperInvariant();
         }
 
         /// <summary>
@@ -108,7 +148,7 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
-        /// Get chapter location
+        /// Get chapter location from AMC_ChapterMaster (Name, Location, City).
         /// </summary>
         /// <param name="request">GetChapterLocationRequest</param>
         /// <returns>Task&lt;ChapterLocationResponse&gt;</returns>
@@ -124,6 +164,26 @@ namespace pStudyWare20.Services.Implementations
                 {
                     IsSuccess = false,
                     ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
+        /// Active session options from AMC_tblLookupSemester (Semester, LastSemester, NextSemester).
+        /// </summary>
+        public async Task<StudentWaitingListSessionOptionsResponse> GetActiveSessionOptionsAsync()
+        {
+            try
+            {
+                return await _repository.GetActiveSessionOptionsAsync();
+            }
+            catch (Exception ex)
+            {
+                return new StudentWaitingListSessionOptionsResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message,
+                    SessionOptions = new List<StudentWaitingListSessionOption>()
                 };
             }
         }
@@ -315,6 +375,43 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
+        /// Legacy InformParent() loads password from DB when the grid/payload omits it.
+        /// </summary>
+        private async Task EnsureReviewEmailFieldsAsync(UpdateStudentWaitingListStatusRequest request)
+        {
+            request.Email = (request.Email ?? "").Trim();
+            request.FirstName = (request.FirstName ?? "").Trim();
+            request.LastName = (request.LastName ?? "").Trim();
+            request.Password = (request.Password ?? "").Trim();
+            request.Reason = (request.Reason ?? "").Trim();
+
+            if (!string.Equals(request.ApplicationStatus, "A", StringComparison.OrdinalIgnoreCase) ||
+                !string.IsNullOrWhiteSpace(request.Password) ||
+                string.IsNullOrWhiteSpace(request.Email))
+            {
+                return;
+            }
+
+            try
+            {
+                var passwordResponse = await _repository.GetPasswordAsync(new GetPasswordRequest
+                {
+                    EmailId = request.Email
+                });
+
+                if (passwordResponse.IsSuccess &&
+                    !string.IsNullOrWhiteSpace(passwordResponse.Password))
+                {
+                    request.Password = passwordResponse.Password.Trim();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading password for review email: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Legacy btnSubmit_Click sends email after DB update; do not block the API on SMTP.
         /// </summary>
         private void QueueReviewEmailNotifications(UpdateStudentWaitingListStatusRequest request)
@@ -366,6 +463,12 @@ namespace pStudyWare20.Services.Implementations
             UpdateStudentWaitingListStatusRequest request,
             IEmailUtility emailUtility)
         {
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                Console.WriteLine("Skipping waiting-list review emails: parent email is missing.");
+                return;
+            }
+
             await SendEmailToAdminAsync(request, emailUtility);
             await SendEmailToParentAsync(request, emailUtility);
         }
@@ -382,19 +485,16 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-
-               // string fromEmail = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
-
                 var subject = $"Agoura Math Circle : New Enrollment request from: {request.FirstName} {request.LastName}.";
                 var body = $@"Just Received New registration from {request.FirstName} {request.LastName}<br/>
                              Student Name: {request.FirstName} {request.LastName}<br/>
-                             Session: {request.Session}<br/>
+                             Semester: {request.Session}<br/>
                              Student Class: {request.Class}<br/>
                              Student Section: {request.Section}<br/>
                              Location: {request.ChapterID}-{request.Location}<br/><br/>
                              Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                await emailUtility.SendEmailAsync("info@agouramathcircle.org", request.Email, subject, body);
+                await emailUtility.SendEmailAsync("info@agouramathcircle.net", request.Email, subject, body);
             }
             catch (Exception ex)
             {
@@ -421,7 +521,7 @@ namespace pStudyWare20.Services.Implementations
                 {
                     subject = $"Agoura Math Circle : Enrollment Confirmation for {request.FirstName} {request.LastName}.";
                     body = $@"Congrats. We are happy to inform you that you are enrolled in Agoura Math Circle. We have approved your application for {request.FirstName} {request.LastName}.<br/>
-                             Session: {request.Session}<br/>
+                             Semester: {request.Session}<br/>
                              Student Class: {request.Class}<br/>
                              Student Section: {request.Section}<br/>
                              Location: {request.ChapterID}-{request.Location}<br/><br/>
@@ -437,7 +537,7 @@ namespace pStudyWare20.Services.Implementations
                 {
                     subject = $"Agoura Math Circle : Enrollment Application Status for {request.FirstName} {request.LastName}.";
                     body = $@"We can not approve your application for {request.FirstName} {request.LastName}.<br/>
-                             Session: {request.Session}<br/>
+                             Semester: {request.Session}<br/>
                              Student Class: {request.Class}<br/>
                              Location: {request.ChapterID}-{request.Location}<br/><br/>
                              Reason: {request.Reason}<br/><br/>

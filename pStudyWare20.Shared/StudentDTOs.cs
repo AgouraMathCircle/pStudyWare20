@@ -199,6 +199,18 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Registration Update")]
         public string RegistrationUpdate { get; set; } = string.Empty;
+
+        [Display(Name = "Registration User Name")]
+        public string RegistrationUserName { get; set; } = string.Empty;
+
+        [Display(Name = "Registration Session")]
+        public string RegistrationSession { get; set; } = string.Empty;
+
+        [Display(Name = "Registration Location")]
+        public string RegistrationLocation { get; set; } = string.Empty;
+
+        [Display(Name = "Registration Chapter")]
+        public string RegistrationChapter { get; set; } = string.Empty;
     }
 
     /// <summary>

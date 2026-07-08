@@ -2,6 +2,7 @@ namespace pStudyWare20.Shared
 {
     /// <summary>
     /// Semester option for public registration forms (Register For dropdown).
+    /// Value = Semester or NextSemester code; Label = SemesterName or NextSemesterName.
     /// </summary>
     public class RegistrationSemesterOption
     {

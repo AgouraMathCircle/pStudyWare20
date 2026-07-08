@@ -8,5 +8,6 @@ namespace pStudyWare20.Services.Interfaces
         Task<OperationResponse> UpdateVolunteerStatusAsync(UpdateVolunteerStatusRequest request);
         Task<OperationResponse> DeleteVolunteerRequestAsync(DeleteVolunteerRequestRequest request);
         Task<ExportExcelResponse> ExportToExcelAsync(ExportExcelRequest request);
+        Task<GetVolunteerChapterLocationsResponse> GetChapterLocationsAsync();
     }
 }

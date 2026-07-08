@@ -1,13 +1,23 @@
--- Registration "Register For" dropdown: active row Semester + LastSemester from AMC_tblLookupSemester.
--- Display labels: F/S codes become Fall Semester YYYY / Spring Semester YYYY (see SemesterFormatHelper).
+-- Registration "Register For" dropdown from AMC_tblLookupSemester.
+-- Dropdown id/value: Semester, NextSemester
+-- Dropdown text: SemesterName, NextSemesterName
+-- No F/S-to-Fall/Spring formatting — use DB display names as stored.
 
--- Example shape returned to API (TOP 1 Active = 1):
--- Semester     LastSemester   SemesterName
--- S2026        F2026          Spring Semester 2026
+IF OBJECT_ID(N'dbo.AMC_spRegistrationSemesterLookup', N'P') IS NOT NULL
+    DROP PROCEDURE dbo.AMC_spRegistrationSemesterLookup;
+GO
 
-SELECT TOP 1
-    LTRIM(RTRIM(semester)) AS Semester,
-    LTRIM(RTRIM(LastSemester)) AS LastSemester,
-    LTRIM(RTRIM(SemesterName)) AS SemesterName
-FROM dbo.AMC_tblLookupSemester WITH (NOLOCK)
-WHERE Active = 1;
+CREATE PROC [dbo].[AMC_spRegistrationSemesterLookup]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP 1
+        LTRIM(RTRIM(semester)) AS Semester,
+        LTRIM(RTRIM(SemesterName)) AS SemesterName,
+        LTRIM(RTRIM(NextSemester)) AS NextSemester,
+        LTRIM(RTRIM(NextSemesterName)) AS NextSemesterName
+    FROM dbo.AMC_tblLookupSemester WITH (NOLOCK)
+    WHERE Active = 1;
+END
+GO

@@ -23,7 +23,10 @@ const legacyDocumentsPlugin = () => ({
       }
 
       const filePath = path.resolve(legacyDocumentsRoot, relativePath);
-      if (!filePath.startsWith(legacyDocumentsRoot) || !fs.existsSync(filePath)) {
+      if (
+        !filePath.startsWith(legacyDocumentsRoot) ||
+        !fs.existsSync(filePath)
+      ) {
         return next();
       }
 
@@ -57,6 +60,7 @@ export default defineConfig({
     include: ["pdfjs-dist"],
   },
   server: {
+    port: 3000,
     host: true,
     proxy: {
       "/api": {

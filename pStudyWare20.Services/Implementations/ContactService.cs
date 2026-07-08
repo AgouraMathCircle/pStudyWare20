@@ -1,4 +1,3 @@
-using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
 
@@ -6,17 +5,15 @@ namespace pStudyWare20.Services.Implementations
 {
     public class ContactService : IContactService
     {
-        private readonly IContactRepository _contactRepository;
         private readonly IEmailUtility _emailUtility;
 
-        public ContactService(IContactRepository contactRepository, IEmailUtility emailUtility)
+        public ContactService(IEmailUtility emailUtility)
         {
-            _contactRepository = contactRepository;
             _emailUtility = emailUtility;
         }
 
         /// <summary>
-        /// Saves enquiry and notifies admin (matches ContactUs.aspx.cs btnSubmit_Click + InformMe).
+        /// Sends contact enquiry email (InformMe). DB save (AMC_spAddEnquiry) is not implemented.
         /// </summary>
         public ContactEnquiryResponse SubmitEnquiry(ContactEnquiryRequest request)
         {
@@ -24,7 +21,8 @@ namespace pStudyWare20.Services.Implementations
 
             try
             {
-                _contactRepository.AddEnquiryAsync(request).GetAwaiter().GetResult();
+                // Legacy ContactUs.aspx.cs also saved via AMC_spAddEnquiry — disabled until DB is ready.
+                // _contactRepository.AddEnquiryAsync(request).GetAwaiter().GetResult();
 
                 var emailSent = _emailUtility.SendContactEnquiryEmail(
                     request.Name,
@@ -34,9 +32,8 @@ namespace pStudyWare20.Services.Implementations
 
                 if (!emailSent)
                 {
-                    response.IsSuccess = true;
-                    response.Message = "Your request has successfully submitted.";
-                    response.ErrorMessage = "Enquiry saved, but the notification email could not be sent.";
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "Unable to send your message. Please try again.";
                     return response;
                 }
 

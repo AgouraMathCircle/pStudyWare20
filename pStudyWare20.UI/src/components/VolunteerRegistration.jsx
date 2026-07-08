@@ -412,7 +412,8 @@ const VolunteerRegistration = () => {
         sessionId: data.sessionId,
         sessionName: selectedSession?.name ?? "",
         locationId: Number(data.locationId),
-        locationName: selectedLocation?.name ?? "",
+        // Email label: Name - Location - City
+        locationName: selectedLocation?.emailLabel ?? selectedLocation?.name ?? "",
         interestedFor: data.interestedFor,
         interestedForName: selectedInterest?.label ?? "",
         aboutyourself: data.aboutyourself || "",

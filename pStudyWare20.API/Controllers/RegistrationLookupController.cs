@@ -19,7 +19,7 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Semester options for Register For dropdown (AMC_tblLookupSemester Semester + LastSemester).
+        /// Semester options for Register For dropdown (SemesterName + NextSemesterName from AMC_tblLookupSemester).
         /// </summary>
         [HttpGet("semesters")]
         public async Task<IActionResult> GetSemesters()

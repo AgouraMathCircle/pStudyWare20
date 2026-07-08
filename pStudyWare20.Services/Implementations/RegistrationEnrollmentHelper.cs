@@ -17,7 +17,9 @@ namespace pStudyWare20.Services.Implementations
 
             if (string.IsNullOrWhiteSpace(details.SessionName))
             {
-                details.SessionName = SemesterFormatHelper.FormatSemesterDisplayName(details.SessionId);
+                details.SessionName = ResolveSessionDisplayName(
+                    details.SessionId,
+                    registrationLookupRepository);
             }
         }
 
@@ -33,7 +35,9 @@ namespace pStudyWare20.Services.Implementations
 
             if (string.IsNullOrWhiteSpace(details.SessionName))
             {
-                details.SessionName = SemesterFormatHelper.FormatSemesterDisplayName(details.SessionId);
+                details.SessionName = ResolveSessionDisplayName(
+                    details.SessionId,
+                    registrationLookupRepository);
             }
 
             if (string.IsNullOrWhiteSpace(details.GradeName))
@@ -82,17 +86,32 @@ namespace pStudyWare20.Services.Implementations
             };
         }
 
+        private static string ResolveSessionDisplayName(
+            string? sessionId,
+            IRegistrationLookupRepository registrationLookupRepository)
+        {
+            if (string.IsNullOrWhiteSpace(sessionId))
+            {
+                return string.Empty;
+            }
+
+            var semesters = registrationLookupRepository
+                .GetRegistrationSemesterOptionsAsync()
+                .GetAwaiter()
+                .GetResult();
+
+            var match = semesters.FirstOrDefault(option =>
+                option.Value.Equals(sessionId.Trim(), StringComparison.OrdinalIgnoreCase));
+
+            return match?.Label ?? sessionId.Trim();
+        }
+
         private static void ApplyLocationName(
             int locationId,
             Action<string> setLocationName,
             Func<string> getLocationName,
             IRegistrationLookupRepository registrationLookupRepository)
         {
-            if (!string.IsNullOrWhiteSpace(getLocationName()))
-            {
-                return;
-            }
-
             if (locationId <= 0)
             {
                 return;
@@ -106,11 +125,15 @@ namespace pStudyWare20.Services.Implementations
             var location = locations.FirstOrDefault(option => option.ChapterId == locationId);
             if (location != null)
             {
+                // Always use Name - Location - City for registration emails.
                 setLocationName(location.EmailLabel);
                 return;
             }
 
-            setLocationName(locationId.ToString());
+            if (string.IsNullOrWhiteSpace(getLocationName()))
+            {
+                setLocationName(locationId.ToString());
+            }
         }
     }
 }

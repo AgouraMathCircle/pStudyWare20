@@ -1,25 +1,36 @@
 namespace pStudyWare20.Shared
 {
     /// <summary>
-    /// Formats AMC_ChapterMaster rows for registration dropdowns and emails.
+    /// Course/location display text for registration forms and emails.
+    /// Format: Name - Location - City (no extra formatting).
     /// </summary>
     public static class RegistrationFormatHelper
     {
-        public static string FormatLocationDropdownLabel(
-            int chapterId,
-            string? name,
-            string? location,
-            string? city)
+        private static string RemoveCourseIdPrefix(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            var trimmed = value.Trim();
+            var dashIndex = trimmed.IndexOf(" - ", StringComparison.Ordinal);
+            if (dashIndex > 0 &&
+                int.TryParse(trimmed[..dashIndex].Trim(), out _))
+            {
+                return trimmed[(dashIndex + 3)..].Trim();
+            }
+
+            return trimmed;
+        }
+
+        public static string FormatLocationEmailText(string? name, string? location, string? city = null)
         {
             var parts = new List<string>();
-            if (chapterId > 0)
-            {
-                parts.Add(chapterId.ToString());
-            }
 
             if (!string.IsNullOrWhiteSpace(name))
             {
-                parts.Add(name.Trim());
+                parts.Add(RemoveCourseIdPrefix(name));
             }
 
             if (!string.IsNullOrWhiteSpace(location))
@@ -33,27 +44,6 @@ namespace pStudyWare20.Shared
             }
 
             return string.Join(" - ", parts);
-        }
-
-        /// <summary>
-        /// Email text: Course Name [Name] - Location
-        /// </summary>
-        public static string FormatLocationEmailText(string? name, string? location)
-        {
-            var trimmedName = name?.Trim() ?? string.Empty;
-            var trimmedLocation = location?.Trim() ?? string.Empty;
-
-            if (string.IsNullOrWhiteSpace(trimmedName))
-            {
-                return trimmedLocation;
-            }
-
-            if (string.IsNullOrWhiteSpace(trimmedLocation))
-            {
-                return trimmedName;
-            }
-
-            return $"{trimmedName} - {trimmedLocation}";
         }
     }
 }

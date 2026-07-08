@@ -1,4 +1,4 @@
-/* Student Class Material — aligned with Admin class material page */
+/* Student Class Material — page chrome aligned with Admin class material */
 
 .student-class-material {
   min-height: 100%;
@@ -28,20 +28,6 @@
   padding: 8px 8px 0;
 }
 
-.student-class-material .MuiTableCell-root {
-  padding: 8px 12px;
-}
-
-.student-class-material .MuiTableCell-head {
-  font-weight: 600;
-  background-color: #f0f0f0;
-  border-bottom: 2px solid #ddd;
-}
-
-.student-class-material .MuiTableRow-root:hover {
-  background-color: rgba(0, 0, 0, 0.04);
-}
-
 .student-class-material .MuiButton-root {
   text-transform: none;
   font-weight: 500;
@@ -68,17 +54,6 @@
 
 .student-class-material .MuiGrid-container {
   margin-top: 0;
-}
-
-.student-class-material a {
-  color: #007bff;
-  text-decoration: none;
-  transition: color 0.2s ease-in-out;
-}
-
-.student-class-material a:hover {
-  color: #0056b3;
-  text-decoration: underline;
 }
 
 @keyframes studentClassMaterialFadeIn {

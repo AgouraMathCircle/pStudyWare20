@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -19,6 +20,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
@@ -166,7 +168,7 @@ builder.Services.AddScoped<ISemesterLookupRepository, SemesterLookupRepository>(
 builder.Services.AddScoped<IUploadAnswerKeyRepository, UploadAnswerKeyRepository>();
 builder.Services.AddScoped<IDonorDetailsRepository, DonorDetailsRepository>();
 builder.Services.AddScoped<IRegistrationLookupRepository, RegistrationLookupRepository>();
-builder.Services.AddScoped<IContactRepository, ContactRepository>();
+// builder.Services.AddScoped<IContactRepository, ContactRepository>(); // DB save disabled for contact enquiries
 builder.Services.AddScoped<INewsletterRepository, NewsletterRepository>();
 
 // Register Services

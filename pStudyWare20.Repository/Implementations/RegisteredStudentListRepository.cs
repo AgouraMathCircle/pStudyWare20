@@ -199,7 +199,9 @@ namespace pStudyWare20.Repository.Implementations
                         LTRIM(RTRIM(semester)) AS Semester,
                         LTRIM(RTRIM(LastSemester)) AS LastSemester,
                         LTRIM(RTRIM(NextSemester)) AS NextSemester,
-                        LTRIM(RTRIM(SemesterName)) AS SemesterName
+                        LTRIM(RTRIM(SemesterName)) AS SemesterName,
+                        LTRIM(RTRIM(NextSemesterName)) AS NextSemesterName,
+                        LTRIM(RTRIM(LastSemesterName)) AS LastSemesterName
                     FROM AMC_tblLookupSemester WITH (NOLOCK)
                     WHERE Active = 1", connection);
 
@@ -211,8 +213,8 @@ namespace pStudyWare20.Repository.Implementations
 
                 var options = new List<RegisteredStudentSessionOption>();
                 AddSessionOption(options, ReadString(reader, "Semester"), ReadString(reader, "SemesterName"));
-                AddSessionOption(options, ReadString(reader, "NextSemester"));
-                AddSessionOption(options, ReadString(reader, "LastSemester"));
+                AddSessionOption(options, ReadString(reader, "NextSemester"), ReadString(reader, "NextSemesterName"));
+                AddSessionOption(options, ReadString(reader, "LastSemester"), ReadString(reader, "LastSemesterName"));
                 return options;
             }
             catch (Exception ex)
@@ -244,14 +246,9 @@ namespace pStudyWare20.Repository.Implementations
 
             options.Add(new RegisteredStudentSessionOption
             {
-                Value = value,
-                Label = string.IsNullOrWhiteSpace(label) ? FormatSessionLabel(value) : label.Trim()
+                Value = value.Trim(),
+                Label = string.IsNullOrWhiteSpace(label) ? value.Trim() : label.Trim(),
             });
-        }
-
-        private static string FormatSessionLabel(string value)
-        {
-            return SemesterFormatHelper.FormatSemesterDisplayName(value);
         }
     }
 }

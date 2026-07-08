@@ -290,20 +290,27 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                using var command = new SqlCommand("AMC_spUpdateStudentDetail", connection)
+                using var command = new SqlCommand("AMC_spUpdateStudentProfile", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
 
-                command.Parameters.Add(new SqlParameter("@StudentId", request.StudentId));
-                command.Parameters.Add(new SqlParameter("@StudentFirstName", request.StudentFirstName ?? ""));
-                command.Parameters.Add(new SqlParameter("@StudentLastName", request.StudentLastName ?? ""));
-                command.Parameters.Add(new SqlParameter("@StudentEmailID", request.StudentEmailID ?? ""));
+                command.Parameters.Add(new SqlParameter("@StudentID", request.StudentId));
+                command.Parameters.Add(new SqlParameter("@StudentFName", request.StudentFirstName ?? ""));
+                command.Parameters.Add(new SqlParameter("@StudentLName", request.StudentLastName ?? ""));
+                command.Parameters.Add(new SqlParameter("@StudentEmail", request.StudentEmailID ?? ""));
                 command.Parameters.Add(new SqlParameter("@School", request.School ?? ""));
-                command.Parameters.Add(new SqlParameter("@GradeLevel", request.GradeLevel ?? ""));
+                command.Parameters.Add(new SqlParameter("@Grade", request.GradeLevel ?? ""));
+                command.Parameters.Add(new SqlParameter("@City", request.City ?? ""));
+                command.Parameters.Add(new SqlParameter("@State", request.State ?? ""));
+                command.Parameters.Add(new SqlParameter("@Country", request.Country ?? ""));
+                command.Parameters.Add(new SqlParameter("@PhoneNumber", request.StudentPhone ?? ""));
+                command.Parameters.Add(new SqlParameter("@Class", ""));
+                command.Parameters.Add(new SqlParameter("@MemberType", request.MemberType ?? ""));
+                command.Parameters.Add(new SqlParameter("@RegistrationUpdate", request.RegistrationUpdate ?? ""));
 
-                var result = await command.ExecuteNonQueryAsync();
-                return result > 0;
+                await command.ExecuteNonQueryAsync();
+                return true;
             }
             catch (Exception ex)
             {
