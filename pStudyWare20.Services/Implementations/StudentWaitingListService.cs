@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using pStudyWare20.Repository.Interfaces;
 using pStudyWare20.Services.Interfaces;
@@ -12,7 +13,7 @@ namespace pStudyWare20.Services.Implementations
     public class StudentWaitingListService : IStudentWaitingListService
     {
         private readonly IStudentWaitingListRepository _repository;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IServiceScopeFactory _serviceScopeFactory;        
 
         /// <summary>
         /// Constructor
@@ -25,6 +26,7 @@ namespace pStudyWare20.Services.Implementations
         {
             _repository = repository;
             _serviceScopeFactory = serviceScopeFactory;
+            
         }
 
         /// <summary>
@@ -380,6 +382,9 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
+
+               // string fromEmail = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
+
                 var subject = $"Agoura Math Circle : New Enrollment request from: {request.FirstName} {request.LastName}.";
                 var body = $@"Just Received New registration from {request.FirstName} {request.LastName}<br/>
                              Student Name: {request.FirstName} {request.LastName}<br/>
@@ -389,7 +394,7 @@ namespace pStudyWare20.Services.Implementations
                              Location: {request.ChapterID}-{request.Location}<br/><br/>
                              Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                await emailUtility.SendEmailAsync("admin@agouramathcircle.org", request.Email, subject, body);
+                await emailUtility.SendEmailAsync("info@agouramathcircle.org", request.Email, subject, body);
             }
             catch (Exception ex)
             {

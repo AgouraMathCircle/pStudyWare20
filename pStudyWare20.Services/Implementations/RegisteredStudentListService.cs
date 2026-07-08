@@ -139,8 +139,8 @@ namespace pStudyWare20.Services.Implementations
                     ? request.LocationLabel
                     : GetLocationDisplayLabel(location);
 
-                var adminEmail = _configuration.GetSection("AppSettings")["AdminEmailID"]
-                    ?? _configuration["AdminEmailID"]
+                var adminEmail = _configuration.GetSection("AppSettings")["Email"]
+                    ?? "info@agouramathcircle.net"
                     ?? "admin@agouramathcircle.org";
                 var subject = "Agoura Math Circle: Your child records has been updated.";
 

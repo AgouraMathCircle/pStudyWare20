@@ -31,6 +31,7 @@ const CLASS_OPTIONS = [
   { value: "DM", label: "Data Management" },
   { value: "ST", label: "PSAT" },
   { value: "AT", label: "ACT" },
+  { value: "ED", label: "Engineering Design" },
 ];
 
 const pickField = (item, ...keys) => {

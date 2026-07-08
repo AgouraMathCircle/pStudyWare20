@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "../styles/Contact.css";
 // Import images from src/assets
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
 import {
   Facebook as FacebookIcon,
-  Twitter as TwitterIcon,
   X as XIcon,
   LinkedIn as LinkedInIcon,
   Instagram as InstagramIcon,
@@ -13,18 +11,12 @@ import {
 } from "@mui/icons-material";
 
 const Contact = () => {
-  const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     subject: "",
     message: "",
   });
-
-  const handleNavigation = (path) => {
-    navigate(path);
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -47,10 +39,6 @@ const Contact = () => {
     });
   };
 
-  const handleExternalLink = (url) => {
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
-
   return (
     <div className="contact-container">
       {/* Breadcrumbs Section */}
@@ -61,18 +49,7 @@ const Contact = () => {
         <div className="breadcrumbs-text white-color">
           <h1 className="page-title">CONTACT US</h1>
           <ul>
-            <li>
-              <a
-                className="active"
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavigation("/");
-                }}
-              >
-                Home &gt;
-              </a>
-            </li>
+            <li>Home &gt;</li>
             <li className="active">Contact Us</li>
           </ul>
         </div>
@@ -99,9 +76,7 @@ const Contact = () => {
                   <div className="row">
                     <div className="col-md-6">
                       <div className="find-widget">
-                        <a href="#" className="contact-title-link" style={{minHeight:0}}>
-                          Agoura Chapter El Camino Real High School
-                        </a>
+                        Agoura Chapter El Camino Real High School
                       </div>
                       <div className="find-widget">
                         <span className="address-text">
@@ -111,64 +86,30 @@ const Contact = () => {
                         </span>
                       </div>
                       <div className="find-widget email-widget">
-                        <span>Email: </span>
-                        <a
-                          href="mailto:support@agouramathcircle.org"
-                          className="email-link"
-                        >
-                          support@agouramathcircle.org
-                        </a>
+                        <span>Email: support@agouramathcircle.org</span>
                       </div>
                     </div>
                     <div className="col-md-6">
                       <div className="find-widget">
-                        <a href="#" className="contact-title-link" style={{minHeight:0}}>
-                          Agoura Engineering Circle
-                        </a>
+                        Agoura Engineering Circle
                       </div>
                       <div className="find-widget email-widget">
-                        <span>Email: </span>
-                        <a
-                          href="mailto:support@agouramathcircle.org"
-                          className="email-link"
-                        >
-                          support@agouramathcircle.org
-                        </a>
+                        <span>Email: support@agouramathcircle.org</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="row pt-10">
                     <div className="col-md-6">
-                      <div className="find-widget">
-                        <a href="#" className="contact-title-link" style={{minHeight:0}}>
-                          Online Chapter
-                        </a>
-                      </div>
+                      <div className="find-widget">Online Chapter</div>
                       <div className="find-widget email-widget">
-                        <span>Email: </span>
-                        <a
-                          href="mailto:support@agouramathcircle.org"
-                          className="email-link"
-                        >
-                          support@agouramathcircle.org
-                        </a>
+                        <span>Email: support@agouramathcircle.org</span>
                       </div>
                     </div>
                     <div className="col-md-6">
-                      <div className="find-widget">
-                        <a href="#" className="contact-title-link" style={{minHeight:0}}>
-                          ACT/SAT/PSAT
-                        </a>
-                      </div>
+                      <div className="find-widget">ACT/SAT/PSAT</div>
                       <div className="find-widget email-widget">
-                        <span>Email: </span>
-                        <a
-                          href="mailto:support@agouramathcircle.org"
-                          className="email-link"
-                        >
-                          support@agouramathcircle.org
-                        </a>
+                        <span>Email: support@agouramathcircle.org</span>
                       </div>
                     </div>
                   </div>
@@ -181,69 +122,19 @@ const Contact = () => {
                       <div className="canvas-contact">
                         <ul className="social soc-cont">
                           <li>
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleExternalLink(
-                                  "https://www.facebook.com/profile.php?id=100010784343153"
-                                );
-                              }}
-                            >
-                              <FacebookIcon />
-                            </a>
+                            <FacebookIcon />
                           </li>
                           <li>
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleExternalLink(
-                                  "https://twitter.com/Agouramathcirle"
-                                );
-                              }}
-                            >
-                              <XIcon />
-                            </a>
+                            <XIcon />
                           </li>
                           <li>
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleExternalLink(
-                                  "https://www.linkedin.com/in/agouramathcircle/"
-                                );
-                              }}
-                            >
-                              <LinkedInIcon />
-                            </a>
+                            <LinkedInIcon />
                           </li>
                           <li>
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleExternalLink(
-                                  "https://www.instagram.com/agouramathcircle/"
-                                );
-                              }}
-                            >
-                              <InstagramIcon />
-                            </a>
+                            <InstagramIcon />
                           </li>
                           <li>
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleExternalLink(
-                                  "https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/videos"
-                                );
-                              }}
-                            >
-                              <YouTubeIcon />
-                            </a>
+                            <YouTubeIcon />
                           </li>
                         </ul>
                       </div>

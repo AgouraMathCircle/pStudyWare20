@@ -34,10 +34,13 @@ namespace pStudyWare20.Shared
         [Display(Name = " Grade")]
         public string Grade { get; set; } = string.Empty;
 
+        [Display(Name = "Grade Name")]
+        public string GradeName { get; set; } = string.Empty;
+
         [Display(Name = "Location Id")]
         public int LocationId { get; set; }
 
-        [Display(Name = "Session Name")]
+        [Display(Name = "Session Id")]
         public string SessionId { get; set; } = string.Empty;
 
         [Display(Name = "Location Name")]
@@ -49,7 +52,10 @@ namespace pStudyWare20.Shared
         [Display(Name = "Interested")]
         public string InterestedFor { get; set; } = string.Empty;
 
-        [Display(Name = "Session Name")]
+        [Display(Name = "Interested For Name")]
+        public string InterestedForName { get; set; } = string.Empty;
+
+        [Display(Name = "About Your Self")]
         public string Aboutyourself { get; set; } = string.Empty;
     }
 

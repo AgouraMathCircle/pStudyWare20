@@ -14,12 +14,18 @@ namespace pStudyWare20.Services.Implementations
         private readonly IStudentRepository _studentRepository;
         private readonly IEmailUtility _emailUtility;
         private readonly IConfiguration _configuration;
+        private readonly IRegistrationLookupRepository _registrationLookupRepository;
 
-        public StudentService(IStudentRepository studentRepository, IEmailUtility emailUtility, IConfiguration configuration)
+        public StudentService(
+            IStudentRepository studentRepository,
+            IEmailUtility emailUtility,
+            IConfiguration configuration,
+            IRegistrationLookupRepository registrationLookupRepository)
         {
             _studentRepository = studentRepository;
             _emailUtility = emailUtility;
             _configuration = configuration;
+            _registrationLookupRepository = registrationLookupRepository;
         }
 
         /// <summary>
@@ -30,7 +36,9 @@ namespace pStudyWare20.Services.Implementations
             ResponseDetails responseDetails = new ResponseDetails();
             try
             {
-
+                RegistrationEnrollmentHelper.EnrichStudentRegistration(
+                    studentDetails,
+                    _registrationLookupRepository);
 
                 // Register student using stored procedure (matches AMC_spRegisterStudent call)
                 var result = _studentRepository.RegisterStudentAsync(studentDetails).Result;
@@ -38,7 +46,7 @@ namespace pStudyWare20.Services.Implementations
                 if (result)
                 {
                     // Send email notification to admin (matches InformMe() call in .aspx.cs line 107)
-                    _emailUtility.SendEmailtoAdminForStudentRegistration(studentDetails);
+                    _emailUtility.SendEmailtoRegistrationForStudentRegistration(studentDetails);
 
                     // Send email notification to parent (matches InformParent() call in .aspx.cs line 108)
                     _emailUtility.SendEmailtoParentForStudentRegistration(studentDetails);

@@ -80,6 +80,7 @@ const CLASS_OPTIONS = [
   { value: "AI", label: "Artificial Intelligence" },
   { value: "ST", label: "PSAT" },
   { value: "AT", label: "ACT" },
+  { value: "ED", label: "Engineering Design" },
 ];
 
 const SESSION_OPTIONS = [

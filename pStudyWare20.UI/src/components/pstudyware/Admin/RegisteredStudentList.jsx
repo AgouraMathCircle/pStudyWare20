@@ -127,6 +127,7 @@ const CLASS_OPTIONS = [
   { value: "DM", label: "Data Management" },
   { value: "ST", label: "SAT/PSAT" },
   { value: "AT", label: "ACT" },
+  { value: "ED", label: "Engineering Design" },
 ];
 
 const SECTION_OPTIONS = [

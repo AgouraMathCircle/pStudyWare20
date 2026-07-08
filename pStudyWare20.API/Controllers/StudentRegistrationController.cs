@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Cors;
 using pStudyWare20.Services.Interfaces;
@@ -8,6 +9,7 @@ namespace pStudyWare20.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [EnableCors("AllowReactApp")]
+    [AllowAnonymous]
     public class StudentRegistrationController : ControllerBase
     {
         private readonly IStudentService _studentService;
@@ -46,11 +48,19 @@ namespace pStudyWare20.API.Controllers
                 // rblUserName.SelectedValue == "S" → UserName = txtstEmail.Text
                 if (!string.IsNullOrEmpty(studentDetails.UserName))
                 {
-                    if (studentDetails.UserName == "P")
+                    var userNameType = studentDetails.UserNameType;
+                    if (string.IsNullOrEmpty(userNameType))
+                    {
+                        userNameType = studentDetails.UserName;
+                    }
+
+                    studentDetails.UserNameType = userNameType;
+
+                    if (userNameType == "P")
                     {
                         studentDetails.UserName = studentDetails.ParentEmail;
                     }
-                    else if (studentDetails.UserName == "S")
+                    else if (userNameType == "S")
                     {
                         studentDetails.UserName = studentDetails.StudentEmail;
                     }

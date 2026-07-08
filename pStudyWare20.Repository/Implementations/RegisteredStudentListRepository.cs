@@ -251,18 +251,7 @@ namespace pStudyWare20.Repository.Implementations
 
         private static string FormatSessionLabel(string value)
         {
-            if (string.IsNullOrWhiteSpace(value) || value.Length < 5)
-            {
-                return value;
-            }
-
-            var term = value[0] switch
-            {
-                'F' or 'f' => "Fall",
-                'S' or 's' => "Spring",
-                _ => value[..1]
-            };
-            return $"{term} {value[1..]}";
+            return SemesterFormatHelper.FormatSemesterDisplayName(value);
         }
     }
 }

@@ -89,6 +89,7 @@ const getClassLabel = (classCode) => {
     DM: "Data Management",
     ST: "PSAT/SAT",
     AT: "ACT",
+    ED: "Engineering Design",
   };
   return classMap[classCode] || classCode || "-";
 };

@@ -179,6 +179,7 @@ const InstructorList = ({
       DM: "Data Management",
       ST: "PSAT",
       AT: "ACT",
+      ED: "Engineering Design",
     };
     return classes[classCode] || classCode;
   };

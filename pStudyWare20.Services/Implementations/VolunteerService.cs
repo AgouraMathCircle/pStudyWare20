@@ -12,12 +12,18 @@ namespace pStudyWare20.Services.Implementations
         private readonly IVolunteerRepository _volunteerRepository;
         private readonly IEmailUtility _emailUtility;
         private readonly IConfiguration _configuration;
+        private readonly IRegistrationLookupRepository _registrationLookupRepository;
 
-        public VolunteerService(IVolunteerRepository volunteerRepository, IEmailUtility emailUtility, IConfiguration configuration)
+        public VolunteerService(
+            IVolunteerRepository volunteerRepository,
+            IEmailUtility emailUtility,
+            IConfiguration configuration,
+            IRegistrationLookupRepository registrationLookupRepository)
         {
             _volunteerRepository = volunteerRepository;
             _emailUtility = emailUtility;
             _configuration = configuration;
+            _registrationLookupRepository = registrationLookupRepository;
         }
 
         public ResponseDetails VolunteerRegistration(RegistrationVolunteerModel volunteerDetails)
@@ -25,13 +31,17 @@ namespace pStudyWare20.Services.Implementations
             ResponseDetails responseDetails = new ResponseDetails();
             try
             {
+                RegistrationEnrollmentHelper.EnrichVolunteerRegistration(
+                    volunteerDetails,
+                    _registrationLookupRepository);
+
                 // Add volunteer request using stored procedure
                 var requestId = _volunteerRepository.AddVolunteerRequestAsync(volunteerDetails).Result;
 
                 if (requestId > 0)
                 {
-                    // Send email notification to admin
-                    _emailUtility.SendEmailtoAdminForVolunteerRegistration(volunteerDetails);
+                    _emailUtility.SendEmailtoRegistrationForVolunteerRegistration(volunteerDetails);
+                    _emailUtility.SendEmailtoVolunteerForVolunteerRegistration (volunteerDetails);
                     
                     responseDetails.isSuccess = true;
                     responseDetails.ErrorMessage = "";

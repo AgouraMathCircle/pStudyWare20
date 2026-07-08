@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Cors;
 using pStudyWare20.Services.Interfaces;
@@ -8,6 +9,7 @@ namespace pStudyWare20.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [EnableCors("AllowReactApp")]
+    [AllowAnonymous]
     public class VolunteerRegistrationController : ControllerBase
     {
         private readonly IVolunteerService _volunteerService;

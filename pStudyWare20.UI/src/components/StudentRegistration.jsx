@@ -184,6 +184,8 @@ const defaultFormValues = {
   picturePermission: true,
 };
 
+const currentYear = new Date().getFullYear();
+
 const StudentRegistration = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -291,8 +293,12 @@ const StudentRegistration = () => {
 
     setHighlightTermsButton(!termsComplete);
     setHighlightRulesButton(!rulesComplete);
-    setTermsButtonError(getAgreementButtonError(termsOpened, termsScrolled, "Terms"));
-    setRulesButtonError(getAgreementButtonError(rulesOpened, rulesScrolled, "Rules"));
+    setTermsButtonError(
+      getAgreementButtonError(termsOpened, termsScrolled, "Terms"),
+    );
+    setRulesButtonError(
+      getAgreementButtonError(rulesOpened, rulesScrolled, "Rules"),
+    );
 
     window.requestAnimationFrame(() => {
       if (!termsComplete) {
@@ -403,6 +409,16 @@ const StudentRegistration = () => {
 
     setLoading(true);
     try {
+      const selectedSession = sessions.find(
+        (session) => String(session.id) === String(data.sessionId),
+      );
+      const selectedLocation = locations.find(
+        (location) => String(location.id) === String(data.locationId),
+      );
+      const selectedCountry = countries.find(
+        (country) => country.value === data.country,
+      );
+
       // Prepare the data for API submission - matching the DTO structure exactly
       const studentData = {
         ParentFirstName: data.parentFirstName,
@@ -411,15 +427,18 @@ const StudentRegistration = () => {
         ParentPhoneNo: data.parentPhoneNo,
         City: data.city,
         State: data.state,
-        Country: data.country,
+        Country: selectedCountry?.label ?? data.country,
         StudentFirstName: data.studentFirstName,
         StudentLastName: data.studentLastName,
         StudentEmail: data.studentEmail || "",
         StudentSchoolName: data.studentSchoolName,
         StudentGrade: data.studentGrade,
         SessionId: data.sessionId,
+        SessionName: selectedSession?.name ?? "",
         LocationId: Number(data.locationId),
+        LocationName: selectedLocation?.emailLabel ?? "",
         UserName: data.userName,
+        UserNameType: data.userName,
         LiabilitySignature: data.liabilitySignature,
         RuleSignature: data.ruleSignature,
         PicturePermission: data.picturePermission,
@@ -680,7 +699,9 @@ const StudentRegistration = () => {
                             value={value}
                             onChange={(event) => {
                               onChange(
-                                event.target.value.replace(/\D/g, "").slice(0, 10),
+                                event.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(0, 10),
                               );
                             }}
                             fullWidth
@@ -1362,7 +1383,10 @@ const StudentRegistration = () => {
               ref={rulesContentRef}
               dividers
               onScroll={(event) => {
-                checkAgreementScrollState(event.currentTarget, setRulesScrolled);
+                checkAgreementScrollState(
+                  event.currentTarget,
+                  setRulesScrolled,
+                );
               }}
               sx={{
                 padding: "24px",
@@ -1477,7 +1501,7 @@ const StudentRegistration = () => {
                 variant="body2"
                 sx={{ marginTop: "20px", fontWeight: "bold" }}
               >
-                Last revised: January 1, 2020
+                Last revised: January 1, {currentYear}
               </Typography>
             </DialogContent>
           </Dialog>
@@ -1527,7 +1551,10 @@ const StudentRegistration = () => {
               ref={termsContentRef}
               dividers
               onScroll={(event) => {
-                checkAgreementScrollState(event.currentTarget, setTermsScrolled);
+                checkAgreementScrollState(
+                  event.currentTarget,
+                  setTermsScrolled,
+                );
               }}
               sx={{
                 padding: "24px",

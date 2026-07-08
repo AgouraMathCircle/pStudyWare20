@@ -43,11 +43,11 @@ const validateProfileForm = (data) => {
   const phoneNumber = String(data.phoneNumber || "").trim();
   const phoneDigits = getPhoneDigits(phoneNumber);
 
-  if (!email) {
-    errors.studentEmail = "Student email address is required.";
-  } else if (!EMAIL_PATTERN.test(email)) {
-    errors.studentEmail = "Enter a valid email address.";
-  }
+  // if (!email) {
+  //   errors.studentEmail = "Student email address is required.";
+  // } else if (!EMAIL_PATTERN.test(email)) {
+  //   errors.studentEmail = "Enter a valid email address.";
+  // }
 
   if (phoneNumber && phoneDigits.length !== 10) {
     errors.phoneNumber = "Enter a valid 10-digit phone number.";

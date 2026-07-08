@@ -73,13 +73,13 @@ namespace pStudyWare20.Repository.Implementations
                 string picPermission = request.PicturePermission ? "Y" : "N";
                 command.Parameters.Add(new SqlParameter("@sPicPermission", picPermission));
 
-                // Execute stored procedure within transaction
-                var result = await command.ExecuteNonQueryAsync();
+                // Execute stored procedure within transaction (legacy .aspx.cs does not check rows affected)
+                await command.ExecuteNonQueryAsync();
 
                 // Commit transaction if successful (matches tran_register.Commit() in .aspx.cs)
                 transaction.Commit();
 
-                return result > 0;
+                return true;
             }
             catch (Exception ex)
             {

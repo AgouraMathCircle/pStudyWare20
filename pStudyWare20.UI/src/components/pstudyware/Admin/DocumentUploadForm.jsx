@@ -76,6 +76,7 @@ const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
     { value: "DM", label: "Data Management" },
     { value: "ST", label: "PSAT/SAT" },
     { value: "AT", label: "ACT" },
+    { value: "ED", label: "Engineering Design" },
   ];
 
   // Handle input change

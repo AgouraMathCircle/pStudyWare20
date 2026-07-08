@@ -9,7 +9,10 @@ const isPublicAuthEndpoint = (url = "") => {
     normalized.includes("/auth/reset-password") ||
     normalized.includes("/auth/refresh-token") ||
     normalized.includes("/contact") ||
-    normalized.includes("/newsletter")
+    normalized.includes("/newsletter") ||
+    normalized.includes("/registrationlookup/") ||
+    normalized.includes("/studentregistration") ||
+    normalized.includes("/volunteerregistration")
   );
 };
 

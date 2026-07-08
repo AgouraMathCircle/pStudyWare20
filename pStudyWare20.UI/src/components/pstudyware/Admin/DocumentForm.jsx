@@ -84,6 +84,7 @@ const DocumentForm = ({ open, onClose, onSubmit, document, isEdit }) => {
     { value: "DM", label: "Data Management" },
     { value: "ST", label: "PSAT/SAT" },
     { value: "AT", label: "ACT" },
+    { value: "ED", label: "Engineering Design" },
   ];
 
   // Reset form when dialog opens

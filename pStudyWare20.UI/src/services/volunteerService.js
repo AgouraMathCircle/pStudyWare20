@@ -1,5 +1,6 @@
 import api from "./api";
 import studentService from "./studentService";
+import registrationLookupService from "./registrationLookupService";
 
 class VolunteerService {
   // Register a new volunteer
@@ -17,34 +18,12 @@ class VolunteerService {
 
   // Get available locations (mock data for now)
   async getLocations() {
-    // Mock data - replace with actual API call when backend is ready
-    return [
-      {
-        id: 1,
-        name: "Agoura Math Circle - Onsite , Woodland Hills, California",
-      },
-      { id: 2, name: "Online Math Circle - Internet, Zoom Meeting" },
-      { id: 3, name: "Introduction to Data Science - Internet, Zoom Meeting" },
-      {
-        id: 4,
-        name: "Introduction to Artificial Intelligence - Internet , Agoura Hills",
-      },
-      { id: 5, name: "SAT/PSAT - Internet , Zoom Meeting" },
-      { id: 6, name: "ACT - Internet , Zoom Meeting" },
-      {
-        id: 7,
-        name: "Introduction to Mobile App Development - Internet , Agoura Hills",
-      },
-      { id: 8, name: "Sai Krushna Vidya Mandir - Satellite Program, India" },
-    ];
+    return registrationLookupService.getLocations();
   }
 
-  // Get session options (mock data for now)
+  // Get session options from AMC_tblLookupSemester (Semester + LastSemester)
   async getSessions() {
-    return [
-      { id: "F2026", name: "Fall Session 2026" },
-      { id: "S2026", name: "Spring Session 2026" },
-    ];
+    return registrationLookupService.getSemesters();
   }
 
   // Get grade options (mock data for now)
