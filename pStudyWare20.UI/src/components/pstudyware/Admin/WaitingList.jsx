@@ -76,6 +76,12 @@ const WaitingList = ({ waitingListCounts }) => {
       onlineKey: "iwaitingListCntAI",
     },
     {
+      key: "ED",
+      label: "Engineering Design",
+      onsiteKey: "owaitingListCntED",
+      onlineKey: "iwaitingListCntED",
+    },
+    {
       key: "DS",
       label: "Data Science",
       onsiteKey: "owaitingListCntDS",

@@ -165,6 +165,7 @@ builder.Services.AddScoped<IEmailManagerRepository, EmailManagerRepository>();
 builder.Services.AddScoped<ISemesterLookupRepository, SemesterLookupRepository>();
 builder.Services.AddScoped<IUploadAnswerKeyRepository, UploadAnswerKeyRepository>();
 builder.Services.AddScoped<IDonorDetailsRepository, DonorDetailsRepository>();
+builder.Services.AddScoped<IRegistrationLookupRepository, RegistrationLookupRepository>();
 builder.Services.AddScoped<IContactRepository, ContactRepository>();
 builder.Services.AddScoped<INewsletterRepository, NewsletterRepository>();
 
@@ -199,6 +200,7 @@ builder.Services.AddScoped<IEmailManagerService, EmailManagerService>();
 builder.Services.AddScoped<ISemesterLookupService, SemesterLookupService>();
 builder.Services.AddScoped<IUploadAnswerKeyService, UploadAnswerKeyService>();
 builder.Services.AddScoped<IDonorDetailsService, DonorDetailsService>();
+builder.Services.AddScoped<IRegistrationLookupService, RegistrationLookupService>();
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<INewsletterService, NewsletterService>();
 

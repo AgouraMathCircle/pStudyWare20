@@ -62,6 +62,7 @@ const CLASS_LABELS = {
   DM: "Data Management",
   ST: "PSAT/SAT",
   AT: "ACT",
+  ED: "Engineering Design",
 };
 
 const getClassLabel = (classCode) => {
@@ -100,7 +101,7 @@ const getActiveMeetings = (response) => {
       meeting.active === "1" ||
       meeting.Active === "1" ||
       meeting.active === "True" ||
-      meeting.Active === "True"
+      meeting.Active === "True",
   );
 };
 
@@ -175,14 +176,14 @@ const StudentMeetingSchedule = ({
           setMeetings(activeMeetings);
         } else {
           setError(
-            response?.errorMessage || "Unable to load meeting schedules"
+            response?.errorMessage || "Unable to load meeting schedules",
           );
         }
       } catch (err) {
         if (!cancelled) {
           console.error(
             "StudentMeetingSchedule: Exception loading meetings",
-            err
+            err,
           );
           setError(`Error loading meeting schedules: ${err.message}`);
         }
@@ -210,7 +211,12 @@ const StudentMeetingSchedule = ({
       <Card sx={cardSx}>
         <CardContent sx={panelContentSx}>
           {renderSectionHeader(sectionTitleSx)}
-          <Box display="flex" justifyContent="center" alignItems="center" p={1.5}>
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            p={1.5}
+          >
             <CircularProgress size={28} />
           </Box>
         </CardContent>
@@ -237,168 +243,179 @@ const StudentMeetingSchedule = ({
 
   return (
     <>
-    <Card sx={cardSx} className="meeting-schedule-card">
-      <CardContent sx={panelContentSx}>
-        {renderSectionHeader(sectionTitleSx)}
-        <Box className="meeting-grid">
-          {meetings.map((meeting, index) => {
-            const rowId =
-              getProp(meeting, "RowID") || getProp(meeting, "RowId");
-            const meetingURL =
-              getProp(meeting, "MeetingURL") || getProp(meeting, "MeetingUrl");
-            const meetingDate = getProp(meeting, "MeetingDate");
-            const meetingTime = getProp(meeting, "MeetingTime");
-            const meetingID =
-              getProp(meeting, "MeetingID") || getProp(meeting, "MeetingId");
-            const passcode = getProp(meeting, "Passcode");
-            const classDisplay = getMeetingClassDisplay(meeting, getProp);
-            const section = getProp(meeting, "Section");
+      <Card sx={cardSx} className="meeting-schedule-card">
+        <CardContent sx={panelContentSx}>
+          {renderSectionHeader(sectionTitleSx)}
+          <Box className="meeting-grid">
+            {meetings.map((meeting, index) => {
+              const rowId =
+                getProp(meeting, "RowID") || getProp(meeting, "RowId");
+              const meetingURL =
+                getProp(meeting, "MeetingURL") ||
+                getProp(meeting, "MeetingUrl");
+              const meetingDate = getProp(meeting, "MeetingDate");
+              const meetingTime = getProp(meeting, "MeetingTime");
+              const meetingID =
+                getProp(meeting, "MeetingID") || getProp(meeting, "MeetingId");
+              const passcode = getProp(meeting, "Passcode");
+              const classDisplay = getMeetingClassDisplay(meeting, getProp);
+              const section = getProp(meeting, "Section");
 
-            return (
-              <Box key={rowId || index} className="meeting-card">
-                <Box className="meeting-card-main">
-                  {classDisplay && (
-                    <Typography component="div" className="meeting-class">
-                      {classDisplay}
-                      {section ? ` - Section ${section}` : ""}
-                    </Typography>
-                  )}
-                  {meetingDate && (
-                    <Box className="meeting-datetime">
-                      <AccessTimeIcon sx={{ fontSize: 15 }} />
-                      <span>
-                        {formatMeetingDateTime(meetingDate, meetingTime)}
-                      </span>
-                    </Box>
-                  )}
-                </Box>
-
-                {meetingURL && (
-                  <Link
-                    href={meetingURL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="meeting-url"
-                    underline="hover"
-                  >
-                    {meetingURL}
-                  </Link>
-                )}
-
-                {(meetingID || passcode) && (
-                  <Box className="meeting-meta">
-                    {meetingID && (
-                      <Box
-                        className="meeting-detail-row"
-                        sx={{ display: "flex", alignItems: "center" }}
-                      >
-                        <MeetingRoomIcon sx={{ fontSize: 15, mr: 0.5 }} />
-                        <span
-                          className="meeting-detail-label"
-                          style={{ marginRight: "4px" }}
-                        >
-                          ID
-                        </span>
-                        <span className="meeting-detail-value">{meetingID}</span>
-                        <Tooltip
-                          title={
-                            copiedText === String(meetingID)
-                              ? "Copied!"
-                              : "Copy ID"
-                          }
-                          placement="top"
-                        >
-                          <Box
-                            component="button"
-                            type="button"
-                            onClick={() => handleCopy(String(meetingID))}
-                            sx={{
-                              border: "none",
-                              background: "none",
-                              p: 0,
-                              ml: 0,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 0,
-                              color: "#2e7d32",
-                              cursor: "pointer",
-                            }}
-                          >
-                            <ContentCopyIcon sx={{ fontSize: 11 }} />
-                            <Typography component="span" className="meeting-copy-label">
-                              copy
-                            </Typography>
-                          </Box>
-                        </Tooltip>
-                      </Box>
+              return (
+                <Box key={rowId || index} className="meeting-card">
+                  <Box className="meeting-card-main">
+                    {classDisplay && (
+                      <Typography component="div" className="meeting-class">
+                        {classDisplay}
+                        {section ? ` - Section ${section}` : ""}
+                      </Typography>
                     )}
-                    {passcode && (
-                      <Box
-                        className="meeting-detail-row"
-                        sx={{ display: "flex", alignItems: "center" }}
-                      >
-                        <VpnKeyIcon sx={{ fontSize: 15, mr: 0.5 }} />
-                        <span
-                          className="meeting-detail-label"
-                          style={{ marginRight: "4px" }}
-                        >
-                          Passcode
+                    {meetingDate && (
+                      <Box className="meeting-datetime">
+                        <AccessTimeIcon sx={{ fontSize: 15 }} />
+                        <span>
+                          {formatMeetingDateTime(meetingDate, meetingTime)}
                         </span>
-                        <span className="meeting-detail-value">{passcode}</span>
-                        <Tooltip
-                          title={
-                            copiedText === String(passcode)
-                              ? "Copied!"
-                              : "Copy Passcode"
-                          }
-                          placement="top"
-                        >
-                          <Box
-                            component="button"
-                            type="button"
-                            onClick={() => handleCopy(String(passcode))}
-                            sx={{
-                              border: "none",
-                              background: "none",
-                              p: 0,
-                              ml: 0,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 0,
-                              color: "#2e7d32",
-                              cursor: "pointer",
-                            }}
-                          >
-                            <ContentCopyIcon sx={{ fontSize: 11 }} />
-                            <Typography component="span" className="meeting-copy-label">
-                              copy
-                            </Typography>
-                          </Box>
-                        </Tooltip>
                       </Box>
                     )}
                   </Box>
-                )}
 
-                {meetingURL && (
-                  <Link
-                    href={meetingURL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="meeting-join-btn"
-                    underline="none"
-                  >
-                    <ZoomIcon className="zoom-icon" />
-                    Launch
-                  </Link>
-                )}
-              </Box>
-            );
-          })}
-        </Box>
-      </CardContent>
-    </Card>
-    <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+                  {meetingURL && (
+                    <Link
+                      href={meetingURL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="meeting-url"
+                      underline="hover"
+                    >
+                      {meetingURL}
+                    </Link>
+                  )}
+
+                  {(meetingID || passcode) && (
+                    <Box className="meeting-meta">
+                      {meetingID && (
+                        <Box
+                          className="meeting-detail-row"
+                          sx={{ display: "flex", alignItems: "center" }}
+                        >
+                          <MeetingRoomIcon sx={{ fontSize: 15, mr: 0.5 }} />
+                          <span
+                            className="meeting-detail-label"
+                            style={{ marginRight: "4px" }}
+                          >
+                            ID
+                          </span>
+                          <span className="meeting-detail-value">
+                            {meetingID}
+                          </span>
+                          <Tooltip
+                            title={
+                              copiedText === String(meetingID)
+                                ? "Copied!"
+                                : "Copy ID"
+                            }
+                            placement="top"
+                          >
+                            <Box
+                              component="button"
+                              type="button"
+                              onClick={() => handleCopy(String(meetingID))}
+                              sx={{
+                                border: "none",
+                                background: "none",
+                                p: 0,
+                                ml: 0,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 0,
+                                color: "#2e7d32",
+                                cursor: "pointer",
+                              }}
+                            >
+                              <ContentCopyIcon sx={{ fontSize: 11 }} />
+                              <Typography
+                                component="span"
+                                className="meeting-copy-label"
+                              >
+                                copy
+                              </Typography>
+                            </Box>
+                          </Tooltip>
+                        </Box>
+                      )}
+                      {passcode && (
+                        <Box
+                          className="meeting-detail-row"
+                          sx={{ display: "flex", alignItems: "center" }}
+                        >
+                          <VpnKeyIcon sx={{ fontSize: 15, mr: 0.5 }} />
+                          <span
+                            className="meeting-detail-label"
+                            style={{ marginRight: "4px" }}
+                          >
+                            Passcode
+                          </span>
+                          <span className="meeting-detail-value">
+                            {passcode}
+                          </span>
+                          <Tooltip
+                            title={
+                              copiedText === String(passcode)
+                                ? "Copied!"
+                                : "Copy Passcode"
+                            }
+                            placement="top"
+                          >
+                            <Box
+                              component="button"
+                              type="button"
+                              onClick={() => handleCopy(String(passcode))}
+                              sx={{
+                                border: "none",
+                                background: "none",
+                                p: 0,
+                                ml: 0,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 0,
+                                color: "#2e7d32",
+                                cursor: "pointer",
+                              }}
+                            >
+                              <ContentCopyIcon sx={{ fontSize: 11 }} />
+                              <Typography
+                                component="span"
+                                className="meeting-copy-label"
+                              >
+                                copy
+                              </Typography>
+                            </Box>
+                          </Tooltip>
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+
+                  {meetingURL && (
+                    <Link
+                      href={meetingURL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="meeting-join-btn"
+                      underline="none"
+                    >
+                      <ZoomIcon className="zoom-icon" />
+                      Launch
+                    </Link>
+                  )}
+                </Box>
+              );
+            })}
+          </Box>
+        </CardContent>
+      </Card>
+      <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
     </>
   );
 };

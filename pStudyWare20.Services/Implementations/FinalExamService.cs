@@ -440,7 +440,7 @@ namespace pStudyWare20.Services.Implementations
                     comments);
 
                 var emailFrom = _configuration.GetSection("AppSettings")["Email"]
-                    ?? _configuration.GetSection("AppSettings")["AdminEmailID"]
+                    ?? "info@agouramathcircle.org"
                     ?? "support@agouramathcircle.org";
 
                 _emailUtility.SendEmailAsync(portalUsername, emailFrom, subject, body)

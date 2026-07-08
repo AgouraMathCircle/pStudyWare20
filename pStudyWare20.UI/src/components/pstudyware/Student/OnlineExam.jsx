@@ -212,7 +212,7 @@ const legacyGetAnswerSheetButtonSx = {
 };
 
 const compactRadioLabelSx = {
-  mr: 0.6,
+  mr: 0,
   m: 0,
   my: 0,
   height: "auto",
@@ -234,6 +234,15 @@ const compactRadioLabelSx = {
     "& svg": { fontSize: `${0.875 * examAnswerSheetScale}rem` },
   },
 };
+
+const answerSheetOptionCellSx = (isFirst) => ({
+  display: "flex",
+  alignItems: "center",
+  alignSelf: "stretch",
+  borderLeft: isFirst ? "none" : `1px solid ${LEGACY_TABLE_BORDER}`,
+  px: 0.85,
+  py: 0.25,
+});
 
 const examQuestionTableSx = {
   borderCollapse: "collapse",
@@ -842,16 +851,18 @@ const OnlineExam = () => {
             p: 0,
             minHeight: 0,
             lineHeight: 1,
+            alignItems: "stretch",
           }}
         >
-          {["A", "B", "C", "D"].map((option) => (
-            <FormControlLabel
-              key={option}
-              value={option}
-              control={<Radio />}
-              label={option}
-              sx={compactRadioLabelSx}
-            />
+          {["A", "B", "C", "D"].map((option, index) => (
+            <Box key={option} sx={answerSheetOptionCellSx(index === 0)}>
+              <FormControlLabel
+                value={option}
+                control={<Radio />}
+                label={option}
+                sx={compactRadioLabelSx}
+              />
+            </Box>
           ))}
         </RadioGroup>
       </TableCell>

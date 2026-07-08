@@ -202,6 +202,7 @@ const CLASS_OPTIONS = [
   { value: "GD", label: "Game Development" },
   { value: "AD", label: "App Development" },
   { value: "DM", label: "Data Management" },
+  { value: "ED", label: "Engineering Design" },
 ];
 
 const LOCATION_OPTIONS = [

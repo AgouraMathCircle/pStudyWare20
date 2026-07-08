@@ -44,12 +44,12 @@ namespace pStudyWare20.Repository.Implementations
                 command.Parameters.Add(new SqlParameter("@School", request.SchoolName ?? ""));
                 command.Parameters.Add(new SqlParameter("@Grade", request.Grade ?? ""));
                 command.Parameters.Add(new SqlParameter("@EnrolledSession", request.SessionId ?? ""));
-                command.Parameters.Add(new SqlParameter("@drLocation", request.LocationId));
+                command.Parameters.Add(new SqlParameter("@drLocation", request.LocationId.ToString()));
                 command.Parameters.Add(new SqlParameter("@Interest", request.InterestedFor ?? ""));
                 command.Parameters.Add(new SqlParameter("@Comments", request.Aboutyourself ?? ""));
 
-                var result = await command.ExecuteNonQueryAsync();
-                return result;
+                await command.ExecuteNonQueryAsync();
+                return 1;
             }
             catch (Exception ex)
             {

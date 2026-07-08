@@ -247,7 +247,7 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                var adminEmail = _configuration["AdminEmailID"] ?? "admin@agouramathcircle.org";
+                string fromEmail = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
                 var studentEmailGroup = _configuration["StudentEmailGroup"] ?? "students@agouramathcircle.org";
 
                 if (request.SendEmail)
@@ -258,7 +258,7 @@ namespace pStudyWare20.Services.Implementations
                               "If you have any questions pertaining to the classwork, homework, quiz, or solutions, please send a message from your Message Center, and you will get the response from the instructor within 48 hours. If you have not received a response before 48 hours, then please email support@agouramathcircle.org" + "<br/><br/>" +
                               "Regards <br>Sriya Kalyan <br>CEO, Agoura Math Circle<br/> <br/>www.agouramathcircle.org";
 
-                    var emailSent = await _adminRepository.SendEmailNotificationAsync(adminEmail, studentEmailGroup, subject, body);
+                    var emailSent = await _adminRepository.SendEmailNotificationAsync(fromEmail, studentEmailGroup, subject, body);
 
                     if (!emailSent)
                     {

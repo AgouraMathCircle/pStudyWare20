@@ -5,8 +5,9 @@ namespace pStudyWare20.Services.Interfaces
 {
     public interface IEmailUtility
     {
-        string SendEmailtoAdminForVolunteerRegistration(RegistrationVolunteerModel volunteerDetail);
-        string SendEmailtoAdminForStudentRegistration(RegistrationStudentModel studentDetail);
+        string SendEmailtoRegistrationForVolunteerRegistration(RegistrationVolunteerModel volunteerDetail);
+        string SendEmailtoVolunteerForVolunteerRegistration (RegistrationVolunteerModel volunteerDetail);
+        string SendEmailtoRegistrationForStudentRegistration(RegistrationStudentModel studentDetail);
         string SendEmailtoParentForStudentRegistration(RegistrationStudentModel studentDetail);
         string SendEmailForExistingStudentRegistration(StudentDetail studentDetail);
         string SendForgotPasswordEmail(MemberMaster user);

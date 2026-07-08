@@ -85,6 +85,7 @@ import {
   VolunteerShell,
   VolunteerDashboard,
   VolunteerTimeSheet,
+  VolunteerClassMaterial,
 } from "./src/components/pstudyware/Volunteer";
 import SentEmail from "./src/components/pstudyware/Common/SentEmail";
 import {
@@ -927,6 +928,19 @@ const AppRoutes = () => {
                 >
                   <VolunteerShell>
                     <VolunteerTimeSheet />
+                  </VolunteerShell>
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/volunteer/class-material"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Volunteer"]}
+                  allowedMemberTypes={["V"]}
+                >
+                  <VolunteerShell>
+                    <VolunteerClassMaterial />
                   </VolunteerShell>
                 </RoleProtectedRoute>
               }

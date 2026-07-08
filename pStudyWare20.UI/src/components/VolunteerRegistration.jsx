@@ -113,8 +113,14 @@ const validationSchema = yup.object({
     .string()
     .required("School/University name is required")
     .min(2, "School/University name must be at least 2 characters"),
-  grade: requiredSelect("Grade/Degree is required", "Please select a grade/degree"),
-  sessionId: requiredSelect("Register For is required", "Please select a session"),
+  grade: requiredSelect(
+    "Grade/Degree is required",
+    "Please select a grade/degree",
+  ),
+  sessionId: requiredSelect(
+    "Register For is required",
+    "Please select a session",
+  ),
   locationId: requiredSelect(
     "Course/Location is required",
     "Please select a course/location",
@@ -261,8 +267,12 @@ const VolunteerRegistration = () => {
 
     setHighlightTermsButton(!termsComplete);
     setHighlightRulesButton(!rulesComplete);
-    setTermsButtonError(getAgreementButtonError(termsOpened, termsScrolled, "Terms"));
-    setRulesButtonError(getAgreementButtonError(rulesOpened, rulesScrolled, "Rules"));
+    setTermsButtonError(
+      getAgreementButtonError(termsOpened, termsScrolled, "Terms"),
+    );
+    setRulesButtonError(
+      getAgreementButtonError(rulesOpened, rulesScrolled, "Rules"),
+    );
 
     window.requestAnimationFrame(() => {
       if (!termsComplete) {
@@ -375,6 +385,19 @@ const VolunteerRegistration = () => {
 
     setLoading(true);
     try {
+      const selectedSession = sessions.find(
+        (session) => String(session.id) === String(data.sessionId),
+      );
+      const selectedLocation = locations.find(
+        (location) => String(location.id) === String(data.locationId),
+      );
+      const selectedGrade = grades.find(
+        (grade) => String(grade.value) === String(data.grade),
+      );
+      const selectedInterest = interestedOptions.find(
+        (option) => String(option.value) === String(data.interestedFor),
+      );
+
       const volunteerData = {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -385,9 +408,13 @@ const VolunteerRegistration = () => {
         country: data.country,
         schoolName: data.schoolName,
         grade: data.grade,
+        gradeName: selectedGrade?.label ?? "",
         sessionId: data.sessionId,
+        sessionName: selectedSession?.name ?? "",
         locationId: Number(data.locationId),
+        locationName: selectedLocation?.name ?? "",
         interestedFor: data.interestedFor,
+        interestedForName: selectedInterest?.label ?? "",
         aboutyourself: data.aboutyourself || "",
         liabilitySignature: data.liabilitySignature,
         ruleSignature: data.ruleSignature,
@@ -419,7 +446,10 @@ const VolunteerRegistration = () => {
   };
 
   const onInvalid = () => {
-    showSnackbar("Please fill in all required fields before submitting.", "error");
+    showSnackbar(
+      "Please fill in all required fields before submitting.",
+      "error",
+    );
   };
 
   return (
@@ -557,7 +587,9 @@ const VolunteerRegistration = () => {
                             value={value}
                             onChange={(event) => {
                               onChange(
-                                event.target.value.replace(/\D/g, "").slice(0, 10),
+                                event.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(0, 10),
                               );
                             }}
                             fullWidth
@@ -1187,7 +1219,10 @@ const VolunteerRegistration = () => {
               ref={rulesContentRef}
               dividers
               onScroll={(event) => {
-                checkAgreementScrollState(event.currentTarget, setRulesScrolled);
+                checkAgreementScrollState(
+                  event.currentTarget,
+                  setRulesScrolled,
+                );
               }}
               sx={{
                 padding: "24px",
@@ -1352,7 +1387,10 @@ const VolunteerRegistration = () => {
               ref={termsContentRef}
               dividers
               onScroll={(event) => {
-                checkAgreementScrollState(event.currentTarget, setTermsScrolled);
+                checkAgreementScrollState(
+                  event.currentTarget,
+                  setTermsScrolled,
+                );
               }}
               sx={{
                 padding: "24px",

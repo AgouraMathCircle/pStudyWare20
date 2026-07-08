@@ -81,6 +81,12 @@ const EnrolledStudents = ({ studentCounts }) => {
       onlineKey: "instudentCntAI",
     },
     {
+      key: "ED",
+      label: "Engineering Design",
+      onsiteKey: "onstudentCntED",
+      onlineKey: "instudentCntED",
+    },
+    {
       key: "DS",
       label: "Data Science",
       onsiteKey: "onstudentCntDS",

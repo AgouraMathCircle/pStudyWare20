@@ -16,31 +16,57 @@ namespace pStudyWare20.Services.Implementations
             _configuration = configuration;
         }
 
-        public string SendEmailtoAdminForVolunteerRegistration(RegistrationVolunteerModel volunteerDetail)
+        public string SendEmailtoRegistrationForVolunteerRegistration(RegistrationVolunteerModel volunteerDetail)
         {
             try
             {
-                string adminEmail = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
-                string amcRegistrationemail = _configuration.GetSection("AppSettings")["AMCRegistrationEmailID"] ?? "test.admin@agouramathcircle.org";
+                string fromEmail = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
+                string toRegistrationEmail = _configuration.GetSection("AppSettings")["RegistrationEmailGroup"] ?? "Registration@agouramathcircle.org";
 
-                // Email to Admin (matches old file logic)
                 string adminSubject = "Agoura Math Circle : New Volunteer request from: " + volunteerDetail.FirstName + " " + volunteerDetail.LastName + ".";
+                var educationDisplay = string.IsNullOrWhiteSpace(volunteerDetail.GradeName)
+                    ? volunteerDetail.Grade
+                    : volunteerDetail.GradeName;
+                var interestedForDisplay = string.IsNullOrWhiteSpace(volunteerDetail.InterestedForName)
+                    ? volunteerDetail.InterestedFor
+                    : volunteerDetail.InterestedForName;
+                var courseLocationDisplay = string.IsNullOrWhiteSpace(volunteerDetail.LocationName)
+                    ? volunteerDetail.LocationId.ToString()
+                    : volunteerDetail.LocationName;
+                var sessionDisplay = string.IsNullOrWhiteSpace(volunteerDetail.SessionName)
+                    ? volunteerDetail.SessionId
+                    : volunteerDetail.SessionName;
+
                 string adminBody = "Just Recieved New Volunteer request from " + volunteerDetail.FirstName + " " + volunteerDetail.LastName + "<br/>"
                                 + " Student Name: " + volunteerDetail.FirstName + "<br/>"
-                                + " Education: " + volunteerDetail.Grade + "<br/>"
+                                + " Education: " + educationDisplay + "<br/>"
                                 + " School/University: " + volunteerDetail.SchoolName + "<br/>"
-                                + " Register For : " + volunteerDetail.SessionName + "<br/>"
-                                + " Location: " + volunteerDetail.LocationId + "<br/>"
-                                + " Interested For : " + volunteerDetail.InterestedFor + "<br/>"
+                                + " Register For : " + sessionDisplay + "<br/>"
+                                + " Course/Location: " + courseLocationDisplay + "<br/>"
+                                + " Interested For : " + interestedForDisplay + "<br/>"
                                 + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                var adminEmailResult = SendEmail(amcRegistrationemail, volunteerDetail.Email, adminSubject, adminBody);
-                if (!adminEmailResult == true)
+                var adminEmailResult = SendEmail(toRegistrationEmail, fromEmail, adminSubject, adminBody);
+                if (adminEmailResult != true)
                 {
                     return adminEmailResult.ToString();
                 }
 
-                // Email to Volunteer (matches old file logic)
+                return "Registration email sent successfully";
+            }
+            catch (Exception ex)
+            {
+                return $"Error sending registration email: {ex.Message}";
+            }
+        }
+
+        public string SendEmailtoVolunteerForVolunteerRegistration (RegistrationVolunteerModel volunteerDetail)
+        {
+            try
+            {
+                string fromEmail = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
+                string toVolunteerEmail = volunteerDetail.Email;
+
                 string volunteerSubject = "Agoura Math Circle : New Volunteer Request confirmation for " + volunteerDetail.FirstName + " " + volunteerDetail.LastName + ".";
                 string volunteerBody = volunteerDetail.FirstName + " " + volunteerDetail.LastName + ",<Br>"
                                     + " Thank you very much for registering as volunteer in Agoura Math Circle."
@@ -48,55 +74,43 @@ namespace pStudyWare20.Services.Implementations
                                     + " If you have any question, please email to support@agouramathcircle.org." + "<br/><br/>"
                                     + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                var volunteerEmailResult = SendEmail(volunteerDetail.Email, adminEmail, volunteerSubject, volunteerBody);
-                if (!volunteerEmailResult == true)
+                var volunteerEmailResult = SendEmail(toVolunteerEmail, fromEmail, volunteerSubject, volunteerBody);
+                if (volunteerEmailResult != true)
                 {
                     return volunteerEmailResult.ToString();
                 }
 
-                return "Emails sent successfully";
+                return "Volunteer confirmation email sent successfully";
             }
             catch (Exception ex)
             {
-                return $"Error sending emails: {ex.Message}";
+                return $"Error sending volunteer confirmation email: {ex.Message}";
             }
         }
 
-        public string SendEmailtoAdminForStudentRegistration(RegistrationStudentModel studentDetail)
+        public string SendEmailtoRegistrationForStudentRegistration(RegistrationStudentModel studentDetail)
         {
             try
-            {  
-                string amcRegistrationemail = _configuration.GetSection("AppSettings")["AMCRegistrationEmailID"] ?? "info@agouramathcircle.net";
+            {
+                string fromEmail = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
+                string toRegistrationemail = _configuration.GetSection("AppSettings")["RegistrationEmailGroup"] ?? "Registration@agouramathcircle.org";
 
-                string emailBCC = "";
+                string emailSendTo = toRegistrationemail;
+                string emailFrom = fromEmail;
 
-                string emailSendTo = amcRegistrationemail; 
-                string emailFrom = studentDetail.ParentEmail; // matches .aspx.cs line 200: EmailFrom = ConfigurationManager.AppSettings["Email"]            
+                var sessionDisplay = ResolveStudentSessionDisplay(studentDetail);
+                var locationDisplay = ResolveStudentLocationDisplay(studentDetail);
+                var gradeDisplay = studentDetail.StudentGrade ?? string.Empty;
 
-                // Email to Admin (matches InformMe() logic in .aspx.cs lines 142-148)
                 string adminSubject = "Agoura Math Circle : New Registration request from: " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + ".";
                 string adminBody = "Just Recieved New Registration request from " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + "<br/>"
                                 + " Student Name: " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + "<br/>"
-                                + "Session: " + (string.IsNullOrEmpty(studentDetail.SessionName) ? studentDetail.SessionId : studentDetail.SessionName) + "<br/>"
-                                + " Student Level: " + studentDetail.StudentGrade + "<br/>"
-                                + " Course/Location: " + (string.IsNullOrEmpty(studentDetail.LocationName) ? studentDetail.LocationId.ToString() : studentDetail.LocationName) + "<br/>"
+                                + "Session: " + sessionDisplay + "<br/>"
+                                + " Student Level: " + gradeDisplay + "<br/>"
+                                + " Course/Location: " + locationDisplay + "<br/>"
                                 + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
 
-                // Special handling for LocationId == 3 (BCC to support.ic@agouramathcircle.org)
-                if (studentDetail.LocationId.ToString() == "3")
-                {
-                    //emailBCC = "support.ic@agouramathcircle.org";
-                    //string adminEmailResult = SendEmailGroupAsync(amcRegistrationemail, studentDetail.ParentEmail, adminSubject, adminBody, emailBCC).Result;
-                    //if (adminEmailResult.Contains("Error"))
-                    //{
-                    //    return adminEmailResult;
-                    //}
-                }
-                else
-                {
-                    // SendEmail(EmailSendTo, EmailFrom, Emailsubject, RegistrationInfo) - matches .aspx.cs line 152
-                    SendEmail(emailSendTo, emailFrom, adminSubject, adminBody);                   
-                }
+                SendEmail(emailSendTo, emailFrom, adminSubject, adminBody);
 
                 return "Admin email sent successfully";
             }
@@ -110,58 +124,36 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                string amcRegistrationemail = _configuration.GetSection("AppSettings")["AMCRegistrationEmailID"] ?? "info@agouramathcircle.net";
-                
+                string fromEmail = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
 
-                string emailSendTo = studentDetail.ParentEmail; // matches .aspx.cs line 199: EmailSendTo = txtParentEmail.Text
-                string emailFrom = amcRegistrationemail; // matches .aspx.cs line 200: EmailFrom = ConfigurationManager.AppSettings["Email"]
+                string emailSendTo = studentDetail.ParentEmail;
+                string emailFrom = fromEmail;
                 string emailSubject;
                 string registrationInfo;
 
-                // Different email content for LocationId = 4 (Engineering Circle) - matches InformParent() logic in .aspx.cs lines 174-184
-                if (studentDetail.LocationId.ToString() == "4")
-                {
-                    emailSubject = "Agoura Engineering Circle: New Registration confirmation for " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + ".";
-                    registrationInfo = "Thank you very much for registering in Agoura Engineering Circle. We have recieved your application for " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + ".<br/>"
-                                    + " Session: " + (string.IsNullOrEmpty(studentDetail.SessionName) ? studentDetail.SessionId : studentDetail.SessionName) + "<br/>"
-                                    + " Student Grade: " + studentDetail.StudentGrade + "<br/><hr>" // matches .aspx.cs line 179
-                                    + " Course/Location: " + (string.IsNullOrEmpty(studentDetail.LocationName) ? studentDetail.LocationId.ToString() : studentDetail.LocationName) + "<br/>"
-                                    + " Note: We will review and decide on your application based on the availability of space, your assessment performance, and eligibility. We will send an email about the assessment test. If space is not available, we will add you into our waiting list for our next session. " + " <br/><br/>"
-                                    + " If you have any questions or concerns, please email us via support@agouramathcircle.org." + "<br/><br/>"
-                                    + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
-                }
-                else
-                {
-                    // Matches InformParent() logic in .aspx.cs lines 189-196
-                    emailSubject = "Agoura Math Circle : New Registration confirmation for " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + ".";
-                    registrationInfo = "Thank you very much for registering in Agoura Math Circle. We have recieved your application for " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + ".<br/>"
-                                    + " Session: " + (string.IsNullOrEmpty(studentDetail.SessionName) ? studentDetail.SessionId : studentDetail.SessionName) + "<br/>"
-                                    + " Student Grade: " + studentDetail.StudentGrade + "<br/><hr>" // matches .aspx.cs line 192
-                                    + " Course/Location: " + (string.IsNullOrEmpty(studentDetail.LocationName) ? studentDetail.LocationId.ToString() : studentDetail.LocationName) + "<br/>"
-                                    + " Note: We will review and decide on your application based on the availability of space. If space is not avaiable, we will add you into our waiting list. We will email those on the waiting list when there is space." + " <br/><br/>"
-                                    + " If you have any questions or concerns, please email us via support@agouramathcircle.org." + "<br/><br/>"
-                                    + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
-                }
+                var sessionDisplay = ResolveStudentSessionDisplay(studentDetail);
+                var locationDisplay = ResolveStudentLocationDisplay(studentDetail);
+                var gradeDisplay = studentDetail.StudentGrade ?? string.Empty;
 
-                // Use SendEmail if UserNameType is "P" (Parent), SendEmailGroup if UserNameType is "S" (Student)
-                // Matches InformParent() logic in .aspx.cs line 201: if (rblUserName.SelectedIndex == 0)
-                // SelectedIndex == 0 means first option selected, which is "P" (Parent)
-                string emailResult;
+
+                emailSubject = "Agoura Engineering Circle: New Registration confirmation for " + studentDetail.ParentFirstName + " " + studentDetail.ParentLastName + ".";
+                registrationInfo = "Thank you very much for registering in Agoura Engineering Circle. We have recieved your application for " + studentDetail.StudentFirstName + " " + studentDetail.StudentLastName + ".<br/>"
+                                + " Session: " + sessionDisplay + "<br/>"
+                                + " Student Grade: " + gradeDisplay + "<br/><hr>"
+                                + " Course/Location: " + locationDisplay + "<br/>"
+                                + " Note: We will review and decide on your application based on the availability of space. If space is not avaiable, we will add you into our waiting list. We will email those on the waiting list when there is space." + " <br/><br/>"
+                                + " If you have any questions or concerns, please email us via support@agouramathcircle.org." + "<br/><br/>"
+                                + " Regards <br> Agoura Math Circle<b/> <br/>www.agouramathcircle.org";
+
+
                 if (studentDetail.UserNameType == "P" || studentDetail.UserName == studentDetail.ParentEmail)
                 {
-                    // Username is parent email (UserNameType="P" or rblUserName.SelectedIndex==0) - use SendEmail (matches .aspx.cs line 203)
                     SendEmail(emailSendTo, emailFrom, emailSubject, registrationInfo);
                 }
                 else
                 {
-                    // Username is student email (UserNameType="S") - use SendEmailGroup (BCC student email) (matches .aspx.cs line 207)
-                    emailResult = SendEmailGroupAsync(emailSendTo, emailFrom, emailSubject, registrationInfo, studentDetail.StudentEmail).Result;
+                    SendEmailGroupAsync(emailSendTo, emailFrom, emailSubject, registrationInfo, studentDetail.StudentEmail).GetAwaiter().GetResult();
                 }
-
-                //if (emailResult.Contains("Error"))
-                //{
-                //    return emailResult;
-                //}
 
                 return "Parent email sent successfully";
             }
@@ -171,13 +163,35 @@ namespace pStudyWare20.Services.Implementations
             }
         }
 
+        private static string ResolveStudentSessionDisplay(RegistrationStudentModel studentDetail)
+        {
+            if (!string.IsNullOrWhiteSpace(studentDetail.SessionName))
+            {
+                return studentDetail.SessionName;
+            }
+
+            return SemesterFormatHelper.FormatSemesterDisplayName(studentDetail.SessionId);
+        }
+
+        private static string ResolveStudentLocationDisplay(RegistrationStudentModel studentDetail)
+        {
+            if (!string.IsNullOrWhiteSpace(studentDetail.LocationName))
+            {
+                return studentDetail.LocationName;
+            }
+
+            return studentDetail.LocationId > 0
+                ? studentDetail.LocationId.ToString()
+                : string.Empty;
+        }
+
         public string SendEmailForExistingStudentRegistration(StudentDetail studentDetail)
         {
             try
             {
-                // Use AMCRegistrationEmailID from config (matches old file logic)
-                string adminEmail = _configuration.GetSection("AppSettings")["AMCRegistrationEmailID"]
-                    ?? _configuration.GetSection("AppSettings")["AdminEmailID"]
+                // Use RegistrationEmailGroup from config (matches old file logic)
+                string adminEmail = _configuration.GetSection("AppSettings")["RegistrationEmailGroup"]
+                    ?? "Registration@agouramathcircle.org"
                     ?? "info@agouramathcircle.net";
 
                 // Email to Admin (matches old file logic)
@@ -290,40 +304,7 @@ namespace pStudyWare20.Services.Implementations
                 return false;
             }
         }
-
-        //private bool SendEmailGroup(string SendTo, string SentFrom, string subject, string body, string SendBcc)
-        //{
-        //    string AdminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"];
-
-        //    try
-        //    {
-        //        MailMessage message = new MailMessage();
-        //        message.From = new MailAddress(AdminEmailID);
-        //        message.To.Add(new MailAddress(SendTo));
-        //        message.Bcc.Add(new MailAddress(SendBcc));
-        //        message.IsBodyHtml = true;
-        //        message.Subject = subject;
-        //        message.Body = body;
-
-        //        // Read SMTP settings from configuration
-        //        string smtpServer = _configuration.GetSection("SmtpSettings")["Server"] ?? "relay-hosting.secureserver.net";
-        //        int smtpPort = int.TryParse(_configuration.GetSection("SmtpSettings")["Port"], out int port) ? port : 25;
-        //        bool enableSsl = bool.TryParse(_configuration.GetSection("SmtpSettings")["EnableSsl"], out bool ssl) ? ssl : false;
-        //        bool useDefaultCredentials = bool.TryParse(_configuration.GetSection("SmtpSettings")["UseDefaultCredentials"], out bool credentials) ? credentials : false;
-        //        int timeout = int.TryParse(_configuration.GetSection("SmtpSettings")["Timeout"], out int time) ? time : 30000;
-
-        //        SmtpClient smtpClient = new SmtpClient(smtpServer, smtpPort);
-        //        smtpClient.EnableSsl = enableSsl;
-        //        smtpClient.UseDefaultCredentials = useDefaultCredentials;
-        //        smtpClient.Timeout = timeout;
-        //        smtpClient.Send(message);
-        //        return true;
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return false;
-        //    }
-        //}
+        
         private string? GetPropertyValue(object obj, string propertyName)
         {
             try
@@ -354,7 +335,7 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                string adminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
+                string fromEmail = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
 
                 // Validate email addresses
                 if (string.IsNullOrEmpty(to) || !IsValidEmail(to))
@@ -362,13 +343,13 @@ namespace pStudyWare20.Services.Implementations
                     return $"Error: Invalid recipient email address: {to}";
                 }
 
-                if (string.IsNullOrEmpty(adminEmailID) || !IsValidEmail(adminEmailID))
+                if (string.IsNullOrEmpty(fromEmail) || !IsValidEmail(fromEmail))
                 {
-                    return $"Error: Invalid sender email address: {adminEmailID}";
+                    return $"Error: Invalid sender email address: {fromEmail}";
                 }
 
                 MailMessage message = new MailMessage();
-                message.From = new MailAddress(adminEmailID);
+                message.From = new MailAddress(fromEmail);
                 message.To.Add(new MailAddress(to));
                 message.IsBodyHtml = true;
                 message.Subject = subject;
@@ -442,7 +423,7 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                string adminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
+                string fromEnailInfo = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
 
                 // Validate email addresses
                 if (string.IsNullOrEmpty(to) || !IsValidEmail(to))
@@ -450,9 +431,9 @@ namespace pStudyWare20.Services.Implementations
                     return $"Error: Invalid recipient email address: {to}";
                 }
 
-                if (string.IsNullOrEmpty(adminEmailID) || !IsValidEmail(adminEmailID))
+                if (string.IsNullOrEmpty(fromEnailInfo) || !IsValidEmail(fromEnailInfo))
                 {
-                    return $"Error: Invalid sender email address: {adminEmailID}";
+                    return $"Error: Invalid sender email address: {fromEnailInfo}";
                 }
 
                 if (string.IsNullOrEmpty(group) || !IsValidEmail(group))
@@ -461,7 +442,7 @@ namespace pStudyWare20.Services.Implementations
                 }
 
                 MailMessage message = new MailMessage();
-                message.From = new MailAddress(adminEmailID);
+                message.From = new MailAddress(fromEnailInfo);
                 message.To.Add(new MailAddress(to));
                 message.Bcc.Add(new MailAddress(group));
                 message.IsBodyHtml = true;
@@ -493,9 +474,8 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                string adminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
-                string supportEmail = _configuration.GetSection("AppSettings")["Email"] ?? "support@agouramathcircle.org";
-
+                string fromEmail = _configuration.GetSection("AppSettings")["EnailInfo"] ?? "info@agouramathcircle.net";
+              
                 // Email subject and body matching the original ForgotPassword.aspx.cs
                 string emailSubject = "Agoura Math Circle : Your Login Information";
                 string emailBody = "Thank you very much for contacting with Agoura Math Circle.Here is your Login Information.<br/>"
@@ -505,7 +485,7 @@ namespace pStudyWare20.Services.Implementations
                                 + " If you have any issue with your login, please email to info@agouramathcircle.org." + "<br/><br/>"
                                 + " Regards <br> Agoura Math Circle <b/> <br/>www.agouramathcircle.org";
 
-                SendEmail(user.EmailID ?? user.UserName, adminEmailID, emailSubject, emailBody);
+                SendEmail(user.EmailID ?? user.UserName, fromEmail, emailSubject, emailBody);
                 //if (emailResult.Contains("Error"))
                 //{
                 //    return emailResult;
@@ -523,7 +503,7 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                string adminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
+                string fromEmail = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
 
                 // Email subject and body matching the original SendChangePassword method from AMCWebServices/EmailUtility.cs
                 string emailSubject = "Agoura Math Circle :  Your Password changed.";
@@ -531,7 +511,7 @@ namespace pStudyWare20.Services.Implementations
                                 + " Your New Password: " + newPassword + "<br/> "
                                 + " Regards<br/>Agoura Math Circle<b/><br/>www.agouramathcircle.org";
 
-                SendEmail(email, adminEmailID, emailSubject, emailBody);
+                SendEmail(email, fromEmail, emailSubject, emailBody);
                 //if (emailResult.Contains("Error"))
                 //{
                 //    return emailResult;
@@ -552,7 +532,7 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                string adminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
+                string fromEmail = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
 
                 // Email subject and body matching the original SendForgetPassword method from AMCWebServices/EmailUtility.cs
                 string emailSubject = "Agoura Math Circle : Your Login Information";
@@ -563,7 +543,7 @@ namespace pStudyWare20.Services.Implementations
                                 + " If you have any issue with your login, please email to info@agouramathcircle.org." + "<br/><br/>"
                                 + " Regards <br> Agoura Math Circle <b/> <br/>www.agouramathcircle.org";
 
-                SendEmail(emailAddress, adminEmailID, emailSubject, emailBody);
+                SendEmail(emailAddress, fromEmail, emailSubject, emailBody);
                 //if (emailResult.Contains("Error"))
                 //{
                 //    return false;
@@ -605,7 +585,7 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
-                string adminEmailID = _configuration.GetSection("AppSettings")["AdminEmailID"] ?? "info@agouramathcircle.net";
+                string fromEmail = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
 
                 // Email subject and body matching the original SendChangePassword method from AMCWebServices/EmailUtility.cs
                 string emailSubject = "Agoura Math Circle :  Your Password changed.";
@@ -613,7 +593,7 @@ namespace pStudyWare20.Services.Implementations
                                 + " Your New Password: " + password + "<br/> "
                                 + " Regards<br/>Agoura Math Circle<b/><br/>www.agouramathcircle.org";
 
-                SendEmail(emailAddress, adminEmailID, emailSubject, emailBody);
+                SendEmail(emailAddress, fromEmail, emailSubject, emailBody);
                 //if (emailResult.Contains("Error"))
                 //{
                 //    return false;

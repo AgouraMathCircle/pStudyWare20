@@ -384,7 +384,7 @@ namespace pStudyWare20.Services.Implementations
                 if (classListData is DataSet dataSet && dataSet.Tables[0].Rows.Count > 0)
                 {
                     var studentClassEmail = dataSet.Tables[0].Rows[0]["StudentEmailGroup"].ToString() ?? "";
-                    var adminEmail = _configuration["AdminEmailID"] ?? "admin@agouramathcircle.org";
+                    string fromEmail = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
 
                     var subject = "Agoura Math Circle :Student score has been posted.";
                     var body = "We have posted your kid`s score.<br/>"
@@ -392,7 +392,7 @@ namespace pStudyWare20.Services.Implementations
                         + " If you have any question with your kid's score, please contact the instructor via Message center." + "<br/><br/>"
                         + " Regards <br> Agoura Math Circle<br/> <br/>www.agouramathcircle.org";
 
-                    await _emailUtility.SendEmailAsync(studentClassEmail, adminEmail, subject, body);
+                    await _emailUtility.SendEmailAsync(studentClassEmail, fromEmail, subject, body);
                 }
 
                 return new SendEmailResponse
@@ -628,7 +628,7 @@ namespace pStudyWare20.Services.Implementations
 
                 if (summaryReportData is DataTable dataTable && dataTable.Rows.Count > 0)
                 {
-                    var adminEmail = _configuration["AdminEmailID"] ?? "admin@agouramathcircle.org";
+                    string fromEmail = _configuration.GetSection("AppSettings")["Email"] ?? "info@agouramathcircle.net";
 
                     foreach (DataRow row in dataTable.Rows)
                     {
@@ -640,7 +640,7 @@ namespace pStudyWare20.Services.Implementations
                         var emailBody = GenerateStudentReportEmailBody(row);
                         var subject = "Agoura Math Circle - Student Report Card";
 
-                        await _emailUtility.SendEmailAsync(parentEmail, adminEmail, subject, emailBody);
+                        await _emailUtility.SendEmailAsync(parentEmail, fromEmail, subject, emailBody);
                     }
                 }
 

@@ -157,15 +157,16 @@ const WaitingListStudents = ({ waitingListCounts }) => {
     },
 
     {
-
       key: "AI",
-
       label: "Game Development",
-
       onsiteKey: "onwaitingCntAI",
-
       onlineKey: "inwaitingCntAI",
-
+    },
+    {
+      key: "ED",
+      label: "Engineering Design",
+      onsiteKey: "onwaitingCntED",
+      onlineKey: "inwaitingCntED",
     },
 
     {
