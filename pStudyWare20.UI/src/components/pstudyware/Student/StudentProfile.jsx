@@ -45,19 +45,16 @@ import {
 } from "../../../utils/tableSort";
 
 const profileColumnWidths = {
-  actions: "6%",
-  studentId: "6%",
-  studentName: "10%",
-  program: "8%",
-  class: "7%",
-  grade: "5%",
-  school: "10%",
-  parent: "9%",
-  phone: "9%",
-  email: "15%",
-  session: "8%",
-  location: "7%",
+  actions: "8%",
+  studentId: "10%",
+  studentName: "22%",
+  program: "14%",
+  class: "12%",
+  session: "16%",
+  location: "18%",
 };
+
+const PROFILE_TABLE_COL_SPAN = 7;
 
 const normalizeProfiles = (data) => {
   if (!data) return [];
@@ -277,7 +274,7 @@ const StudentProfile = ({ username, chapterId }) => {
     if (loading) {
       return (
         <TableRow>
-          <TableCell colSpan={12} align="center" sx={adminSessionListEmptyCellSx}>
+          <TableCell colSpan={PROFILE_TABLE_COL_SPAN} align="center" sx={adminSessionListEmptyCellSx}>
             <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
               Loading student profile...
             </Typography>
@@ -289,7 +286,7 @@ const StudentProfile = ({ username, chapterId }) => {
     if (error) {
       return (
         <TableRow>
-          <TableCell colSpan={12} align="center" sx={adminSessionListEmptyCellSx}>
+          <TableCell colSpan={PROFILE_TABLE_COL_SPAN} align="center" sx={adminSessionListEmptyCellSx}>
             <Typography variant="body2" color="error" sx={adminSessionListEmptyTextSx}>
               {error}
             </Typography>
@@ -337,33 +334,6 @@ const StudentProfile = ({ username, chapterId }) => {
               </Box>
             </Tooltip>
           </TableCell>
-          <TableCell sx={adminSessionListTableBodyCellSx()}>
-            {student.grade || "—"}
-          </TableCell>
-          <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            <Tooltip title={student.school || ""} disableHoverListener={!student.school}>
-              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {student.school || "—"}
-              </Box>
-            </Tooltip>
-          </TableCell>
-          <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            <Tooltip title={student.parentName || ""} disableHoverListener={!student.parentName}>
-              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {student.parentName || "—"}
-              </Box>
-            </Tooltip>
-          </TableCell>
-          <TableCell sx={adminSessionListTableBodyCellSx()}>
-            {student.phone || "—"}
-          </TableCell>
-          <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-            <Tooltip title={student.email || student.parentEmail || student.studentEmail || ""} disableHoverListener={!(student.email || student.parentEmail || student.studentEmail)}>
-              <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {student.email || student.parentEmail || student.studentEmail || "—"}
-              </Box>
-            </Tooltip>
-          </TableCell>
           <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
             <Tooltip title={student.eventSession || ""} disableHoverListener={!student.eventSession}>
               <Box component="span" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -384,7 +354,7 @@ const StudentProfile = ({ username, chapterId }) => {
 
     return (
       <TableRow>
-        <TableCell colSpan={12} align="center" sx={adminSessionListEmptyCellSx}>
+        <TableCell colSpan={PROFILE_TABLE_COL_SPAN} align="center" sx={adminSessionListEmptyCellSx}>
           <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
             No records to display
           </Typography>
@@ -425,21 +395,6 @@ const StudentProfile = ({ username, chapterId }) => {
             </MenuItem>
             <MenuItem value="CLASS" sx={adminSessionListMenuItemSx}>
               Class
-            </MenuItem>
-            <MenuItem value="GRADE" sx={adminSessionListMenuItemSx}>
-              Grade
-            </MenuItem>
-            <MenuItem value="SCHOOL" sx={adminSessionListMenuItemSx}>
-              School
-            </MenuItem>
-            <MenuItem value="PARENT" sx={adminSessionListMenuItemSx}>
-              Parent
-            </MenuItem>
-            <MenuItem value="PHONE" sx={adminSessionListMenuItemSx}>
-              Phone
-            </MenuItem>
-            <MenuItem value="EMAIL" sx={adminSessionListMenuItemSx}>
-              Email
             </MenuItem>
             <MenuItem value="SESSION" sx={adminSessionListMenuItemSx}>
               Session
@@ -532,46 +487,6 @@ const StudentProfile = ({ username, chapterId }) => {
                 sortOrder={sortOrder}
                 onSort={handleSort}
                 headCellSx={adminSessionListTableHeadCellSx(profileColumnWidths.class)}
-              />
-              <SortableHeader
-                label="Grade"
-                field="grade"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(profileColumnWidths.grade)}
-              />
-              <SortableHeader
-                label="School"
-                field="school"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(profileColumnWidths.school)}
-              />
-              <SortableHeader
-                label="Parent"
-                field="parent"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(profileColumnWidths.parent)}
-              />
-              <SortableHeader
-                label="Contact #"
-                field="phone"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(profileColumnWidths.phone)}
-              />
-              <SortableHeader
-                label="Email"
-                field="email"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(profileColumnWidths.email)}
               />
               <SortableHeader
                 label="Session"

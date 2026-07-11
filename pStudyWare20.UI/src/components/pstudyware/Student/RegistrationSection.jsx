@@ -9,11 +9,13 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Checkbox,
   Button,
 } from "@mui/material";
 import studentDashboardService from "../../../services/studentDashboardService";
-import { formatSemesterLabel, formatRegistrationCloseDate } from "../../../utils/semesterFormat";
+import {
+  formatSemesterLabel,
+  formatRegistrationCloseDate,
+} from "../../../utils/semesterFormat";
 import { formatLocationEmailLabel } from "../../../utils/registrationFormat";
 
 const MESSAGE_CENTER_PATH = "/pstudyware/student/message-center";
@@ -36,7 +38,9 @@ const getRegistrationStudentId = (student) => {
 };
 
 const getRegistrationStatus = (student) =>
-  String(pickField(student, "status", "Status", "regStatus", "RegStatus") || "").trim();
+  String(
+    pickField(student, "status", "Status", "regStatus", "RegStatus") || "",
+  ).trim();
 
 const isRegistrationOpen = (student) => {
   if (student?.canRegister === true || student?.CanRegister === true) {
@@ -57,13 +61,17 @@ const isRegistrationWaitingList = (student) => {
   return getRegistrationStatus(student).toLowerCase().includes("waiting");
 };
 
+/** Legacy Student_Dashboard: checkbox shown unless Full - Closed or Waiting List. */
+const canSelectForRegistration = (student) =>
+  !isRegistrationClosed(student) && !isRegistrationWaitingList(student);
+
 const getLocationLabel = (student) => {
   const directLabel = pickField(
     student,
     "eventLocation",
     "EventLocation",
     "eventLocationLabel",
-    "EventLocationLabel"
+    "EventLocationLabel",
   );
   if (directLabel && !/^\d+$/.test(String(directLabel).trim())) {
     return directLabel;
@@ -97,6 +105,7 @@ const RegistrationSection = ({
 
   useEffect(() => {
     if (registrationData?.length > 0) {
+      // Submit stays enabled when any row is Open (legacy bEnabledButton).
       setHasOpenRegistration(registrationData.some(isRegistrationOpen));
     } else {
       setHasOpenRegistration(false);
@@ -107,7 +116,7 @@ const RegistrationSection = ({
 
   const totalPages = Math.max(
     1,
-    Math.ceil((registrationData?.length ?? 0) / PAGE_SIZE)
+    Math.ceil((registrationData?.length ?? 0) / PAGE_SIZE),
   );
 
   const paginatedRows = useMemo(() => {
@@ -124,7 +133,7 @@ const RegistrationSection = ({
     const fromRegistration =
       pickField(registrationData?.[0], "semesterName", "SemesterName") ||
       formatSemesterLabel(
-        pickField(registrationData?.[0], "semester", "Semester")
+        pickField(registrationData?.[0], "semester", "Semester"),
       ) ||
       formatSemesterLabel(activeSemester);
 
@@ -135,7 +144,7 @@ const RegistrationSection = ({
 
   const formattedCloseDate = useMemo(
     () => formatRegistrationCloseDate(registrationCloseDate),
-    [registrationCloseDate]
+    [registrationCloseDate],
   );
 
   const showDeadlineNotice = Boolean(semesterLabel && formattedCloseDate);
@@ -144,13 +153,14 @@ const RegistrationSection = ({
     setSelectedStudents((prev) =>
       prev.includes(studentId)
         ? prev.filter((id) => id !== studentId)
-        : [...prev, studentId]
+        : [...prev, studentId],
     );
   };
 
   const handleSubmit = async () => {
     if (selectedStudents.length === 0) {
-      const message = "Please select the student , then click the submit button.";
+      const message =
+        "Please select the student , then click the submit button.";
       setSubmitMessage(message);
       setSubmitError(true);
       onError?.(message);
@@ -165,7 +175,7 @@ const RegistrationSection = ({
       for (const studentId of selectedStudents) {
         const response = await studentDashboardService.submitRegistration(
           studentId,
-          username
+          username,
         );
 
         if (!response.isSuccess) {
@@ -201,18 +211,24 @@ const RegistrationSection = ({
             component="p"
             className="student-registration-deadline-notice"
           >
-            The {semesterLabel}&apos;s registration will be close on {formattedCloseDate}.
-            If you have any question, please contact via{" "}
+            The {semesterLabel}&apos;s registration will be close on{" "}
+            {formattedCloseDate}. If you have any question, please contact via{" "}
             <RouterLink to={MESSAGE_CENTER_PATH}>Message Center</RouterLink>.
           </Typography>
         )}
 
         <Typography component="p" className="student-registration-copy">
-          Your kids are on the waiting list for our {semesterLabel} because they did
-          not take the final exam. The final exam is required for {semesterLabel}{" "}
-          registration. Take the final exam (Class Material Section) and update the
-          answer key in the update score section. After the update of the answer key,
-          you will be able to register for {semesterLabel}.
+          To finalize your enrollment in the Agoura Math Circle, please make
+          sure to update the student&apos;s grade and school in your account.
+          Additionally, a subscription to our{" "}
+          <a
+            href="https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/featured"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            YouTube channel
+          </a>{" "}
+          is required to complete the process.
         </Typography>
 
         <Box className="student-registration-grid-wrap">
@@ -242,16 +258,21 @@ const RegistrationSection = ({
                   const status = getRegistrationStatus(student);
                   const isClosed = isRegistrationClosed(student);
                   const isWaitingList = isRegistrationWaitingList(student);
-                  const isOpen = isRegistrationOpen(student);
+                  const showCheckbox = canSelectForRegistration(student);
 
                   return (
                     <TableRow key={studentId}>
-                      <TableCell align="center" padding="checkbox">
-                        {isOpen ? (
-                          <Checkbox
-                            size="small"
+                      <TableCell
+                        align="center"
+                        className="student-registration-check-cell"
+                      >
+                        {showCheckbox ? (
+                          <input
+                            type="checkbox"
+                            className="student-registration-checkbox"
                             checked={selectedStudents.includes(studentId)}
                             onChange={() => handleStudentSelection(studentId)}
+                            aria-label={`Select student ${studentId}`}
                           />
                         ) : isClosed ? (
                           <Typography
@@ -274,12 +295,18 @@ const RegistrationSection = ({
                         {pickField(student, "studentName", "StudentName")}
                       </TableCell>
                       <TableCell>{getLocationLabel(student)}</TableCell>
-                      <TableCell>{pickField(student, "grade", "Grade")}</TableCell>
-                      <TableCell>{pickField(student, "school", "School")}</TableCell>
+                      <TableCell>
+                        {pickField(student, "grade", "Grade")}
+                      </TableCell>
+                      <TableCell>
+                        {pickField(student, "school", "School")}
+                      </TableCell>
                       <TableCell>
                         {pickField(student, "parentName", "ParentName")}
                       </TableCell>
-                      <TableCell>{pickField(student, "class", "Class")}</TableCell>
+                      <TableCell>
+                        {pickField(student, "class", "Class")}
+                      </TableCell>
                       <TableCell>{status || "—"}</TableCell>
                       <TableCell align="center">
                         {pickField(student, "openSpace", "OpenSpace") ?? "—"}

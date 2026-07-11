@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import "../styles/Contact.css";
 import contactService from "../services/contactService";
 // Import images from src/assets
@@ -11,7 +11,16 @@ import {
   YouTube as YouTubeIcon,
 } from "@mui/icons-material";
 
+const createCaptcha = () => ({
+  a: Math.floor(Math.random() * 10) + 1,
+  b: Math.floor(Math.random() * 10) + 1,
+});
+
 const Contact = () => {
+  const [formStartedAt] = useState(() => Date.now());
+  const [captcha, setCaptcha] = useState(createCaptcha);
+  const [honeypot, setHoneypot] = useState("");
+  const [captchaAnswer, setCaptchaAnswer] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,6 +39,16 @@ const Contact = () => {
     }));
   };
 
+  const captchaPrompt = useMemo(
+    () => `What is ${captcha.a} + ${captcha.b}?`,
+    [captcha.a, captcha.b]
+  );
+
+  const resetCaptcha = () => {
+    setCaptcha(createCaptcha());
+    setCaptchaAnswer("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError("");
@@ -41,6 +60,11 @@ const Contact = () => {
         email: formData.email.trim(),
         subject: formData.subject.trim(),
         message: formData.message.trim(),
+        website: honeypot,
+        formStartedAt,
+        captchaOperandA: captcha.a,
+        captchaOperandB: captcha.b,
+        captchaAnswer: Number(captchaAnswer),
       });
 
       if (response?.isSuccess) {
@@ -51,14 +75,18 @@ const Contact = () => {
           subject: "",
           message: "",
         });
+        setHoneypot("");
+        resetCaptcha();
       } else {
         setSubmitError(
           response?.errorMessage ||
             "Unable to send your message. Please try again."
         );
+        resetCaptcha();
       }
     } catch (error) {
       setSubmitError(error.message);
+      resetCaptcha();
     } finally {
       setIsSubmitting(false);
     }
@@ -100,7 +128,7 @@ const Contact = () => {
                   <h4 className="contact-us-heading">CONTACT US</h4>
                   <div className="row">
                     <div className="col-md-6">
-                      <div className="find-widget">
+                      <div className="find-widget contact-chapter-line">
                         Agoura Chapter El Camino Real High School
                       </div>
                       <div className="find-widget">
@@ -182,7 +210,19 @@ const Contact = () => {
                     </div>
                   ) : (
                     <div id="divInputContainer">
-                      <form onSubmit={handleSubmit}>
+                      <form onSubmit={handleSubmit} noValidate>
+                        <div className="contact-honeypot" aria-hidden="true">
+                          <label htmlFor="website">Website</label>
+                          <input
+                            type="text"
+                            id="website"
+                            name="website"
+                            tabIndex={-1}
+                            autoComplete="off"
+                            value={honeypot}
+                            onChange={(e) => setHoneypot(e.target.value)}
+                          />
+                        </div>
                         {/* Name */}
                         <div className="form-group label-floating">
                           <label className="control-label" htmlFor="name">
@@ -249,6 +289,25 @@ const Contact = () => {
                             required
                             disabled={isSubmitting}
                           ></textarea>
+                          <div className="help-block with-errors"></div>
+                        </div>
+                        <div className="form-group label-floating contact-security-field">
+                          <label className="control-label" htmlFor="captchaAnswer">
+                            Security Check
+                          </label>
+                          <input
+                            type="number"
+                            className="form-control"
+                            id="captchaAnswer"
+                            name="captchaAnswer"
+                            value={captchaAnswer}
+                            onChange={(e) => setCaptchaAnswer(e.target.value)}
+                            placeholder={captchaPrompt}
+                            title={captchaPrompt}
+                            required
+                            disabled={isSubmitting}
+                            inputMode="numeric"
+                          />
                           <div className="help-block with-errors"></div>
                         </div>
                         {submitError && (

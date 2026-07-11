@@ -89,8 +89,8 @@ const config = {
   production: {
     apiUrl:
       import.meta.env.VITE_PRODUCTION_API_URL ||
-      "https://api.pstudyware.com/api",
-    domain: import.meta.env.VITE_PRODUCTION_DOMAIN || "https://pstudyware.com",
+      "https://api.agouramathcircle.com/api",
+    domain: import.meta.env.VITE_PRODUCTION_DOMAIN || "https://agouramathcircle.com",
   },
 
   // Static document paths (local public folder or production CDN via VITE_PUBLIC_DOCUMENTS_URL)

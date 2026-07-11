@@ -1,10 +1,19 @@
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
+using System.Text.RegularExpressions;
 
 namespace pStudyWare20.Services.Implementations
 {
     public class ContactService : IContactService
     {
+        private const int MinSubmitDelayMs = 3000;
+        private const int MaxFormAgeMs = 24 * 60 * 60 * 1000;
+        private const int MaxLinksInMessage = 3;
+
+        private static readonly Regex LinkPattern = new(
+            @"https?://",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         private readonly IEmailUtility _emailUtility;
 
         public ContactService(IEmailUtility emailUtility)
@@ -21,6 +30,18 @@ namespace pStudyWare20.Services.Implementations
 
             try
             {
+                if (IsBotSubmission(request))
+                {
+                    return SuccessResponse();
+                }
+
+                if (!IsCaptchaValid(request))
+                {
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "Please answer the security question correctly.";
+                    return response;
+                }
+
                 // Legacy ContactUs.aspx.cs also saved via AMC_spAddEnquiry — disabled until DB is ready.
                 // _contactRepository.AddEnquiryAsync(request).GetAwaiter().GetResult();
 
@@ -37,8 +58,7 @@ namespace pStudyWare20.Services.Implementations
                     return response;
                 }
 
-                response.IsSuccess = true;
-                response.Message = "Your request has successfully submitted.";
+                return SuccessResponse();
             }
             catch (Exception ex)
             {
@@ -47,6 +67,52 @@ namespace pStudyWare20.Services.Implementations
             }
 
             return response;
+        }
+
+        private static ContactEnquiryResponse SuccessResponse()
+        {
+            return new ContactEnquiryResponse
+            {
+                IsSuccess = true,
+                Message = "Your request has successfully submitted.",
+            };
+        }
+
+        private static bool IsBotSubmission(ContactEnquiryRequest request)
+        {
+            if (!string.IsNullOrWhiteSpace(request.Website))
+            {
+                return true;
+            }
+
+            if (request.FormStartedAt <= 0)
+            {
+                return true;
+            }
+
+            var elapsedMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - request.FormStartedAt;
+            if (elapsedMs < MinSubmitDelayMs || elapsedMs > MaxFormAgeMs)
+            {
+                return true;
+            }
+
+            var linkCount = LinkPattern.Matches(request.Message ?? string.Empty).Count;
+            if (linkCount > MaxLinksInMessage)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsCaptchaValid(ContactEnquiryRequest request)
+        {
+            if (request.CaptchaOperandA is < 1 or > 20 || request.CaptchaOperandB is < 1 or > 20)
+            {
+                return false;
+            }
+
+            return request.CaptchaAnswer == request.CaptchaOperandA + request.CaptchaOperandB;
         }
     }
 }

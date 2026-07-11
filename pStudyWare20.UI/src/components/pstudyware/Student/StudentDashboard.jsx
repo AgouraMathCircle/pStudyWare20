@@ -22,6 +22,7 @@ import StudentMeetingSchedule from "./StudentMeetingSchedule";
 import studentDashboardService from "../../../services/studentDashboardService";
 import {
   PORTAL_CARD_BOX_SHADOW,
+  dashboardMessagesPanelContentSx,
   portalCardAntiLiftSx,
   portalDashboardPageSx,
 } from "../styles/applicationSurfaces";
@@ -330,18 +331,9 @@ const StudentDashboard = () => {
         <Grid container spacing={2}>
           <Grid item xs={12} sx={{ pb: "0 !important" }}>
             <Card sx={panelCardSx} className="dashboard-messages-panel">
-              <CardContent
-                sx={{
-                  px: 2,
-                  pt: 1.5,
-                  pb: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  minHeight: 0,
-                  "&:last-child": { pb: 0 },
-                }}
-              >
+              <CardContent sx={dashboardMessagesPanelContentSx}>
                 <DashboardMessages
+                  variant="student"
                   username={username}
                   chapterId={chapterId}
                   dashboardMessages={dashboardMessages}
@@ -356,12 +348,12 @@ const StudentDashboard = () => {
           </Grid>
 
           {showRegistration && !registrationLoading && (
-            <Grid item xs={12} sx={{ pt: "8px !important" }}>
+            <Grid item xs={12} sx={{ pt: "0 !important", mt: "-12px !important" }}>
               <Card sx={panelCardSx}>
                 <CardContent
                   sx={{
                     px: 1.5,
-                    pt: 1.5,
+                    pt: 1,
                     pb: 1.5,
                     "&:last-child": { pb: 1.5 },
                   }}
@@ -381,7 +373,7 @@ const StudentDashboard = () => {
           )}
 
           {registrationLoading && (
-            <Grid item xs={12} sx={{ pt: "8px !important" }}>
+            <Grid item xs={12} sx={{ pt: "0 !important", mt: "-12px !important" }}>
               <Card sx={panelCardSx}>
                 <CardContent sx={panelContentSx}>
                   <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>

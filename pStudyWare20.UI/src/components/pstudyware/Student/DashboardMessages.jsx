@@ -8,11 +8,10 @@ import {
   Alert,
   CircularProgress,
   Grid,
-  Link,
   Button,
 } from "@mui/material";
 import studentDashboardService from "../../../services/studentDashboardService";
-import PdfViewerModal from "../../common/PdfViewerModal";
+import { getDashboardNoticeLinks } from "../Common/dashboardMessageLinks";
 import {
   adminDashboardWidgetCardSx,
   adminDashboardWidgetColumnSx,
@@ -20,50 +19,53 @@ import {
   adminSessionListHeaderBarSx,
   adminSessionListTitleSx,
 } from "../styles/applicationSurfaces";
+import "../../../styles/DashboardMessages.css";
 
-const IMPORTANT_NOTICE_LINKS = [
-  {
-    label: "Subscribe and Watch all the Lectures Video",
-    href: "https://www.youtube.com/channel/UCWK2w-BVGps-Y9c08B5pRgA/featured",
-    external: true,
-    color: "#1976d2",
-  },
-  {
-    label: "AMC Curriculum",
-    prefix: "View: ",
-    prefixColor: "#c62828",
-    href: "/pstudyware/Documents/AMC_Curriculam.pdf",
-    isPdf: true,
-    color: "#1976d2",
-  },
-];
+const MESSAGE_GREEN = {
+  cardBg: "#eef6ee",
+  cardBorder: "#c8e6c9",
+  body: "#000000",
+  link: "#1565c0",
+  linkHover: "#0d47a1",
+  muted: "#5a6b5a",
+  titleBarBg: "#d8efd0",
+  titleBarBorder: "#a5d6a7",
+};
 
 const MESSAGE_SECTIONS = [
   {
     key: "importantNotice",
     title: "Important Notice",
-    titleColor: "#f44336",
-    cardBackground: "#d6e1e8",
+    titleColor: "#b71c1c",
+    titleBarBg: "#ffcdd2",
+    titleBarBorder: "#ef9a9a",
+    cardBackground: MESSAGE_GREEN.cardBg,
     alwaysShow: true,
     showLinks: true,
   },
   {
     key: "announcement",
     title: "Math Circle",
-    titleColor: "#3ea7e0",
-    cardBackground: "#d6e1e8",
+    titleColor: "#1565c0",
+    titleBarBg: "#bbdefb",
+    titleBarBorder: "#90caf9",
+    cardBackground: MESSAGE_GREEN.cardBg,
   },
   {
     key: "competitions",
     title: "Engineering Circle",
-    titleColor: "#8ea63d",
-    cardBackground: "#d6e1e8",
+    titleColor: "#558b2f",
+    titleBarBg: "#dcedc8",
+    titleBarBorder: "#aed581",
+    cardBackground: MESSAGE_GREEN.cardBg,
   },
   {
     key: "todoList",
     title: "Test Preparation",
-    titleColor: "#3ea7e0",
-    cardBackground: "#d6e1e8",
+    titleColor: "#00838f",
+    titleBarBg: "#b2ebf2",
+    titleBarBorder: "#4dd0e1",
+    cardBackground: MESSAGE_GREEN.cardBg,
   },
 ];
 
@@ -73,13 +75,17 @@ const messageWidgetContentSx = {
   display: "flex",
   flexDirection: "column",
   px: 1,
-  py: 0.75,
-  "&:last-child": { pb: 0.75 },
+  py: 0.5,
+  "&:last-child": { pb: 0.5 },
 };
 
 const messageWidgetBodySx = {
   ...adminDashboardWidgetTableBodyFontSx,
-  color: "#003b5c",
+  color: MESSAGE_GREEN.body,
+  fontSize: "0.875rem",
+  lineHeight: 1.3,
+  margin: 0,
+  mb: 0.25,
   wordWrap: "break-word",
   overflowWrap: "break-word",
   whiteSpace: "normal",
@@ -87,19 +93,31 @@ const messageWidgetBodySx = {
 
 const messageWidgetLinkSx = (color) => ({
   ...adminDashboardWidgetTableBodyFontSx,
-  color,
-  fontWeight: 500,
-  lineHeight: 1.3,
+  color: `${color} !important`,
+  fontWeight: 600,
+  fontSize: "0.875rem",
+  lineHeight: 1.2,
   textDecoration: "underline",
+  textDecorationColor: "rgba(21, 101, 192, 0.45)",
+  textUnderlineOffset: "2px",
   textAlign: "left",
-  border: "none",
-  background: "none",
-  padding: 0,
-  margin: 0,
   cursor: "pointer",
   display: "inline",
+  padding: 0,
+  margin: 0,
+  border: "none",
+  background: "none",
+  boxShadow: "none",
+  borderRadius: 0,
+  appearance: "none",
+  WebkitAppearance: "none",
+  verticalAlign: "baseline",
   "&:hover": {
+    color: `${MESSAGE_GREEN.linkHover} !important`,
     textDecoration: "underline",
+    textDecorationColor: MESSAGE_GREEN.linkHover,
+    background: "none",
+    boxShadow: "none",
   },
 });
 
@@ -110,7 +128,11 @@ const DashboardMessages = ({
   loading: propsLoading,
   compact = false,
   timeSheetUrl = "",
+  variant = "student",
+  noticeLinks: noticeLinksProp,
 }) => {
+  const importantNoticeLinks =
+    noticeLinksProp ?? getDashboardNoticeLinks(variant);
   const isControlled = propsDashboardMessages != null;
   const [internalMessages, setInternalMessages] = useState({
     importantNotice: "",
@@ -120,7 +142,6 @@ const DashboardMessages = ({
   });
   const [internalLoading, setInternalLoading] = useState(!isControlled);
   const [error, setError] = useState(null);
-  const [selectedPdf, setSelectedPdf] = useState(null);
 
   const dashboardMessages = isControlled ? propsDashboardMessages : internalMessages;
   const loading = isControlled ? (propsLoading ?? false) : internalLoading;
@@ -171,16 +192,16 @@ const DashboardMessages = ({
   const shouldShowSection = (section) => {
     const text = dashboardMessages[section.key];
     if (section.alwaysShow) {
-      return Boolean(text) || IMPORTANT_NOTICE_LINKS.length > 0;
+      return Boolean(text) || importantNoticeLinks.length > 0;
     }
     return Boolean(text);
   };
 
-  const renderImportantNoticeLinks = () =>
-    IMPORTANT_NOTICE_LINKS.map((item, index) => {
+  const renderImportantNoticeLinks = () => {
+    const links = importantNoticeLinks.map((item) => {
       const linkContent = (
-        <span>
-          {item.prefix && (
+        <>
+          {item.prefix ? (
             <span
               style={{
                 color: item.prefixColor || "inherit",
@@ -190,50 +211,46 @@ const DashboardMessages = ({
             >
               {item.prefix}
             </span>
-          )}
+          ) : null}
           <span>{item.label}</span>
-        </span>
+        </>
       );
 
-      const linkElement = item.isPdf ? (
-        <Link
-          key={item.href}
-          component="button"
-          onClick={() => setSelectedPdf(item.href)}
-          sx={messageWidgetLinkSx(item.color)}
-        >
-          {linkContent}
-        </Link>
-      ) : item.external ? (
-        <Link
-          key={item.href}
-          href={item.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          sx={messageWidgetLinkSx(item.color)}
-        >
-          {linkContent}
-        </Link>
-      ) : (
-        <Link
+      if (item.external) {
+        return (
+          <Box
+            key={item.href}
+            component="a"
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={messageWidgetLinkSx(item.color)}
+          >
+            {linkContent}
+          </Box>
+        );
+      }
+
+      return (
+        <Box
           key={item.href}
           component={RouterLink}
           to={item.href}
           sx={messageWidgetLinkSx(item.color)}
         >
           {linkContent}
-        </Link>
-      );
-
-      return (
-        <React.Fragment key={item.href}>
-          {linkElement}
-          {index < IMPORTANT_NOTICE_LINKS.length - 1 && (
-            <span style={{ margin: "0 4px", color: "#9e9e9e" }}>|</span>
-          )}
-        </React.Fragment>
+        </Box>
       );
     });
+
+    return links.reduce((nodes, link, index) => {
+      if (index > 0) {
+        nodes.push(<br key={`notice-link-br-${index}`} />);
+      }
+      nodes.push(link);
+      return nodes;
+    }, []);
+  };
 
   if (loading) {
     return (
@@ -258,7 +275,7 @@ const DashboardMessages = ({
       <Grid
         container
         spacing={compact ? 2 : 4}
-        className="student-dashboard-widgets-row"
+        className="dashboard-messages-widgets-row"
         sx={{
           alignItems: "flex-start",
           flexWrap: "wrap",
@@ -288,21 +305,41 @@ const DashboardMessages = ({
                 }}
               >
                 <Card
-                  elevation={3}
-                  className="admin-dashboard-widget-card student-dashboard-message-widget"
+                  elevation={0}
+                  className="admin-dashboard-widget-card dashboard-message-widget"
                   sx={{
                     ...adminDashboardWidgetCardSx,
-                    backgroundColor: section.cardBackground || "#d6e1e8",
+                    backgroundColor: section.cardBackground || MESSAGE_GREEN.cardBg,
+                    border: `1px solid ${MESSAGE_GREEN.cardBorder}`,
+                    boxShadow: "none",
                   }}
                 >
                   <CardContent sx={messageWidgetContentSx}>
-                    <Box sx={adminSessionListHeaderBarSx}>
+                    <Box
+                      sx={{
+                        ...adminSessionListHeaderBarSx,
+                        backgroundColor:
+                          section.titleBarBg || MESSAGE_GREEN.titleBarBg,
+                        borderBottom: `1px solid ${
+                          section.titleBarBorder || MESSAGE_GREEN.titleBarBorder
+                        }`,
+                        borderRadius: "2px",
+                        mx: -0.25,
+                        mb: 0.5,
+                        px: 0.75,
+                        py: 0.35,
+                      }}
+                    >
                       <Typography
                         variant="subtitle1"
                         component="div"
                         sx={{
                           ...adminSessionListTitleSx,
-                          color: section.titleColor || adminSessionListTitleSx.color,
+                          color: section.titleColor || "#174a10",
+                          fontWeight: 800,
+                          fontSize: "0.95rem",
+                          letterSpacing: "0.01em",
+                          lineHeight: 1.25,
                         }}
                       >
                         {section.title}
@@ -312,21 +349,33 @@ const DashboardMessages = ({
                     <Box
                       sx={{
                         overflowY: "auto",
-                        flexGrow: 1,
+                        flexGrow: 0,
                         display: "flex",
                         flexDirection: "column",
-                        gap: 0.75,
+                        gap: 0.25,
                         minHeight: 0,
                       }}
                     >
                       {text ? (
-                        <Typography component="p" sx={messageWidgetBodySx}>
+                        <Typography
+                          component="p"
+                          className="dashboard-message-body"
+                          sx={messageWidgetBodySx}
+                        >
                           {text}
                         </Typography>
                       ) : null}
 
                       {section.showLinks ? (
-                        <Box sx={{ display: "block", lineHeight: 1.3 }}>
+                        <Box
+                          className="dashboard-message-notice-links"
+                          sx={{
+                            display: "block",
+                            lineHeight: 1.2,
+                            m: 0,
+                            p: 0,
+                          }}
+                        >
                           {renderImportantNoticeLinks()}
                         </Box>
                       ) : null}
@@ -337,7 +386,7 @@ const DashboardMessages = ({
                         sx={{
                           mt: 0.75,
                           pt: 0.75,
-                          borderTop: `1px solid #c8e6c9`,
+                          borderTop: `1px solid ${MESSAGE_GREEN.cardBorder}`,
                         }}
                       >
                         <Button
@@ -347,7 +396,7 @@ const DashboardMessages = ({
                           size="small"
                           sx={{
                             ...adminDashboardWidgetTableBodyFontSx,
-                            color: "#2e7d32",
+                            color: MESSAGE_GREEN.link,
                             fontWeight: 600,
                             textTransform: "none",
                             p: 0,
@@ -365,16 +414,6 @@ const DashboardMessages = ({
           );
         })}
       </Grid>
-
-      <PdfViewerModal
-        open={Boolean(selectedPdf)}
-        pdfUrl={selectedPdf}
-        pdfName="AMC Curriculum"
-        onClose={() => setSelectedPdf(null)}
-        basePath=""
-        apiEndpoint={null}
-        downloadEndpoint={null}
-      />
     </Box>
   );
 };

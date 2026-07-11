@@ -438,7 +438,8 @@ const StudentRegistration = () => {
         SessionName: selectedSession?.name ?? "",
         LocationId: Number(data.locationId),
         // Email label: Name - Location - City
-        LocationName: selectedLocation?.emailLabel ?? selectedLocation?.name ?? "",
+        LocationName:
+          selectedLocation?.emailLabel ?? selectedLocation?.name ?? "",
         UserName: data.userName,
         UserNameType: data.userName,
         LiabilitySignature: data.liabilitySignature,
@@ -557,10 +558,7 @@ const StudentRegistration = () => {
                 <span style={{ color: "#d32f2f", fontWeight: "bold" }}>
                   Important:
                 </span>{" "}
-                Registration for the Spring {currentYear} Semester is closed
-                now. We invite you to register for our upcoming Fall{" "}
-                {currentYear} Semester. Thank you for your interest in Agoura
-                Math Circle!
+                Thank you for your interest in Agoura Math Circle!{" "}
                 <span style={{ color: "#d32f2f", fontWeight: "bold" }}>
                   Existing students, please do not use this page to register for
                   ONLINE or ONSITE Math Circle classes. Instead, follow the

@@ -260,6 +260,31 @@
   background-color: #f5f5f5;
 }
 
+.student-dashboard .student-registration-check-cell {
+  width: 36px;
+  min-width: 36px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.student-dashboard .student-registration-checkbox,
+.student-dashboard .student-registration-grid input[type="checkbox"].student-registration-checkbox {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  margin: 0;
+  padding: 0;
+  vertical-align: middle;
+  cursor: pointer;
+  accent-color: #174a10;
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  opacity: 1;
+  position: static;
+}
+
 .student-dashboard .student-registration-status-label {
   color: red;
   font-size: 12px;
@@ -419,42 +444,13 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Dashboard message widgets — admin dashboard widget look */
+/* Dashboard message widgets — see DashboardMessages.css */
 .student-dashboard .dashboard-messages-panel {
   width: 100%;
 }
 
 .student-dashboard .dashboard-messages-panel > .MuiCardContent-root {
   width: 100%;
-}
-
-.student-dashboard .student-dashboard-widgets-row {
-  width: 100%;
-}
-
-.student-dashboard .student-dashboard-message-widget {
-  width: 100%;
-  border: 1px solid #e6e6e6;
-  box-shadow: none;
-}
-
-.student-dashboard .student-dashboard-message-widget .MuiCardContent-root {
-  padding: 8px;
-}
-
-.student-dashboard .student-dashboard-message-widget .MuiCardContent-root:last-child {
-  padding-bottom: 8px;
-}
-
-.student-dashboard .student-dashboard-message-widget:hover {
-  transform: none;
-}
-
-@media (max-width: 899px) {
-  .student-dashboard .student-dashboard-widgets-row > .MuiGrid-item {
-    flex-basis: 100%;
-    max-width: 100%;
-  }
 }
 
 /* Meeting schedule — compact cards */

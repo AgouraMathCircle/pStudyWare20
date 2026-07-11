@@ -11,13 +11,23 @@
 
 .contact-error-message {
   color: #dc3545;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   font-size: 0.95rem;
 }
 
 .btn-common:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.contact-honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Breadcrumbs Section */
@@ -472,6 +482,10 @@
   text-decoration: underline;
 }
 
+.contact-chapter-line {
+  white-space: nowrap;
+}
+
 .find-widget a {
   color: #373737;
   text-decoration: none;
@@ -486,7 +500,7 @@
 
 /* Form Styles */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   position: relative;
 }
 
@@ -498,10 +512,11 @@
 
 .form-group.label-floating .control-label {
   flex-shrink: 0;
-  min-width: 80px;
+  min-width: 110px;
   font-size: 0.875rem;
   color: #373737;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .form-group.label-floating .form-control {
@@ -537,6 +552,22 @@ input.form-control {
   padding: 14px 15px;
   line-height: 1.5;
   vertical-align: middle;
+}
+
+input[type="number"].form-control {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type="number"].form-control::-webkit-outer-spin-button,
+input[type="number"].form-control::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.contact-security-field .form-control {
+  flex: 1;
+  min-width: 0;
 }
 
 .form-control:focus {

@@ -11,12 +11,14 @@ import { useAuth } from "../../../contexts/AuthContext";
 import DashboardMessages from "../Student/DashboardMessages";
 import {
   PORTAL_CARD_BOX_SHADOW,
+  dashboardMessagesPanelContentSx,
   portalCardAntiLiftSx,
 } from "../styles/applicationSurfaces";
 import studentDashboardService from "../../../services/studentDashboardService";
 import volunteerDashboardService from "../../../services/volunteerDashboardService";
 import VolunteerTimeSheetGrid from "./VolunteerTimeSheetGrid";
 import VolunteerAvailability from "./VolunteerAvailability";
+import "../../../styles/VolunteerDashboard.css";
 
 const canShowVolunteerAvailability = (user) => {
   const flag = user?.volunteerAvailability ?? user?.VolunteerAvailability ?? "N";
@@ -217,15 +219,21 @@ const VolunteerDashboard = () => {
   ];
 
   return (
-    <Container maxWidth="xl" sx={{ pb: 4 }}>
+    <Container maxWidth="xl" className="volunteer-dashboard" sx={{ pb: 4 }}>
       <Grid container spacing={2.5}>
         <Grid item xs={12} sx={{ width: "100%", pb: "0 !important" }}>
-          <DashboardMessages
-            username={username}
-            chapterId={chapterId}
-            dashboardMessages={dashboardMessages}
-            loading={messagesLoading}
-          />
+          <Card sx={panelCardSx} className="dashboard-messages-panel">
+            <CardContent sx={dashboardMessagesPanelContentSx}>
+              <DashboardMessages
+                variant="volunteer"
+                username={username}
+                chapterId={chapterId}
+                dashboardMessages={dashboardMessages}
+                loading={messagesLoading}
+                timeSheetUrl="/pstudyware/volunteer/time-sheet"
+              />
+            </CardContent>
+          </Card>
         </Grid>
         <Grid item xs={12} sx={{ width: "100%", pt: "0 !important" }}>
           <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, width: "100%", alignItems: "stretch", mt: -1.5, zoom: "85%" }}>

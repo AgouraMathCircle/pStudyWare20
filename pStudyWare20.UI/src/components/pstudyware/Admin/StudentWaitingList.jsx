@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Container,
@@ -76,8 +77,8 @@ const studentWaitingListPageSx = {
 const waitingListColumnWidths = {
   edit: "4%",
   delete: "4%",
-  status: "5.5%",
-  studentId: "4.5%",
+  status: "7.25rem",
+  studentId: "4.75rem",
   studentName: "8%",
   location: "5.5%",
   class: "6%",
@@ -91,7 +92,7 @@ const waitingListColumnWidths = {
   password: "6%",
   city: "4.5%",
   state: "4%",
-  country: "6.5%",
+  country: "2%",
 };
 
 async function copyTextToClipboard(text) {
@@ -143,6 +144,73 @@ const WaitingListCopyCell = ({ value, onCopied }) => {
         }}
       >
         {display}
+      </Box>
+    </Tooltip>
+  );
+};
+
+const DUPLICATE_STATUS_PATTERN = /^Duplicate[:\s]*(\d+)/i;
+
+function parseDuplicateStatusId(status) {
+  const text = String(status ?? "").trim();
+  const match = text.match(DUPLICATE_STATUS_PATTERN);
+  return match ? match[1] : null;
+}
+
+function buildRegisteredStudentSearchPath(studentId) {
+  return `/pstudyware/admin/registeredstudentlist?searchBy=STUDENT_ID&searchCriteria=equals&searchText=${encodeURIComponent(studentId)}&from=student-waiting-list`;
+}
+
+const WaitingListStatusCell = ({ value }) => {
+  const navigate = useNavigate();
+  const display =
+    value == null || value === "" ? "—" : String(value).trim() || "—";
+  const duplicateId = parseDuplicateStatusId(display);
+
+  if (!duplicateId) {
+    return (
+      <Tooltip title={display}>
+        <Box
+          component="span"
+          sx={{
+            display: "block",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            maxWidth: "100%",
+          }}
+        >
+          {display}
+        </Box>
+      </Tooltip>
+    );
+  }
+
+  const linkPath = buildRegisteredStudentSearchPath(duplicateId);
+
+  return (
+    <Tooltip title={`View registered student #${duplicateId}`}>
+      <Box
+        component="span"
+        sx={{
+          display: "block",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          maxWidth: "100%",
+        }}
+      >
+        Duplicate:{" "}
+        <Box
+          component="span"
+          onClick={(event) => {
+            event.stopPropagation();
+            navigate(linkPath);
+          }}
+          sx={adminSessionListTableActionLinkSx}
+        >
+          {duplicateId}
+        </Box>
       </Box>
     </Tooltip>
   );
@@ -466,7 +534,7 @@ const StudentWaitingList = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [orderBy, setOrderBy] = useState("studentID");
-  const [order, setOrder] = useState("desc");
+  const [order, setOrder] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
   const [searchBy, setSearchBy] = useState("ALL");
@@ -611,7 +679,7 @@ const StudentWaitingList = () => {
       return;
     }
     setOrderBy("studentID");
-    setOrder("desc");
+    setOrder("asc");
     setCurrentPage(1);
     setGoToPageInput("1");
     loadList();
@@ -1004,6 +1072,24 @@ const StudentWaitingList = () => {
     </TableCell>
   );
 
+  const statusCell = (status) => (
+    <TableCell
+      className="student-waiting-list-status-cell"
+      sx={adminSessionListTableBodyCellSx({ ellipsis: true })}
+    >
+      <WaitingListStatusCell value={status} />
+    </TableCell>
+  );
+
+  const studentIdCell = (studentId) => (
+    <TableCell
+      className="student-waiting-list-student-id-cell"
+      sx={adminSessionListTableBodyCellSx({ ellipsis: true })}
+    >
+      <WaitingListCopyCell value={studentId} onCopied={handleCellCopy} />
+    </TableCell>
+  );
+
   const exportToolbarButtonSx = {
     ...adminSessionListFindButtonSx,
     backgroundColor: "#4caf50",
@@ -1369,8 +1455,8 @@ const StudentWaitingList = () => {
                                     </Box>
                                   )}
                                 </TableCell>
-                                {dataCell(row.applicationStatus)}
-                                {dataCell(row.studentID)}
+                                {statusCell(row.applicationStatus)}
+                                {studentIdCell(row.studentID)}
                                 {dataCell(row.studentName)}
                                 {dataCell(row.eventLocation)}
                                 {dataCell(row.class)}

@@ -21,11 +21,11 @@ import InstructorVolunteerAvailabilityGrid from "./InstructorVolunteerAvailabili
 import VolunteerAvailability from "../Volunteer/VolunteerAvailability";
 import {
   instructorDashboardMeetingTitleSx,
-  instructorDashboardMessagesPanelContentSx,
   instructorDashboardPanelCardSx,
   instructorDashboardPanelContentSx,
 } from "./instructorPortalTableStyles";
 import {
+  dashboardMessagesPanelContentSx,
   instructorPortalContentContainerProps,
   portalDashboardPageSx,
 } from "../styles/applicationSurfaces";
@@ -71,6 +71,14 @@ const InstructorDashboard = () => {
     () => canShowVolunteerAvailability(user),
     [user]
   );
+
+  const messageVariant = useMemo(() => {
+    const memberType = user?.memberType?.toUpperCase();
+    if (memberType === "C" || memberType === "COORDINATOR") {
+      return "coordinator";
+    }
+    return "instructor";
+  }, [user?.memberType]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -242,13 +250,18 @@ const InstructorDashboard = () => {
       <Container {...instructorPortalContentContainerProps} sx={{ mb: 4, pt: 0, mt: 0 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sx={{ pb: "0 !important" }}>
-            <DashboardMessages
-              username={username}
-              chapterId={chapterId}
-              dashboardMessages={dashboardMessages}
-              loading={messagesLoading}
-              timeSheetUrl="/pstudyware/instructor/time-sheet"
-            />
+            <Card sx={instructorDashboardPanelCardSx} className="dashboard-messages-panel">
+              <CardContent sx={dashboardMessagesPanelContentSx}>
+                <DashboardMessages
+                  variant={messageVariant}
+                  username={username}
+                  chapterId={chapterId}
+                  dashboardMessages={dashboardMessages}
+                  loading={messagesLoading}
+                  timeSheetUrl="/pstudyware/instructor/time-sheet"
+                />
+              </CardContent>
+            </Card>
           </Grid>
           {/* Top Row: Volunteer Availability and Meeting Schedule */}
           {showVolunteerAvailability ? (

@@ -1,0 +1,18 @@
+/* Volunteer Dashboard — dashboard messages panel spacing */
+
+.volunteer-dashboard .dashboard-messages-panel > .MuiCardContent-root {
+  width: 100%;
+}
+
+.volunteer-dashboard .dashboard-message-widget:hover {
+  box-shadow: none;
+}
+
+.volunteer-dashboard .dashboard-messages-panel .MuiGrid-root {
+  margin-bottom: 0 !important;
+}
+
+.volunteer-dashboard .dashboard-messages-panel .MuiGrid-root > .MuiGrid-item {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}

@@ -1,6 +1,8 @@
 import React, { createContext, useCallback, useContext, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import UpdateProfileModal from "../components/pstudyware/Common/UpdateProfileModal";
+import AppSnackbar from "../components/pstudyware/Common/AppSnackbar";
+import { useAppSnackbar } from "../components/pstudyware/Common/useAppSnackbar";
 import { useAuth } from "./AuthContext";
 import { getPortalDashboardPath } from "../utils/routeUtils";
 
@@ -10,6 +12,7 @@ export function UpdateProfileModalProvider({ children }) {
   const [open, setOpen] = useState(false);
   const [studentId, setStudentId] = useState(null);
   const [savedHandler, setSavedHandler] = useState(null);
+  const { snackbar, showSnackbar, closeSnackbar } = useAppSnackbar("success");
 
   const openUpdateProfile = useCallback((id = null, onSaved = null) => {
     setStudentId(id != null && String(id).trim() !== "" ? String(id).trim() : null);
@@ -24,12 +27,16 @@ export function UpdateProfileModalProvider({ children }) {
   }, []);
 
   const handleSaved = useCallback(
-    (formData) => {
+    (formData, message) => {
+      showSnackbar(
+        message || "You have updated your profile successfully",
+        "success",
+      );
       if (typeof savedHandler === "function") {
         savedHandler(formData);
       }
     },
-    [savedHandler],
+    [savedHandler, showSnackbar],
   );
 
   return (
@@ -40,6 +47,12 @@ export function UpdateProfileModalProvider({ children }) {
         onClose={closeUpdateProfile}
         studentId={studentId}
         onSaved={handleSaved}
+      />
+      <AppSnackbar
+        snackbar={snackbar}
+        onClose={closeSnackbar}
+        autoHideDuration={4000}
+        sx={{ zIndex: (theme) => theme.zIndex.modal + 2 }}
       />
     </UpdateProfileModalContext.Provider>
   );
