@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -27,6 +27,7 @@ import {
   Download as DownloadIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
+  ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import registeredStudentListService from "../../../services/registeredStudentListService";
@@ -152,6 +153,31 @@ const LOCATION_OPTIONS = [
   { value: "I", label: "Internet" },
 ];
 
+const REGISTERED_STUDENT_LIST_REFERRERS = {
+  "message-center": {
+    label: "Back to Message Center",
+    path: "/pstudyware/admin/message-center",
+  },
+  "student-waiting-list": {
+    label: "Back to Student Waiting List",
+    path: "/pstudyware/admin/Studentwaiting-list",
+  },
+};
+
+const registeredStudentListBackLinkSx = {
+  ...adminSessionListFindButtonSx,
+  backgroundColor: "transparent",
+  color: "#1b5e20",
+  border: "1px solid #43a047",
+  flexShrink: 0,
+  px: 1.5,
+  textTransform: "none",
+  "&:hover": {
+    backgroundColor: "rgba(67, 160, 71, 0.08)",
+    borderColor: "#2e7d32",
+  },
+};
+
 const BASE_SESSION_OPTIONS = [
   { value: "F2024", label: "Fall 2024" },
   { value: "S2024", label: "Spring 2024" },
@@ -240,7 +266,7 @@ const RegisteredStudentList = () => {
   const [searchCriteria, setSearchCriteria] = useState("");
   const [searchText, setSearchText] = useState("");
   const [orderBy, setOrderBy] = useState("studentID");
-  const [order, setOrder] = useState("desc");
+  const [order, setOrder] = useState("asc");
   const [goToPageInput, setGoToPageInput] = useState("1");
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState(null);
@@ -277,6 +303,11 @@ const RegisteredStudentList = () => {
     }
     return options.length ? options : BASE_SESSION_OPTIONS;
   }, [sessionOptions, updateFormData.session]);
+
+  const listReferrer = useMemo(() => {
+    const from = searchParams.get("from");
+    return REGISTERED_STUDENT_LIST_REFERRERS[from] ?? null;
+  }, [searchParams]);
 
   // Load data on component mount
   useEffect(() => {
@@ -658,7 +689,7 @@ const RegisteredStudentList = () => {
       });
     }
 
-    // Sort (default: Student ID numeric DESC)
+    // Sort (default: Student ID numeric ASC)
     const sorted = [...filtered].sort((a, b) => {
       let aValue = a[orderBy];
       let bValue = b[orderBy];
@@ -740,7 +771,19 @@ const RegisteredStudentList = () => {
                   <Typography variant="subtitle1" sx={adminSessionListTitleSx}>
                     Student List
                   </Typography>
-                  <Box sx={{ display: "flex", gap: 1 }}>
+                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                    {listReferrer && (
+                      <Button
+                        component={RouterLink}
+                        to={listReferrer.path}
+                        variant="outlined"
+                        size="small"
+                        startIcon={<ArrowBackIcon />}
+                        sx={registeredStudentListBackLinkSx}
+                      >
+                        {listReferrer.label}
+                      </Button>
+                    )}
                     {privileges.canExportData && (
                       <Button
                         variant="contained"

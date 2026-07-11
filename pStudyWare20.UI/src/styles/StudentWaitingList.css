@@ -34,7 +34,9 @@
 
 .student-waiting-list .student-waiting-list-table-panel .MuiTableCell-body:not(
     .student-waiting-list-edit-cell,
-    .student-waiting-list-delete-cell
+    .student-waiting-list-delete-cell,
+    .student-waiting-list-status-cell,
+    .student-waiting-list-student-id-cell
   ) {
   overflow: hidden;
   max-width: 0;
@@ -48,9 +50,29 @@
   vertical-align: middle;
 }
 
+.student-waiting-list .student-waiting-list-status-cell,
+.student-waiting-list .student-waiting-list-table .MuiTableCell-head:nth-child(3) {
+  width: 7.25rem !important;
+  min-width: 7.25rem;
+  max-width: 7.25rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.student-waiting-list .student-waiting-list-student-id-cell,
+.student-waiting-list .student-waiting-list-table .MuiTableCell-head:nth-child(4) {
+  width: 4.75rem !important;
+  min-width: 4.75rem;
+  max-width: 4.75rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .student-waiting-list .student-waiting-list-table-container {
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 .student-waiting-list .student-waiting-list-table {

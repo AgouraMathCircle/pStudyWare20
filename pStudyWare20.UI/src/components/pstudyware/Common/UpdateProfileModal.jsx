@@ -186,10 +186,14 @@ const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }
       });
 
       if (res?.isSuccess === true || res?.IsSuccess === true) {
-        onSaved?.(formData);
+        const successMessage =
+          res?.message ||
+          res?.Message ||
+          "You have updated your profile successfully";
+        onSaved?.(formData, successMessage);
         onClose?.();
       } else {
-        showSnackbar(res?.message || "Failed to update profile.", "error");
+        showSnackbar(res?.message || res?.Message || "Failed to update profile.", "error");
       }
     } catch (err) {
       console.error("Error updating profile:", err);

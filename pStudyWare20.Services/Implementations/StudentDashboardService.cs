@@ -695,11 +695,15 @@ namespace pStudyWare20.Services.Implementations
 
         private static RegistrationStatus MapDataRowToRegistrationStatus(DataRow row)
         {
-            var status = GetRowString(row, "RegStatus", "Status");
+            var status = GetRowString(row, "RegStatus", "Status").Trim();
             if (string.IsNullOrWhiteSpace(status))
             {
                 status = "Unknown";
             }
+
+            var isOpen = status.Equals("Open", StringComparison.OrdinalIgnoreCase);
+            var isWaitingList = status.Equals("Waiting List", StringComparison.OrdinalIgnoreCase)
+                || status.Contains("Waiting", StringComparison.OrdinalIgnoreCase);
 
             return new RegistrationStatus
             {
@@ -718,9 +722,9 @@ namespace pStudyWare20.Services.Implementations
                 Status = status,
                 RegistrationDate = GetRowDateTime(row, "RegistrationDate")
                     ?? GetRowDateTime(row, "RegisteredDate"),
-                IsRegistered = status == "Registered",
-                CanRegister = status == "Open",
-                IsWaitingList = status == "Waiting List",
+                IsRegistered = status.Equals("Registered", StringComparison.OrdinalIgnoreCase),
+                CanRegister = isOpen,
+                IsWaitingList = isWaitingList,
             };
         }
 

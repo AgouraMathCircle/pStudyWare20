@@ -1,0 +1,57 @@
+/* Shared dashboard message widgets — used across student, instructor, volunteer, and admin portals */
+
+.dashboard-messages-panel {
+  width: 100%;
+}
+
+.dashboard-messages-panel > .MuiCardContent-root {
+  width: 100%;
+}
+
+.dashboard-messages-widgets-row {
+  width: 100%;
+}
+
+.dashboard-message-widget {
+  width: 100%;
+  border: 1px solid #c8e6c9;
+  background-color: #eef6ee;
+  box-shadow: none;
+}
+
+.dashboard-message-widget .MuiCardContent-root {
+  padding: 6px 8px;
+}
+
+.dashboard-message-widget .MuiCardContent-root:last-child {
+  padding-bottom: 6px;
+}
+
+.dashboard-message-widget:hover {
+  transform: none;
+}
+
+.dashboard-message-widget .dashboard-message-body {
+  color: #000000;
+  margin: 0;
+}
+
+.dashboard-message-widget .dashboard-message-notice-links {
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+}
+
+.dashboard-message-widget .dashboard-message-notice-links a {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+}
+
+@media (max-width: 899px) {
+  .dashboard-messages-widgets-row > .MuiGrid-item {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+}

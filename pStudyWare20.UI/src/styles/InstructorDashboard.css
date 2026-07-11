@@ -90,6 +90,10 @@
   padding-bottom: 0 !important;
 }
 
+.instructor-dashboard .dashboard-message-widget:hover {
+  box-shadow: none;
+}
+
 .instructor-dashboard .MuiCardContent-root {
   padding: 8px 8px 0;
 }

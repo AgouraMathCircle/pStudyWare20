@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-
 namespace pStudyWare20.Shared
 {
     public class ContactEnquiryRequest
@@ -16,6 +15,16 @@ namespace pStudyWare20.Shared
 
         [Required(ErrorMessage = "Please enter your message.")]
         public string Message { get; set; } = string.Empty;
+
+        /// <summary>Honeypot field — must stay empty (bots often fill hidden inputs).</summary>
+        public string Website { get; set; } = string.Empty;
+
+        /// <summary>Unix timestamp (ms) when the user opened the form.</summary>
+        public long FormStartedAt { get; set; }
+
+        public int CaptchaOperandA { get; set; }
+        public int CaptchaOperandB { get; set; }
+        public int CaptchaAnswer { get; set; }
     }
 
     public class ContactEnquiryResponse

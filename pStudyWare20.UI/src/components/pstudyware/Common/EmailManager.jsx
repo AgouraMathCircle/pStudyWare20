@@ -874,7 +874,7 @@ const EmailManager = () => {
     }
 
     navigate(
-      `/admin/registeredstudentlist?searchBy=STUDENT_ID&searchCriteria=equals&searchText=${encodeURIComponent(normalizedId)}`,
+      `/admin/registeredstudentlist?searchBy=STUDENT_ID&searchCriteria=equals&searchText=${encodeURIComponent(normalizedId)}&from=message-center`,
     );
   };
 

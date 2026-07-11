@@ -568,3 +568,14 @@ export const adminSessionListPaginationGoButtonSx = {
   lineHeight: 1,
   "&:hover": { backgroundColor: "#f5f5f5" },
 };
+
+/** Card body for the shared dashboard messages panel (all portal roles). */
+export const dashboardMessagesPanelContentSx = {
+  px: 2,
+  pt: 1.5,
+  pb: 0,
+  display: "flex",
+  flexDirection: "column",
+  minHeight: 0,
+  "&:last-child": { pb: 0 },
+};
