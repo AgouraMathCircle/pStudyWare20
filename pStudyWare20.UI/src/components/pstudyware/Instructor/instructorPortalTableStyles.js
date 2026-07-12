@@ -234,10 +234,10 @@ export const instructorDashboardMessagesPanelContentSx = {
   "&:last-child": { pb: 0.75 },
 };
 
-/** Meeting Schedule title on instructor dashboard */
+/** Meeting Schedule title on instructor dashboard (green, matches student portal) */
 export const instructorDashboardMeetingTitleSx = {
   fontWeight: 600,
-  color: "#1565c0",
+  color: "#4caf50",
   fontSize: "1rem",
 };
 

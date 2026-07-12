@@ -230,7 +230,6 @@ const VolunteerDashboard = () => {
                 chapterId={chapterId}
                 dashboardMessages={dashboardMessages}
                 loading={messagesLoading}
-                timeSheetUrl="/pstudyware/volunteer/time-sheet"
               />
             </CardContent>
           </Card>

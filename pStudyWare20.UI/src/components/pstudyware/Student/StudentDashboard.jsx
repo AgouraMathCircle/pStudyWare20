@@ -329,7 +329,7 @@ const StudentDashboard = () => {
       <StudentRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sx={{ pb: "0 !important" }}>
+          <Grid item xs={12} sx={{ pb: "0 !important", width: "100%", maxWidth: "100%" }}>
             <Card sx={panelCardSx} className="dashboard-messages-panel">
               <CardContent sx={dashboardMessagesPanelContentSx}>
                 <DashboardMessages
@@ -343,7 +343,16 @@ const StudentDashboard = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sx={{ pt: "0 !important", mt: "-12px !important" }}>
+          <Grid
+            item
+            xs={12}
+            sx={{
+              pt: "0 !important",
+              mt: "-12px !important",
+              width: "100%",
+              maxWidth: "100%",
+            }}
+          >
             <StudentMeetingSchedule username={username} panelCardSx={panelCardSx} />
           </Grid>
 

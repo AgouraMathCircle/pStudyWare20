@@ -20,11 +20,11 @@ import InstructorStudentListGrid from "./InstructorStudentListGrid";
 import InstructorVolunteerAvailabilityGrid from "./InstructorVolunteerAvailabilityGrid";
 import VolunteerAvailability from "../Volunteer/VolunteerAvailability";
 import {
-  instructorDashboardMeetingTitleSx,
   instructorDashboardPanelCardSx,
   instructorDashboardPanelContentSx,
 } from "./instructorPortalTableStyles";
 import {
+  adminSessionListTitleSx,
   dashboardMessagesPanelContentSx,
   instructorPortalContentContainerProps,
   portalDashboardPageSx,
@@ -258,7 +258,6 @@ const InstructorDashboard = () => {
                   chapterId={chapterId}
                   dashboardMessages={dashboardMessages}
                   loading={messagesLoading}
-                  timeSheetUrl="/pstudyware/instructor/time-sheet"
                 />
               </CardContent>
             </Card>
@@ -277,7 +276,7 @@ const InstructorDashboard = () => {
                 <StudentMeetingSchedule
                   username={username}
                   panelCardSx={{ ...instructorDashboardPanelCardSx, height: "100%" }}
-                  sectionTitleSx={instructorDashboardMeetingTitleSx}
+                  sectionTitleSx={adminSessionListTitleSx}
                 />
               </Grid>
             </>
@@ -286,7 +285,7 @@ const InstructorDashboard = () => {
               <StudentMeetingSchedule
                 username={username}
                 panelCardSx={instructorDashboardPanelCardSx}
-                sectionTitleSx={instructorDashboardMeetingTitleSx}
+                sectionTitleSx={adminSessionListTitleSx}
               />
             </Grid>
           )}

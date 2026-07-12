@@ -5,7 +5,6 @@ import {
   Typography,
   Box,
   Link,
-  CircularProgress,
   Tooltip,
 } from "@mui/material";
 import AppSnackbar from "../Common/AppSnackbar";
@@ -22,6 +21,7 @@ import {
   portalCardAntiLiftSx,
   adminSessionListHeaderBarSx,
   adminSessionListTitleSx,
+  dashboardMessagesPanelContentSx,
 } from "../styles/applicationSurfaces";
 
 const ZoomIcon = ({ className }) => (
@@ -38,14 +38,9 @@ const defaultPanelCardSx = {
   boxShadow: PORTAL_CARD_BOX_SHADOW,
   overflow: "hidden",
   boxSizing: "border-box",
+  pl: "35px",
+  pr: "35px",
   ...portalCardAntiLiftSx,
-};
-
-const panelContentSx = {
-  px: 1,
-  pt: 1,
-  pb: 0,
-  "&:last-child": { pb: 0 },
 };
 
 const CLASS_LABELS = {
@@ -91,18 +86,9 @@ const formatMeetingDateTime = (meetingDate, meetingTime) => {
 const MEETING_CACHE_TTL_MS = 2 * 60 * 1000;
 const meetingSchedulesCacheByUser = {};
 
-const getActiveMeetings = (response) => {
+const getMeetingSchedules = (response) => {
   if (!response?.isSuccess) return null;
-  const schedules = response.meetingSchedules || [];
-  return schedules.filter(
-    (meeting) =>
-      meeting.active === true ||
-      meeting.Active === true ||
-      meeting.active === "1" ||
-      meeting.Active === "1" ||
-      meeting.active === "True" ||
-      meeting.Active === "True",
-  );
+  return response.meetingSchedules || [];
 };
 
 const renderSectionHeader = (sectionTitleSx) => (
@@ -167,13 +153,13 @@ const StudentMeetingSchedule = ({
 
         if (cancelled) return;
 
-        const activeMeetings = getActiveMeetings(response);
-        if (activeMeetings != null) {
+        const schedules = getMeetingSchedules(response);
+        if (schedules != null) {
           meetingSchedulesCacheByUser[username] = {
-            data: activeMeetings,
+            data: schedules,
             time: Date.now(),
           };
-          setMeetings(activeMeetings);
+          setMeetings(schedules);
         } else {
           setError(
             response?.errorMessage || "Unable to load meeting schedules",
@@ -204,49 +190,16 @@ const StudentMeetingSchedule = ({
     }
   }, [error, showSnackbar]);
 
-  const cardSx = { ...panelCardSx };
+  const cardSx = {
+    ...panelCardSx,
+    width: "100%",
+    maxWidth: "100%",
+    display: "block",
+    boxSizing: "border-box",
+  };
 
-  if (loading) {
-    return (
-      <Card sx={cardSx}>
-        <CardContent sx={panelContentSx}>
-          {renderSectionHeader(sectionTitleSx)}
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            p={1.5}
-          >
-            <CircularProgress size={28} />
-          </Box>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <>
-        <Card sx={cardSx}>
-          <CardContent sx={panelContentSx}>
-            {renderSectionHeader(sectionTitleSx)}
-          </CardContent>
-        </Card>
-        <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
-      </>
-    );
-  }
-
-  if (meetings.length === 0) {
-    return null;
-  }
-
-  return (
-    <>
-      <Card sx={cardSx} className="meeting-schedule-card">
-        <CardContent sx={panelContentSx}>
-          {renderSectionHeader(sectionTitleSx)}
-          <Box className="meeting-grid">
+  const renderScheduleBody = () => (
+      <Box className="meeting-grid" sx={{ width: "100%" }}>
             {meetings.map((meeting, index) => {
               const rowId =
                 getProp(meeting, "RowID") || getProp(meeting, "RowId");
@@ -280,116 +233,54 @@ const StudentMeetingSchedule = ({
                     )}
                   </Box>
 
-                  {meetingURL && (
-                    <Link
-                      href={meetingURL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="meeting-url"
-                      underline="hover"
-                    >
-                      {meetingURL}
-                    </Link>
-                  )}
-
                   {(meetingID || passcode) && (
                     <Box className="meeting-meta">
                       {meetingID && (
-                        <Box
-                          className="meeting-detail-row"
-                          sx={{ display: "flex", alignItems: "center" }}
-                        >
-                          <MeetingRoomIcon sx={{ fontSize: 15, mr: 0.5 }} />
-                          <span
-                            className="meeting-detail-label"
-                            style={{ marginRight: "4px" }}
-                          >
-                            ID
-                          </span>
-                          <span className="meeting-detail-value">
-                            {meetingID}
-                          </span>
+                        <Box className="meeting-detail-row">
+                          <MeetingRoomIcon sx={{ fontSize: 15, flexShrink: 0 }} />
+                          <span className="meeting-detail-label">ID</span>
+                          <span className="meeting-detail-value">{meetingID}</span>
                           <Tooltip
                             title={
-                              copiedText === String(meetingID)
-                                ? "Copied!"
-                                : "Copy ID"
+                              copiedText === String(meetingID) ? "Copied" : "Copy"
+                            }
+                            open={
+                              copiedText === String(meetingID) ? true : undefined
                             }
                             placement="top"
                           >
                             <Box
                               component="button"
                               type="button"
+                              className="meeting-copy-icon"
                               onClick={() => handleCopy(String(meetingID))}
-                              sx={{
-                                border: "none",
-                                background: "none",
-                                p: 0,
-                                ml: 0,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 0,
-                                color: "#2e7d32",
-                                cursor: "pointer",
-                              }}
                             >
-                              <ContentCopyIcon sx={{ fontSize: 11 }} />
-                              <Typography
-                                component="span"
-                                className="meeting-copy-label"
-                              >
-                                copy
-                              </Typography>
+                              <ContentCopyIcon sx={{ fontSize: 11, display: "block" }} />
                             </Box>
                           </Tooltip>
                         </Box>
                       )}
                       {passcode && (
-                        <Box
-                          className="meeting-detail-row"
-                          sx={{ display: "flex", alignItems: "center" }}
-                        >
-                          <VpnKeyIcon sx={{ fontSize: 15, mr: 0.5 }} />
-                          <span
-                            className="meeting-detail-label"
-                            style={{ marginRight: "4px" }}
-                          >
-                            Passcode
-                          </span>
-                          <span className="meeting-detail-value">
-                            {passcode}
-                          </span>
+                        <Box className="meeting-detail-row">
+                          <VpnKeyIcon sx={{ fontSize: 15, flexShrink: 0 }} />
+                          <span className="meeting-detail-label">Passcode</span>
+                          <span className="meeting-detail-value">{passcode}</span>
                           <Tooltip
                             title={
-                              copiedText === String(passcode)
-                                ? "Copied!"
-                                : "Copy Passcode"
+                              copiedText === String(passcode) ? "Copied" : "Copy"
+                            }
+                            open={
+                              copiedText === String(passcode) ? true : undefined
                             }
                             placement="top"
                           >
                             <Box
                               component="button"
                               type="button"
+                              className="meeting-copy-icon"
                               onClick={() => handleCopy(String(passcode))}
-                              sx={{
-                                border: "none",
-                                background: "none",
-                                p: 0,
-                                ml: 0,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 0,
-                                color: "#2e7d32",
-                                cursor: "pointer",
-                              }}
                             >
-                              <ContentCopyIcon sx={{ fontSize: 11 }} />
-                              <Typography
-                                component="span"
-                                className="meeting-copy-label"
-                              >
-                                copy
-                              </Typography>
+                              <ContentCopyIcon sx={{ fontSize: 11, display: "block" }} />
                             </Box>
                           </Tooltip>
                         </Box>
@@ -406,17 +297,32 @@ const StudentMeetingSchedule = ({
                       underline="none"
                     >
                       <ZoomIcon className="zoom-icon" />
-                      Launch
+                      Start meeting
                     </Link>
                   )}
                 </Box>
               );
             })}
-          </Box>
+      </Box>
+  );
+
+  if (loading || meetings.length === 0) {
+    return error ? <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} /> : null;
+  }
+
+  return (
+    <Box sx={{ width: "100%", maxWidth: "100%" }}>
+      <Card
+        sx={cardSx}
+        className="dashboard-messages-panel meeting-schedule-card"
+      >
+        <CardContent sx={dashboardMessagesPanelContentSx}>
+          {renderSectionHeader(sectionTitleSx)}
+          {renderScheduleBody()}
         </CardContent>
       </Card>
       <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
-    </>
+    </Box>
   );
 };
 

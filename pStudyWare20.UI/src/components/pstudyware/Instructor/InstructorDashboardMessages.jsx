@@ -6,11 +6,7 @@ import DashboardMessages from "../Student/DashboardMessages";
  * with instructor portal styling and links.
  */
 const InstructorDashboardMessages = (props) => (
-  <DashboardMessages
-    variant="instructor"
-    timeSheetUrl="/pstudyware/instructor/time-sheet"
-    {...props}
-  />
+  <DashboardMessages variant="instructor" {...props} />
 );
 
 export default InstructorDashboardMessages;
