@@ -8,7 +8,6 @@ import {
   Alert,
   CircularProgress,
   Grid,
-  Button,
 } from "@mui/material";
 import studentDashboardService from "../../../services/studentDashboardService";
 import { getDashboardNoticeLinks } from "../Common/dashboardMessageLinks";
@@ -127,7 +126,6 @@ const DashboardMessages = ({
   dashboardMessages: propsDashboardMessages,
   loading: propsLoading,
   compact = false,
-  timeSheetUrl = "",
   variant = "student",
   noticeLinks: noticeLinksProp,
 }) => {
@@ -380,33 +378,6 @@ const DashboardMessages = ({
                         </Box>
                       ) : null}
                     </Box>
-
-                    {section.key === "todoList" && timeSheetUrl ? (
-                      <Box
-                        sx={{
-                          mt: 0.75,
-                          pt: 0.75,
-                          borderTop: `1px solid ${MESSAGE_GREEN.cardBorder}`,
-                        }}
-                      >
-                        <Button
-                          component={RouterLink}
-                          to={timeSheetUrl}
-                          variant="text"
-                          size="small"
-                          sx={{
-                            ...adminDashboardWidgetTableBodyFontSx,
-                            color: MESSAGE_GREEN.link,
-                            fontWeight: 600,
-                            textTransform: "none",
-                            p: 0,
-                            minWidth: 0,
-                          }}
-                        >
-                          Add time sheet
-                        </Button>
-                      </Box>
-                    ) : null}
                   </CardContent>
                 </Card>
               </Box>

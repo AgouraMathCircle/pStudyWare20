@@ -695,15 +695,12 @@ namespace pStudyWare20.Services.Implementations
 
         private static RegistrationStatus MapDataRowToRegistrationStatus(DataRow row)
         {
-            var status = GetRowString(row, "RegStatus", "Status").Trim();
-            if (string.IsNullOrWhiteSpace(status))
-            {
-                status = "Unknown";
-            }
+            // SP column is RegStatus (AMC_spRegisterExistingUserCheck). Do not invent status values.
+            var status = GetRowString(row, "RegStatus", "Status", "RegistrationStatus").Trim();
 
-            var isOpen = status.Equals("Open", StringComparison.OrdinalIgnoreCase);
             var isWaitingList = status.Equals("Waiting List", StringComparison.OrdinalIgnoreCase)
                 || status.Contains("Waiting", StringComparison.OrdinalIgnoreCase);
+            var isOpen = status.Equals("Open", StringComparison.OrdinalIgnoreCase);
 
             return new RegistrationStatus
             {

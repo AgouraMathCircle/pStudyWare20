@@ -211,9 +211,10 @@ const RegistrationSection = ({
             component="p"
             className="student-registration-deadline-notice"
           >
-            The {semesterLabel}&apos;s registration will be close on{" "}
-            {formattedCloseDate}. If you have any question, please contact via{" "}
-            <RouterLink to={MESSAGE_CENTER_PATH}>Message Center</RouterLink>.
+            The {semesterLabel}&apos;s registration is now open and will close
+            on {formattedCloseDate}. If you have any question, please contact
+            via <RouterLink to={MESSAGE_CENTER_PATH}>Message Center</RouterLink>
+            .
           </Typography>
         )}
 

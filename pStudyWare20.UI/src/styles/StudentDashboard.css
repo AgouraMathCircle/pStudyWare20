@@ -455,42 +455,13 @@
 
 /* Meeting schedule — compact cards */
 .student-dashboard .meeting-schedule-card {
+  width: 100% !important;
   max-width: 100%;
-}
-
-.student-dashboard .meeting-schedule-card .MuiCardHeader-root {
-  background-color: #e8f5e9;
-  border-bottom: 1px solid #c8e6c9;
-  padding: 6px 12px;
-}
-
-.student-dashboard .meeting-header-title {
-  font-weight: 600;
-  font-size: 1.0625rem;
-  color: #4caf50;
-}
-
-/* Meeting schedule — sentence-style list */
-.student-dashboard .meeting-sentence-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-bottom: 10px;
-}
-
-.student-dashboard .meeting-sentence-item {
-  border: 1px solid #e6e6e6;
-  border-radius: 8px;
-  padding: 10px 12px;
-  background: #fafafa;
   box-sizing: border-box;
 }
 
-.student-dashboard .meeting-sentence {
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.6;
-  color: #333;
+.student-dashboard .meeting-schedule-card > .MuiCardContent-root {
+  width: 100%;
 }
 
 .student-dashboard .meeting-grid {
@@ -575,22 +546,68 @@
 }
 
 .student-dashboard .meeting-detail-row {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 1px;
+  flex-wrap: nowrap;
+  gap: 3px;
   margin-bottom: 0;
   white-space: nowrap;
   line-height: 1.1;
+  min-width: 0;
 }
 
 .student-dashboard .meeting-detail-label {
   color: #000000;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .student-dashboard .meeting-detail-value {
   font-weight: 600;
   color: #0f7d22;
+  flex-shrink: 0;
+}
+
+.student-dashboard .meeting-copy-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  margin-left: 4px;
+  padding: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border: none;
+  outline: none;
+  border-radius: 3px;
+  background-color: #e3f2fd;
+  color: #1565c0;
+  line-height: 0;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.student-dashboard .meeting-copy-icon:hover {
+  background-color: #bbdefb;
+}
+
+.student-dashboard .meeting-copy-icon:focus-visible {
+  outline: 2px solid #1565c0;
+  outline-offset: 1px;
+}
+
+.student-dashboard .meeting-copy-icon svg,
+.student-dashboard .meeting-copy-icon .MuiSvgIcon-root {
+  display: block;
+  margin: 0;
+  padding: 0;
 }
 
 .student-dashboard .meeting-url {
@@ -607,13 +624,6 @@
   text-overflow: ellipsis;
   text-decoration: underline;
   margin: 0;
-}
-
-.student-dashboard .meeting-copy-label {
-  font-size: 0.58rem;
-  font-weight: 600;
-  color: #0f7d22;
-  text-transform: lowercase;
 }
 
 .student-dashboard .meeting-url:hover {

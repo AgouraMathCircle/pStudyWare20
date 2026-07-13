@@ -294,8 +294,8 @@ const VolunteerAvailability = ({ embedded = false }) => {
             size="small"
             label={hasExistingData && !isEditMode ? "Submitted" : "Action needed"}
             sx={{
-              bgcolor: hasExistingData && !isEditMode ? "#e8f5e9" : "#fff8e1",
-              color: hasExistingData && !isEditMode ? "#1b5e20" : "#8a5d00",
+              bgcolor: hasExistingData && !isEditMode ? "#e8f5e9" : "#ffebee",
+              color: hasExistingData && !isEditMode ? "#1b5e20" : "#c62828",
               fontWeight: 700,
             }}
           />
