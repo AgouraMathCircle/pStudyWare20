@@ -7,7 +7,13 @@ export { default as EmailManager } from "./EmailManager";
 export { default as MeetingDetails } from "./MeetingDetails";
 export { default as MeetingForm } from "./MeetingForm";
 export { default as MeetingList } from "./MeetingList";
-export { default as UpdatePassword } from "./UpdatePassword";
+export { default as ChangePassword } from "./ChangePassword";
+// Alias kept for older imports
+export { default as UpdatePassword } from "./ChangePassword";
+export {
+  default as VolunteerAvailability,
+  shouldShowVolunteerAvailability,
+} from "./VolunteerAvailability";
 export { default as UpdateProfile } from "./UpdateProfile";
 export { default as UpdateProfileModal } from "./UpdateProfileModal";
 export { useAppSnackbar } from "./useAppSnackbar";

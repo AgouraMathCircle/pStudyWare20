@@ -229,7 +229,8 @@ namespace pStudyWare20.Services.Implementations
             {
                 try
                 {
-                    var logIdVal = GetCell(row, table, "mLogID", "LogID", "LogId");
+                    var logIdVal = GetCell(row, table, "LogID", "LogId");
+                    var rowNumVal = GetCell(row, table, "mLogID", "MLogID");
                     var dateVal = GetCell(row, table, "DateVolunteer", "VolunteerDate");
                     var createdVal = GetCell(row, table, "CreatedDate");
                     var modifiedVal = GetCell(row, table, "ModifiedDate");

@@ -10,7 +10,7 @@ namespace pStudyWare20.Repository.Interfaces
         Task<MemberMaster?> ValidateUserWithStoredProcedureAsync(string emailId, string password);
         Task<MemberMaster?> GetUserPasswordByEmailAsync(string emailId);
         Task AddUserTrackingAsync(string userId, string userName, string userType, string ipAddress);
-        Task<bool> UpdatePasswordAsync(string username, string password);
+        Task<bool> ChangePasswordAsync(string username, string password);
         Task<(string currentSession, string currentSemester, string volunteerAvailability)> GetCurrentSessionAndSemesterAsync(string chapterId);
     }
 }

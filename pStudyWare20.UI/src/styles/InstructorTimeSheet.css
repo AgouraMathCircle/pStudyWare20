@@ -1,0 +1,314 @@
+/* Instructor Time Sheet — mirrors InstructorClassMaterial card/table chrome */
+
+.instructor-time-sheet {
+  min-height: 100%;
+  width: 100%;
+  background-color: transparent;
+  box-sizing: border-box;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.instructor-time-sheet > .MuiContainer-root {
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.instructor-time-sheet .MuiCard-root {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.instructor-time-sheet .MuiCard-root:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.instructor-time-sheet .MuiCardContent-root {
+  padding: 8px 8px 0;
+}
+
+.instructor-time-sheet .MuiTableCell-root {
+  padding: 8px 12px;
+}
+
+.instructor-time-sheet .MuiTableCell-head {
+  font-weight: 600;
+  background-color: #f0f0f0;
+  border-bottom: 2px solid #ddd;
+}
+
+.instructor-time-sheet .MuiTableRow-root:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.instructor-time-sheet .MuiButton-root {
+  text-transform: none;
+  font-weight: 500;
+}
+
+.instructor-time-sheet .MuiTableContainer-root::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.instructor-time-sheet .MuiTableContainer-root::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.instructor-time-sheet .MuiTableContainer-root::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.instructor-time-sheet .MuiTableContainer-root::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.instructor-time-sheet .MuiGrid-container {
+  margin-top: 0;
+}
+
+.instructor-time-sheet .instructor-time-sheet-form-panel {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fafafa;
+  padding: 16px;
+}
+
+.instructor-time-sheet-form-title {
+  font-weight: 600;
+  color: #4caf50 !important;
+  font-size: 1rem;
+  margin: 0 0 16px;
+  line-height: 1.2;
+}
+
+.instructor-time-sheet-entry-form {
+  width: 100%;
+  margin-bottom: 0;
+  border: 1px solid #4caf50;
+  border-radius: 4px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.instructor-time-sheet-table-wrap {
+  background-color: #2e7d32;
+  border-radius: 0;
+  overflow: hidden;
+  border: none;
+  width: 100%;
+}
+
+.instructor-time-sheet-form-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.instructor-time-sheet-form-table td,
+.instructor-time-sheet-form-table th {
+  border: none;
+  vertical-align: middle;
+}
+
+.instructor-time-sheet-label-cell {
+  width: 210px;
+  max-width: 210px;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  padding: 6px 8px 6px 12px;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.instructor-time-sheet-input-cell,
+.instructor-time-sheet-value-cell {
+  background-color: #e8f5e9;
+  padding: 4px 8px;
+  text-align: left;
+}
+
+.instructor-time-sheet-value-cell .instructor-time-sheet-total-hours-value {
+  color: #1b5e20;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  line-height: 1.2;
+}
+
+.instructor-time-sheet-field {
+  width: 240px !important;
+  max-width: 100% !important;
+  min-width: 0;
+}
+
+.instructor-time-sheet-field .MuiOutlinedInput-root {
+  width: 240px !important;
+  max-width: 100% !important;
+  font-size: 0.9375rem;
+  background-color: #ffffff;
+}
+
+.instructor-time-sheet-field-wide {
+  width: 100% !important;
+  max-width: 480px !important;
+  min-width: 0;
+}
+
+.instructor-time-sheet-field-wide .MuiOutlinedInput-root {
+  width: 100% !important;
+  max-width: 480px !important;
+  font-size: 0.9375rem;
+  background-color: #ffffff;
+}
+
+.instructor-time-sheet-field .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline,
+.instructor-time-sheet-field-wide .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline,
+.instructor-time-sheet-time-field .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #4caf50;
+}
+
+.instructor-time-sheet-time-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.instructor-time-sheet-time-field {
+  min-width: 0;
+}
+
+.instructor-time-sheet-time-field .MuiOutlinedInput-root {
+  width: 72px !important;
+  font-size: 0.875rem;
+  background-color: #ffffff;
+}
+
+.instructor-time-sheet-time-separator {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1b5e20;
+  line-height: 1;
+}
+
+.instructor-time-sheet-submit-row {
+  display: flex;
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+  align-items: center;
+  padding: 8px 0 10px;
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
+.instructor-time-sheet-submit-spacer {
+  width: 210px;
+  flex-shrink: 0;
+  padding-left: 12px;
+  padding-right: 8px;
+  box-sizing: border-box;
+}
+
+.instructor-time-sheet-submit-cell {
+  padding-left: 8px;
+}
+
+.instructor-time-sheet-submit-btn {
+  background-color: #4caf50 !important;
+  color: #ffffff !important;
+  text-transform: none !important;
+  font-size: 1rem !important;
+  min-width: 140px !important;
+  min-height: 42px !important;
+  padding: 8px 24px !important;
+  box-shadow: none !important;
+}
+
+.instructor-time-sheet-submit-btn:hover {
+  background-color: #45a049 !important;
+  box-shadow: none !important;
+}
+
+.instructor-time-sheet-submit-btn.Mui-disabled {
+  background-color: #999999 !important;
+  color: #ffffff !important;
+}
+
+.instructor-time-sheet .instructor-time-sheet-table-panel {
+  margin-top: 6px;
+}
+
+.instructor-time-sheet .instructor-time-sheet-table-panel .admin-session-list-search,
+.instructor-time-sheet .instructor-time-sheet-table-panel .admin-session-list-pagination {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.instructor-time-sheet .instructor-time-sheet-table-panel .admin-session-list-pagination {
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+}
+
+.instructor-time-sheet .instructor-time-sheet-form-divider {
+  display: none;
+}
+
+.instructor-time-sheet .instructor-time-sheet-table-panel .MuiTableCell-body.time-sheet-delete-cell {
+  background-color: #ffebee !important;
+}
+
+@keyframes instructorTimeSheetFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.instructor-time-sheet .MuiCard-root {
+  animation: instructorTimeSheetFadeIn 0.3s ease-in-out;
+}
+
+@media print {
+  .instructor-time-sheet .MuiButton-root,
+  .instructor-time-sheet .MuiTextField-root {
+    display: none;
+  }
+
+  .instructor-time-sheet .MuiCard-root {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+
+  .instructor-time-sheet .MuiTableContainer-root {
+    max-height: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .instructor-time-sheet-label-cell,
+  .instructor-time-sheet-submit-spacer {
+    width: 130px;
+    max-width: 130px;
+  }
+
+  .instructor-time-sheet-field,
+  .instructor-time-sheet-field .MuiOutlinedInput-root {
+    width: 100% !important;
+    max-width: 200px !important;
+  }
+
+  .instructor-time-sheet-field-wide,
+  .instructor-time-sheet-field-wide .MuiOutlinedInput-root {
+    max-width: 100% !important;
+  }
+}

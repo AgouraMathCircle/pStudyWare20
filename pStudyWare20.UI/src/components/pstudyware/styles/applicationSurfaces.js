@@ -500,10 +500,9 @@ export const adminSessionListEmptyTextSx = { ...adminPortalTableFontSx };
 export const adminSessionListPaginationBarSx = {
   ...adminSessionListControlBarBaseSx,
   justifyContent: "space-between",
-  p: 0,
   py: 0,
-  px: 0,
   minHeight: ADMIN_SESSION_LIST_BAR_CONTROL_HEIGHT,
+  mt: 0,
 };
 
 export const adminSessionListPaginationGroupSx = {
@@ -557,16 +556,9 @@ export const adminSessionListPaginationGoFieldSx = {
 };
 
 export const adminSessionListPaginationGoButtonSx = {
-  backgroundColor: "white",
-  color: "#4caf50",
-  fontSize: "0.75rem",
-  minHeight: ADMIN_SESSION_LIST_BAR_CONTROL_HEIGHT,
-  height: ADMIN_SESSION_LIST_BAR_CONTROL_HEIGHT,
-  py: 0,
+  ...adminSessionListFindButtonSx,
   px: 0.75,
-  mr: 1,
-  lineHeight: 1,
-  "&:hover": { backgroundColor: "#f5f5f5" },
+  mr: 0,
 };
 
 /** Card body for the shared dashboard messages panel (all portal roles). */

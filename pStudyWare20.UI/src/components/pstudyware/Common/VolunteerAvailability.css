@@ -1,0 +1,412 @@
+/**
+ * Volunteer Availability — aligned with Volunteers Availability List panel colors.
+ */
+
+.volunteer-availability-page {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.volunteer-availability-container {
+  width: 100%;
+  max-width: 1536px;
+  margin: 0 auto 32px;
+  padding-left: 16px;
+  padding-right: 16px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 600px) {
+  .volunteer-availability-container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+.volunteer-availability-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  box-sizing: border-box;
+  width: 100%;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+@media (min-width: 600px) {
+  .volunteer-availability-card {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+.volunteer-availability-card-content {
+  padding: 16px 0;
+}
+
+.volunteer-availability-panel {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.volunteer-availability-panel--embedded {
+  padding-bottom: 4px;
+  width: 100%;
+}
+
+.volunteer-availability-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #c8e6c9;
+}
+
+.volunteer-availability-header-text {
+  min-width: 0;
+  flex: 1 1 220px;
+}
+
+/* Match Change Password card title */
+.volunteer-availability-title {
+  font-weight: 600 !important;
+  color: #4caf50 !important;
+  font-size: 1rem !important;
+  margin: 0 0 16px !important;
+  line-height: 1.2 !important;
+}
+
+.volunteer-availability-panel--embedded .volunteer-availability-title {
+  margin: 0 0 8px !important;
+}
+
+.volunteer-availability-panel--embedded .volunteer-availability-header {
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+}
+
+.volunteer-availability-panel--embedded .volunteer-availability-subtitle {
+  margin-top: 0;
+}
+
+.volunteer-availability-panel--embedded .volunteer-availability-submit-row {
+  padding: 8px 12px 14px;
+}
+
+.volunteer-availability-panel--embedded .volunteer-availability-entry-form {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.volunteer-availability-subtitle {
+  margin: 6px 0 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #000000;
+  line-height: 1.4;
+}
+
+.volunteer-availability-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+}
+
+.volunteer-availability-status--action {
+  color: #c62828;
+  background-color: #ffebee;
+  border-color: #ef9a9a;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.volunteer-availability-status--submitted {
+  color: #1b5e20;
+  background-color: #e8f5e8;
+  border-color: #4caf50;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.volunteer-availability-status--editing {
+  color: #1565c0;
+  background-color: #e3f2fd;
+  border-color: #90caf9;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.volunteer-availability-status--loading {
+  color: #1565c0;
+  background-color: #e3f2fd;
+  border-color: #90caf9;
+  font-size: 0.75rem;
+}
+
+.volunteer-availability-entry-form {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 0;
+  border: 2px solid #4caf50;
+  border-radius: 4px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.volunteer-availability-table-wrap {
+  background-color: #2e7d32;
+  border-radius: 0;
+  overflow: hidden;
+  border: none;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.volunteer-availability-table {
+  width: auto;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.volunteer-availability-table td,
+.volunteer-availability-table th {
+  border: none;
+  vertical-align: middle;
+}
+
+.volunteer-availability-label-cell {
+  width: 1%;
+  max-width: none;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  padding: 6px 8px 6px 12px;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.volunteer-availability-value-cell,
+.volunteer-availability-input-cell {
+  background-color: #e8f5e8;
+  padding: 6px 10px;
+  text-align: left;
+  width: auto;
+}
+
+.volunteer-availability-table tr:not(:last-child) .volunteer-availability-label-cell,
+.volunteer-availability-table tr:not(:last-child) .volunteer-availability-input-cell,
+.volunteer-availability-table tr:not(:last-child) .volunteer-availability-value-cell {
+  border-bottom: 1px solid #4caf50;
+}
+
+.volunteer-availability-value-text {
+  color: #1b5e20;
+  font-weight: 400;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  word-break: break-word;
+  white-space: nowrap;
+}
+
+.volunteer-availability-field {
+  width: 100% !important;
+  max-width: 320px !important;
+  min-width: 0;
+}
+
+.volunteer-availability-field .MuiOutlinedInput-root {
+  width: 100% !important;
+  max-width: 320px !important;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  background-color: #ffffff;
+}
+
+.volunteer-availability-field-wide {
+  width: 100% !important;
+  max-width: 480px !important;
+  min-width: 0;
+}
+
+.volunteer-availability-field-wide .MuiOutlinedInput-root {
+  width: 100% !important;
+  max-width: 480px !important;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  background-color: #ffffff;
+}
+
+.volunteer-availability-field .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline,
+.volunteer-availability-field-wide .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #4caf50;
+}
+
+.volunteer-availability-radio-group {
+  color: #1b5e20;
+  gap: 4px;
+}
+
+.volunteer-availability-radio-group .MuiFormControlLabel-label {
+  font-weight: 400;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  color: #1b5e20;
+}
+
+.volunteer-availability-radio-group .MuiRadio-root {
+  color: #43a047;
+  padding: 4px;
+}
+
+.volunteer-availability-radio-group .MuiRadio-root.Mui-checked {
+  color: #2e7d32;
+}
+
+.volunteer-availability-status-note {
+  margin: 0;
+  padding: 8px 12px;
+  color: #1b5e20;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.35;
+  background-color: #e8f5e8;
+  border-top: 2px solid #4caf50;
+  box-sizing: border-box;
+}
+
+.volunteer-availability-submit-row {
+  display: flex;
+  width: auto;
+  margin-top: 0;
+  margin-bottom: 0;
+  align-items: center;
+  padding: 12px 12px 14px;
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
+.volunteer-availability-submit-spacer {
+  display: none;
+}
+
+.volunteer-availability-submit-cell {
+  padding-left: 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.volunteer-availability-submit-btn {
+  background-color: #4caf50 !important;
+  color: #ffffff !important;
+  text-transform: none !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  min-width: 140px !important;
+  min-height: 32px !important;
+  padding: 4px 16px !important;
+  box-shadow: none !important;
+  border-radius: 4px !important;
+}
+
+.volunteer-availability-submit-btn:hover {
+  background-color: #45a049 !important;
+  box-shadow: none !important;
+}
+
+.volunteer-availability-submit-btn.Mui-disabled {
+  background-color: #999999 !important;
+  color: #ffffff !important;
+}
+
+.volunteer-availability-cancel-btn {
+  text-transform: none !important;
+  min-height: 32px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: #2e7d32 !important;
+  border-color: #81c784 !important;
+}
+
+.volunteer-availability-loading-text {
+  margin: 0 0 10px;
+  color: #1565c0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.volunteer-availability-unavailable {
+  color: #1b5e20;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  font-weight: 400;
+}
+
+@media (max-width: 640px) {
+  .volunteer-availability-label-cell {
+    white-space: normal;
+    font-size: 0.75rem;
+  }
+
+  .volunteer-availability-value-text {
+    white-space: normal;
+  }
+
+  .volunteer-availability-entry-form,
+  .volunteer-availability-table-wrap,
+  .volunteer-availability-table {
+    width: 100%;
+  }
+
+  .volunteer-availability-entry-form {
+    display: flex;
+  }
+
+  .volunteer-availability-subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .volunteer-availability-status {
+    margin-left: 12px;
+  }
+
+  .volunteer-availability-status--submitted {
+    font-size: 0.8125rem;
+  }
+
+  .volunteer-availability-field,
+  .volunteer-availability-field .MuiOutlinedInput-root {
+    max-width: 100% !important;
+  }
+
+  .volunteer-availability-field-wide,
+  .volunteer-availability-field-wide .MuiOutlinedInput-root {
+    max-width: 100% !important;
+  }
+}

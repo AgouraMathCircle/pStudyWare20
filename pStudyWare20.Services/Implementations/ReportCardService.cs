@@ -164,12 +164,21 @@ namespace pStudyWare20.Services.Implementations
                 var dict = new Dictionary<string, object?>();
                 foreach (DataColumn col in table.Columns)
                 {
-                    dict[col.ColumnName] = row[col] == DBNull.Value ? null : row[col];
+                    var key = ToCamelCaseColumnKey(col.ColumnName);
+                    dict[key] = row[col] == DBNull.Value ? null : row[col];
                 }
                 list.Add(dict);
             }
 
             return list;
+        }
+
+        private static string ToCamelCaseColumnKey(string columnName)
+        {
+            if (string.IsNullOrEmpty(columnName))
+                return columnName;
+
+            return char.ToLowerInvariant(columnName[0]) + columnName[1..];
         }
 
         /// <summary>
@@ -279,6 +288,24 @@ namespace pStudyWare20.Services.Implementations
                     {
                         IsSuccess = false,
                         ErrorMessage = "A valid student is required."
+                    };
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Group))
+                {
+                    return new StudentScoreResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Class is required."
+                    };
+                }
+
+                if (string.IsNullOrWhiteSpace(request.ExamDate))
+                {
+                    return new StudentScoreResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Exam date is required."
                     };
                 }
 
@@ -541,12 +568,18 @@ namespace pStudyWare20.Services.Implementations
 
                 await Task.WhenAll(reportCardListTask, studentListTask, classListTask, reportDateListTask, examDateListTask);
 
+                var classListRows = ConvertToJsonSafeObject(await classListTask);
+                if (classListRows is List<Dictionary<string, object?>> classRows)
+                {
+                    classListRows = DeduplicateClassList(classRows);
+                }
+
                 return new ReportCardDashboardResponse
                 {
                     IsSuccess = true,
                     ReportCardList = ConvertToJsonSafeObject(await reportCardListTask),
                     StudentList = ConvertToJsonSafeObject(await studentListTask),
-                    ClassList = ConvertToJsonSafeObject(await classListTask),
+                    ClassList = classListRows,
                     ReportDateList = ConvertToJsonSafeObject(await reportDateListTask),
                     ExamDateList = ConvertToJsonSafeObject(await examDateListTask)
                 };
@@ -801,6 +834,44 @@ namespace pStudyWare20.Services.Implementations
         private static string NormalizeScoreValue(string? value, string defaultValue)
         {
             return string.IsNullOrWhiteSpace(value) ? defaultValue : value.Trim();
+        }
+
+        private static List<Dictionary<string, object?>> DeduplicateClassList(
+            List<Dictionary<string, object?>> rows)
+        {
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var result = new List<Dictionary<string, object?>>();
+
+            foreach (var row in rows)
+            {
+                var className = GetRowString(row, "ClassName");
+                if (string.IsNullOrWhiteSpace(className))
+                    continue;
+
+                var key = className.Trim();
+                if (!seen.Add(key))
+                    continue;
+
+                result.Add(row);
+            }
+
+            return result;
+        }
+
+        private static string GetRowString(Dictionary<string, object?> row, string columnName)
+        {
+            foreach (var pair in row)
+            {
+                if (!pair.Key.Equals(columnName, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (pair.Value == null || pair.Value == DBNull.Value)
+                    return string.Empty;
+
+                return Convert.ToString(pair.Value, CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
+            }
+
+            return string.Empty;
         }
     }
 }

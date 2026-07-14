@@ -222,7 +222,7 @@ const Navbar = ({ usePortalLogo = false }) => {
     },
     {
       label: "Change Password",
-      href: "/pstudyware/student/update-password",
+      href: "/pstudyware/student/change-password",
       icon: <LockIcon fontSize="small" />,
     },
     {
@@ -278,7 +278,7 @@ const Navbar = ({ usePortalLogo = false }) => {
     },
     {
       label: "Password",
-      href: "/pstudyware/admin/update-password",
+      href: "/pstudyware/admin/change-password",
       icon: <LockIcon fontSize="small" />,
     },
     {
@@ -323,7 +323,7 @@ const Navbar = ({ usePortalLogo = false }) => {
     },
     {
       label: "Change Password",
-      href: "/pstudyware/instructor/update-password",
+      href: "/pstudyware/instructor/change-password",
       icon: <LockIcon fontSize="small" />,
     },
     {
@@ -358,7 +358,7 @@ const Navbar = ({ usePortalLogo = false }) => {
     },
     {
       label: "Change Password",
-      href: "/pstudyware/volunteer/update-password",
+      href: "/pstudyware/volunteer/change-password",
       icon: <LockIcon fontSize="small" />,
     },
     {

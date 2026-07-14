@@ -27,12 +27,7 @@ import {
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
-  Refresh as RefreshIcon,
   CloudUpload as UploadIcon,
-  FirstPage as FirstPageIcon,
-  KeyboardArrowLeft as PrevPageIcon,
-  KeyboardArrowRight as NextPageIcon,
-  LastPage as LastPageIcon,
 } from "@mui/icons-material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -44,24 +39,7 @@ import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import { getPortalUsername } from "../../../utils/portalUsername";
 import AdminHeader, { AdminRoleHeaderSpacer } from "../Admin/AdminHeader";
 import AdminStudentDocumentList from "../Admin/AdminStudentDocumentList";
-import InstructorPortalPaginationBar from "../Instructor/InstructorPortalPaginationBar";
-import {
-  instructorCellBodySx,
-  instructorCellBodySxLast,
-  instructorCellHeaderSx,
-  instructorCellHeaderSxLast,
-  instructorFindButtonSx,
-  instructorGreenSearchBarSx,
-  instructorPageShellSx,
-  instructorPageTitleSx,
-  instructorSearchLabelSx,
-  instructorSearchTextFieldSx,
-  instructorSelectOnGreenSx,
-  instructorStudentDocumentsColWidthsPx,
-  instructorTableBodyRowZebraSx,
-  instructorTableHeadRowSx,
-  instructorTableSx,
-} from "../Instructor/instructorPortalTableStyles";
+import InstructorStudentDocumentList from "../Instructor/InstructorStudentDocumentList";
 import {
   adminSessionListFindButtonSx,
   adminSessionListGridTableSx,
@@ -85,8 +63,10 @@ import {
   adminSessionListEmptyTextSx,
   APPLICATION_SURFACE_BG,
   APPLICATION_SURFACE_BORDER,
+  instructorPortalContentContainerProps,
   portalHeaderActionButtonSx,
 } from "../styles/applicationSurfaces";
+import "../../../styles/InstructorStudentDocuments.css";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 import PortalDialog from "../Common/PortalDialog";
@@ -169,13 +149,44 @@ const getUploadDocumentFieldValue = (doc, field) => {
   }
 };
 
-/** Legacy StudentDocuments.aspx student dropdown value: instructorEmail~studentId~chapterId */
+/**
+ * Legacy StudentDocuments.aspx Mode "H" value: instructorEmail~studentId[~chapterId].
+ * Mode "E"/shared exam format: Class~StudentID~ChapterID.
+ * Also accepts a bare numeric StudentID.
+ */
 const parseStudentListValue = (value) => {
-  const parts = String(value || "").split("~");
+  const parts = String(value || "")
+    .split("~")
+    .map((part) => part.trim())
+    .filter((part, index, arr) => !(part === "" && index === arr.length - 1));
+
+  if (parts.length >= 3) {
+    const first = parts[0] || "";
+    const looksLikeEmail = first.includes("@");
+    return {
+      instructorEmail: looksLikeEmail ? first : "",
+      classCode: looksLikeEmail ? "" : first,
+      studentId: parts[1] || "",
+      chapterId: parts[2] || "3",
+    };
+  }
+
+  if (parts.length === 2) {
+    const first = parts[0] || "";
+    const looksLikeEmail = first.includes("@");
+    return {
+      instructorEmail: looksLikeEmail ? first : "",
+      classCode: looksLikeEmail ? "" : first,
+      studentId: parts[1] || "",
+      chapterId: "3",
+    };
+  }
+
   return {
-    instructorEmail: parts[0]?.trim() || "",
-    studentId: parts[1]?.trim() || "",
-    chapterId: (parts[2] || "").trim() || "3",
+    instructorEmail: "",
+    classCode: "",
+    studentId: parts[0] || "",
+    chapterId: "3",
   };
 };
 
@@ -300,23 +311,30 @@ const StudentDocuments = () => {
     loadStudentDocuments();
   }, [isAuthenticated, user]);
 
-  // Legacy currentSession(): AMC_spSelectCurrentSession returns the active session only
+  // Legacy currentSession(): AMC_spSelectCurrentSession with @ChapterID = "3"
   const loadCurrentSessionForUpload = async (chapterId = "3") => {
+    const resolvedChapterId =
+      String(chapterId || "").trim() && /^\d+$/.test(String(chapterId).trim())
+        ? String(chapterId).trim()
+        : "3";
+
     try {
-      const response = await documentService.getCurrentSession(chapterId);
+      const response = await documentService.getCurrentSession(resolvedChapterId);
       if (response.isSuccess) {
         const sessionRows = response.sessions ?? response.Sessions ?? [];
-        const currentSession =
-          sessionRows[0]?.session ?? sessionRows[0]?.Session ?? "";
+        const currentSession = String(
+          sessionRows[0]?.session ?? sessionRows[0]?.Session ?? ""
+        ).trim();
         setSessions(currentSession ? [{ session: currentSession }] : []);
         setUploadForm((prev) => ({
           ...prev,
           session: currentSession,
         }));
-      } else {
-        setSessions([]);
-        setUploadForm((prev) => ({ ...prev, session: "" }));
+        return;
       }
+
+      setSessions([]);
+      setUploadForm((prev) => ({ ...prev, session: "" }));
     } catch (err) {
       console.error("Error loading current session:", err);
       setSessions([]);
@@ -613,27 +631,45 @@ const StudentDocuments = () => {
 
   // Handle file change
   const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      // Validate file type
-      if (file.type !== "application/pdf") {
-        showMessage("Only PDF files are allowed", "error");
-        return;
-      }
-
-      // Validate file size (2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        showMessage("File size must be less than 2MB", "error");
-        return;
-      }
-
-      setUploadForm({
-        ...uploadForm,
-        file: file,
-        fileName: file.name,
-      });
+    const file = event.target.files?.[0];
+    if (!file) {
+      setUploadForm((prev) => ({
+        ...prev,
+        file: null,
+        fileName: "",
+      }));
+      return;
     }
+
+    const isPdf =
+      file.type === "application/pdf" ||
+      file.name.toLowerCase().endsWith(".pdf");
+    if (!isPdf) {
+      showMessage("Only PDF files are allowed", "error");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      showMessage("File size must be less than 2MB", "error");
+      event.target.value = "";
+      return;
+    }
+
+    setUploadForm((prev) => ({
+      ...prev,
+      file,
+      fileName: file.name,
+    }));
   };
+
+  const selectedStudentDetails = getSelectedStudentDetails();
+  const canSubmitUpload =
+    Boolean(uploadForm.file) &&
+    Boolean(String(uploadForm.session || "").trim()) &&
+    Boolean(selectedStudent) &&
+    Boolean(selectedStudentDetails.studentId) &&
+    !uploadSubmitting;
 
   // Handle upload submit
   const handleUploadSubmit = async () => {
@@ -660,7 +696,7 @@ const StudentDocuments = () => {
 
       setUploadSubmitting(true);
 
-      // Base64 matches API JSON binding for byte[] (same as admin document uploads)
+      // Base64 matches API JSON binding for byte[] / FileContentBase64
       const fileContent = await documentService.fileToBase64(uploadForm.file);
 
       // Prepare request (matches UploadDocumentRequest / legacy AMC_spAddStudentDocument)
@@ -671,6 +707,7 @@ const StudentDocuments = () => {
         Type: uploadForm.type,
         FileName: uploadForm.fileName,
         FileContent: fileContent,
+        FileContentBase64: fileContent,
         Username: getPortalUsername(user) || user.email || user.username,
       };
 
@@ -822,231 +859,6 @@ const StudentDocuments = () => {
     );
   }
 
-  const staffDocumentsPanel = (
-                <Box>
-                  <Box
-                    sx={{
-                      mb: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      flexWrap: "wrap",
-                      gap: 2,
-                    }}
-                  >
-                    <Box>
-                      <Typography variant="subtitle1" sx={instructorPageTitleSx}>
-                        Student Documents List
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        display="block"
-                      >
-                        View and manage student-uploaded documents (legacy
-                        StudentDocuments.aspx).
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        size="small"
-                        startIcon={<RefreshIcon />}
-                        onClick={() =>
-                          handleRefresh({ skipLoading: true, quiet: true })
-                        }
-                        sx={{ fontSize: "0.75rem", px: 1.5, py: 0.25 }}
-                      >
-                        Refresh
-                      </Button>
-                      {allowDocumentUpload && (
-                        <Button
-                          variant="contained"
-                          color="success"
-                          size="small"
-                          startIcon={<UploadIcon fontSize="inherit" />}
-                          onClick={handleUploadDialogOpen}
-                          sx={portalHeaderActionButtonSx}
-                        >
-                          Upload Documents
-                        </Button>
-                      )}
-                    </Box>
-                  </Box>
-
-                  <Box sx={{ ...instructorGreenSearchBarSx, mb: 1 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                      <Typography sx={instructorSearchLabelSx}>Search By:</Typography>
-                      <Select
-                        value={searchBy}
-                        onChange={(e) => setSearchBy(e.target.value)}
-                        size="small"
-                        sx={{ ...instructorSelectOnGreenSx, minWidth: 120 }}
-                      >
-                        <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
-                          -ALL-
-                        </MenuItem>
-                        <MenuItem
-                          value="DESCRIPTION"
-                          sx={{ fontSize: "0.75rem" }}
-                        >
-                          Description
-                        </MenuItem>
-                        <MenuItem value="TYPE" sx={{ fontSize: "0.75rem" }}>
-                          Type
-                        </MenuItem>
-                        <MenuItem value="DOC_NAME" sx={{ fontSize: "0.75rem" }}>
-                          Document Name
-                        </MenuItem>
-                      </Select>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                      <Typography sx={instructorSearchLabelSx}>Criteria:</Typography>
-                      <Select
-                        value={searchCriteria}
-                        onChange={(e) => setSearchCriteria(e.target.value)}
-                        size="small"
-                        sx={{ ...instructorSelectOnGreenSx, minWidth: 100 }}
-                      >
-                        <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
-                          Equals
-                        </MenuItem>
-                        <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
-                          Contains
-                        </MenuItem>
-                        <MenuItem
-                          value="starts_with"
-                          sx={{ fontSize: "0.75rem" }}
-                        >
-                          Starts With
-                        </MenuItem>
-                      </Select>
-                    </Box>
-                    <TextField
-                      size="small"
-                      placeholder="Search Text"
-                      value={searchText}
-                      onChange={(e) => setSearchText(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                      sx={instructorSearchTextFieldSx}
-                    />
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={handleSearch}
-                      sx={instructorFindButtonSx}
-                    >
-                      Find
-                    </Button>
-                  </Box>
-
-                  <TableContainer
-                    component={Paper}
-                    sx={{
-                      width: "100%",
-                      overflowX: "auto",
-                      WebkitOverflowScrolling: "touch",
-                    }}
-                  >
-                    <Table size="small" sx={{ ...instructorTableSx, minWidth: 720 }}>
-                      <colgroup>
-                        {instructorStudentDocumentsColWidthsPx.map((w, i) => (
-                          <col
-                            key={i}
-                            style={w == null ? undefined : { width: w }}
-                          />
-                        ))}
-                      </colgroup>
-                      <TableHead>
-                        <TableRow sx={instructorTableHeadRowSx}>
-                          <SortableHeader label="Doc #" field="docNumber" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={instructorCellHeaderSx} />
-                          <SortableHeader label="Description" field="description" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={instructorCellHeaderSx} />
-                          <SortableHeader label="Type" field="type" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={instructorCellHeaderSx} />
-                          <SortableHeader label="Document Name" field="documentName" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={instructorCellHeaderSx} />
-                          <SortableHeader label="Posted Date" field="postedDate" sortField={sortField} sortOrder={sortOrder} onSort={handleSort} headCellSx={instructorCellHeaderSx} />
-                          <TableCell
-                            sx={instructorCellHeaderSxLast}
-                            align="center"
-                          >
-                            Actions
-                          </TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {displayedDocuments.length === 0 ? (
-                          <TableRow>
-                            <TableCell
-                              colSpan={6}
-                              align="center"
-                              sx={{ fontSize: "0.75rem", py: 3 }}
-                            >
-                              <Typography
-                                variant="body2"
-                                color="textSecondary"
-                                sx={{ fontSize: "0.75rem" }}
-                              >
-                                {searchText
-                                  ? "No documents found matching your search."
-                                  : "No documents found"}
-                              </Typography>
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          displayedDocuments.map((doc) => (
-                            <TableRow
-                              key={doc.documentID}
-                              sx={instructorTableBodyRowZebraSx}
-                            >
-                              <TableCell sx={instructorCellBodySx}>
-                                {doc.docID}
-                              </TableCell>
-                              <TableCell sx={instructorCellBodySx}>
-                                {doc.description || "N/A"}
-                              </TableCell>
-                              <TableCell sx={instructorCellBodySx}>
-                                {doc.type || "N/A"}
-                              </TableCell>
-                              <TableCell sx={instructorCellBodySx}>
-                                <Tooltip title={doc.documentName}>
-                                  <Typography
-                                    noWrap
-                                    variant="body2"
-                                    sx={{ fontSize: "0.75rem", maxWidth: 220 }}
-                                  >
-                                    {doc.documentName || "N/A"}
-                                  </Typography>
-                                </Tooltip>
-                              </TableCell>
-                              <TableCell sx={instructorCellBodySx}>
-                                {formatDate(doc.insertDate)}
-                              </TableCell>
-                              <TableCell
-                                sx={instructorCellBodySxLast}
-                                align="center"
-                              >
-                                {renderUploadedDocumentActions(doc)}
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-
-                  <InstructorPortalPaginationBar
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalRecords={totalRecords}
-                    pageSize={pageSize}
-                    onPageChange={handlePageChange}
-                    goToPageInput={goToPageInput}
-                    setGoToPageInput={setGoToPageInput}
-                    onGoToPage={handleGoToPage}
-                  />
-                </Box>
-  );
-
   return (
     <>
       {useStaffDocumentsLayout ? (
@@ -1073,11 +885,30 @@ const StudentDocuments = () => {
               </Container>
             </Box>
           ) : (
-            <Box sx={instructorPageShellSx}>
-              <Container maxWidth="xl" sx={{ mb: 4, px: { xs: 1, sm: 2 } }}>
-                <Grid container spacing={2}>
+            <Box className="instructor-student-documents">
+              <Container
+                {...instructorPortalContentContainerProps}
+                sx={{ mb: 4 }}
+              >
+                <Grid container spacing={3}>
                   <Grid item xs={12}>
-                    {staffDocumentsPanel}
+                    <Card sx={adminSessionListPanelCardSx}>
+                      <CardContent
+                        sx={{
+                          ...adminSessionListPanelContentSx,
+                          pt: 1,
+                          "&:last-child": { pb: 1.5 },
+                        }}
+                      >
+                        <InstructorStudentDocumentList
+                          documents={documents}
+                          onView={handleView}
+                          onDownload={handleDownload}
+                          onDelete={handleDeleteClick}
+                          deletingDocument={deletingDocument}
+                        />
+                      </CardContent>
+                    </Card>
                   </Grid>
                 </Grid>
               </Container>
@@ -1300,13 +1131,7 @@ const StudentDocuments = () => {
           <Button
             onClick={handleUploadSubmit}
             variant="contained"
-            disabled={
-              !uploadForm.file ||
-              !uploadForm.session ||
-              !selectedStudent ||
-              !getSelectedStudentDetails().studentId ||
-              uploadSubmitting
-            }
+            disabled={!canSubmitUpload}
             startIcon={
               uploadSubmitting ? (
                 <CircularProgress size={16} color="inherit" />
@@ -1314,7 +1139,13 @@ const StudentDocuments = () => {
                 <UploadIcon />
               )
             }
-            sx={portalModalSendButtonSx}
+            sx={{
+              ...portalModalSendButtonSx,
+              "&.Mui-disabled": {
+                backgroundColor: "rgba(76, 175, 80, 0.35)",
+                color: "rgba(255, 255, 255, 0.9)",
+              },
+            }}
           >
             {uploadSubmitting ? "Uploading..." : "Submit"}
           </Button>
@@ -1391,6 +1222,12 @@ const StudentDocuments = () => {
               <PortalModalSelect
                 labelId="upload-session-label"
                 value={uploadForm.session}
+                onChange={(e) =>
+                  setUploadForm((prev) => ({
+                    ...prev,
+                    session: e.target.value,
+                  }))
+                }
                 label="Session"
                 disabled={
                   uploadSubmitting ||
@@ -1413,6 +1250,25 @@ const StudentDocuments = () => {
                   ))
                 )}
               </PortalModalSelect>
+              {sessions.length === 0 && (
+                <Typography
+                  variant="caption"
+                  color="error"
+                  sx={{ mt: 0.5, display: "block" }}
+                >
+                  Current session could not be loaded. Close and reopen Upload,
+                  or contact support.
+                </Typography>
+              )}
+              {!selectedStudentDetails.studentId && selectedStudent && (
+                <Typography
+                  variant="caption"
+                  color="error"
+                  sx={{ mt: 0.5, display: "block" }}
+                >
+                  Unable to read student ID from the selected student.
+                </Typography>
+              )}
             </FormControl>
           </Box>
 
@@ -1424,7 +1280,10 @@ const StudentDocuments = () => {
                 labelId="upload-class-label"
                 value={uploadForm.type}
                 onChange={(e) =>
-                  setUploadForm({ ...uploadForm, type: e.target.value })
+                  setUploadForm((prev) => ({
+                    ...prev,
+                    type: e.target.value,
+                  }))
                 }
                 label="Class"
                 disabled={uploadSubmitting}

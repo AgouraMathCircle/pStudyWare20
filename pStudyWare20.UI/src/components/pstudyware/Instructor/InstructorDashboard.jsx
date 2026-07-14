@@ -18,7 +18,9 @@ import studentDashboardService from "../../../services/studentDashboardService";
 import volunteerAvailabilityService from "../../../services/volunteerAvailabilityService";
 import InstructorStudentListGrid from "./InstructorStudentListGrid";
 import InstructorVolunteerAvailabilityGrid from "./InstructorVolunteerAvailabilityGrid";
-import VolunteerAvailability from "../Volunteer/VolunteerAvailability";
+import VolunteerAvailability, {
+  shouldShowVolunteerAvailability,
+} from "../Common/VolunteerAvailability";
 import {
   instructorDashboardPanelCardSx,
   instructorDashboardPanelContentSx,
@@ -30,11 +32,6 @@ import {
   portalDashboardPageSx,
 } from "../styles/applicationSurfaces";
 import "../../../styles/InstructorDashboard.css";
-
-const canShowVolunteerAvailability = (user) => {
-  const flag = user?.volunteerAvailability ?? user?.VolunteerAvailability ?? "N";
-  return String(flag).trim().toUpperCase() === "Y";
-};
 
 const InstructorDashboard = () => {
   const navigate = useNavigate();
@@ -68,7 +65,7 @@ const InstructorDashboard = () => {
   );
 
   const showVolunteerAvailability = useMemo(
-    () => canShowVolunteerAvailability(user),
+    () => shouldShowVolunteerAvailability(user),
     [user]
   );
 
@@ -265,14 +262,24 @@ const InstructorDashboard = () => {
           {/* Top Row: Volunteer Availability and Meeting Schedule */}
           {showVolunteerAvailability ? (
             <>
-              <Grid item xs={12} md={6} sx={{ pt: "0 !important", zoom: "85%" }}>
-                <Card sx={{ ...instructorDashboardPanelCardSx, height: "100%" }}>
+              <Grid
+                item
+                xs={12}
+                sx={{ pt: "0 !important", pb: "0 !important", width: "100%" }}
+              >
+                <Card
+                  sx={{
+                    ...instructorDashboardPanelCardSx,
+                    width: "100%",
+                  }}
+                  className="instructor-dashboard-volunteer-availability-entry-panel"
+                >
                   <CardContent sx={instructorDashboardPanelContentSx}>
                     <VolunteerAvailability embedded={true} />
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} md={6} sx={{ pt: "0 !important", zoom: "85%" }}>
+              <Grid item xs={12} md={6} sx={{ pt: "0 !important", pb: "0 !important", zoom: "85%" }}>
                 <StudentMeetingSchedule
                   username={username}
                   panelCardSx={{ ...instructorDashboardPanelCardSx, height: "100%" }}
@@ -291,9 +298,14 @@ const InstructorDashboard = () => {
           )}
 
           {/* Bottom Row: Grids */}
-          <Grid item xs={12} sx={{ display: "flex", flexDirection: "column", gap: 3, pt: "0 !important" }}>
+          <Grid
+            item
+            xs={12}
+            className="instructor-dashboard-grids-stack"
+            sx={{ display: "flex", flexDirection: "column", pt: "0 !important" }}
+          >
 
-            <Card sx={instructorDashboardPanelCardSx}>
+            <Card sx={instructorDashboardPanelCardSx} className="instructor-dashboard-volunteer-availability-panel">
               <CardContent sx={instructorDashboardPanelContentSx}>
                 <InstructorVolunteerAvailabilityGrid
                   rows={availabilityRows}
@@ -303,7 +315,7 @@ const InstructorDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card sx={instructorDashboardPanelCardSx}>
+            <Card sx={instructorDashboardPanelCardSx} className="instructor-dashboard-student-list-panel">
               <CardContent sx={instructorDashboardPanelContentSx}>
                 <InstructorStudentListGrid
                   rows={studentRows}

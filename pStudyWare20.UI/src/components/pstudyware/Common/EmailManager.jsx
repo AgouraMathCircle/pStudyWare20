@@ -26,6 +26,9 @@ import {
   DialogContent,
   DialogActions,
   Tooltip,
+  Grid,
+  Card,
+  CardContent,
 } from "@mui/material";
 import {
   Send as SendIcon,
@@ -79,8 +82,10 @@ import {
   adminSessionListTableHeadCellSx,
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
+  instructorPortalContentContainerProps,
   portalHeaderActionButtonSx,
 } from "../styles/applicationSurfaces";
+import "../../../styles/InstructorReportCard.css";
 import {
   PORTAL_MODAL_FG,
   portalModalActionsSx,
@@ -974,9 +979,14 @@ const EmailManager = () => {
 
   const isStudentMessageCenter =
     location.pathname === "/pstudyware/student/message-center";
+  const isInstructorPortalView = location.pathname.startsWith(
+    "/pstudyware/instructor/",
+  );
+  const isVolunteerPortalView = location.pathname.startsWith(
+    "/pstudyware/volunteer/",
+  );
   const isRoleDashboardShell =
-    location.pathname.startsWith("/pstudyware/instructor/") ||
-    location.pathname.startsWith("/pstudyware/volunteer/");
+    isInstructorPortalView || isVolunteerPortalView;
 
   const shouldShowStudentHeader =
     (isStudent || isStudentMessageCenter) && !isRoleDashboardShell;
@@ -991,7 +1001,7 @@ const EmailManager = () => {
     isAdminMessageCenterUser(user, memberType) && !isStudentMessageCenter;
 
   const useSessionListTableUi =
-    isAdminMessageCenter || isStudentMessageCenter;
+    isAdminMessageCenter || isStudentMessageCenter || isRoleDashboardShell;
 
   const containerTopMargin =
     shouldShowStudentHeader ||
@@ -1044,23 +1054,14 @@ const EmailManager = () => {
 
   const legacyMenuItemSx = { fontSize: "0.75rem" };
 
-  return (
-    <Box>
-      {isAdminMessageCenter && <AdminHeader user={user} />}
-      {isAdminMessageCenter && <AdminRoleHeaderSpacer />}
-      {shouldShowStudentHeader && <StudentHeader user={user} />}
-      {/* Spacer to account for fixed StudentHeader */}
-      {shouldShowStudentHeader && <StudentRoleHeaderSpacer />}
-      <Container maxWidth="xl" sx={{ mt: containerTopMargin, mb: 4 }}>
-        <Paper
-          elevation={useSessionListTableUi ? 0 : 3}
-          sx={
-            useSessionListTableUi
-              ? adminSessionListPanelCardSx
-              : { p: 3, ...portalPaperAntiLiftSx }
-          }
-        >
-          <Box sx={useSessionListTableUi ? adminSessionListPanelContentSx : undefined}>
+  const instructorPortalCardContentSx = {
+    ...adminSessionListPanelContentSx,
+    pt: 1,
+    "&:last-child": { pb: 1.5 },
+  };
+
+  const messageCenterPanel = (
+    <Box sx={useSessionListTableUi && !isRoleDashboardShell ? adminSessionListPanelContentSx : undefined}>
           {/* Header */}
           <Box
             sx={
@@ -1322,7 +1323,7 @@ useSessionListTableUi
             component={Paper}
             sx={
               useSessionListTableUi
-                ? { ...adminSessionListTableContainerSx, mb: 2 }
+                ? adminSessionListTableContainerSx
                 : { mb: 2, width: "100%" }
             }
           >
@@ -1824,8 +1825,11 @@ useSessionListTableUi
               </Box>
             </Box>
           )}
-          </Box>
+    </Box>
+  );
 
+  const messageCenterOverlays = (
+    <>
           {/* Compose / Reply / View modal */}
           <Dialog
             open={messageModalOpen}
@@ -2047,7 +2051,6 @@ useSessionListTableUi
               </DialogActions>
             )}
           </Dialog>
-        </Paper>
 
         <AppConfirmDialog
           open={deleteConfirmOpen}
@@ -2080,6 +2083,49 @@ useSessionListTableUi
             {snackbar.message}
           </Alert>
         </Snackbar>
+    </>
+  );
+
+  if (isRoleDashboardShell) {
+    return (
+      <Box
+        className={isInstructorPortalView ? "instructor-report-card" : undefined}
+      >
+        <Container {...instructorPortalContentContainerProps} sx={{ mb: 4 }}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <Card sx={adminSessionListPanelCardSx}>
+                <CardContent sx={instructorPortalCardContentSx}>
+                  {messageCenterPanel}
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+          {messageCenterOverlays}
+        </Container>
+      </Box>
+    );
+  }
+
+  return (
+    <Box>
+      {isAdminMessageCenter && <AdminHeader user={user} />}
+      {isAdminMessageCenter && <AdminRoleHeaderSpacer />}
+      {shouldShowStudentHeader && <StudentHeader user={user} />}
+      {/* Spacer to account for fixed StudentHeader */}
+      {shouldShowStudentHeader && <StudentRoleHeaderSpacer />}
+      <Container maxWidth="xl" sx={{ mt: containerTopMargin, mb: 4 }}>
+        <Paper
+          elevation={useSessionListTableUi ? 0 : 3}
+          sx={
+            useSessionListTableUi
+              ? adminSessionListPanelCardSx
+              : { p: 3, ...portalPaperAntiLiftSx }
+          }
+        >
+          {messageCenterPanel}
+          {messageCenterOverlays}
+        </Paper>
       </Container>
     </Box>
   );

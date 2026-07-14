@@ -3,3 +3,4 @@ export { default as InstructorHeader } from "./InstructorHeader";
 export { default as InstructorDashboard } from "./InstructorDashboard";
 export { default as InstructorStudentListGrid } from "./InstructorStudentListGrid";
 export { default as InstructorClassMaterialList } from "./InstructorClassMaterialList";
+export { default as InstructorStudentDocumentList } from "./InstructorStudentDocumentList";
