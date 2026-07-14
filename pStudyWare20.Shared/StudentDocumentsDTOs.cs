@@ -100,8 +100,12 @@ namespace pStudyWare20.Shared
         public string FileName { get; set; } = string.Empty;
 
         [Display(Name = "File Content")]
-        [Required(ErrorMessage = "File Content is required")]
         public byte[] FileContent { get; set; } = Array.Empty<byte>();
+
+        /// <summary>
+        /// Optional base64 payload when JSON clients cannot bind byte[] reliably.
+        /// </summary>
+        public string? FileContentBase64 { get; set; }
 
         [Display(Name = "Username")]
         [Required(ErrorMessage = "Username is required")]

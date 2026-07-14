@@ -199,13 +199,13 @@ namespace pStudyWare20.Services.Implementations
             }
         }
 
-        public async Task<UpdatePasswordResponse> UpdatePasswordAsync(string authenticatedUserEmail, UpdatePasswordRequest request)
+        public async Task<ChangePasswordResponse> ChangePasswordAsync(string authenticatedUserEmail, ChangePasswordRequest request)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(authenticatedUserEmail))
                 {
-                    return new UpdatePasswordResponse
+                    return new ChangePasswordResponse
                     {
                         IsSuccess = false,
                         Message = "Unable to identify the signed-in user."
@@ -215,7 +215,7 @@ namespace pStudyWare20.Services.Implementations
                 var member = await _memberRepository.GetUserPasswordByEmailAsync(authenticatedUserEmail.Trim());
                 if (member == null)
                 {
-                    return new UpdatePasswordResponse
+                    return new ChangePasswordResponse
                     {
                         IsSuccess = false,
                         Message = "We could not verify your account. Please sign in again or contact support."
@@ -224,7 +224,7 @@ namespace pStudyWare20.Services.Implementations
 
                 if (!string.Equals(member.Password, request.CurrentPassword?.Trim() ?? string.Empty, StringComparison.Ordinal))
                 {
-                    return new UpdatePasswordResponse
+                    return new ChangePasswordResponse
                     {
                         IsSuccess = false,
                         Message = "Current password is not correct."
@@ -232,11 +232,11 @@ namespace pStudyWare20.Services.Implementations
                 }
 
                 var newPassword = request.Password.Trim();
-                var updateResult = await _memberRepository.UpdatePasswordAsync(member.UserName, newPassword);
+                var updateResult = await _memberRepository.ChangePasswordAsync(member.UserName, newPassword);
 
                 if (!updateResult)
                 {
-                    return new UpdatePasswordResponse
+                    return new ChangePasswordResponse
                     {
                         IsSuccess = false,
                         Message = "Your password could not be updated. Please try again.",
@@ -245,19 +245,32 @@ namespace pStudyWare20.Services.Implementations
                 }
 
                 var notifyEmail = string.IsNullOrWhiteSpace(member.EmailID) ? authenticatedUserEmail.Trim() : member.EmailID.Trim();
-                var emailResult = _emailUtility.SendPasswordChangedEmail(notifyEmail, newPassword);
+                var usernameForEmail = member.UserName;
 
-                if (emailResult.Contains("Error"))
+                // Do not block the API response on SMTP — local/dev relays often hang past the UI timeout.
+                _ = Task.Run(() =>
                 {
-                    return new UpdatePasswordResponse
+                    try
                     {
-                        IsSuccess = true,
-                        Message = "You have changed your password successfully, but the email notification failed to send.",
-                        Username = member.UserName
-                    };
-                }
+                        var emailResult = _emailUtility.SendPasswordChangedEmail(notifyEmail, newPassword);
+                        if (emailResult != null && emailResult.Contains("Error", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _logger.LogWarning(
+                                "Password changed for {Username}, but notification email failed: {EmailResult}",
+                                usernameForEmail,
+                                emailResult);
+                        }
+                    }
+                    catch (Exception emailEx)
+                    {
+                        _logger.LogWarning(
+                            emailEx,
+                            "Password changed for {Username}, but notification email threw.",
+                            usernameForEmail);
+                    }
+                });
 
-                return new UpdatePasswordResponse
+                return new ChangePasswordResponse
                 {
                     IsSuccess = true,
                     Message = "You have changed your password successfully",
@@ -266,7 +279,7 @@ namespace pStudyWare20.Services.Implementations
             }
             catch (Exception ex)
             {
-                return new UpdatePasswordResponse
+                return new ChangePasswordResponse
                 {
                     IsSuccess = false,
                     Message = $"An error occurred while updating password: {ex.Message}"

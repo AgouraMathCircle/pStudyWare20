@@ -78,6 +78,18 @@
   margin-top: 0;
 }
 
+.instructor-class-material .admin-session-list-search,
+.instructor-class-material .admin-session-list-pagination {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.instructor-class-material .admin-session-list-pagination {
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+}
+
 .instructor-class-material a {
   color: #007bff;
   text-decoration: none;

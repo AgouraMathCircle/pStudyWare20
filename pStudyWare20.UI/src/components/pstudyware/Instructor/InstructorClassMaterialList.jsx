@@ -552,7 +552,7 @@ const InstructorClassMaterialList = ({
         }
       </Typography>
 
-      <Box sx={adminSessionListSearchBarSx}>
+      <Box className="admin-session-list-search" sx={adminSessionListSearchBarSx}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
           <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
           <Select

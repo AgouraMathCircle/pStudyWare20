@@ -603,13 +603,24 @@ namespace pStudyWare20.Services.Implementations
                     return response;
                 }
 
-                if (request.FileContent == null || request.FileContent.Length == 0)
+                var fileContent = NormalizeFileContent(request.FileContent, request.FileContentBase64);
+                if (fileContent.Length == 0)
                 {
                     response.IsSuccess = false;
                     response.ErrorMessage = "File content is required.";
                     response.Message = "Failed to upload document";
                     return response;
                 }
+
+                if (fileContent.Length > 2 * 1024 * 1024)
+                {
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "File size must be less than 2 MB.";
+                    response.Message = "Failed to upload document";
+                    return response;
+                }
+
+                request.FileContent = fileContent;
 
                 var uploadPath = GetStudentDocsUploadPath();
                 Directory.CreateDirectory(uploadPath);

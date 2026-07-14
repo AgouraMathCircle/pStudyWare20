@@ -46,24 +46,7 @@ import {
   portalModalSendButtonSx,
 } from "../Common/portalModalStyles";
 import AdminSessionListPagination from "./AdminSessionListPagination";
-import InstructorPortalPaginationBar from "../Instructor/InstructorPortalPaginationBar";
 import reportCardService from "../../../services/reportCardService";
-import {
-  instructorGreenSearchBarSx,
-  instructorPageShellSx,
-  instructorPageTitleSx,
-  instructorSearchLabelSx,
-  instructorSelectOnGreenSx,
-  instructorFindButtonSx,
-  instructorSearchTextFieldSx,
-  instructorTableSx,
-  instructorTableHeadRowSx,
-  instructorTableBodyRowZebraSx,
-  instructorCellHeaderSx,
-  instructorCellHeaderSxLast,
-  instructorCellBodySx,
-  instructorCellBodySxLast,
-} from "../Instructor/instructorPortalTableStyles";
 import {
   ADMIN_SESSION_LIST_BORDER,
   ADMIN_SESSION_LIST_BAR_CONTROL_HEIGHT,
@@ -86,8 +69,10 @@ import {
   adminSessionListTableHeadCellSx,
   adminSessionListTableHeadRowSx,
   adminSessionListTitleSx,
+  instructorPortalContentContainerProps,
   portalHeaderActionButtonSx,
 } from "../styles/applicationSurfaces";
+import "../../../styles/InstructorReportCard.css";
 import SortableHeader from "../Common/SortableHeader";
 import {
   sortRows,
@@ -127,10 +112,28 @@ const pickField = (item, ...keys) => {
   if (item == null) return "";
   if (typeof item !== "object") return String(item);
   for (const key of keys) {
-    const val = item[key];
-    if (val != null && val !== "") return val;
+    if (Object.prototype.hasOwnProperty.call(item, key)) {
+      const val = item[key];
+      if (val != null && val !== "") return val;
+    }
+  }
+  const normalizedKeys = new Set(keys.map((key) => key.toLowerCase()));
+  for (const [objKey, val] of Object.entries(item)) {
+    if (
+      normalizedKeys.has(objKey.toLowerCase()) &&
+      val != null &&
+      val !== ""
+    ) {
+      return val;
+    }
   }
   return "";
+};
+
+const formatFieldValue = (value) => {
+  if (value == null || value === "") return "";
+  if (typeof value === "object") return "";
+  return String(value);
 };
 
 const formatLegacyExamDate = (value) => {
@@ -158,21 +161,21 @@ const resolveClassSelectValue = (group, classList) => {
   const expanded = getClassLabel(raw);
 
   for (const item of classList) {
-    const name = pickField(
-      item,
-      "className",
-      "ClassName",
-      "text",
-      "Text",
-      "value",
-      "Value",
-    );
-    if (name && (name.trim() === raw || name.trim() === expanded)) {
-      return name;
+    const name = getClassOptionValue(item);
+    if (!name) continue;
+    const nameTrim = name.trim();
+    const label = getClassLabel(nameTrim);
+    if (
+      nameTrim === raw ||
+      nameTrim === expanded ||
+      label === raw ||
+      label === expanded
+    ) {
+      return nameTrim;
     }
   }
 
-  return expanded || raw;
+  return raw;
 };
 
 const resolveExamScheduleValue = (examDate, examDateList) => {
@@ -181,15 +184,7 @@ const resolveExamScheduleValue = (examDate, examDateList) => {
   const normalized = formatExamDateValue(raw);
 
   for (const item of examDateList) {
-    const value = pickField(
-      item,
-      "displayValue",
-      "DisplayValue",
-      "mExamDate",
-      "MExamDate",
-      "value",
-      "Value",
-    );
+    const value = getExamScheduleOptionValue(item);
     if (!value) continue;
     const valueText = String(value).trim();
     if (valueText === raw || formatExamDateValue(valueText) === normalized) {
@@ -203,30 +198,21 @@ const resolveExamScheduleValue = (examDate, examDateList) => {
 const classListIncludesValue = (classList, value) =>
   !!value &&
   classList.some((item) => {
-    const name = pickField(
-      item,
-      "className",
-      "ClassName",
-      "text",
-      "Text",
-      "value",
-      "Value",
+    const name = getClassOptionValue(item);
+    if (!name) return false;
+    const normalized = String(value).trim();
+    const nameTrim = name.trim();
+    return (
+      nameTrim === normalized ||
+      getClassLabel(nameTrim) === normalized ||
+      getClassLabel(normalized) === nameTrim
     );
-    return name && name.trim() === String(value).trim();
   });
 
 const examDateListIncludesValue = (examDateList, value) =>
   !!value &&
   examDateList.some((item) => {
-    const scheduleValue = pickField(
-      item,
-      "displayValue",
-      "DisplayValue",
-      "mExamDate",
-      "MExamDate",
-      "value",
-      "Value",
-    );
+    const scheduleValue = getExamScheduleOptionValue(item);
     return (
       scheduleValue &&
       (String(scheduleValue).trim() === String(value).trim() ||
@@ -320,6 +306,110 @@ const getClassOptionValue = (item) =>
     "Value",
   ) || "";
 
+/** Legacy BindClassList uses ClassName; dedupe SP rows that repeat the same class. */
+const getClassOptionLabel = (item) => {
+  const value = getClassOptionValue(item);
+  if (!value) return "";
+  return getClassLabel(value) || value;
+};
+
+const dedupeClassList = (items) => {
+  if (!Array.isArray(items)) return [];
+  const seen = new Set();
+  const result = [];
+  for (const item of items) {
+    const value = getClassOptionValue(item);
+    if (!value) continue;
+    const label = getClassOptionLabel(item) || value;
+    const key = label.trim().toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(item);
+  }
+  return result;
+};
+
+const mapClassMenuOptions = (classList) =>
+  dedupeClassList(classList).map((c) => {
+    const value = getClassOptionValue(c);
+    const label = getClassOptionLabel(c) || value;
+    return { key: value, value, label };
+  });
+
+/** Legacy BindStudentList: DataValueField=StudentID, DataTextField=StudentName (API). */
+const getStudentOptionValue = (item) =>
+  formatFieldValue(
+    pickField(item, "studentID", "StudentID", "studentId", "StudentId"),
+  );
+
+const getStudentOptionLabel = (item) => {
+  const name = pickField(item, "studentName", "StudentName");
+  const id = getStudentOptionValue(item);
+  return name || id;
+};
+
+const mapStudentMenuOptions = (students) => {
+  if (!Array.isArray(students)) return [];
+  const seen = new Set();
+  const options = [];
+  for (const item of students) {
+    const value = getStudentOptionValue(item);
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    options.push({
+      key: value,
+      value,
+      label: getStudentOptionLabel(item),
+    });
+  }
+  return options;
+};
+
+/** Legacy BindClassSchedule: DataValueField=DisplayValue, DataTextField=Session. */
+const getExamScheduleOptionValue = (item) =>
+  formatFieldValue(
+    pickField(
+      item,
+      "displayValue",
+      "DisplayValue",
+      "mExamDate",
+      "MExamDate",
+      "value",
+      "Value",
+    ),
+  );
+
+const getExamScheduleOptionLabel = (item) => {
+  const session = pickField(
+    item,
+    "session",
+    "Session",
+    "reportDate",
+    "ReportDate",
+    "text",
+    "Text",
+  );
+  const value = getExamScheduleOptionValue(item);
+  return session || (value ? formatExamDateValue(value) : "");
+};
+
+const mapExamScheduleMenuOptions = (examDates) => {
+  if (!Array.isArray(examDates)) return [];
+  const seen = new Set();
+  const options = [];
+  for (const item of examDates) {
+    const value = getExamScheduleOptionValue(item);
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    options.push({
+      key: value,
+      value,
+      label: getExamScheduleOptionLabel(item) || value,
+    });
+  }
+  return options;
+};
+
 /** Legacy ReportCard.aspx / kGrid1 defaults */
 const LEGACY_REPORT_CARD_PAGE_SIZE = 25;
 const LEGACY_REPORT_CARD_DEFAULT_SORT_FIELD = "reportCardId";
@@ -337,7 +427,7 @@ const DEFAULT_UPLOAD_SCORE_FORM = {
 const adminReportCardTableSx = {
   tableLayout: "fixed",
   width: "100%",
-  minWidth: "100%",
+  minWidth: 1208,
   borderCollapse: "collapse",
   border: ADMIN_SESSION_LIST_BORDER,
   "& .MuiTableCell-root": {
@@ -353,7 +443,7 @@ const adminReportCardTableContainerSx = {
   width: "100%",
   maxWidth: "100%",
   minWidth: "100%",
-  overflowX: "hidden",
+  overflowX: "auto",
 };
 
 const adminReportCardTableWrapSx = {
@@ -434,8 +524,8 @@ const reportCardInlineCheckboxSx = {
 
 /** null = auto-size to fit cell content */
 const reportCardColumnWidths = {
-  edit: 52,
-  delete: 56,
+  edit: 64,
+  delete: 72,
   studentId: 72,
   studentName: 168,
   class: 140,
@@ -448,6 +538,20 @@ const reportCardColumnWidths = {
   avg: 72,
   yourScore: 72,
   comments: 100,
+};
+
+const summaryColumnWidths = {
+  studentId: 72,
+  studentName: 168,
+  class: 120,
+  examDate: 88,
+  quiz: 64,
+  classWork: 80,
+  homeWork: 80,
+  finalExam: 80,
+  placementTest: 96,
+  totalScore: 80,
+  rank: 56,
 };
 
 const reportCardColWidthsPx = [
@@ -467,6 +571,20 @@ const reportCardColWidthsPx = [
   reportCardColumnWidths.comments,
 ];
 
+const summaryColWidthsPx = [
+  summaryColumnWidths.studentId,
+  summaryColumnWidths.studentName,
+  summaryColumnWidths.class,
+  summaryColumnWidths.examDate,
+  summaryColumnWidths.quiz,
+  summaryColumnWidths.classWork,
+  summaryColumnWidths.homeWork,
+  summaryColumnWidths.finalExam,
+  summaryColumnWidths.placementTest,
+  summaryColumnWidths.totalScore,
+  summaryColumnWidths.rank,
+];
+
 const ReportCardColGroup = ({ widths }) => (
   <colgroup>
     {widths.map((w, i) => (
@@ -481,6 +599,7 @@ const AdminReportCard = () => {
   const location = useLocation();
   const hideRoleHeader = location.pathname.includes("/pstudyware/instructor/");
   const isAdminView = !hideRoleHeader;
+  const isInstructorPortalView = hideRoleHeader;
   const { user } = useAuth();
   const username = user?.username || user?.email || "";
   const pageSize = LEGACY_REPORT_CARD_PAGE_SIZE;
@@ -542,9 +661,6 @@ const AdminReportCard = () => {
   };
 
   const sortHeadSx = (width, isLast = false) => {
-    if (!isAdminView) {
-      return isLast ? instructorCellHeaderSxLast : instructorCellHeaderSx;
-    }
     const sx = adminSessionListTableHeadCellSx(undefined, isLast);
     if (width == null) {
       return {
@@ -564,35 +680,23 @@ const AdminReportCard = () => {
     const truncateWidth =
       options.truncateWidth ??
       (options.truncate ? reportCardColumnWidths.comments : undefined);
-    if (isAdminView) {
-      return {
-        ...adminSessionListTableBodyCellSx(options),
-        whiteSpace: "nowrap",
-        width: options.truncate ? truncateWidth : "auto",
-        maxWidth: options.truncate ? truncateWidth : undefined,
-        minWidth: options.autoFit
-          ? "max-content"
-          : options.truncate
-            ? 0
+    const base = {
+      ...adminSessionListTableBodyCellSx(options),
+      whiteSpace: "nowrap",
+      width: options.truncate ? truncateWidth : "auto",
+      maxWidth: options.truncate ? truncateWidth : undefined,
+      minWidth: options.autoFit
+        ? "max-content"
+        : options.truncate
+          ? 0
+          : options.action
+            ? (options.actionWidth ?? 64)
             : undefined,
-        overflow: options.truncate ? "hidden" : undefined,
-        textOverflow: options.truncate ? "ellipsis" : undefined,
-        ...(options.align ? { textAlign: options.align } : {}),
-      };
-    }
-    const base = options.isLast
-      ? instructorCellBodySxLast
-      : instructorCellBodySx;
-    if (options.truncate) {
-      return {
-        ...base,
-        maxWidth: truncateWidth,
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-      };
-    }
-    return options.action ? { ...base, verticalAlign: "middle" } : base;
+      overflow: options.truncate ? "hidden" : options.action ? "visible" : undefined,
+      textOverflow: options.truncate ? "ellipsis" : undefined,
+      ...(options.align ? { textAlign: options.align } : {}),
+    };
+    return base;
   };
 
   const handleDeleteClick = (reportCardId) => {
@@ -611,10 +715,12 @@ const AdminReportCard = () => {
 
   const renderEditAction = (reportCardId) => {
     if (!canEdit) return "—";
+    const id = resolveReportCardId(reportCardId);
+    if (!id) return "—";
     return (
       <Box
         component="span"
-        onClick={() => openEdit(reportCardId)}
+        onClick={() => openEdit(id)}
         sx={adminSessionListTableActionLinkSx}
       >
         Edit
@@ -624,10 +730,12 @@ const AdminReportCard = () => {
 
   const renderDeleteAction = (reportCardId) => {
     if (!canEdit) return "—";
+    const id = resolveReportCardId(reportCardId);
+    if (!id) return "—";
     return (
       <Box
         component="span"
-        onClick={() => handleDeleteClick(reportCardId)}
+        onClick={() => handleDeleteClick(id)}
         sx={reportCardDeleteLinkSx}
       >
         Delete
@@ -684,13 +792,13 @@ const AdminReportCard = () => {
   const loadDashboardData = async () => {
     if (!username) return;
     try {
-      const res = await reportCardService.getDashboardData(username);
+      const res = await reportCardService.getDashboardData();
       const r = res?.reportDateList ?? res?.ReportDateList;
       const c = res?.classList ?? res?.ClassList;
       const s = res?.studentList ?? res?.StudentList;
       const e = res?.examDateList ?? res?.ExamDateList;
       setReportDates(Array.isArray(r) ? r : []);
-      setClassList(Array.isArray(c) ? c : []);
+      setClassList(dedupeClassList(Array.isArray(c) ? c : []));
       setStudentList(Array.isArray(s) ? s : []);
       setExamDateList(Array.isArray(e) ? e : []);
       const priv = await reportCardService.checkReportCardPrivileges();
@@ -880,6 +988,8 @@ const AdminReportCard = () => {
       const data = Array.isArray(raw) ? raw : (raw?.Table ?? raw?.Rows ?? []);
       setList(Array.isArray(data) ? data : []);
       setShowSummaryMode(true);
+      setSortField("studentId");
+      setSortOrder("asc");
       setCurrentPage(1);
       setGoToPageInput("1");
       setSnackbar({
@@ -901,6 +1011,8 @@ const AdminReportCard = () => {
 
   const handleBackToScoreCardList = async () => {
     setShowSummaryMode(false);
+    setSortField(LEGACY_REPORT_CARD_DEFAULT_SORT_FIELD);
+    setSortOrder(LEGACY_REPORT_CARD_DEFAULT_SORT_ORDER);
     await refreshReportCardList();
   };
 
@@ -1138,23 +1250,162 @@ const AdminReportCard = () => {
         "reportCardID",
         "reportCardId",
         "ReportCardId",
+        "ReportID",
+        "reportID",
+        "ID",
+        "id",
       ),
     ),
-    studentID: pickField(r, "StudentID", "studentID", "studentId", "StudentId"),
-    studentName: pickField(r, "StudentName", "studentName"),
-    group: pickField(r, "Group", "group"),
-    grade: pickField(r, "Grade", "grade"),
-    semester: pickField(r, "Semester", "semester"),
-    examType: pickField(r, "ExamType", "examType"),
-    examDate: pickField(r, "ExamDate", "examDate"),
-    totalCredit: pickField(r, "TotalCredit", "totalCredit"),
-    highestScore: pickField(r, "HighestScore", "highestScore"),
-    classAverage: pickField(r, "ClassAverage", "classAverage"),
-    receivedCredit: pickField(r, "ReceivedCredit", "receivedCredit"),
-    comments: pickField(r, "Comments", "comments"),
+    studentID: formatFieldValue(
+      pickField(r, "StudentID", "studentID", "studentId", "StudentId"),
+    ),
+    studentName: formatFieldValue(pickField(r, "StudentName", "studentName")),
+    group: formatFieldValue(pickField(r, "Group", "group", "Class", "class")),
+    grade: formatFieldValue(pickField(r, "Grade", "grade")),
+    semester: formatFieldValue(
+      pickField(r, "Semester", "semester", "Session", "session"),
+    ),
+    examType: formatFieldValue(pickField(r, "ExamType", "examType")),
+    examDate: formatFieldValue(pickField(r, "ExamDate", "examDate")),
+    totalCredit: formatFieldValue(
+      pickField(
+        r,
+        "TotalCredit",
+        "totalCredit",
+        "TotalScore",
+        "totalScore",
+      ),
+    ),
+    highestScore: formatFieldValue(
+      pickField(
+        r,
+        "HighestScore",
+        "highestScore",
+        "TopScore",
+        "topScore",
+      ),
+    ),
+    classAverage: formatFieldValue(
+      pickField(
+        r,
+        "ClassAverage",
+        "classAverage",
+        "AvgScore",
+        "avgScore",
+        "AVGScore",
+      ),
+    ),
+    receivedCredit: formatFieldValue(
+      pickField(
+        r,
+        "ReceivedCredit",
+        "receivedCredit",
+        "YourScore",
+        "yourScore",
+      ),
+    ),
+    comments: formatFieldValue(pickField(r, "Comments", "comments")),
+  });
+
+  const summaryRow = (r) => ({
+    studentID: formatFieldValue(
+      pickField(r, "StudentID", "studentID", "studentId", "StudentId"),
+    ),
+    studentName: formatFieldValue(pickField(r, "StudentName", "studentName")),
+    group: formatFieldValue(pickField(r, "Group", "group", "Class", "class")),
+    examDate: formatFieldValue(pickField(r, "ExamDate", "examDate")),
+    quizReceived: formatFieldValue(
+      pickField(
+        r,
+        "QuizReceived",
+        "quizReceived",
+        "Quiz",
+        "quiz",
+      ),
+    ),
+    classReceived: formatFieldValue(
+      pickField(
+        r,
+        "ClassReceived",
+        "classReceived",
+        "ClassWork",
+        "classWork",
+        "ClassTestReceived",
+        "classTestReceived",
+      ),
+    ),
+    homeWorkReceived: formatFieldValue(
+      pickField(
+        r,
+        "HomeWorkReceived",
+        "homeWorkReceived",
+        "HomeWork",
+        "homeWork",
+      ),
+    ),
+    finalExamReceived: formatFieldValue(
+      pickField(
+        r,
+        "FinalExamReceived",
+        "finalExamReceived",
+        "FinalExam",
+        "finalExam",
+      ),
+    ),
+    placementTestReceived: formatFieldValue(
+      pickField(
+        r,
+        "PlacementTestReceived",
+        "placementTestReceived",
+        "PlacementTest",
+        "placementTest",
+      ),
+    ),
+    totalScore: formatFieldValue(
+      pickField(
+        r,
+        "TotalScore",
+        "totalScore",
+        "TotalCredit",
+        "totalCredit",
+      ),
+    ),
+    classRank: formatFieldValue(
+      pickField(r, "ClassRank", "classRank", "Rank", "rank"),
+    ),
   });
 
   const getReportCardListFieldValue = (rawRow, field) => {
+    if (showSummaryMode) {
+      const s = summaryRow(rawRow);
+      switch (field) {
+        case "studentId":
+          return toSortableNumber(s.studentID);
+        case "studentName":
+          return s.studentName ?? "";
+        case "class":
+          return s.group ?? "";
+        case "examDate":
+          return toSortableDate(s.examDate);
+        case "quiz":
+          return toSortableNumber(s.quizReceived);
+        case "classWork":
+          return toSortableNumber(s.classReceived);
+        case "homeWork":
+          return toSortableNumber(s.homeWorkReceived);
+        case "finalExam":
+          return toSortableNumber(s.finalExamReceived);
+        case "placementTest":
+          return toSortableNumber(s.placementTestReceived);
+        case "totalScore":
+          return toSortableNumber(s.totalScore);
+        case "rank":
+          return toSortableNumber(s.classRank);
+        default:
+          return "";
+      }
+    }
+
     const r = row(rawRow);
     switch (field) {
       case "reportCardId":
@@ -1201,6 +1452,16 @@ const AdminReportCard = () => {
     const search = searchText.trim();
     if (searchBy === "ALL") {
       return list.filter((r) => {
+        if (showSummaryMode) {
+          const s = summaryRow(r);
+          return (
+            matchField(s.studentName, search, searchCriteria) ||
+            matchField(s.studentID, search, searchCriteria) ||
+            matchField(s.group, search, searchCriteria) ||
+            matchField(s.examDate, search, searchCriteria) ||
+            matchField(s.classRank, search, searchCriteria)
+          );
+        }
         const o = row(r);
         return (
           matchField(o.studentName, search, searchCriteria) ||
@@ -1214,6 +1475,24 @@ const AdminReportCard = () => {
       });
     }
     return list.filter((r) => {
+      if (showSummaryMode) {
+        const s = summaryRow(r);
+        let fieldValue = "";
+        switch (searchBy) {
+          case "STUDENT_ID":
+            fieldValue = s.studentID ?? "";
+            break;
+          case "STUDENT_NAME":
+            fieldValue = s.studentName ?? "";
+            break;
+          case "CLASS":
+            fieldValue = s.group ?? "";
+            break;
+          default:
+            return true;
+        }
+        return matchField(fieldValue, search, searchCriteria);
+      }
       const o = row(r);
       let fieldValue = "";
       switch (searchBy) {
@@ -1243,13 +1522,18 @@ const AdminReportCard = () => {
       }
       return matchField(fieldValue, search, searchCriteria);
     });
-  }, [list, searchText, searchBy, searchCriteria]);
+  }, [list, searchText, searchBy, searchCriteria, showSummaryMode]);
 
   const sortedList = useMemo(
     () =>
       sortRows(filteredList, sortField, sortOrder, getReportCardListFieldValue),
-    [filteredList, sortField, sortOrder],
+    [filteredList, sortField, sortOrder, showSummaryMode],
   );
+
+  const activeTableMinWidth = showSummaryMode
+    ? summaryColWidthsPx.reduce((sum, width) => sum + width, 0)
+    : reportCardColWidthsPx.reduce((sum, width) => sum + width, 0);
+  const activeColumnCount = showSummaryMode ? 11 : 14;
 
   const totalRecords = sortedList.length;
   const totalPages = Math.ceil(totalRecords / pageSize);
@@ -1290,49 +1574,31 @@ const AdminReportCard = () => {
   };
 
   return (
-    <Box sx={isAdminView ? { minHeight: "100vh" } : instructorPageShellSx}>
+    <Box
+      className={isInstructorPortalView ? "instructor-report-card" : undefined}
+      sx={isAdminView ? { minHeight: "100vh" } : undefined}
+    >
       {!hideRoleHeader && <AdminHeader user={user} />}
       {!hideRoleHeader && <AdminRoleHeaderSpacer />}
-      <Container maxWidth="xl" sx={{ mb: 4 }}>
-        <Grid container spacing={isAdminView ? 3 : 2}>
+      <Container
+        {...(isInstructorPortalView
+          ? instructorPortalContentContainerProps
+          : { maxWidth: "xl" })}
+        sx={{ mb: 4 }}
+      >
+        <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Card
-              sx={
-                isAdminView
-                  ? adminSessionListPanelCardSx
-                  : {
-                      backgroundColor: "white",
-                      borderRadius: 2,
-                      overflow: "hidden",
-                    }
-              }
-            >
+            <Card sx={adminSessionListPanelCardSx}>
               <CardContent
-                sx={isAdminView ? adminSessionListPanelContentSx : { p: 3 }}
+                sx={{
+                  ...adminSessionListPanelContentSx,
+                  pt: 1,
+                  "&:last-child": { pb: 1.5 },
+                }}
               >
                 <Box sx={reportCardLayoutSx}>
-                  <Box
-                    sx={
-                      isAdminView
-                        ? adminSessionListHeaderBarSx
-                        : {
-                            mb: 1,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            flexWrap: "wrap",
-                            gap: 2,
-                          }
-                    }
-                  >
-                    <Typography
-                      variant="subtitle1"
-                      sx={
-                        isAdminView
-                          ? adminSessionListTitleSx
-                          : instructorPageTitleSx
-                      }
-                    >
+                  <Box sx={adminSessionListHeaderBarSx}>
+                    <Typography variant="subtitle1" sx={adminSessionListTitleSx}>
                       Report Card
                     </Typography>
                   </Box>
@@ -1366,15 +1632,11 @@ const AdminReportCard = () => {
                         disabled={classList.length === 0}
                         onChange={(e) => setSelectedClass(e.target.value)}
                       >
-                        {classList.map((c, i) => {
-                          const value = getClassOptionValue(c);
-                          const label = value || String(c);
-                          return (
-                            <MenuItem key={i} value={value}>
-                              {label}
-                            </MenuItem>
-                          );
-                        })}
+                        {mapClassMenuOptions(classList).map((c) => (
+                          <MenuItem key={c.key} value={c.value}>
+                            {c.label}
+                          </MenuItem>
+                        ))}
                       </Select>
                     </FormControl>
                     <FormControlLabel
@@ -1468,193 +1730,70 @@ const AdminReportCard = () => {
                   ) : (
                     <>
                       <Box
+                        className="admin-session-list-search"
                         sx={{
-                          ...(isAdminView
-                            ? adminSessionListSearchBarSx
-                            : instructorGreenSearchBarSx),
+                          ...adminSessionListSearchBarSx,
                           width: "100%",
                           maxWidth: "100%",
                           boxSizing: "border-box",
                         }}
                       >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                          }}
-                        >
-                          <Typography
-                            sx={
-                              isAdminView
-                                ? adminSessionListSearchLabelSx
-                                : instructorSearchLabelSx
-                            }
-                          >
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                          <Typography sx={adminSessionListSearchLabelSx}>
                             Search By:
                           </Typography>
                           <Select
                             value={searchBy}
                             onChange={(e) => setSearchBy(e.target.value)}
                             size="small"
-                            sx={
-                              isAdminView
-                                ? {
-                                    ...adminSessionListSearchSelectSx,
-                                    minWidth: 120,
-                                  }
-                                : {
-                                    ...instructorSelectOnGreenSx,
-                                    minWidth: 120,
-                                  }
-                            }
+                            sx={{ ...adminSessionListSearchSelectSx, minWidth: 120 }}
                           >
-                            <MenuItem
-                              value="ALL"
-                              sx={
-                                isAdminView
-                                  ? adminSessionListMenuItemSx
-                                  : { fontSize: "0.75rem" }
-                              }
-                            >
+                            <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
                               -ALL-
                             </MenuItem>
-                            <MenuItem
-                              value="STUDENT_ID"
-                              sx={
-                                isAdminView
-                                  ? adminSessionListMenuItemSx
-                                  : { fontSize: "0.75rem" }
-                              }
-                            >
+                            <MenuItem value="STUDENT_ID" sx={adminSessionListMenuItemSx}>
                               Student #
                             </MenuItem>
-                            <MenuItem
-                              value="STUDENT_NAME"
-                              sx={
-                                isAdminView
-                                  ? adminSessionListMenuItemSx
-                                  : { fontSize: "0.75rem" }
-                              }
-                            >
+                            <MenuItem value="STUDENT_NAME" sx={adminSessionListMenuItemSx}>
                               Student Name
                             </MenuItem>
-                            <MenuItem
-                              value="CLASS"
-                              sx={
-                                isAdminView
-                                  ? adminSessionListMenuItemSx
-                                  : { fontSize: "0.75rem" }
-                              }
-                            >
+                            <MenuItem value="CLASS" sx={adminSessionListMenuItemSx}>
                               Class
                             </MenuItem>
-                            <MenuItem
-                              value="GRADE"
-                              sx={
-                                isAdminView
-                                  ? adminSessionListMenuItemSx
-                                  : { fontSize: "0.75rem" }
-                              }
-                            >
+                            <MenuItem value="GRADE" sx={adminSessionListMenuItemSx}>
                               Grade
                             </MenuItem>
-                            <MenuItem
-                              value="SESSION"
-                              sx={
-                                isAdminView
-                                  ? adminSessionListMenuItemSx
-                                  : { fontSize: "0.75rem" }
-                              }
-                            >
+                            <MenuItem value="SESSION" sx={adminSessionListMenuItemSx}>
                               Session
                             </MenuItem>
-                            <MenuItem
-                              value="EXAM_TYPE"
-                              sx={
-                                isAdminView
-                                  ? adminSessionListMenuItemSx
-                                  : { fontSize: "0.75rem" }
-                              }
-                            >
+                            <MenuItem value="EXAM_TYPE" sx={adminSessionListMenuItemSx}>
                               Exam Type
                             </MenuItem>
-                            <MenuItem
-                              value="COMMENTS"
-                              sx={
-                                isAdminView
-                                  ? adminSessionListMenuItemSx
-                                  : { fontSize: "0.75rem" }
-                              }
-                            >
+                            <MenuItem value="COMMENTS" sx={adminSessionListMenuItemSx}>
                               Comments
                             </MenuItem>
                           </Select>
                         </Box>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 0.5,
-                          }}
-                        >
-                          <Typography
-                            sx={
-                              isAdminView
-                                ? adminSessionListSearchLabelSx
-                                : instructorSearchLabelSx
-                            }
-                          >
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                          <Typography sx={adminSessionListSearchLabelSx}>
                             Criteria:
                           </Typography>
                           <Select
                             value={searchCriteria}
                             onChange={(e) => setSearchCriteria(e.target.value)}
                             size="small"
-                            sx={
-                              isAdminView
-                                ? adminSessionListSearchSelectSx
-                                : instructorSelectOnGreenSx
-                            }
+                            sx={adminSessionListSearchSelectSx}
                           >
-                            <MenuItem
-                              value=""
-                              sx={
-                                isAdminView
-                                  ? adminSessionListMenuItemSx
-                                  : { fontSize: "0.75rem" }
-                              }
-                            >
+                            <MenuItem value="" sx={adminSessionListMenuItemSx}>
                               Select Criteria
                             </MenuItem>
-                            <MenuItem
-                              value="equals"
-                              sx={
-                                isAdminView
-                                  ? adminSessionListMenuItemSx
-                                  : { fontSize: "0.75rem" }
-                              }
-                            >
+                            <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
                               Equals
                             </MenuItem>
-                            <MenuItem
-                              value="contains"
-                              sx={
-                                isAdminView
-                                  ? adminSessionListMenuItemSx
-                                  : { fontSize: "0.75rem" }
-                              }
-                            >
+                            <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
                               Contains
                             </MenuItem>
-                            <MenuItem
-                              value="starts_with"
-                              sx={
-                                isAdminView
-                                  ? adminSessionListMenuItemSx
-                                  : { fontSize: "0.75rem" }
-                              }
-                            >
+                            <MenuItem value="starts_with" sx={adminSessionListMenuItemSx}>
                               Starts With
                             </MenuItem>
                           </Select>
@@ -1664,21 +1803,13 @@ const AdminReportCard = () => {
                           placeholder="Search Text"
                           value={searchText}
                           onChange={(e) => setSearchText(e.target.value)}
-                          sx={
-                            isAdminView
-                              ? adminSessionListSearchFieldSx
-                              : instructorSearchTextFieldSx
-                          }
+                          sx={adminSessionListSearchFieldSx}
                         />
                         <Button
                           variant="contained"
                           size="small"
                           onClick={handleSearch}
-                          sx={
-                            isAdminView
-                              ? adminSessionListFindButtonSx
-                              : instructorFindButtonSx
-                          }
+                          sx={adminSessionListFindButtonSx}
                         >
                           Find
                         </Button>
@@ -1687,208 +1818,390 @@ const AdminReportCard = () => {
                       <Box sx={adminReportCardTableWrapSx}>
                         <TableContainer
                           component={Paper}
-                          sx={
-                            isAdminView
-                              ? adminReportCardTableContainerSx
-                              : { width: "100%", minWidth: "100%" }
-                          }
+                          sx={adminReportCardTableContainerSx}
                         >
                           <Table
-                            sx={
-                              isAdminView
-                                ? adminReportCardTableSx
-                                : instructorTableSx
-                            }
+                            sx={{
+                              ...adminReportCardTableSx,
+                              minWidth: activeTableMinWidth,
+                            }}
                             size="small"
                           >
-                            {isAdminView && (
-                              <ReportCardColGroup
-                                widths={reportCardColWidthsPx}
-                              />
-                            )}
+                            <ReportCardColGroup
+                              widths={
+                                showSummaryMode
+                                  ? summaryColWidthsPx
+                                  : reportCardColWidthsPx
+                              }
+                            />
                             <TableHead>
-                              <TableRow
-                                sx={
-                                  isAdminView
-                                    ? adminSessionListTableHeadRowSx
-                                    : instructorTableHeadRowSx
-                                }
-                              >
-                                <TableCell
-                                  sx={sortHeadSx(reportCardColumnWidths.edit)}
-                                >
-                                  Edit
-                                </TableCell>
-                                <TableCell
-                                  sx={sortHeadSx(reportCardColumnWidths.delete)}
-                                >
-                                  Delete
-                                </TableCell>
-                                <SortableHeader
-                                  label="Student #"
-                                  field="studentId"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    reportCardColumnWidths.studentId,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Student Name"
-                                  field="studentName"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    reportCardColumnWidths.studentName,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Class"
-                                  field="class"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    reportCardColumnWidths.class,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Grade"
-                                  field="grade"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    reportCardColumnWidths.grade,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Session"
-                                  field="session"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    reportCardColumnWidths.session,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Exam Type"
-                                  field="examType"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    reportCardColumnWidths.examType,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Exam Date"
-                                  field="examDate"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    reportCardColumnWidths.examDate,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Total Score"
-                                  field="total"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    reportCardColumnWidths.total,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Top Score"
-                                  field="topScore"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    reportCardColumnWidths.topScore,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="AVG Score"
-                                  field="avg"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    reportCardColumnWidths.avg,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Your Score"
-                                  field="yourScore"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    reportCardColumnWidths.yourScore,
-                                  )}
-                                />
-                                <SortableHeader
-                                  label="Comments"
-                                  field="comments"
-                                  sortField={sortField}
-                                  sortOrder={sortOrder}
-                                  onSort={handleSort}
-                                  headCellSx={sortHeadSx(
-                                    reportCardColumnWidths.comments,
-                                    true,
-                                  )}
-                                />
+                              <TableRow sx={adminSessionListTableHeadRowSx}>
+                                {showSummaryMode ? (
+                                  <>
+                                    <SortableHeader
+                                      label="Student #"
+                                      field="studentId"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        summaryColumnWidths.studentId,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Student Name"
+                                      field="studentName"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        summaryColumnWidths.studentName,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Class"
+                                      field="class"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        summaryColumnWidths.class,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Exam Date"
+                                      field="examDate"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        summaryColumnWidths.examDate,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Quiz"
+                                      field="quiz"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        summaryColumnWidths.quiz,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Class Work"
+                                      field="classWork"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        summaryColumnWidths.classWork,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Home Work"
+                                      field="homeWork"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        summaryColumnWidths.homeWork,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Final Exam"
+                                      field="finalExam"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        summaryColumnWidths.finalExam,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Placement Test"
+                                      field="placementTest"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        summaryColumnWidths.placementTest,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Total Score"
+                                      field="totalScore"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        summaryColumnWidths.totalScore,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Rank"
+                                      field="rank"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        summaryColumnWidths.rank,
+                                        true,
+                                      )}
+                                    />
+                                  </>
+                                ) : (
+                                  <>
+                                    <TableCell
+                                      sx={sortHeadSx(reportCardColumnWidths.edit)}
+                                    >
+                                      Edit
+                                    </TableCell>
+                                    <TableCell
+                                      sx={sortHeadSx(reportCardColumnWidths.delete)}
+                                    >
+                                      Delete
+                                    </TableCell>
+                                    <SortableHeader
+                                      label="Student #"
+                                      field="studentId"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        reportCardColumnWidths.studentId,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Student Name"
+                                      field="studentName"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        reportCardColumnWidths.studentName,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Class"
+                                      field="class"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        reportCardColumnWidths.class,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Grade"
+                                      field="grade"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        reportCardColumnWidths.grade,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Session"
+                                      field="session"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        reportCardColumnWidths.session,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Exam Type"
+                                      field="examType"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        reportCardColumnWidths.examType,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Exam Date"
+                                      field="examDate"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        reportCardColumnWidths.examDate,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Total Score"
+                                      field="total"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        reportCardColumnWidths.total,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Top Score"
+                                      field="topScore"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        reportCardColumnWidths.topScore,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="AVG Score"
+                                      field="avg"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        reportCardColumnWidths.avg,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Your Score"
+                                      field="yourScore"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        reportCardColumnWidths.yourScore,
+                                      )}
+                                    />
+                                    <SortableHeader
+                                      label="Comments"
+                                      field="comments"
+                                      sortField={sortField}
+                                      sortOrder={sortOrder}
+                                      onSort={handleSort}
+                                      headCellSx={sortHeadSx(
+                                        reportCardColumnWidths.comments,
+                                        true,
+                                      )}
+                                    />
+                                  </>
+                                )}
                               </TableRow>
                             </TableHead>
                             <TableBody>
                               {paginatedList.length === 0 ? (
                                 <TableRow>
                                   <TableCell
-                                    colSpan={14}
+                                    colSpan={activeColumnCount}
                                     align="center"
-                                    sx={
-                                      isAdminView
-                                        ? adminSessionListEmptyCellSx
-                                        : { fontSize: "0.75rem", py: 3 }
-                                    }
+                                    sx={adminSessionListEmptyCellSx}
                                   >
                                     <Typography
                                       variant="body2"
                                       color="textSecondary"
-                                      sx={
-                                        isAdminView
-                                          ? adminSessionListEmptyTextSx
-                                          : { fontSize: "0.75rem" }
-                                      }
+                                      sx={adminSessionListEmptyTextSx}
                                     >
                                       {searchText
                                         ? "No report cards matching your search."
-                                        : "No report cards found."}
+                                        : showSummaryMode
+                                          ? "No summary report records found."
+                                          : "No report cards found."}
                                     </Typography>
                                   </TableCell>
                                 </TableRow>
+                              ) : showSummaryMode ? (
+                                paginatedList.map((r, idx) => {
+                                  const s = summaryRow(r);
+                                  return (
+                                    <TableRow
+                                      key={`${s.studentID}-${s.examDate}-${idx}`}
+                                      sx={adminSessionListTableBodyRowSx}
+                                    >
+                                      <TableCell sx={reportCardBodyCellSx()}>
+                                        {s.studentID}
+                                      </TableCell>
+                                      <TableCell
+                                        sx={reportCardBodyCellSx({
+                                          truncate: true,
+                                          truncateWidth:
+                                            summaryColumnWidths.studentName,
+                                        })}
+                                      >
+                                        <ReportCardTruncatedCell
+                                          value={s.studentName}
+                                        />
+                                      </TableCell>
+                                      <TableCell sx={reportCardBodyCellSx()}>
+                                        {s.group}
+                                      </TableCell>
+                                      <TableCell sx={reportCardBodyCellSx()}>
+                                        {formatReportCardDate(s.examDate)}
+                                      </TableCell>
+                                      <TableCell
+                                        sx={reportCardBodyCellSx({
+                                          align: "right",
+                                        })}
+                                      >
+                                        {s.quizReceived}
+                                      </TableCell>
+                                      <TableCell
+                                        sx={reportCardBodyCellSx({
+                                          align: "right",
+                                        })}
+                                      >
+                                        {s.classReceived}
+                                      </TableCell>
+                                      <TableCell
+                                        sx={reportCardBodyCellSx({
+                                          align: "right",
+                                        })}
+                                      >
+                                        {s.homeWorkReceived}
+                                      </TableCell>
+                                      <TableCell
+                                        sx={reportCardBodyCellSx({
+                                          align: "right",
+                                        })}
+                                      >
+                                        {s.finalExamReceived}
+                                      </TableCell>
+                                      <TableCell
+                                        sx={reportCardBodyCellSx({
+                                          align: "right",
+                                        })}
+                                      >
+                                        {s.placementTestReceived}
+                                      </TableCell>
+                                      <TableCell
+                                        sx={reportCardBodyCellSx({
+                                          align: "right",
+                                        })}
+                                      >
+                                        {s.totalScore}
+                                      </TableCell>
+                                      <TableCell
+                                        sx={reportCardBodyCellSx({
+                                          align: "right",
+                                          isLast: true,
+                                        })}
+                                      >
+                                        {s.classRank}
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })
                               ) : (
                                 paginatedList.map((r, idx) => {
                                   const o = row(r);
                                   return (
                                     <TableRow
-                                      key={o.reportCardID ?? idx}
-                                      sx={
-                                        isAdminView
-                                          ? adminSessionListTableBodyRowSx
-                                          : instructorTableBodyRowZebraSx
-                                      }
+                                      key={o.reportCardID || idx}
+                                      sx={adminSessionListTableBodyRowSx}
                                     >
                                       <TableCell
                                         sx={reportCardBodyCellSx({
                                           action: true,
+                                          actionWidth:
+                                            reportCardColumnWidths.edit,
                                         })}
                                       >
                                         {renderEditAction(o.reportCardID)}
@@ -1896,6 +2209,8 @@ const AdminReportCard = () => {
                                       <TableCell
                                         sx={reportCardBodyCellSx({
                                           action: true,
+                                          actionWidth:
+                                            reportCardColumnWidths.delete,
                                         })}
                                       >
                                         {renderDeleteAction(o.reportCardID)}
@@ -1998,29 +2313,16 @@ const AdminReportCard = () => {
                         </TableContainer>
                       </Box>
 
-                      {isAdminView ? (
-                        <AdminSessionListPagination
-                          currentPage={currentPage}
-                          totalPages={totalPages}
-                          totalRecords={totalRecords}
-                          pageSize={pageSize}
-                          goToPageInput={goToPageInput}
-                          onGoToPageInputChange={setGoToPageInput}
-                          onPageChange={handlePageChange}
-                          onGoToPage={handleGoToPage}
-                        />
-                      ) : (
-                        <InstructorPortalPaginationBar
-                          currentPage={currentPage}
-                          totalPages={totalPages}
-                          totalRecords={totalRecords}
-                          pageSize={pageSize}
-                          goToPageInput={goToPageInput}
-                          setGoToPageInput={setGoToPageInput}
-                          onPageChange={handlePageChange}
-                          onGoToPage={handleGoToPage}
-                        />
-                      )}
+                      <AdminSessionListPagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalRecords={totalRecords}
+                        pageSize={pageSize}
+                        goToPageInput={goToPageInput}
+                        onGoToPageInputChange={setGoToPageInput}
+                        onPageChange={handlePageChange}
+                        onGoToPage={handleGoToPage}
+                      />
                     </>
                   )}
                 </Box>
@@ -2073,23 +2375,11 @@ const AdminReportCard = () => {
                 !classListIncludesValue(classList, editForm.group) && (
                   <MenuItem value={editForm.group}>{editForm.group}</MenuItem>
                 )}
-              {classList.map((c, i) => {
-                const label =
-                  pickField(
-                    c,
-                    "className",
-                    "ClassName",
-                    "text",
-                    "Text",
-                    "value",
-                    "Value",
-                  ) || String(c);
-                return (
-                  <MenuItem key={i} value={label}>
-                    {label}
-                  </MenuItem>
-                );
-              })}
+              {mapClassMenuOptions(classList).map((c) => (
+                <MenuItem key={c.key} value={c.value}>
+                  {c.label}
+                </MenuItem>
+              ))}
             </PortalModalSelect>
           </FormControl>
           <FormControl size="small" fullWidth sx={portalModalFieldSx}>
@@ -2107,32 +2397,11 @@ const AdminReportCard = () => {
                     {editForm.examDate}
                   </MenuItem>
                 )}
-              {examDateList.map((d, i) => {
-                const value = pickField(
-                  d,
-                  "displayValue",
-                  "DisplayValue",
-                  "mExamDate",
-                  "MExamDate",
-                  "value",
-                  "Value",
-                );
-                const label =
-                  pickField(
-                    d,
-                    "session",
-                    "Session",
-                    "reportDate",
-                    "ReportDate",
-                    "text",
-                    "Text",
-                  ) || value;
-                return (
-                  <MenuItem key={i} value={value || label}>
-                    {label}
-                  </MenuItem>
-                );
-              })}
+              {mapExamScheduleMenuOptions(examDateList).map((d) => (
+                <MenuItem key={d.key} value={d.value}>
+                  {d.label}
+                </MenuItem>
+              ))}
             </PortalModalSelect>
           </FormControl>
           <FormControl size="small" fullWidth sx={portalModalFieldSx}>
@@ -2232,21 +2501,11 @@ const AdminReportCard = () => {
                 setAddForm((f) => ({ ...f, studentId: e.target.value }))
               }
             >
-              {studentList.map((s, i) => {
-                const id = pickField(
-                  s,
-                  "studentID",
-                  "StudentID",
-                  "studentId",
-                  "StudentId",
-                );
-                const name = pickField(s, "studentName", "StudentName");
-                return (
-                  <MenuItem key={i} value={String(id)}>
-                    {name || id}
-                  </MenuItem>
-                );
-              })}
+              {mapStudentMenuOptions(studentList).map((s) => (
+                <MenuItem key={s.key} value={s.value}>
+                  {s.label}
+                </MenuItem>
+              ))}
             </PortalModalSelect>
           </FormControl>
           <FormControl size="small" fullWidth sx={portalModalFieldSx}>
@@ -2258,23 +2517,11 @@ const AdminReportCard = () => {
                 setAddForm((f) => ({ ...f, className: e.target.value }))
               }
             >
-              {classList.map((c, i) => {
-                const label =
-                  pickField(
-                    c,
-                    "className",
-                    "ClassName",
-                    "text",
-                    "Text",
-                    "value",
-                    "Value",
-                  ) || String(c);
-                return (
-                  <MenuItem key={i} value={label}>
-                    {label}
-                  </MenuItem>
-                );
-              })}
+              {mapClassMenuOptions(classList).map((c) => (
+                <MenuItem key={c.key} value={c.value}>
+                  {c.label}
+                </MenuItem>
+              ))}
             </PortalModalSelect>
           </FormControl>
           <FormControl size="small" fullWidth sx={portalModalFieldSx}>
@@ -2286,32 +2533,11 @@ const AdminReportCard = () => {
                 setAddForm((f) => ({ ...f, examDate: e.target.value }))
               }
             >
-              {examDateList.map((d, i) => {
-                const value = pickField(
-                  d,
-                  "displayValue",
-                  "DisplayValue",
-                  "mExamDate",
-                  "MExamDate",
-                  "value",
-                  "Value",
-                );
-                const label =
-                  pickField(
-                    d,
-                    "session",
-                    "Session",
-                    "reportDate",
-                    "ReportDate",
-                    "text",
-                    "Text",
-                  ) || value;
-                return (
-                  <MenuItem key={i} value={value || label}>
-                    {label}
-                  </MenuItem>
-                );
-              })}
+              {mapExamScheduleMenuOptions(examDateList).map((d) => (
+                <MenuItem key={d.key} value={d.value}>
+                  {d.label}
+                </MenuItem>
+              ))}
             </PortalModalSelect>
           </FormControl>
 
@@ -2426,23 +2652,11 @@ const AdminReportCard = () => {
                 setUploadForm((f) => ({ ...f, className: e.target.value }))
               }
             >
-              {classList.map((c, i) => {
-                const label =
-                  pickField(
-                    c,
-                    "className",
-                    "ClassName",
-                    "text",
-                    "Text",
-                    "value",
-                    "Value",
-                  ) || String(c);
-                return (
-                  <MenuItem key={i} value={label}>
-                    {label}
-                  </MenuItem>
-                );
-              })}
+              {mapClassMenuOptions(classList).map((c) => (
+                <MenuItem key={c.key} value={c.value}>
+                  {c.label}
+                </MenuItem>
+              ))}
             </PortalModalSelect>
           </FormControl>
           <FormControl size="small" fullWidth sx={portalModalFieldSx}>
@@ -2454,47 +2668,21 @@ const AdminReportCard = () => {
                 setUploadForm((f) => ({ ...f, examDate: e.target.value }))
               }
             >
-              {examDateList.map((d, i) => {
-                const value = pickField(
-                  d,
-                  "displayValue",
-                  "DisplayValue",
-                  "mExamDate",
-                  "MExamDate",
-                  "value",
-                  "Value",
-                );
-                const label =
-                  pickField(
-                    d,
-                    "session",
-                    "Session",
-                    "reportDate",
-                    "ReportDate",
-                    "text",
-                    "Text",
-                  ) || value;
-                return (
-                  <MenuItem key={i} value={value || label}>
-                    {label}
-                  </MenuItem>
-                );
-              })}
+              {mapExamScheduleMenuOptions(examDateList).map((d) => (
+                <MenuItem key={d.key} value={d.value}>
+                  {d.label}
+                </MenuItem>
+              ))}
             </PortalModalSelect>
           </FormControl>
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 2,
-              alignItems: "center",
-            }}
-          >
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
             <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>
               Total Score
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <Typography sx={{ fontSize: "0.75rem" }}>Quiz</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, pl: 1 }}>
+              <Typography sx={{ fontSize: "0.75rem", minWidth: 72 }}>
+                Quiz
+              </Typography>
               <TextField
                 size="small"
                 type="number"
@@ -2502,11 +2690,13 @@ const AdminReportCard = () => {
                 onChange={(e) =>
                   setUploadForm((f) => ({ ...f, quizTotal: e.target.value }))
                 }
-                sx={{ width: 64, ...portalModalFieldSx }}
+                sx={{ width: 72, ...portalModalFieldSx }}
               />
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <Typography sx={{ fontSize: "0.75rem" }}>Class Work</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, pl: 1 }}>
+              <Typography sx={{ fontSize: "0.75rem", minWidth: 72 }}>
+                Class Work
+              </Typography>
               <TextField
                 size="small"
                 type="number"
@@ -2517,11 +2707,13 @@ const AdminReportCard = () => {
                     classWorkTotal: e.target.value,
                   }))
                 }
-                sx={{ width: 64, ...portalModalFieldSx }}
+                sx={{ width: 72, ...portalModalFieldSx }}
               />
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <Typography sx={{ fontSize: "0.75rem" }}>Home Work</Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, pl: 1 }}>
+              <Typography sx={{ fontSize: "0.75rem", minWidth: 72 }}>
+                Home Work
+              </Typography>
               <TextField
                 size="small"
                 type="number"
@@ -2532,7 +2724,7 @@ const AdminReportCard = () => {
                     homeWorkTotal: e.target.value,
                   }))
                 }
-                sx={{ width: 64, ...portalModalFieldSx }}
+                sx={{ width: 72, ...portalModalFieldSx }}
               />
             </Box>
           </Box>

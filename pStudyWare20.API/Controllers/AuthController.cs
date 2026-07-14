@@ -127,13 +127,13 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Update Password - Verifies current password, updates via AMC_spPasswordUpdate for the JWT user, sends notification email.
+        /// Change Password - Verifies current password, updates via AMC_spPasswordUpdate for the JWT user, sends notification email.
         /// </summary>
         /// <param name="request">Current and new password (account resolved from the access token email claim).</param>
-        /// <returns>Update password response</returns>
-        [HttpPost("update-password")]
+        /// <returns>Change password response</returns>
+        [HttpPost("change-password")]
         [Authorize]
-        public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequest request)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
             try
             {
@@ -148,7 +148,7 @@ namespace pStudyWare20.API.Controllers
                     return Unauthorized(new { message = "Unable to identify the signed-in user." });
                 }
 
-                var response = await _authService.UpdatePasswordAsync(userEmail, request);
+                var response = await _authService.ChangePasswordAsync(userEmail, request);
 
                 if (response.IsSuccess)
                 {
@@ -159,7 +159,7 @@ namespace pStudyWare20.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "An error occurred while updating password", error = ex.Message });
+                return StatusCode(500, new { message = "An error occurred while changing password", error = ex.Message });
             }
         }
     }

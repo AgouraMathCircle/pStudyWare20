@@ -271,14 +271,14 @@ const InstructorStudentListGrid = ({
 
   if (dashboardView) {
     return (
-      <Box sx={{ width: "100%" }}>
+      <Box className="instructor-dashboard-student-list-table" sx={{ width: "100%" }}>
         <Box sx={adminSessionListHeaderBarSx}>
           <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
             My Student List
           </Typography>
         </Box>
 
-        <Box sx={adminSessionListSearchBarSx}>
+        <Box className="admin-session-list-search" sx={adminSessionListSearchBarSx}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
             <Select

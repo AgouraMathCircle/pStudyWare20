@@ -47,7 +47,9 @@ const timeSheetTrackingService = {
     return response.data;
   },
   deleteTimeSheetTrackingById: async (logId) => {
-    const response = await api.delete(`${BASE}/DeleteTimeSheetTracking/${logId}`);
+    const response = await api.post(`${BASE}/DeleteTimeSheetTracking`, {
+      logID: Number(logId),
+    });
     return response.data;
   },
 };

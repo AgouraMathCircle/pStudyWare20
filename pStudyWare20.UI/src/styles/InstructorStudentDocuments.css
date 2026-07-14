@@ -1,0 +1,125 @@
+/* Instructor Student Documents — mirrors InstructorClassMaterial card/table chrome */
+
+.instructor-student-documents {
+  min-height: 100%;
+  width: 100%;
+  background-color: transparent;
+  box-sizing: border-box;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.instructor-student-documents > .MuiContainer-root {
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.instructor-student-documents .MuiCard-root {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.instructor-student-documents .MuiCard-root:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.instructor-student-documents .MuiCardContent-root {
+  padding: 8px 8px 0;
+}
+
+.instructor-student-documents .MuiTableCell-root {
+  padding: 8px 12px;
+}
+
+.instructor-student-documents .MuiTableCell-head {
+  font-weight: 600;
+  background-color: #f0f0f0;
+  border-bottom: 2px solid #ddd;
+}
+
+.instructor-student-documents .MuiTableRow-root:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.instructor-student-documents .MuiButton-root {
+  text-transform: none;
+  font-weight: 500;
+}
+
+.instructor-student-documents .MuiTableContainer-root::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.instructor-student-documents .MuiTableContainer-root::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.instructor-student-documents .MuiTableContainer-root::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.instructor-student-documents .MuiTableContainer-root::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.instructor-student-documents .MuiGrid-container {
+  margin-top: 0;
+}
+
+.instructor-student-documents .admin-session-list-search,
+.instructor-student-documents .admin-session-list-pagination {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.instructor-student-documents .admin-session-list-pagination {
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+}
+
+.instructor-student-documents a {
+  color: #007bff;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+.instructor-student-documents a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+@keyframes instructorStudentDocumentsFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.instructor-student-documents .MuiCard-root {
+  animation: instructorStudentDocumentsFadeIn 0.3s ease-in-out;
+}
+
+@media print {
+  .instructor-student-documents .MuiButton-root,
+  .instructor-student-documents .MuiTextField-root {
+    display: none;
+  }
+
+  .instructor-student-documents .MuiCard-root {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+
+  .instructor-student-documents .MuiTableContainer-root {
+    max-height: none !important;
+  }
+}

@@ -81,6 +81,34 @@
   padding-bottom: 6px !important;
 }
 
+.instructor-dashboard .instructor-dashboard-volunteer-availability-entry-panel {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.instructor-dashboard .instructor-dashboard-volunteer-availability-entry-panel>.MuiCardContent-root {
+  padding-bottom: 14px !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.instructor-dashboard .instructor-dashboard-grids-stack {
+  gap: 8px !important;
+  margin-top: -14px !important;
+}
+
+.instructor-dashboard .instructor-dashboard-volunteer-availability-panel>.MuiCardContent-root {
+  padding-top: 6px !important;
+}
+
+.instructor-dashboard .volunteer-availability-title,
+.instructor-dashboard .volunteer-availability-header h2 {
+  color: #4caf50 !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
 .instructor-dashboard .dashboard-messages-panel .MuiGrid-root {
   margin-bottom: 0 !important;
 }
@@ -110,6 +138,33 @@
 
 .instructor-dashboard .MuiGrid-container {
   margin-top: 0;
+}
+
+.instructor-dashboard-volunteer-availability-panel .admin-session-list-search,
+.instructor-dashboard-volunteer-availability-panel .admin-session-list-pagination,
+.instructor-dashboard-student-list-panel .admin-session-list-search,
+.instructor-dashboard-student-list-panel .admin-session-list-pagination {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.instructor-dashboard-volunteer-availability-panel .admin-session-list-pagination,
+.instructor-dashboard-student-list-panel .admin-session-list-pagination {
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+}
+
+.instructor-dashboard-volunteer-availability-panel .MuiTableCell-head,
+.instructor-dashboard-student-list-panel .MuiTableCell-head {
+  font-weight: 600;
+  background-color: #e8f5e8;
+  border-bottom: 2px solid #4caf50;
+}
+
+.instructor-dashboard-volunteer-availability-panel .MuiTableRow-root:hover,
+.instructor-dashboard-student-list-panel .MuiTableRow-root:hover {
+  background-color: rgba(76, 175, 80, 0.06);
 }
 
 .instructor-dashboard .MuiTablePagination-root {

@@ -42,7 +42,7 @@ const AdminSessionListPagination = ({
   };
 
   return (
-    <Box sx={adminSessionListPaginationBarSx}>
+    <Box className="admin-session-list-pagination" sx={adminSessionListPaginationBarSx}>
       <Box sx={adminSessionListPaginationGroupSx}>
         <IconButton
           size="small"

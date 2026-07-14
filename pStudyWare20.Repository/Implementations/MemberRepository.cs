@@ -216,7 +216,7 @@ namespace pStudyWare20.Repository.Implementations
             }
         }
 
-        public async Task<bool> UpdatePasswordAsync(string username, string password)
+        public async Task<bool> ChangePasswordAsync(string username, string password)
         {
             try
             {

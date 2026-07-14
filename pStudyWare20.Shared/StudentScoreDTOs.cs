@@ -68,6 +68,18 @@ namespace pStudyWare20.Shared
         [JsonPropertyName("class")]
         public string Group { get; set; } = string.Empty;
 
+        /// <summary>JSON alias when clients send "group" instead of "class".</summary>
+        [JsonPropertyName("group")]
+        public string? GroupAlias
+        {
+            get => null;
+            set
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                    Group = value;
+            }
+        }
+
         [Display(Name = "Exam Date")]
         public string ExamDate { get; set; } = string.Empty;
 

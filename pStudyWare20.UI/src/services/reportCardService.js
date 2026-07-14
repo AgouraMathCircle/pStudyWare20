@@ -136,10 +136,16 @@ const reportCardService = {
   },
   updateStudentScore: async (request) => {
     const response = await api.post(`${BASE}/UpdateStudentScore`, {
-      reportID: String(request.reportID ?? request.ReportID ?? ""),
-      group: request.group ?? request.Group ?? "",
+      reportID: String(
+        request.reportID ??
+          request.ReportID ??
+          request.reportCardId ??
+          request.ReportCardId ??
+          ""
+      ),
+      group: request.group ?? request.Group ?? request.className ?? "",
       examDate: request.examDate ?? request.ExamDate ?? "",
-      type: request.type ?? request.Type ?? "",
+      type: request.type ?? request.Type ?? request.examType ?? "",
       totalScore: String(request.totalScore ?? request.TotalScore ?? ""),
       receivedScore: String(request.receivedScore ?? request.ReceivedScore ?? ""),
       comments: request.comments ?? request.Comments ?? "",
@@ -170,13 +176,13 @@ const reportCardService = {
       reader.readAsDataURL(file);
     });
     return reportCardService.importScoresFromExcel({
-      ExamDate: examDate,
-      Group: group,
-      TotalQuizScore: totalQuizScore,
-      TotalClassTestScore: totalClassTestScore,
-      TotalHomeWorkScore: totalHomeWorkScore,
-      FileContent: base64,
-      FileName: file.name,
+      examDate,
+      group,
+      totalQuizScore,
+      totalClassTestScore,
+      totalHomeWorkScore,
+      fileContent: base64,
+      fileName: file.name,
     });
   },
   exportToExcel: async (request) => {
@@ -190,7 +196,7 @@ const reportCardService = {
   },
   getDashboardData: async (username) => {
     const response = await api.get(`${BASE}/GetDashboardData`, {
-      params: { username },
+      params: username ? { username } : undefined,
     });
     return response.data;
   },

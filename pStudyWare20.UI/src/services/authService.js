@@ -116,13 +116,20 @@ class AuthService {
     }
   }
 
-  // Update password (authenticated user; account resolved from JWT on the server)
-  async updatePassword(currentPassword, password) {
+  // Change password (authenticated user; account resolved from JWT on the server)
+  async changePassword(currentPassword, password) {
     try {
-      const response = await api.post("/auth/update-password", {
-        currentPassword,
-        password,
-      });
+      const response = await api.post(
+        "/auth/change-password",
+        {
+          currentPassword,
+          password,
+        },
+        {
+          // Password change itself is fast; avoid false "API unreachable" when SMTP hangs.
+          timeout: Math.max(config.api.timeout || 10000, 30000),
+        },
+      );
       return response.data;
     } catch (error) {
       const status = error.response?.status;
@@ -135,12 +142,17 @@ class AuthService {
         if (data.isSuccess === false || data.IsSuccess === false || msg) {
           return {
             isSuccess: false,
-            message: msg || "Failed to update password. Please try again.",
+            message: msg || "Failed to change password. Please try again.",
           };
         }
       }
       throw this.handleError(error);
     }
+  }
+
+  /** @deprecated Use changePassword */
+  async updatePassword(currentPassword, password) {
+    return this.changePassword(currentPassword, password);
   }
 
   // Get current user
@@ -281,7 +293,12 @@ class AuthService {
           return new Error(data.message || "An error occurred");
       }
     } else if (error.request) {
-      // Network/CORS error - the API may be down or returned a response without CORS headers.
+      // Network/CORS/timeout - no response received.
+      if (error.code === "ECONNABORTED") {
+        return new Error(
+          "The request timed out. Please try again. If this keeps happening, verify the API server is running.",
+        );
+      }
       return new Error(
         `Unable to reach the API at ${config.api.url}. Please verify the API server is running and accessible.`,
       );

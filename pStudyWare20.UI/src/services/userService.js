@@ -21,10 +21,10 @@ class UserService {
     }
   }
 
-  // Update password (delegates to auth API; same contract as authService.updatePassword)
-  async updatePassword(currentPassword, newPassword) {
+  // Change password (delegates to auth API; same contract as authService.changePassword)
+  async changePassword(currentPassword, newPassword) {
     try {
-      const response = await api.post("/auth/update-password", {
+      const response = await api.post("/auth/change-password", {
         currentPassword,
         password: newPassword,
       });
@@ -32,6 +32,11 @@ class UserService {
     } catch (error) {
       throw this.handleError(error);
     }
+  }
+
+  /** @deprecated Use changePassword */
+  async updatePassword(currentPassword, newPassword) {
+    return this.changePassword(currentPassword, newPassword);
   }
 
   // Get user dashboard data

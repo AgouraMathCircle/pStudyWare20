@@ -12,26 +12,30 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
-import InstructorPortalPaginationBar from "./InstructorPortalPaginationBar";
+import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 import { sortRows, toSortableDate, toSortableNumber } from "../../../utils/tableSort";
 import {
-  instructorCellBodySx,
-  instructorCellBodySxLast,
-  instructorCellHeaderSx,
-  instructorCellHeaderSxLast,
-  instructorFindButtonSx,
-  instructorGreenSearchBarSx,
-  instructorPageTitleSx,
-  instructorSearchLabelSx,
-  instructorSearchTextFieldSx,
-  instructorSelectOnGreenSx,
-  instructorTableBodyRowZebraSx,
-  instructorTableHeadRowSx,
-  instructorTableSx,
-} from "./instructorPortalTableStyles";
+  adminSessionListEmptyCellSx,
+  adminSessionListEmptyTextSx,
+  adminSessionListFindButtonSx,
+  adminSessionListGridTableSx,
+  adminSessionListHeaderBarSx,
+  adminSessionListMenuItemSx,
+  adminSessionListSearchBarSx,
+  adminSessionListSearchFieldSx,
+  adminSessionListSearchLabelSx,
+  adminSessionListSearchSelectSx,
+  adminSessionListTableBodyCellSx,
+  adminSessionListTableBodyRowSx,
+  adminSessionListTableContainerSx,
+  adminSessionListTableHeadCellSx,
+  adminSessionListTableHeadRowSx,
+  adminSessionListTitleSx,
+} from "../styles/applicationSurfaces";
 
 const COLS = [
   { label: "Instructor #", keys: ["InstructorID", "instructorID"], searchBy: "INSTRUCTOR_ID" },
@@ -46,18 +50,18 @@ const COLS = [
   { label: "ResponseDate", keys: ["ResponseDate", "responseDate"], searchBy: "RESPONSE_DATE" },
 ];
 
-const COL_WIDTHS = [
-  80,   // Instructor #
-  100,  // First Name
-  100,  // Last Name
-  null, // Chapter (flexible)
-  80,   // Session
-  120,  // Class
-  140,  // Type
-  85,   // Availability
-  null, // Comments (flexible)
-  150,  // ResponseDate
-];
+const COL_WIDTHS = {
+  instructorId: "8%",
+  firstName: "10%",
+  lastName: "10%",
+  chapter: "12%",
+  session: "8%",
+  class: "12%",
+  type: "12%",
+  availability: "10%",
+  comments: "10%",
+  responseDate: "8%",
+};
 
 function cell(row, keys) {
   if (!row || typeof row !== "object") return "";
@@ -119,9 +123,41 @@ const getAvailabilityFieldValue = (row, field) => {
   return cell(row, col.keys);
 };
 
-const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error = null, hideTitle = false }) => {
+const widthForCol = (searchBy) => {
+  switch (searchBy) {
+    case "INSTRUCTOR_ID":
+      return COL_WIDTHS.instructorId;
+    case "FIRST_NAME":
+      return COL_WIDTHS.firstName;
+    case "LAST_NAME":
+      return COL_WIDTHS.lastName;
+    case "CHAPTER":
+      return COL_WIDTHS.chapter;
+    case "SESSION":
+      return COL_WIDTHS.session;
+    case "CLASS":
+      return COL_WIDTHS.class;
+    case "TYPE":
+      return COL_WIDTHS.type;
+    case "AVAILABILITY":
+      return COL_WIDTHS.availability;
+    case "COMMENTS":
+      return COL_WIDTHS.comments;
+    case "RESPONSE_DATE":
+      return COL_WIDTHS.responseDate;
+    default:
+      return undefined;
+  }
+};
+
+const InstructorVolunteerAvailabilityGrid = ({
+  rows = [],
+  loading = false,
+  error = null,
+  hideTitle = false,
+}) => {
   const [searchBy, setSearchBy] = useState("ALL");
-  const [searchCriteria, setSearchCriteria] = useState("contains");
+  const [searchCriteria, setSearchCriteria] = useState("");
   const [searchText, setSearchText] = useState("");
   const [filteredRows, setFilteredRows] = useState(rows);
   const [currentPage, setCurrentPage] = useState(1);
@@ -157,7 +193,7 @@ const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error
   );
 
   const totalRecords = sortedRows.length;
-  const totalPages = Math.ceil(totalRecords / pageSize) || 0;
+  const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
 
   const pageRows = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
@@ -165,8 +201,7 @@ const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error
   }, [sortedRows, currentPage, pageSize]);
 
   const handlePageChange = (page) => {
-    const maxPage = Math.ceil(totalRecords / pageSize) || 1;
-    if (page >= 1 && page <= maxPage) {
+    if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
       setGoToPageInput(String(page));
     }
@@ -174,12 +209,11 @@ const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error
 
   const handleGoToPage = () => {
     const page = parseInt(goToPageInput, 10);
-    const max = Math.ceil(totalRecords / pageSize);
     if (totalRecords === 0) {
       setGoToPageInput("1");
       return;
     }
-    if (!Number.isNaN(page) && page >= 1 && page <= max) {
+    if (!Number.isNaN(page) && page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     } else {
       setGoToPageInput(String(currentPage));
@@ -199,105 +233,109 @@ const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error
       ? "No availability records matching your search."
       : "No availability records found.";
 
+  const renderEllipsisCell = (value, isLast = false) => {
+    const display = value || "—";
+    return (
+      <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true, isLast })}>
+        <Tooltip title={display} arrow>
+          <span>{display}</span>
+        </Tooltip>
+      </TableCell>
+    );
+  };
+
   return (
-    <Box>
+    <Box className="instructor-dashboard-volunteer-availability-table" sx={{ width: "100%" }}>
       {!hideTitle && (
-        <Box
-          sx={{
-            mb: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 2,
-          }}
-        >
-          <Box>
-            <Typography variant="subtitle1" sx={instructorPageTitleSx}>
-              Volunteers Availability List for upcoming class
-            </Typography>
-          </Box>
+        <Box sx={adminSessionListHeaderBarSx}>
+          <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
+            Volunteers Availability List for upcoming class
+          </Typography>
         </Box>
       )}
 
-      <Box sx={{ ...instructorGreenSearchBarSx, mb: 1 }}>
+      <Box className="admin-session-list-search" sx={adminSessionListSearchBarSx}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography sx={instructorSearchLabelSx}>Search By:</Typography>
+          <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
           <Select
             value={searchBy}
             onChange={(e) => setSearchBy(e.target.value)}
             size="small"
-            sx={{ ...instructorSelectOnGreenSx, minWidth: 120 }}
+            sx={adminSessionListSearchSelectSx}
+            disabled={loading}
           >
-            <MenuItem value="ALL" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="ALL" sx={adminSessionListMenuItemSx}>
               -ALL-
             </MenuItem>
             {COLS.map((c) => (
-              <MenuItem key={c.searchBy} value={c.searchBy} sx={{ fontSize: "0.75rem" }}>
+              <MenuItem key={c.searchBy} value={c.searchBy} sx={adminSessionListMenuItemSx}>
                 {c.label}
               </MenuItem>
             ))}
           </Select>
         </Box>
+
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <Typography sx={instructorSearchLabelSx}>Criteria:</Typography>
+          <Typography sx={adminSessionListSearchLabelSx}>Criteria:</Typography>
           <Select
             value={searchCriteria}
             onChange={(e) => setSearchCriteria(e.target.value)}
             size="small"
-            sx={{ ...instructorSelectOnGreenSx, minWidth: 100 }}
+            sx={adminSessionListSearchSelectSx}
+            disabled={loading}
           >
-            <MenuItem value="contains" sx={{ fontSize: "0.75rem" }}>
-              Contains
+            <MenuItem value="" sx={adminSessionListMenuItemSx}>
+              Select Criteria
             </MenuItem>
-            <MenuItem value="equals" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="equals" sx={adminSessionListMenuItemSx}>
               Equals
             </MenuItem>
-            <MenuItem value="starts_with" sx={{ fontSize: "0.75rem" }}>
+            <MenuItem value="contains" sx={adminSessionListMenuItemSx}>
+              Contains
+            </MenuItem>
+            <MenuItem value="starts_with" sx={adminSessionListMenuItemSx}>
               Starts With
             </MenuItem>
           </Select>
         </Box>
+
         <TextField
           size="small"
           placeholder="Search Text"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-          sx={instructorSearchTextFieldSx}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          sx={adminSessionListSearchFieldSx}
+          disabled={loading}
         />
-        <Button variant="contained" size="small" onClick={handleSearch} sx={instructorFindButtonSx}>
+
+        <Button
+          variant="contained"
+          size="small"
+          onClick={handleSearch}
+          sx={adminSessionListFindButtonSx}
+          disabled={loading}
+        >
           Find
         </Button>
       </Box>
 
-      <TableContainer
-        component={Paper}
-        sx={{
-          width: "100%",
-          overflowX: "auto",
-          WebkitOverflowScrolling: "touch",
-        }}
-      >
-        <Table size="small" sx={{ ...instructorTableSx, minWidth: 1000 }}>
-          <colgroup>
-            {COL_WIDTHS.map((w, i) => (
-              <col key={i} style={w == null ? undefined : { width: w }} />
-            ))}
-          </colgroup>
+      <TableContainer component={Paper} sx={adminSessionListTableContainerSx}>
+        <Table size="small" sx={adminSessionListGridTableSx}>
           <TableHead>
-            <TableRow sx={instructorTableHeadRowSx}>
-              {COLS.map((c, i) => (
+            <TableRow sx={adminSessionListTableHeadRowSx}>
+              {COLS.map((c, index) => (
                 <SortableHeader
-                  key={c.label}
+                  key={c.searchBy}
                   label={c.label}
                   field={c.searchBy}
                   sortField={sortField}
                   sortOrder={sortOrder}
                   onSort={handleSort}
-                  headCellSx={
-                    i === COLS.length - 1 ? instructorCellHeaderSxLast : instructorCellHeaderSx
-                  }
+                  headCellSx={adminSessionListTableHeadCellSx(
+                    widthForCol(c.searchBy),
+                    index === COLS.length - 1,
+                  )}
                 />
               ))}
             </TableRow>
@@ -305,8 +343,8 @@ const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error
           <TableBody>
             {loading && (
               <TableRow>
-                <TableCell colSpan={COLS.length} align="center" sx={{ fontSize: "0.75rem", py: 3 }}>
-                  <Typography variant="body2" color="textSecondary" sx={{ fontSize: "0.75rem" }}>
+                <TableCell colSpan={COLS.length} align="center" sx={adminSessionListEmptyCellSx}>
+                  <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
                     Loading volunteer availability summary…
                   </Typography>
                 </TableCell>
@@ -314,8 +352,8 @@ const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error
             )}
             {!loading && pageRows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={COLS.length} align="center" sx={{ fontSize: "0.75rem", py: 3 }}>
-                  <Typography variant="body2" color="textSecondary" sx={{ fontSize: "0.75rem" }}>
+                <TableCell colSpan={COLS.length} align="center" sx={adminSessionListEmptyCellSx}>
+                  <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
                     {emptyMessage}
                   </Typography>
                 </TableCell>
@@ -323,29 +361,39 @@ const InstructorVolunteerAvailabilityGrid = ({ rows = [], loading = false, error
             )}
             {!loading &&
               pageRows.map((row, idx) => (
-                <TableRow key={idx} sx={instructorTableBodyRowZebraSx}>
-                  {COLS.map((c, i) => (
-                    <TableCell
-                      key={c.label}
-                      sx={i === COLS.length - 1 ? instructorCellBodySxLast : instructorCellBodySx}
-                    >
-                      {cell(row, c.keys)}
-                    </TableCell>
-                  ))}
+                <TableRow key={idx} sx={adminSessionListTableBodyRowSx}>
+                  <TableCell sx={adminSessionListTableBodyCellSx()}>
+                    {cell(row, COLS[0].keys) || "—"}
+                  </TableCell>
+                  {renderEllipsisCell(cell(row, COLS[1].keys))}
+                  {renderEllipsisCell(cell(row, COLS[2].keys))}
+                  {renderEllipsisCell(cell(row, COLS[3].keys))}
+                  <TableCell sx={adminSessionListTableBodyCellSx()}>
+                    {cell(row, COLS[4].keys) || "—"}
+                  </TableCell>
+                  {renderEllipsisCell(cell(row, COLS[5].keys))}
+                  {renderEllipsisCell(cell(row, COLS[6].keys))}
+                  <TableCell sx={adminSessionListTableBodyCellSx()}>
+                    {cell(row, COLS[7].keys) || "—"}
+                  </TableCell>
+                  {renderEllipsisCell(cell(row, COLS[8].keys))}
+                  <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
+                    {cell(row, COLS[9].keys) || "—"}
+                  </TableCell>
                 </TableRow>
               ))}
           </TableBody>
         </Table>
       </TableContainer>
 
-      <InstructorPortalPaginationBar
+      <AdminSessionListPagination
         currentPage={currentPage}
         totalPages={totalPages}
         totalRecords={totalRecords}
         pageSize={pageSize}
-        onPageChange={handlePageChange}
         goToPageInput={goToPageInput}
-        setGoToPageInput={setGoToPageInput}
+        onGoToPageInputChange={setGoToPageInput}
+        onPageChange={handlePageChange}
         onGoToPage={handleGoToPage}
       />
     </Box>

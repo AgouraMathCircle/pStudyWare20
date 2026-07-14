@@ -17,13 +17,10 @@ import {
 import studentDashboardService from "../../../services/studentDashboardService";
 import volunteerDashboardService from "../../../services/volunteerDashboardService";
 import VolunteerTimeSheetGrid from "./VolunteerTimeSheetGrid";
-import VolunteerAvailability from "./VolunteerAvailability";
+import VolunteerAvailability, {
+  shouldShowVolunteerAvailability,
+} from "../Common/VolunteerAvailability";
 import "../../../styles/VolunteerDashboard.css";
-
-const canShowVolunteerAvailability = (user) => {
-  const flag = user?.volunteerAvailability ?? user?.VolunteerAvailability ?? "N";
-  return String(flag).trim().toUpperCase() === "Y";
-};
 
 const VolunteerDashboard = () => {
   const navigate = useNavigate();
@@ -58,7 +55,7 @@ const VolunteerDashboard = () => {
   );
 
   const showVolunteerAvailability = useMemo(
-    () => canShowVolunteerAvailability(user),
+    () => shouldShowVolunteerAvailability(user),
     [user]
   );
 

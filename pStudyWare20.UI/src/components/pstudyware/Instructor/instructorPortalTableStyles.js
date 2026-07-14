@@ -142,16 +142,19 @@ export const instructorSearchTextFieldSx = {
   },
 };
 
-/** Green pagination footer (report card) */
+/** Green pagination footer — aligned with AdminSessionListPagination (no vertical padding). */
 export const instructorGreenPaginationBarSx = {
   backgroundColor: "#4caf50",
-  p: 0.5,
+  px: "8px",
+  py: 0,
   borderRadius: 1,
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
   flexWrap: "wrap",
   gap: 1,
+  minHeight: 32,
+  boxSizing: "border-box",
 };
 
 export const instructorPaginationIconBtnSx = { color: "white", padding: "2px" };

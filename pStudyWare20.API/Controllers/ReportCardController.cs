@@ -413,8 +413,12 @@ namespace pStudyWare20.API.Controllers
             {
                 var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
                 var memberType = User.FindFirst("MemberType")?.Value ?? "";
+                var systemAdmin = User.FindFirst("SystemAdmin")?.Value ?? "";
                 var isStudent = memberType == "S";
-                var isAdmin = userRole == "Admin" || memberType == "A";
+                var isAdmin = userRole == "Admin"
+                    || userRole == "SystemAdmin"
+                    || memberType == "A"
+                    || string.Equals(systemAdmin, "Y", StringComparison.OrdinalIgnoreCase);
                 var isInstructor = userRole == "Instructor" || memberType == "I";
 
                 return Ok(new ReportCardPrivilegesResponse

@@ -46,7 +46,6 @@ import Login from "./src/components/Login";
 import ProtectedRoute from "./src/components/ProtectedRoute";
 import RoleProtectedRoute from "./src/components/RoleProtectedRoute";
 import StudentDashboard from "./src/components/pstudyware/Student/StudentDashboard";
-import StudentChangePassword from "./src/components/pstudyware/Student/StudentChangePassword";
 import ClassMaterial from "./src/components/pstudyware/Student/ClassMaterial";
 import { UpdateProfileRouteOpener } from "./src/contexts/UpdateProfileModalContext";
 import StudentDocuments from "./src/components/pstudyware/Student/StudentDocuments";
@@ -59,7 +58,6 @@ import AdminInstructors from "./src/components/pstudyware/Admin/AdminInstructors
 import AdminVolunteers from "./src/components/pstudyware/Admin/AdminVolunteers";
 import AdminReports from "./src/components/pstudyware/Admin/AdminReports";
 import AdminSettings from "./src/components/pstudyware/Admin/AdminSettings";
-import AdminChangePassword from "./src/components/pstudyware/Admin/AdminChangePassword";
 import InstructorManagement from "./src/components/pstudyware/Admin/InstructorManagement";
 import {
   DocumentManagement,
@@ -92,7 +90,8 @@ import {
   DocumentsRepository,
   EmailManager,
   MeetingDetails,
-  UpdatePassword,
+  ChangePassword,
+  VolunteerAvailability,
 } from "./src/components/pstudyware/Common";
 
 
@@ -354,14 +353,20 @@ const AppRoutes = () => {
               }
             />
             <Route
-              path="/pstudyware/student/update-password"
+              path="/pstudyware/student/change-password"
               element={
                 <RoleProtectedRoute
                   allowedRoles={["Student"]}
                   allowedMemberTypes={["S"]}
                 >
-                  <StudentChangePassword />
+                  <ChangePassword />
                 </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/student/update-password"
+              element={
+                <Navigate to="/pstudyware/student/change-password" replace />
               }
             />
             <Route
@@ -790,7 +795,7 @@ const AppRoutes = () => {
                   allowedRoles={["Admin", "SystemAdmin"]}
                   allowedMemberTypes={["A"]}
                 >
-                  <AdminChangePassword />
+                  <ChangePassword />
                 </RoleProtectedRoute>
               }
             />
@@ -839,14 +844,20 @@ const AppRoutes = () => {
               }
             />
             <Route
-              path="/pstudyware/admin/update-password"
+              path="/pstudyware/admin/change-password"
               element={
                 <RoleProtectedRoute
                   allowedRoles={["Admin", "SystemAdmin"]}
                   allowedMemberTypes={["A"]}
                 >
-                  <AdminChangePassword />
+                  <ChangePassword />
                 </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/update-password"
+              element={
+                <Navigate to="/pstudyware/admin/change-password" replace />
               }
             />
             <Route
@@ -901,7 +912,23 @@ const AppRoutes = () => {
               <Route path="student-documents" element={<StudentDocuments />} />
               <Route path="report-card" element={<AdminReportCard />} />
               <Route path="message-center" element={<EmailManager />} />
-              <Route path="update-password" element={<UpdatePassword />} />
+              <Route
+                path="change-password"
+                element={<ChangePassword skipRoleHeader />}
+              />
+              <Route
+                path="update-password"
+                element={
+                  <Navigate
+                    to="/pstudyware/instructor/change-password"
+                    replace
+                  />
+                }
+              />
+              <Route
+                path="volunteer-availability"
+                element={<VolunteerAvailability skipRoleHeader />}
+              />
               <Route path="time-sheet" element={<VolunteerTimeSheet />} />
             </Route>
 
@@ -959,16 +986,35 @@ const AppRoutes = () => {
               }
             />
             <Route
-              path="/pstudyware/volunteer/update-password"
+              path="/pstudyware/volunteer/change-password"
               element={
                 <RoleProtectedRoute
                   allowedRoles={["Volunteer"]}
                   allowedMemberTypes={["V"]}
                 >
                   <VolunteerShell>
-                    <UpdatePassword />
+                    <ChangePassword skipRoleHeader />
                   </VolunteerShell>
                 </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/volunteer/volunteer-availability"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Volunteer"]}
+                  allowedMemberTypes={["V"]}
+                >
+                  <VolunteerShell>
+                    <VolunteerAvailability skipRoleHeader />
+                  </VolunteerShell>
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/volunteer/update-password"
+              element={
+                <Navigate to="/pstudyware/volunteer/change-password" replace />
               }
             />
 
