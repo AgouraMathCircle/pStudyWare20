@@ -460,14 +460,14 @@ const ReportCard = ({
   };
 
   const content = (
-    <Box sx={{ width: "100%" }}>
+    <Box className="student-report-card-wrap" sx={{ width: "100%" }}>
       <Box sx={reportCardHeaderBarSx}>
         <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
           {title}
         </Typography>
       </Box>
 
-      <Box sx={reportCardSearchBarSx}>
+      <Box className="student-report-card-search-bar" sx={reportCardSearchBarSx}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
           <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
           <Select
@@ -539,7 +539,11 @@ const ReportCard = ({
         </Button>
       </Box>
 
-      <TableContainer component={Paper} sx={reportCardTableContainerSx}>
+      <TableContainer
+        component={Paper}
+        className="student-report-card-table-container"
+        sx={reportCardTableContainerSx}
+      >
         <Table size="small" sx={adminSessionListGridTableSx}>
           <TableHead>
             <TableRow sx={adminSessionListTableHeadRowSx}>
@@ -655,7 +659,7 @@ const ReportCard = ({
       <StudentHeader user={user} />
       <StudentRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4, mt: 0 }}>
-        <Card sx={adminSessionListPanelCardSx}>
+        <Card sx={adminSessionListPanelCardSx} className="student-report-card-panel">
           <CardContent
             sx={{
               ...adminSessionListPanelContentSx,

@@ -14,11 +14,13 @@ namespace pStudyWare20.Repository.Implementations
     public class EmailManagerRepository : IEmailManagerRepository
     {
         private readonly AMC_DBContext _context;
+        private readonly IConfiguration _configuration;
         private readonly string _connectionString;
 
         public EmailManagerRepository(AMC_DBContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
             _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new ArgumentNullException(nameof(configuration));
         }
 
@@ -286,13 +288,47 @@ namespace pStudyWare20.Repository.Implementations
         }
 
         /// <summary>
-        /// Get student list for email using AMC_spSelectStudentListbyUserName
+        /// Get student list for email using AMC_spSelectStudentListbyUserName.
+        /// Volunteers (MemberType V) match legacy SP: only Administrator
+        /// (support@agouramathcircle.org~memberId).
         /// </summary>
         public async Task<DataSet> GetStudentListForEmailAsync(string username, string mode)
         {
             try
             {
-                username = await ResolveStudentListUsernameAsync(username);
+                var member = await ResolveMemberForEmailListAsync(username);
+                var resolvedUsername = await ResolveStudentListUsernameAsync(username, member);
+
+                // Legacy AMC_spSelectStudentListbyUserName V branch — only Administrator.
+                // Build this in code so a failed SP username match cannot fall through to the
+                // generic student list (which is what made volunteer compose look like I/ALL).
+                var isVolunteer =
+                    string.Equals(member?.MemberType, "V", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(mode?.Trim(), "V", StringComparison.OrdinalIgnoreCase);
+
+                if (isVolunteer)
+                {
+                    if (member != null)
+                    {
+                        return BuildVolunteerAdministratorRecipientList(member);
+                    }
+
+                    // Member row not resolved — still return Administrator so compose works.
+                    var adminEmail = _configuration.GetSection("AppSettings")["AMCEmailID"]
+                        ?? "support@agouramathcircle.org";
+                    var table = new DataTable();
+                    table.Columns.Add("StudentID", typeof(string));
+                    table.Columns.Add("StudentName", typeof(string));
+                    table.Rows.Add($"{adminEmail}~0", "Administrator");
+                    var fallback = new DataSet();
+                    fallback.Tables.Add(table);
+                    return fallback;
+                }
+
+                // Instructors need EmailMode=I so the SP prepends ALL.
+                var emailMode = string.Equals(member?.MemberType, "I", StringComparison.OrdinalIgnoreCase)
+                    ? "I"
+                    : (string.IsNullOrWhiteSpace(mode) ? "I" : mode.Trim());
 
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
@@ -302,8 +338,8 @@ namespace pStudyWare20.Repository.Implementations
                     CommandType = CommandType.StoredProcedure
                 };
 
-                command.Parameters.Add(new SqlParameter("@Username", username));
-                command.Parameters.Add(new SqlParameter("@EmailMode", mode));
+                command.Parameters.Add(new SqlParameter("@Username", resolvedUsername));
+                command.Parameters.Add(new SqlParameter("@EmailMode", emailMode));
 
                 var dataSet = new DataSet();
                 using var adapter = new SqlDataAdapter(command);
@@ -318,30 +354,67 @@ namespace pStudyWare20.Repository.Implementations
         }
 
         /// <summary>
+        /// Mirrors AMC_spSelectStudentListbyUserName when @sUserType = 'V'.
+        /// </summary>
+        private DataSet BuildVolunteerAdministratorRecipientList(MemberMaster member)
+        {
+            var adminEmail = _configuration.GetSection("AppSettings")["AMCEmailID"]
+                ?? "support@agouramathcircle.org";
+            var value = $"{adminEmail}~{member.pMemberID}";
+
+            var table = new DataTable();
+            table.Columns.Add("StudentID", typeof(string));
+            table.Columns.Add("StudentName", typeof(string));
+            table.Rows.Add(value, "Administrator");
+
+            var dataSet = new DataSet();
+            dataSet.Tables.Add(table);
+            return dataSet;
+        }
+
+        private async Task<MemberMaster?> ResolveMemberForEmailListAsync(string identifier)
+        {
+            if (string.IsNullOrWhiteSpace(identifier))
+            {
+                return null;
+            }
+
+            var resolvedUsername = await PortalUsernameResolver.ResolveAsync(_context, identifier);
+            var upper = resolvedUsername.ToUpperInvariant();
+            var emailUpper = identifier.Trim().ToUpperInvariant();
+
+            return await _context.MemberMasters
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m =>
+                    (m.UserName != null && m.UserName.ToUpper() == upper) ||
+                    (m.EmailID != null && m.EmailID.ToUpper() == emailUpper) ||
+                    (m.EmailID != null && m.EmailID.ToUpper() == upper));
+        }
+
+        /// <summary>
         /// Legacy EmailManager.aspx.cs (member type S) passes Session["Username"] into
         /// AMC_spSelectStudentListbyUserName, which matches parent AMC_tblUsers.coluserEmail.
         /// </summary>
-        private async Task<string> ResolveStudentListUsernameAsync(string identifier)
+        private async Task<string> ResolveStudentListUsernameAsync(string identifier, MemberMaster? member = null)
         {
             if (string.IsNullOrWhiteSpace(identifier))
             {
                 return string.Empty;
             }
 
-            var resolvedUsername = await PortalUsernameResolver.ResolveAsync(_context, identifier);
-            var upper = resolvedUsername.ToUpperInvariant();
-
-            var member = await _context.MemberMasters
-                .AsNoTracking()
-                .FirstOrDefaultAsync(m =>
-                    m.UserName != null && m.UserName.ToUpper() == upper);
+            member ??= await ResolveMemberForEmailListAsync(identifier);
 
             if (string.Equals(member?.MemberType, "S", StringComparison.OrdinalIgnoreCase))
             {
                 return await PortalUsernameResolver.ResolvePortalEmailAsync(_context, identifier);
             }
 
-            return resolvedUsername;
+            if (!string.IsNullOrWhiteSpace(member?.UserName))
+            {
+                return member.UserName.Trim();
+            }
+
+            return await PortalUsernameResolver.ResolveAsync(_context, identifier);
         }
 
     }

@@ -4,7 +4,11 @@
  *
  * Online exam vs manual Update Score routing uses AMC_tblLookupSemester.OnlineExamDisplayChapter
  * (comma-separated chapter IDs, e.g. "3,5,6,") — configured in Update Lookup Semester admin.
+ * When that field is empty, falls back to legacy StudentScore.aspx.cs line 66 (chapter != "2").
  */
+
+/** Legacy manual Update Score chapter when OnlineExamDisplayChapter is not configured. */
+export const MANUAL_SCORE_UPDATE_CHAPTER = "2";
 
 export const normalizeChapterId = (chapterId) => {
   const trimmed = String(chapterId ?? "").trim();
@@ -53,13 +57,16 @@ export const shouldRedirectToOnlineExam = (
   chapterId,
   onlineExamDisplayChapter,
 ) => {
-  const chapters = parseOnlineExamDisplayChapters(onlineExamDisplayChapter);
-  if (chapters.length === 0) return false;
-
   const normalized = normalizeChapterId(chapterId);
   if (!normalized) return false;
 
-  return chapters.includes(normalized);
+  const chapters = parseOnlineExamDisplayChapters(onlineExamDisplayChapter);
+  if (chapters.length > 0) {
+    return chapters.includes(normalized);
+  }
+
+  // Legacy pStudyWare/StudentScore.aspx.cs line 66 when DB field is empty
+  return normalized !== MANUAL_SCORE_UPDATE_CHAPTER;
 };
 
 /** True when chapter is not in OnlineExamDisplayChapter — redirect to manual Update Score. */
@@ -83,8 +90,26 @@ export const getStudentListItemText = (student) =>
 export const getStudentListItemValue = (student) =>
   student?.value ?? student?.Value ?? "";
 
-export const getSessionLabel = (session) =>
-  session?.session ?? session?.Session ?? "";
+export const getSessionLabel = (session) => {
+  if (session == null) return "";
+  if (typeof session === "string") return session.trim();
+  return String(
+    session.session ??
+      session.Session ??
+      session.currentSession ??
+      session.CurrentSession ??
+      "",
+  ).trim();
+};
+
+/** Normalize API session rows; drop blanks. */
+export const normalizeSessionRows = (rows) =>
+  (rows || [])
+    .map((row) => {
+      const label = getSessionLabel(row);
+      return label ? { session: label } : null;
+    })
+    .filter(Boolean);
 
 export const ONLINE_EXAM_PATH = "/pstudyware/student/online-exam";
 export const FINAL_EXAM_PATH = "/pstudyware/student/final-exam";

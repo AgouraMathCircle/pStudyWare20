@@ -14,6 +14,7 @@ import { Download as DownloadIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import volunteerAvailabilityService from "../../../services/volunteerAvailabilityService";
+import { getPortalUsername } from "../../../utils/portalUsername";
 import AdminVolunteerAvailabilityGrid from "./AdminVolunteerAvailabilityGrid";
 import {
   adminSessionListPanelCardSx,
@@ -44,9 +45,10 @@ const AdminVolunteerAvailability = () => {
   });
 
   const username = user?.email || user?.username || "";
+  const portalUsername = getPortalUsername(user);
 
   const loadList = useCallback(async () => {
-    if (!username) {
+    if (!portalUsername) {
       setLoading(false);
       return;
     }
@@ -54,7 +56,7 @@ const AdminVolunteerAvailability = () => {
     setError(null);
     try {
       const res = await volunteerAvailabilityService.getAvailabilitySummary({
-        username: username,
+        username: portalUsername,
       });
       if (res?.isSuccess) {
         setRows(res.summaryData || []);
@@ -70,7 +72,7 @@ const AdminVolunteerAvailability = () => {
     } finally {
       setLoading(false);
     }
-  }, [username]);
+  }, [portalUsername]);
 
   useEffect(() => {
     loadList();

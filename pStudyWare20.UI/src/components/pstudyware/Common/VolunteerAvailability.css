@@ -102,8 +102,30 @@
 }
 
 .volunteer-availability-panel--embedded .volunteer-availability-entry-form {
-  width: fit-content;
+  width: 520px;
+  min-width: 520px;
   max-width: 100%;
+  flex-shrink: 0;
+}
+
+.volunteer-availability-entry-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 520px;
+  min-width: 520px;
+  max-width: 100%;
+  flex-shrink: 0;
+  margin-bottom: 0;
+  border: 2px solid #4caf50;
+  border-radius: 4px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.volunteer-availability-label-cell--empty {
+  width: 1%;
+  padding-right: 0;
 }
 
 .volunteer-availability-subtitle {
@@ -163,32 +185,35 @@
   font-size: 0.75rem;
 }
 
-.volunteer-availability-entry-form {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: stretch;
-  width: fit-content;
-  max-width: 100%;
-  margin-bottom: 0;
-  border: 2px solid #4caf50;
-  border-radius: 4px;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
 .volunteer-availability-table-wrap {
   background-color: #2e7d32;
   border-radius: 0;
   overflow: hidden;
   border: none;
-  width: fit-content;
+  width: 520px;
+  min-width: 520px;
   max-width: 100%;
+  flex-shrink: 0;
 }
 
 .volunteer-availability-table {
-  width: auto;
+  width: 520px;
+  min-width: 520px;
+  max-width: 100%;
   border-collapse: collapse;
-  table-layout: auto;
+  table-layout: fixed;
+}
+
+.volunteer-availability-col-label {
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
+}
+
+.volunteer-availability-col-value {
+  width: 320px;
+  min-width: 320px;
+  max-width: 320px;
 }
 
 .volunteer-availability-table td,
@@ -198,8 +223,8 @@
 }
 
 .volunteer-availability-label-cell {
-  width: 1%;
-  max-width: none;
+  width: 200px;
+  max-width: 200px;
   color: #ffffff;
   font-weight: 600;
   font-size: 0.75rem;
@@ -207,6 +232,8 @@
   padding: 6px 8px 6px 12px;
   white-space: nowrap;
   text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .volunteer-availability-value-cell,
@@ -214,7 +241,10 @@
   background-color: #e8f5e8;
   padding: 6px 10px;
   text-align: left;
-  width: auto;
+  width: 320px;
+  min-width: 320px;
+  max-width: 320px;
+  box-sizing: border-box;
 }
 
 .volunteer-availability-table tr:not(:last-child) .volunteer-availability-label-cell,
@@ -229,18 +259,20 @@
   font-size: 0.75rem;
   line-height: 1.2;
   word-break: break-word;
-  white-space: nowrap;
+  white-space: normal;
+  display: block;
+  max-width: 100%;
 }
 
 .volunteer-availability-field {
   width: 100% !important;
-  max-width: 320px !important;
+  max-width: 100% !important;
   min-width: 0;
 }
 
 .volunteer-availability-field .MuiOutlinedInput-root {
   width: 100% !important;
-  max-width: 320px !important;
+  max-width: 100% !important;
   font-size: 0.75rem;
   line-height: 1.2;
   background-color: #ffffff;
@@ -248,13 +280,13 @@
 
 .volunteer-availability-field-wide {
   width: 100% !important;
-  max-width: 480px !important;
+  max-width: 100% !important;
   min-width: 0;
 }
 
 .volunteer-availability-field-wide .MuiOutlinedInput-root {
   width: 100% !important;
-  max-width: 480px !important;
+  max-width: 100% !important;
   font-size: 0.75rem;
   line-height: 1.2;
   background-color: #ffffff;
@@ -296,17 +328,24 @@
   background-color: #e8f5e8;
   border-top: 2px solid #4caf50;
   box-sizing: border-box;
+  width: 520px;
+  min-width: 520px;
+  max-width: 100%;
+  flex-shrink: 0;
 }
 
 .volunteer-availability-submit-row {
   display: flex;
-  width: auto;
+  width: 520px;
+  min-width: 520px;
+  max-width: 100%;
   margin-top: 0;
   margin-bottom: 0;
   align-items: center;
   padding: 12px 12px 14px;
   background-color: #ffffff;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .volunteer-availability-submit-spacer {
@@ -380,12 +419,26 @@
 
   .volunteer-availability-entry-form,
   .volunteer-availability-table-wrap,
-  .volunteer-availability-table {
+  .volunteer-availability-table,
+  .volunteer-availability-submit-row,
+  .volunteer-availability-status-note {
     width: 100%;
+    min-width: 0;
   }
 
-  .volunteer-availability-entry-form {
-    display: flex;
+  .volunteer-availability-col-label,
+  .volunteer-availability-label-cell {
+    width: 40%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .volunteer-availability-col-value,
+  .volunteer-availability-value-cell,
+  .volunteer-availability-input-cell {
+    width: 60%;
+    min-width: 0;
+    max-width: none;
   }
 
   .volunteer-availability-subtitle {

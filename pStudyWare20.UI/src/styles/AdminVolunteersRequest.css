@@ -52,6 +52,28 @@
   white-space: nowrap;
 }
 
+/* Status cell — keep "Duplicate: 12450" on one line (override span { display: block } above) */
+.admin-volunteers-request .admin-volunteers-request-table-panel .MuiTableCell-body.vr-status-cell {
+  max-width: none !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+
+.admin-volunteers-request .admin-volunteers-request-table-panel .MuiTableCell-body.vr-status-cell span {
+  display: inline !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+.admin-volunteers-request .admin-volunteers-request-table-panel .MuiTableCell-body.vr-status-cell .vr-status-duplicate {
+  display: inline-flex !important;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap !important;
+  gap: 3px;
+}
+
 .admin-volunteers-request .admin-volunteers-request-table-container {
   width: 100%;
   overflow-x: auto;

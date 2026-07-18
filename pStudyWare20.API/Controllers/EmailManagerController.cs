@@ -130,6 +130,11 @@ namespace pStudyWare20.API.Controllers
                     request.SendFrom = PortalClaimsHelper.GetPortalUsername(User);
                 }
 
+                if (string.IsNullOrWhiteSpace(request.MemberType))
+                {
+                    request.MemberType = User.FindFirst("MemberType")?.Value ?? string.Empty;
+                }
+
                 var response = await _emailManagerService.SendMessageAsync(request);
                 if (!response.IsSuccess)
                 {
@@ -220,6 +225,11 @@ namespace pStudyWare20.API.Controllers
                 if (string.IsNullOrEmpty(request.Username))
                 {
                     request.Username = PortalClaimsHelper.GetPortalUsername(User);
+                }
+
+                if (string.IsNullOrWhiteSpace(request.MemberType))
+                {
+                    request.MemberType = User.FindFirst("MemberType")?.Value ?? "I";
                 }
 
                 var response = await _emailManagerService.GetStudentListForEmailAsync(request);

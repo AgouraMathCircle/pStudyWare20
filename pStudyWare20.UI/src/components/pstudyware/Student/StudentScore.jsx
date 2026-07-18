@@ -5,7 +5,6 @@ import {
   Alert,
   Snackbar,
   Typography,
-  Grid,
   Card,
   CardContent,
   Button,
@@ -29,10 +28,14 @@ import studentScoreService, {
 } from "../../../services/studentScoreService";
 import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import StudentScoreScoresGrid from "./StudentScoreScoresGrid";
-import { STUDENT_SCORE_DEFAULTS } from "../../../constants/studentScoreDefaults";
+import {
+  STUDENT_SCORE_DEFAULTS,
+  LEGACY_SESSION_OPTIONS,
+} from "../../../constants/studentScoreDefaults";
 import {
   parseStudentDropdownValue,
   getSessionLabel,
+  normalizeSessionRows,
   getStudentListItemText,
   getStudentListItemValue,
   findStudentListItem,
@@ -44,7 +47,6 @@ import {
 } from "../../../utils/studentChapterRouting";
 import {
   adminSessionListPanelCardSx,
-  adminSessionListPanelContentSx,
   adminSessionListMenuItemSx,
   adminSessionListGridTableSx,
   adminSessionListTableHeadCellSx,
@@ -68,17 +70,29 @@ const updateScoreLegacyCardSx = {
   backgroundColor: LEGACY_CONTROL_BOX_GREEN,
   border: `1px solid ${LEGACY_CONTROL_BOX_BORDER}`,
   borderRadius: 2,
-  boxShadow: PORTAL_CARD_BOX_SHADOW,
   overflow: "hidden",
   boxSizing: "border-box",
-  ...portalCardAntiLiftSx,
+};
+
+const updateScoreOuterCardSx = {
+  ...adminSessionListPanelCardSx,
+  pl: 1.5,
+  pr: 1.5,
+  mb: 0,
+};
+
+const updateScoreOuterContentSx = {
+  px: 1,
+  pt: 1,
+  pb: 1,
+  "&:last-child": { pb: 1 },
 };
 
 const updateScoreLegacyCardContentSx = {
-  pt: 2.5,
-  pb: 2,
+  pt: 2,
+  pb: 1.5,
   px: { xs: 2, md: 3.75 },
-  "&:last-child": { pb: 2 },
+  "&:last-child": { pb: 1.5 },
 };
 
 const updateScorePageTitleSx = {
@@ -258,6 +272,25 @@ const resetScoreEntryFields = (setQuiz, setClassTest, setHomeWork) => {
   setHomeWork((prev) => ({ ...prev, received: "", comments: "" }));
 };
 
+const STUDENT_PLACEHOLDER = "";
+
+/** API / SP sometimes returns a "Select Student" row — strip it so UI has only one placeholder. */
+const isStudentListPlaceholder = (student) => {
+  const text = String(student?.text ?? student?.Text ?? "")
+    .trim()
+    .toLowerCase();
+  const value = String(student?.value ?? student?.Value ?? "").trim();
+  if (!value) return true;
+  if (!text) return true;
+  if (text === "select student" || text === "- select student -") return true;
+  if (text.startsWith("select student")) return true;
+  if (value.toLowerCase() === "select student") return true;
+  return false;
+};
+
+const filterRealStudents = (list) =>
+  (list || []).filter((student) => !isStudentListPlaceholder(student));
+
 const StudentScore = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -275,6 +308,8 @@ const StudentScore = () => {
   const [onlineExamDisplayChapter, setOnlineExamDisplayChapter] = useState("");
   const pageInitKeyRef = useRef("");
   const [enableScoreUpdate, setEnableScoreUpdate] = useState(false);
+  /** closed | onlineExam | noSession — why manual score form is hidden (legacy divScoreClose) */
+  const [scoreUpdateNotice, setScoreUpdateNotice] = useState(null);
   const [studentContextLoading, setStudentContextLoading] = useState(false);
   const [studentScores, setStudentScores] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
@@ -326,7 +361,7 @@ const StudentScore = () => {
   const validateWindow = useCallback(async (studentId, session, classCode) => {
     if (!studentId || !session) {
       setEnableScoreUpdate(false);
-      return;
+      return false;
     }
     try {
       const response = await studentScoreService.validateScoreUpdate({
@@ -340,11 +375,12 @@ const StudentScore = () => {
         if (response?.errorMessage) {
           showSnackbar(response.errorMessage, "error");
         }
-        return;
+        return false;
       }
-      setEnableScoreUpdate(
-        response.enableScoreUpdate ?? response.EnableScoreUpdate ?? false,
-      );
+      const enabled =
+        response.enableScoreUpdate ?? response.EnableScoreUpdate ?? false;
+      setEnableScoreUpdate(enabled);
+      return enabled;
     } catch (error) {
       console.error("Error validating score update window:", error);
       setEnableScoreUpdate(false);
@@ -352,6 +388,7 @@ const StudentScore = () => {
         getErrorMessage(error, "Failed to validate score update window."),
         "error",
       );
+      return false;
     }
   }, []);
 
@@ -363,6 +400,7 @@ const StudentScore = () => {
     ) => {
       setStudentContextLoading(true);
       setEnableScoreUpdate(false);
+      setScoreUpdateNotice(null);
 
       const { chapterId, studentId, classCode } =
         parseStudentValue(studentValue);
@@ -377,6 +415,11 @@ const StudentScore = () => {
         setStudentContextLoading(false);
         return false;
       }
+
+      const usesOnlineExam = shouldRedirectToOnlineExam(
+        chapterId,
+        chapterConfig,
+      );
 
       // Legacy ddlStudentList_SelectedIndexChanged → RedirectToOnline()
       if (
@@ -403,29 +446,43 @@ const StudentScore = () => {
       try {
         const sessionResponse =
           await studentScoreService.getCurrentSession(chapterId);
-        if (!sessionResponse?.isSuccess) {
-          showSnackbar(
-            sessionResponse?.errorMessage || "Failed to load sessions.",
-            "error",
-          );
-          setSessions([]);
-          setSelectedSession("");
-          return;
+
+        let sessionRows = normalizeSessionRows(
+          sessionResponse?.sessions ?? sessionResponse?.Sessions ?? [],
+        );
+
+        // Legacy StudentScore.aspx ddlSession has Fall/Spring Session 1–10 as markup defaults.
+        // When AMC_spSelectCurrentSession returns no usable rows, keep those defaults so the
+        // default-selected student can still validate (EnbleScoreUpdate).
+        if (sessionRows.length === 0) {
+          if (sessionResponse && sessionResponse.isSuccess === false) {
+            showSnackbar(
+              sessionResponse?.errorMessage || "Failed to load sessions.",
+              "warning",
+            );
+          }
+          sessionRows = LEGACY_SESSION_OPTIONS.map((session) => ({ session }));
         }
 
-        const sessionRows =
-          sessionResponse?.sessions ?? sessionResponse?.Sessions ?? [];
         setSessions(sessionRows);
         const firstSession = getSessionLabel(sessionRows[0]);
         setSelectedSession(firstSession);
 
         if (!firstSession) {
           setEnableScoreUpdate(false);
+          setScoreUpdateNotice(usesOnlineExam ? "onlineExam" : "noSession");
           return false;
         }
 
         // Legacy EnbleScoreUpdate() after AMC_spSelectCurrentSession
-        await validateWindow(studentId, firstSession, classCode);
+        const enabled = await validateWindow(
+          studentId,
+          firstSession,
+          classCode,
+        );
+        if (!enabled) {
+          setScoreUpdateNotice(usesOnlineExam ? "onlineExam" : "closed");
+        }
         return false;
       } finally {
         setStudentContextLoading(false);
@@ -470,8 +527,9 @@ const StudentScore = () => {
           );
         }
 
-        const studentList =
-          listResponse?.studentList ?? listResponse?.StudentList ?? [];
+        const studentList = filterRealStudents(
+          listResponse?.studentList ?? listResponse?.StudentList ?? [],
+        );
         setStudents(studentList);
 
         if (dueDateResponse?.isSuccess) {
@@ -488,18 +546,26 @@ const StudentScore = () => {
           const match = queryStudent
             ? findStudentListItem(studentList, { studentName: queryStudent })
             : null;
-          const initial = match ?? studentList[0];
-          const value = getStudentListItemValue(initial);
-          const text = getStudentListItemText(initial);
-          setSelectedStudent(value);
-          const chapterConfig = getOnlineExamDisplayChapterFromResponse(
-            dueDateResponse,
-          );
-          // Legacy OnlineExam → studentscore.aspx?Student= only: stay on Update Score, load sessions.
-          // Redirect to Online Exam runs only on dropdown change (ddlStudentList_SelectedIndexChanged).
-          await loadSessionsForStudent(value, text, {
-            onlineExamDisplayChapter: chapterConfig,
-          });
+
+          // New design: initial load shows "Select Student" with empty Session.
+          // Only pre-select when arriving with ?Student= (from Online Exam).
+          if (match) {
+            const value = getStudentListItemValue(match);
+            const text = getStudentListItemText(match);
+            setSelectedStudent(value);
+            const chapterConfig = getOnlineExamDisplayChapterFromResponse(
+              dueDateResponse,
+            );
+            await loadSessionsForStudent(value, text, {
+              onlineExamDisplayChapter: chapterConfig,
+            });
+          } else {
+            setSelectedStudent(STUDENT_PLACEHOLDER);
+            setSessions([]);
+            setSelectedSession("");
+            setEnableScoreUpdate(false);
+            setScoreUpdateNotice(null);
+          }
         }
 
         await loadScores();
@@ -527,6 +593,15 @@ const StudentScore = () => {
     setSuccessMessage("");
     resetScoreEntryFields(setQuiz, setClassTest, setHomeWork);
 
+    // "Select Student" — clear Session (new design initial state)
+    if (!value) {
+      setSessions([]);
+      setSelectedSession("");
+      setEnableScoreUpdate(false);
+      setScoreUpdateNotice(null);
+      return;
+    }
+
     const student = students.find(
       (s) => (s.value ?? s.Value) === value,
     );
@@ -553,13 +628,38 @@ const StudentScore = () => {
   const handleSessionChange = async (event) => {
     const session = event.target.value;
     setSelectedSession(session);
-    const { studentId, classCode } = parseStudentValue(selectedStudent);
+    const { studentId, classCode, chapterId } =
+      parseStudentValue(selectedStudent);
+    const usesOnlineExam = shouldRedirectToOnlineExam(
+      chapterId,
+      onlineExamDisplayChapter,
+    );
     setStudentContextLoading(true);
+    setScoreUpdateNotice(null);
     try {
-      await validateWindow(studentId, session, classCode);
+      const enabled = await validateWindow(studentId, session, classCode);
+      if (!enabled) {
+        setScoreUpdateNotice(usesOnlineExam ? "onlineExam" : "closed");
+      }
     } finally {
       setStudentContextLoading(false);
     }
+  };
+
+  const handleGoToOnlineExam = () => {
+    const student = students.find(
+      (s) => (s.value ?? s.Value) === selectedStudent,
+    );
+    const studentText = getStudentListItemText(student);
+    const { chapterId } = parseStudentValue(selectedStudent);
+    const query = buildOnlineExamRedirectQuery({ studentText, chapterId });
+    navigate(`${ONLINE_EXAM_PATH}?${query}`, {
+      state: buildOnlineExamRedirectState({
+        studentText,
+        studentValue: selectedStudent,
+        chapterId,
+      }),
+    });
   };
 
   const handleNumericChange = (setter, field) => (event) => {
@@ -672,19 +772,11 @@ const StudentScore = () => {
       <StudentRoleHeaderSpacer />
 
       <Container maxWidth="xl" sx={{ mb: 4 }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Card sx={updateScoreLegacyCardSx}>
-              <CardContent sx={updateScoreLegacyCardContentSx}>
+        <Card sx={updateScoreOuterCardSx}>
+          <CardContent sx={updateScoreOuterContentSx}>
+            <Box sx={updateScoreLegacyCardSx}>
+              <Box sx={updateScoreLegacyCardContentSx}>
                 <Box sx={{ width: "100%" }}>
-                  <Typography
-                    variant="subtitle1"
-                    component="div"
-                    sx={updateScorePageTitleSx}
-                  >
-                    {/* Update Score */}
-                  </Typography>
-
                   {successMessage && (
                     <Alert
                       severity="success"
@@ -698,7 +790,53 @@ const StudentScore = () => {
                     !loading &&
                     !studentContextLoading &&
                     students.length > 0 &&
-                    selectedStudent && (
+                    selectedStudent &&
+                    scoreUpdateNotice === "onlineExam" && (
+                      <Alert
+                        severity="info"
+                        sx={{ mb: 1, fontSize: "0.75rem" }}
+                        action={
+                          <Button
+                            color="inherit"
+                            size="small"
+                            onClick={handleGoToOnlineExam}
+                          >
+                            Online Exam
+                          </Button>
+                        }
+                      >
+                        <strong>
+                          This student updates scores through Online Exam, not
+                          the manual Update Score form.
+                        </strong>{" "}
+                        Select a different student from the list, or open Online
+                        Exam for this student.
+                      </Alert>
+                    )}
+
+                  {!enableScoreUpdate &&
+                    !loading &&
+                    !studentContextLoading &&
+                    students.length > 0 &&
+                    selectedStudent &&
+                    scoreUpdateNotice === "noSession" && (
+                      <Alert
+                        severity="warning"
+                        sx={{ mb: 1, fontSize: "0.75rem" }}
+                      >
+                        <strong>
+                          Unable to determine a session for this student.
+                        </strong>{" "}
+                        Please contact support if this continues.
+                      </Alert>
+                    )}
+
+                  {!enableScoreUpdate &&
+                    !loading &&
+                    !studentContextLoading &&
+                    students.length > 0 &&
+                    selectedStudent &&
+                    scoreUpdateNotice === "closed" && (
                       <Alert
                         severity="error"
                         sx={{ mb: 1, fontSize: "0.75rem" }}
@@ -716,74 +854,71 @@ const StudentScore = () => {
                     </Alert>
                   )}
 
-                  {enableScoreUpdate && !studentContextLoading && (
-                    <>
-                      <Box sx={legacyInputHeaderSx}>
-                        <Typography
-                          component="div"
-                          sx={legacyInputHeaderTitleSx}
-                        >
-                          Score Update Instructions
-                        </Typography>
-                      </Box>
+                  {/* Always show on menu load — not gated by student selection */}
+                  <Box sx={legacyInputHeaderSx}>
+                    <Typography
+                      component="div"
+                      sx={legacyInputHeaderTitleSx}
+                    >
+                      Score Update Instructions
+                    </Typography>
+                  </Box>
 
-                      <Box sx={scoreInstructionsPanelSx}>
-                        <Typography sx={legacyInstructionTextSx}>
-                          <strong>Step 1:</strong> Select the student from the
-                          list. (If you have multiple kids enrolled, pay
-                          attention to the name.)
-                        </Typography>
-                        <Typography sx={legacyInstructionTextSx}>
-                          <strong>Step 2:</strong> Enter the total points
-                          available for the quiz (it is usually 5) and the score
-                          you received on the quiz. If you did not take the
-                          quiz, put a 0 in this spot.
-                        </Typography>
-                        <Typography sx={legacyInstructionTextSx}>
-                          <strong>Step 3:</strong> Enter the class work total
-                          score (depends on the class — please double check the
-                          total score on the classwork) and the score you have
-                          received.
-                        </Typography>
-                        <Typography sx={legacyInstructionTextSx}>
-                          <strong>Step 4:</strong> Enter the last week home work
-                          total score (it is usually 10) and received score.
-                        </Typography>
-                        <Typography sx={legacyInstructionTextSx}>
-                          <strong>Step 5:</strong> Click the submit button. Do
-                          not forget this step.
-                        </Typography>
-                        <Typography sx={legacyInstructionTextSx}>
-                          <strong>Step 7:</strong> After submitting, verify the
-                          score in the grid. If it is not correct, please
-                          reenter and submit — it will overwrite the previous
-                          incorrect score.
-                        </Typography>
-                        <Typography sx={legacyInstructionTextSx}>
-                          <strong>Step 8:</strong> The score update option will
-                          be disabled before the next class.
-                        </Typography>
-                        {dueDate && (
-                          <Typography
-                            component="div"
-                            sx={scoreStep9HighlightSx}
-                          >
-                            <strong>
-                              Step 9: The current session score update option
-                              will be enabled till {dueDate}. Please update
-                              score before the last date.
-                            </strong>
-                          </Typography>
-                        )}
-                        <Typography sx={legacyInstructionTextSx}>
-                          If you have any questions, please contact us via
-                          Message Center.
-                        </Typography>
-                      </Box>
-                    </>
-                  )}
+                  <Box sx={scoreInstructionsPanelSx}>
+                    <Typography sx={legacyInstructionTextSx}>
+                      <strong>Step 1:</strong> Select the student from the
+                      list. (If you have multiple kids enrolled, pay
+                      attention to the name.)
+                    </Typography>
+                    <Typography sx={legacyInstructionTextSx}>
+                      <strong>Step 2:</strong> Enter the total points
+                      available for the quiz (it is usually 5) and the score
+                      you received on the quiz. If you did not take the
+                      quiz, put a 0 in this spot.
+                    </Typography>
+                    <Typography sx={legacyInstructionTextSx}>
+                      <strong>Step 3:</strong> Enter the class work total
+                      score (depends on the class — please double check the
+                      total score on the classwork) and the score you have
+                      received.
+                    </Typography>
+                    <Typography sx={legacyInstructionTextSx}>
+                      <strong>Step 4:</strong> Enter the last week home work
+                      total score (it is usually 10) and received score.
+                    </Typography>
+                    <Typography sx={legacyInstructionTextSx}>
+                      <strong>Step 5:</strong> Click the submit button. Do
+                      not forget this step.
+                    </Typography>
+                    <Typography sx={legacyInstructionTextSx}>
+                      <strong>Step 7:</strong> After submitting, verify the
+                      score in the grid. If it is not correct, please
+                      reenter and submit — it will overwrite the previous
+                      incorrect score.
+                    </Typography>
+                    <Typography sx={legacyInstructionTextSx}>
+                      <strong>Step 8:</strong> The score update option will
+                      be disabled before the next class.
+                    </Typography>
+                    {dueDate && (
+                      <Typography
+                        component="div"
+                        sx={scoreStep9HighlightSx}
+                      >
+                        <strong>
+                          Step 9: The current session score update option
+                          will be enabled till {dueDate}. Please update
+                          score before the last date.
+                        </strong>
+                      </Typography>
+                    )}
+                    <Typography sx={legacyInstructionTextSx}>
+                      If you have any questions, please contact us via
+                      Message Center.
+                    </Typography>
+                  </Box>
 
-                  <Box sx={{ ...legacyInputHeaderSx, mt: enableScoreUpdate && !studentContextLoading ? 1.5 : 0 }}>
+                  <Box sx={{ ...legacyInputHeaderSx, mt: 1.5 }}>
                     <Typography
                       component="div"
                       sx={legacyInputHeaderTitleSx}
@@ -822,9 +957,13 @@ const StudentScore = () => {
                           value={selectedStudent}
                           onChange={handleStudentChange}
                           size="small"
+                          displayEmpty
                           sx={{ ...legacyFieldSelectSx, minWidth: 200 }}
                           disabled={loading || studentContextLoading}
                         >
+                          <MenuItem value="" sx={adminSessionListMenuItemSx}>
+                            Select Student
+                          </MenuItem>
                           {students.map((student) => {
                             const studentValue =
                               student.value ?? student.Value ?? "";
@@ -855,13 +994,18 @@ const StudentScore = () => {
                           value={selectedSession}
                           onChange={handleSessionChange}
                           size="small"
+                          displayEmpty
                           sx={{ ...legacyFieldSelectSx, minWidth: 160 }}
                           disabled={
                             loading ||
                             studentContextLoading ||
+                            !selectedStudent ||
                             sessions.length === 0
                           }
                         >
+                          <MenuItem value="" sx={adminSessionListMenuItemSx}>
+                            Select Session
+                          </MenuItem>
                           {sessions.map((session, index) => {
                             const sessionLabel = getSessionLabel(session);
                             return (
@@ -1020,27 +1164,32 @@ const StudentScore = () => {
                     </>
                   )}
                 </Box>
-              </CardContent>
-            </Card>
-          </Grid>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
 
-          <Grid item xs={12}>
-            <Card sx={adminSessionListPanelCardSx}>
-              <CardContent
-                sx={{
-                  ...adminSessionListPanelContentSx,
-                  pt: 1,
-                  "&:last-child": { pb: 1.5 },
-                }}
-              >
-                <StudentScoreScoresGrid
-                  scores={studentScores}
-                  loading={loading}
-                />
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+        <Card
+          sx={{
+            ...adminSessionListPanelCardSx,
+            mt: 3,
+            mb: 1,
+          }}
+        >
+          <CardContent
+            sx={{
+              px: 1.5,
+              pt: 1.5,
+              pb: 2,
+              "&:last-child": { pb: 2 },
+            }}
+          >
+            <StudentScoreScoresGrid
+              scores={studentScores}
+              loading={loading}
+            />
+          </CardContent>
+        </Card>
       </Container>
 
       <AppConfirmDialog

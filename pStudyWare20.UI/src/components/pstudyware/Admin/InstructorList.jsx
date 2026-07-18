@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import {
   Typography,
   Button,
@@ -19,6 +20,7 @@ import {
   Download as DownloadIcon,
   Add as AddIcon,
   Delete as DeleteIcon,
+  ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import {
@@ -68,6 +70,27 @@ const instructorHeaderActionButtonSx = {
   "&:hover": { backgroundColor: "#43a047" },
 };
 
+const INSTRUCTOR_LIST_REFERRERS = {
+  "volunteers-request": {
+    label: "Back to Volunteer Waiting List",
+    path: "/pstudyware/admin/volunteers-request",
+  },
+};
+
+const instructorListBackLinkSx = {
+  ...adminSessionListFindButtonSx,
+  backgroundColor: "transparent",
+  color: "#1b5e20",
+  border: "1px solid #43a047",
+  flexShrink: 0,
+  px: 1.5,
+  textTransform: "none",
+  "&:hover": {
+    backgroundColor: "rgba(67, 160, 71, 0.08)",
+    borderColor: "#2e7d32",
+  },
+};
+
 const instructorDeleteLinkSx = adminSessionListTableDeleteLinkSx;
 
 /** Requested default: newest instructors first (ID DESC). */
@@ -83,6 +106,11 @@ const InstructorList = ({
   onAdd,
   canAddInstructor,
 }) => {
+  const [searchParams] = useSearchParams();
+  const listReferrer = useMemo(() => {
+    const from = searchParams.get("from");
+    return INSTRUCTOR_LIST_REFERRERS[from] ?? null;
+  }, [searchParams]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("");
@@ -94,6 +122,22 @@ const InstructorList = ({
   const [selectedInstructor, setSelectedInstructor] = useState(null);
 
   const pageSize = 25;
+
+  useEffect(() => {
+    const searchByParam = searchParams.get("searchBy");
+    const searchCriteriaParam = searchParams.get("searchCriteria");
+    const searchTextParam = searchParams.get("searchText");
+
+    if (!searchByParam || !searchTextParam) {
+      return;
+    }
+
+    setSearchBy(searchByParam);
+    setSearchCriteria(searchCriteriaParam || "equals");
+    setSearchText(searchTextParam);
+    setCurrentPage(1);
+    setGoToPageInput("1");
+  }, [searchParams]);
 
   // Handle page change
   const handlePageChange = (page) => {
@@ -298,7 +342,19 @@ const InstructorList = ({
         <Typography variant="subtitle1" sx={adminSessionListTitleSx}>
           Instructor List
         </Typography>
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          {listReferrer && (
+            <Button
+              component={RouterLink}
+              to={listReferrer.path}
+              variant="outlined"
+              size="small"
+              startIcon={<ArrowBackIcon />}
+              sx={instructorListBackLinkSx}
+            >
+              {listReferrer.label}
+            </Button>
+          )}
           {canAddInstructor && (
             <Button
               variant="contained"

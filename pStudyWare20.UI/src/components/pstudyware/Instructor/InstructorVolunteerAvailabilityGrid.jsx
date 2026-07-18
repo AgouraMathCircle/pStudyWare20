@@ -41,7 +41,6 @@ const COLS = [
   { label: "Instructor #", keys: ["InstructorID", "instructorID"], searchBy: "INSTRUCTOR_ID" },
   { label: "First Name", keys: ["FirstName", "firstName"], searchBy: "FIRST_NAME" },
   { label: "Last Name", keys: ["LastName", "lastName"], searchBy: "LAST_NAME" },
-  { label: "Chapter", keys: ["ChapterName", "chapterName"], searchBy: "CHAPTER" },
   { label: "Session", keys: ["Session", "session"], searchBy: "SESSION" },
   { label: "Class", keys: ["Class", "class"], searchBy: "CLASS" },
   { label: "Type", keys: ["InstructorType", "instructorType"], searchBy: "TYPE" },
@@ -51,17 +50,23 @@ const COLS = [
 ];
 
 const COL_WIDTHS = {
-  instructorId: "8%",
-  firstName: "10%",
-  lastName: "10%",
-  chapter: "12%",
-  session: "8%",
-  class: "12%",
-  type: "12%",
-  availability: "10%",
-  comments: "10%",
-  responseDate: "8%",
+  instructorId: "9%",
+  firstName: "12%",
+  lastName: "12%",
+  session: "9%",
+  class: "14%",
+  type: "14%",
+  availability: "11%",
+  comments: "12%",
+  responseDate: "9%",
 };
+
+const PLAIN_VALUE_COLUMNS = new Set([
+  "INSTRUCTOR_ID",
+  "SESSION",
+  "AVAILABILITY",
+  "RESPONSE_DATE",
+]);
 
 function cell(row, keys) {
   if (!row || typeof row !== "object") return "";
@@ -131,8 +136,6 @@ const widthForCol = (searchBy) => {
       return COL_WIDTHS.firstName;
     case "LAST_NAME":
       return COL_WIDTHS.lastName;
-    case "CHAPTER":
-      return COL_WIDTHS.chapter;
     case "SESSION":
       return COL_WIDTHS.session;
     case "CLASS":
@@ -233,10 +236,10 @@ const InstructorVolunteerAvailabilityGrid = ({
       ? "No availability records matching your search."
       : "No availability records found.";
 
-  const renderEllipsisCell = (value, isLast = false) => {
+  const renderEllipsisCell = (value, isLast = false, key) => {
     const display = value || "—";
     return (
-      <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true, isLast })}>
+      <TableCell key={key} sx={adminSessionListTableBodyCellSx({ ellipsis: true, isLast })}>
         <Tooltip title={display} arrow>
           <span>{display}</span>
         </Tooltip>
@@ -362,24 +365,23 @@ const InstructorVolunteerAvailabilityGrid = ({
             {!loading &&
               pageRows.map((row, idx) => (
                 <TableRow key={idx} sx={adminSessionListTableBodyRowSx}>
-                  <TableCell sx={adminSessionListTableBodyCellSx()}>
-                    {cell(row, COLS[0].keys) || "—"}
-                  </TableCell>
-                  {renderEllipsisCell(cell(row, COLS[1].keys))}
-                  {renderEllipsisCell(cell(row, COLS[2].keys))}
-                  {renderEllipsisCell(cell(row, COLS[3].keys))}
-                  <TableCell sx={adminSessionListTableBodyCellSx()}>
-                    {cell(row, COLS[4].keys) || "—"}
-                  </TableCell>
-                  {renderEllipsisCell(cell(row, COLS[5].keys))}
-                  {renderEllipsisCell(cell(row, COLS[6].keys))}
-                  <TableCell sx={adminSessionListTableBodyCellSx()}>
-                    {cell(row, COLS[7].keys) || "—"}
-                  </TableCell>
-                  {renderEllipsisCell(cell(row, COLS[8].keys))}
-                  <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
-                    {cell(row, COLS[9].keys) || "—"}
-                  </TableCell>
+                  {COLS.map((c, colIndex) => {
+                    const isLast = colIndex === COLS.length - 1;
+                    const value = cell(row, c.keys);
+
+                    if (PLAIN_VALUE_COLUMNS.has(c.searchBy)) {
+                      return (
+                        <TableCell
+                          key={c.searchBy}
+                          sx={adminSessionListTableBodyCellSx({ isLast })}
+                        >
+                          {value || "—"}
+                        </TableCell>
+                      );
+                    }
+
+                    return renderEllipsisCell(value, isLast, c.searchBy);
+                  })}
                 </TableRow>
               ))}
           </TableBody>

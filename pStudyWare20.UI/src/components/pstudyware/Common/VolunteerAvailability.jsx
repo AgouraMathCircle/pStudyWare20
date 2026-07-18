@@ -25,6 +25,12 @@ import VolunteerHeader, {
   VolunteerRoleHeaderSpacer,
 } from "../Volunteer/VolunteerHeader";
 import { adminSessionListTitleSx } from "../styles/applicationSurfaces";
+import {
+  buildVolunteeringPrompt,
+  getTargetSessionForDb,
+  getVolunteeringSessionTableLabels,
+} from "../../../utils/volunteerAvailabilitySession";
+import { applyVolunteerAvailabilityRefresh } from "../../../utils/volunteerAvailabilityGridMerge";
 import "./VolunteerAvailability.css";
 
 const REASON_OPTIONS = [
@@ -56,59 +62,14 @@ const formatSemesterForDb = (sem) => {
   return trimmed.substring(0, 5);
 };
 
+/** @deprecated Use getTargetSessionForDb from volunteerAvailabilitySession.js */
+export const getNextSessionLabel = getTargetSessionForDb;
+
+export { buildVolunteeringPrompt, getVolunteeringSessionTableLabels };
+
 export const shouldShowVolunteerAvailability = (user) => {
   const flag = user?.volunteerAvailability ?? user?.VolunteerAvailability ?? "N";
   return String(flag).trim().toUpperCase() === "Y";
-};
-
-const getSessionPrefixFromCurrent = (currentSession) => {
-  const text = `${currentSession || ""}`.trim();
-  if (!text) return "Session";
-
-  const match = text.match(/^(.*?)(\d+)\s*$/);
-  if (match && match[1].trim()) {
-    return match[1].trim();
-  }
-
-  return "Session";
-};
-
-const getNextSessionLabel = (currentSession) => {
-  const text = `${currentSession || ""}`.trim();
-  if (!text) return "";
-
-  const match = text.match(/^(.*?)(\d+)\s*$/);
-  if (!match) return text;
-
-  const prefix = match[1].trim() || "Session";
-  const nextNumber = parseInt(match[2], 10) + 1;
-  return `${prefix} ${nextNumber}`.trim();
-};
-
-/** Legacy uses CurrentSession prefix (e.g. "Session 4" -> "Session 1".."Session 10"). */
-const buildSessionOptions = (currentSession, currentSemester) => {
-  const sessionText = `${currentSession || ""}`.trim();
-
-  if (sessionText) {
-    const prefix = getSessionPrefixFromCurrent(sessionText);
-    return Array.from({ length: 10 }, (_, index) => {
-      const label = `${prefix} ${index + 1}`;
-      return { value: label, label };
-    });
-  }
-
-  const semesterText = `${currentSemester || ""}`.trim();
-  let prefix = "Session";
-  if (/fall/i.test(semesterText) || /^f/i.test(semesterText)) {
-    prefix = "Fall Session";
-  } else if (/spring/i.test(semesterText) || /^s/i.test(semesterText)) {
-    prefix = "Spring Session";
-  }
-
-  return Array.from({ length: 10 }, (_, index) => {
-    const label = `${prefix} ${index + 1}`;
-    return { value: label, label };
-  });
 };
 
 const resolveMemberId = (user) =>
@@ -139,7 +100,11 @@ const resolvePortalRole = (user, pathname = "") => {
   return "volunteer";
 };
 
-const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => {
+const VolunteerAvailability = ({
+  embedded = false,
+  skipRoleHeader = false,
+  onSaved,
+}) => {
   const location = useLocation();
   const { user } = useAuth();
   const showAvailability = useMemo(
@@ -151,20 +116,14 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
     [user?.email, user?.username],
   );
   const memberId = useMemo(() => resolveMemberId(user), [user]);
-  const sessionOptions = useMemo(
-    () => buildSessionOptions(user?.currentSession, user?.currentSemester),
-    [user?.currentSession, user?.currentSemester],
-  );
 
-  const defaultSession = useMemo(
-    () =>
-      getNextSessionLabel(user?.currentSession) ||
-      sessionOptions[0]?.value ||
-      "",
-    [user?.currentSession, sessionOptions],
+  const [targetSession, setTargetSession] = useState("");
+  const [displaySession, setDisplaySession] = useState("");
+  const [volunteeringPrompt, setVolunteeringPrompt] = useState(
+    "Are you Volunteering?",
   );
-
-  const [selectedSession, setSelectedSession] = useState("");
+  const [semesterForDb, setSemesterForDb] = useState("");
+  const [formContextReady, setFormContextReady] = useState(false);
   const [isAvailable, setIsAvailable] = useState("true");
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
@@ -185,6 +144,18 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
   const isReadOnlyView = formMode === "view";
   const isEditing = formMode === "edit";
 
+  const resolvedSemester = useMemo(
+    () =>
+      semesterForDb ||
+      formatSemesterForDb(user?.currentSemester ?? user?.CurrentSemester),
+    [semesterForDb, user?.currentSemester, user?.CurrentSemester],
+  );
+
+  const sessionTableLabels = useMemo(
+    () => getVolunteeringSessionTableLabels(displaySession || targetSession),
+    [displaySession, targetSession],
+  );
+
   const statusClass = loading || formMode === "loading"
     ? "volunteer-availability-status--loading"
     : isReadOnlyView
@@ -202,15 +173,67 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
         : "Action needed";
 
   useEffect(() => {
-    if (!defaultSession) return;
-    setSelectedSession((current) => current || defaultSession);
-  }, [defaultSession]);
+    if (!showAvailability || !user) {
+      return;
+    }
 
-  const applyAvailabilityResult = useCallback((result, sessionLabel) => {
+    let cancelled = false;
+
+    const loadFormContext = async () => {
+      const loginCurrentSession = `${user?.currentSession ?? user?.CurrentSession ?? ""}`.trim();
+      let session = getTargetSessionForDb(loginCurrentSession);
+      let display = loginCurrentSession;
+      let prompt = buildVolunteeringPrompt(session);
+      let semester = formatSemesterForDb(
+        user?.currentSemester ?? user?.CurrentSemester,
+      );
+
+      try {
+        const context = await volunteerAvailabilityService.getFormContext();
+        if (!cancelled && context?.isSuccess !== false) {
+          if (context.currentSession) {
+            display = context.currentSession;
+          }
+          if (context.targetSession) {
+            session = context.targetSession;
+          } else if (display) {
+            session = getTargetSessionForDb(display);
+          }
+          if (context.volunteeringPrompt) {
+            prompt = context.volunteeringPrompt;
+          } else if (session) {
+            prompt = buildVolunteeringPrompt(session);
+          }
+          if (context.semester) {
+            semester = context.semester;
+          }
+        }
+      } catch {
+        // Fall back to login session values.
+      }
+
+      if (cancelled) {
+        return;
+      }
+
+      setDisplaySession(display);
+      setTargetSession(session);
+      setVolunteeringPrompt(prompt);
+      setSemesterForDb(semester);
+      setFormContextReady(true);
+    };
+
+    loadFormContext();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showAvailability, user]);
+
+  const applyAvailabilityResult = useCallback((result) => {
     if (result.hasValue) {
       setIsAvailable(result.response === "Y" ? "true" : "false");
       setReason(result.comments || "");
-      setSelectedSession(sessionLabel);
       if (formModeRef.current !== "edit") {
         setFormMode("view");
       }
@@ -219,7 +242,6 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
 
     setIsAvailable("true");
     setReason("");
-    setSelectedSession(sessionLabel);
     if (formModeRef.current !== "edit") {
       setFormMode("new");
     }
@@ -227,8 +249,7 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
 
   const loadAvailabilityForSession = useCallback(
     async (sessionLabel, { silent = false } = {}) => {
-      const semester = user?.currentSemester;
-      if (!sessionLabel || !memberId || !semester) {
+      if (!sessionLabel || !memberId || !resolvedSemester) {
         if (!silent) setLoading(false);
         return;
       }
@@ -240,7 +261,7 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
         const result = await volunteerAvailabilityService.getAvailability({
           userID: memberId,
           session: sessionLabel,
-          semester: formatSemesterForDb(semester),
+          semester: resolvedSemester,
         });
 
         if (requestId !== loadRequestIdRef.current) {
@@ -258,7 +279,7 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
           return;
         }
 
-        applyAvailabilityResult(result, sessionLabel);
+        applyAvailabilityResult(result);
       } catch (err) {
         if (requestId !== loadRequestIdRef.current) {
           return;
@@ -279,7 +300,7 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
         }
       }
     },
-    [applyAvailabilityResult, memberId, showSnackbar, user?.currentSemester],
+    [applyAvailabilityResult, memberId, resolvedSemester, showSnackbar],
   );
 
   const handleEditAvailability = (event) => {
@@ -296,20 +317,17 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
     loadRequestIdRef.current += 1;
     setFormMode("view");
 
-    if (selectedSession) {
+    if (targetSession) {
       setLoading(true);
       try {
-        const semester = user?.currentSemester;
-        if (!memberId || !semester) return;
-
         const result = await volunteerAvailabilityService.getAvailability({
           userID: memberId,
-          session: selectedSession,
-          semester: formatSemesterForDb(semester),
+          session: targetSession,
+          semester: resolvedSemester,
         });
 
         if (result.isSuccess !== false) {
-          applyAvailabilityResult(result, selectedSession);
+          applyAvailabilityResult(result);
         }
       } finally {
         setLoading(false);
@@ -321,6 +339,8 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
     if (
       !showAvailability ||
       !user ||
+      !formContextReady ||
+      !targetSession ||
       hasLoadedAvailability ||
       loadAvailabilityRequestedRef.current
     ) {
@@ -330,17 +350,14 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
     loadAvailabilityRequestedRef.current = true;
 
     const loadExistingAvailability = async () => {
-      const sessionForLoad =
-        getNextSessionLabel(user?.currentSession) || defaultSession;
-
-      if (!sessionForLoad || !memberId || !user?.currentSemester) {
+      if (!memberId || !resolvedSemester) {
         setLoading(false);
         setFormMode("new");
         setHasLoadedAvailability(true);
         return;
       }
 
-      await loadAvailabilityForSession(sessionForLoad);
+      await loadAvailabilityForSession(targetSession);
       setHasLoadedAvailability(true);
     };
 
@@ -350,17 +367,11 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
     memberId,
     hasLoadedAvailability,
     showAvailability,
-    defaultSession,
+    targetSession,
+    formContextReady,
+    resolvedSemester,
     loadAvailabilityForSession,
   ]);
-
-  const handleSessionChange = async (event) => {
-    const nextSession = event.target.value;
-    setSelectedSession(nextSession);
-
-    if (!hasLoadedAvailability || isReadOnlyView || isEditing) return;
-    await loadAvailabilityForSession(nextSession);
-  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -370,8 +381,8 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
       return;
     }
 
-    if (!selectedSession) {
-      showSnackbar("Please select a session.", "error");
+    if (!targetSession) {
+      showSnackbar("Volunteer session is not available. Please try again later.", "error");
       return;
     }
 
@@ -385,9 +396,7 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
       return;
     }
 
-    const semester = user?.currentSemester;
-
-    if (!semester) {
+    if (!resolvedSemester) {
       showSnackbar(
         "Current semester is required from login response. Please sign out and sign in again.",
         "error",
@@ -399,8 +408,8 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
     try {
       const result = await volunteerAvailabilityService.updateAvailability({
         userID: memberId,
-        session: selectedSession,
-        semester: formatSemesterForDb(semester),
+        session: targetSession,
+        semester: resolvedSemester,
         response: isAvailable === "true" ? "Y" : "N",
         comment: reason,
       });
@@ -418,6 +427,19 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
         "success",
       );
       setFormMode("view");
+      await onSaved?.({
+        summaryData: result.summaryData,
+        saved: {
+          userID: memberId,
+          session: result.session || targetSession,
+          response: isAvailable === "true" ? "Y" : "N",
+          comment: reason,
+          firstName: user?.firstName ?? user?.FirstName ?? "",
+          lastName: user?.lastName ?? user?.LastName ?? "",
+          instructorType: user?.memberType ?? user?.MemberType ?? "",
+          responseDate: new Date().toISOString(),
+        },
+      });
     } catch (err) {
       showSnackbar(
         err?.response?.data?.message ?? err?.message ?? "Save failed.",
@@ -429,42 +451,6 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
   };
 
   const fieldsDisabled = loading || isReadOnlyView;
-
-  const renderSessionField = (readOnly = false) => {
-    if (readOnly) {
-      return (
-        <span className="volunteer-availability-value-text">
-          {selectedSession || "-"}
-        </span>
-      );
-    }
-
-    return (
-      <FormControl
-        size="small"
-        required
-        className="volunteer-availability-field"
-        disabled={fieldsDisabled}
-      >
-        <Select
-          displayEmpty
-          value={selectedSession}
-          onChange={handleSessionChange}
-          disabled={fieldsDisabled}
-          inputProps={{ "aria-label": "Session" }}
-        >
-          <MenuItem value="" disabled>
-            Select session
-          </MenuItem>
-          {sessionOptions.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    );
-  };
 
   const renderTaskNameField = () => {
     if (isAvailable !== "true") return null;
@@ -526,9 +512,6 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
         >
           Volunteer Availability
         </Typography>
-        <Typography component="p" className="volunteer-availability-subtitle">
-          Confirm your availability for the upcoming session.
-        </Typography>
       </div>
     </div>
   );
@@ -543,19 +526,19 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
     <form className="volunteer-availability-entry-form" onSubmit={handleSubmit}>
       <div className="volunteer-availability-table-wrap">
         <table className="volunteer-availability-table">
+          <colgroup>
+            <col className="volunteer-availability-col-label" />
+            <col className="volunteer-availability-col-value" />
+          </colgroup>
           <tbody>
             <tr>
               <th scope="row" className="volunteer-availability-label-cell">
-                Session:
+                {sessionTableLabels.volunteeringLabel}
               </th>
-              <td
-                className={
-                  isReadOnlyView
-                    ? "volunteer-availability-value-cell"
-                    : "volunteer-availability-input-cell"
-                }
-              >
-                {renderSessionField(isReadOnlyView)}
+              <td className="volunteer-availability-value-cell">
+                <span className="volunteer-availability-value-text">
+                  {sessionTableLabels.sessionValue}
+                </span>
               </td>
             </tr>
 
@@ -563,7 +546,7 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
               <>
                 <tr>
                   <th scope="row" className="volunteer-availability-label-cell">
-                    Are you volunteering?
+                    Please Select
                   </th>
                   <td className="volunteer-availability-value-cell">
                     <span className="volunteer-availability-value-text">
@@ -586,8 +569,7 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
               <>
                 <tr>
                   <th scope="row" className="volunteer-availability-label-cell">
-                    Are you volunteering Session{" "}
-                    {selectedSession?.match(/(\d+)\s*$/)?.[1] ?? "?"}?
+                    Please Select
                   </th>
                   <td className="volunteer-availability-input-cell">
                     <RadioGroup
@@ -598,6 +580,7 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
                         setReason("");
                       }}
                       className="volunteer-availability-radio-group"
+                      aria-label={volunteeringPrompt}
                     >
                       <FormControlLabel
                         value="true"
@@ -670,7 +653,7 @@ const VolunteerAvailability = ({ embedded = false, skipRoleHeader = false }) => 
                 type="submit"
                 variant="contained"
                 size="small"
-                disabled={saving || loading || !selectedSession}
+                disabled={saving || loading || !targetSession}
                 className="volunteer-availability-submit-btn"
               >
                 {saving ? (

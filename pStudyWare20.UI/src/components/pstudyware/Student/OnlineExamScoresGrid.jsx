@@ -378,7 +378,13 @@ const OnlineExamScoresGrid = ({ scores = [], embedded = false, loading = false }
 
   return (
     <Card sx={adminSessionListPanelCardSx}>
-      <CardContent sx={adminSessionListPanelContentSx}>
+      <CardContent
+        sx={{
+          ...adminSessionListPanelContentSx,
+          pb: 1.5,
+          "&:last-child": { pb: 1.5 },
+        }}
+      >
         {title}
         {scoresBody}
       </CardContent>

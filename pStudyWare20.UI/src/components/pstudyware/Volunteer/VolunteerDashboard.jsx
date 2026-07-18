@@ -1,26 +1,57 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { Box, Chip, Container, Grid, Paper, Typography, Button, Card, CardContent } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Container,
+  Grid,
+  Paper,
+  Typography,
+} from "@mui/material";
 import {
   Add as AddIcon,
   AssignmentTurnedIn as EntriesIcon,
+  EventAvailable as LastEntryIcon,
   StarBorder as TaskIcon,
   VolunteerActivism as HoursIcon,
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import DashboardMessages from "../Student/DashboardMessages";
-import {
-  PORTAL_CARD_BOX_SHADOW,
-  dashboardMessagesPanelContentSx,
-  portalCardAntiLiftSx,
-} from "../styles/applicationSurfaces";
-import studentDashboardService from "../../../services/studentDashboardService";
-import volunteerDashboardService from "../../../services/volunteerDashboardService";
+import InstructorVolunteerAvailabilityGrid from "../Instructor/InstructorVolunteerAvailabilityGrid";
 import VolunteerTimeSheetGrid from "./VolunteerTimeSheetGrid";
 import VolunteerAvailability, {
   shouldShowVolunteerAvailability,
 } from "../Common/VolunteerAvailability";
+import studentDashboardService from "../../../services/studentDashboardService";
+import volunteerDashboardService from "../../../services/volunteerDashboardService";
+import volunteerAvailabilityService from "../../../services/volunteerAvailabilityService";
+import { getPortalUsername } from "../../../utils/portalUsername";
+import { applyVolunteerAvailabilityRefresh } from "../../../utils/volunteerAvailabilityGridMerge";
+import {
+  instructorDashboardPanelCardSx,
+  instructorDashboardPanelContentSx,
+} from "../Instructor/instructorPortalTableStyles";
+import {
+  dashboardMessagesPanelContentSx,
+  instructorPortalContentContainerProps,
+  portalDashboardPageSx,
+} from "../styles/applicationSurfaces";
 import "../../../styles/VolunteerDashboard.css";
+
+function formatLastEntryDate(value) {
+  if (!value) return "—";
+  try {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return d.toLocaleDateString("en-US");
+  } catch {
+    return String(value);
+  }
+}
 
 const VolunteerDashboard = () => {
   const navigate = useNavigate();
@@ -37,6 +68,9 @@ const VolunteerDashboard = () => {
     lastEntryDate: null,
     mostFrequentTask: "",
   });
+  const [availabilityRows, setAvailabilityRows] = useState([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState(null);
   const [dashboardMessages, setDashboardMessages] = useState({
     importantNotice: "",
     announcement: "",
@@ -49,6 +83,7 @@ const VolunteerDashboard = () => {
     () => user?.email || user?.username || "",
     [user?.email, user?.username]
   );
+  const portalUsername = useMemo(() => getPortalUsername(user), [user]);
   const chapterId = useMemo(
     () => user?.chapterId ?? user?.chapterID ?? 1,
     [user?.chapterId, user?.chapterID]
@@ -116,17 +151,56 @@ const VolunteerDashboard = () => {
     }
   }, [username]);
 
+  const loadVolunteerAvailability = useCallback(async ({ silent = false } = {}) => {
+    if (!portalUsername) return;
+
+    if (!silent) {
+      setAvailabilityError(null);
+      setAvailabilityLoading(true);
+    }
+
+    try {
+      const res = await volunteerAvailabilityService.getAvailabilitySummary({
+        username: portalUsername,
+      });
+      if (res?.isSuccess !== false) {
+        const nextRows = res.summaryData || [];
+        if (nextRows.length > 0 || !silent) {
+          setAvailabilityRows(nextRows);
+          setAvailabilityError(null);
+        }
+      } else if (!silent) {
+        setAvailabilityRows([]);
+        setAvailabilityError(
+          res?.errorMessage || "Could not load volunteer availability list.",
+        );
+      }
+    } catch (e) {
+      if (!silent) {
+        setAvailabilityError(e?.message || "Failed to load volunteer availability list.");
+        setAvailabilityRows([]);
+      }
+    } finally {
+      if (!silent) setAvailabilityLoading(false);
+    }
+  }, [portalUsername]);
+
+  const refreshVolunteerAvailabilityList = useCallback((payload) => {
+    setAvailabilityRows((prev) => applyVolunteerAvailabilityRefresh(prev, payload));
+    setAvailabilityError(null);
+  }, []);
+
   useEffect(() => {
     if (!isValidated || !username) return;
     let cancelled = false;
     (async () => {
       if (cancelled) return;
-      await loadDashboard();
+      await Promise.all([loadDashboard(), loadVolunteerAvailability()]);
     })();
     return () => {
       cancelled = true;
     };
-  }, [isValidated, username, loadDashboard]);
+  }, [isValidated, username, portalUsername, loadDashboard, loadVolunteerAvailability]);
 
   useEffect(() => {
     if (!isValidated || !username) return;
@@ -161,38 +235,41 @@ const VolunteerDashboard = () => {
 
   if (authLoading || loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
-        <Typography>Loading…</Typography>
+      <Box
+        className="volunteer-dashboard"
+        sx={{
+          ...portalDashboardPageSx,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 2,
+          minHeight: 400,
+        }}
+      >
+        <CircularProgress size={60} sx={{ color: "#2e7d32" }} />
+        <Typography variant="h6" color="textSecondary">
+          Loading Volunteer Dashboard...
+        </Typography>
       </Box>
     );
   }
 
   if (!isAuthenticated || !user || !isValidated) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
-        <Typography>Access denied.</Typography>
+      <Box
+        className="volunteer-dashboard"
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 400,
+        }}
+      >
+        <Alert severity="error">Access denied. Please log in as a volunteer.</Alert>
       </Box>
     );
   }
-
-  const panelCardSx = {
-    width: "100%",
-    backgroundColor: "white",
-    borderRadius: 2,
-    boxShadow: PORTAL_CARD_BOX_SHADOW,
-    overflow: "hidden",
-    boxSizing: "border-box",
-    pl: "16px",
-    pr: "16px",
-    ...portalCardAntiLiftSx,
-  };
-
-  const panelContentSx = {
-    px: { xs: 0.5, sm: 1 },
-    pt: 1,
-    pb: 0,
-    "&:last-child": { pb: 1 },
-  };
 
   const statItems = [
     {
@@ -209,157 +286,216 @@ const VolunteerDashboard = () => {
     },
     {
       label: "Most frequent task",
-      value: summary.mostFrequentTask || "-",
+      value: summary.mostFrequentTask || "—",
       icon: <TaskIcon fontSize="small" />,
       accent: "#2e7d32",
+    },
+    {
+      label: "Last entry date",
+      value: formatLastEntryDate(summary.lastEntryDate),
+      icon: <LastEntryIcon fontSize="small" />,
+      accent: "#1b5e20",
     },
   ];
 
   return (
-    <Container maxWidth="xl" className="volunteer-dashboard" sx={{ pb: 4 }}>
-      <Grid container spacing={2.5}>
-        <Grid item xs={12} sx={{ width: "100%", pb: "0 !important" }}>
-          <Card sx={panelCardSx} className="dashboard-messages-panel">
-            <CardContent sx={dashboardMessagesPanelContentSx}>
-              <DashboardMessages
-                variant="volunteer"
-                username={username}
-                chapterId={chapterId}
-                dashboardMessages={dashboardMessages}
-                loading={messagesLoading}
-              />
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sx={{ width: "100%", pt: "0 !important" }}>
-          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, width: "100%", alignItems: "stretch", mt: -1.5, zoom: "85%" }}>
-            {showVolunteerAvailability && (
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Card
-                  sx={{
-                    ...panelCardSx,
-                    borderTop: "4px solid #43a047",
-                    height: "100%"
-                  }}
-                >
-                  <CardContent sx={{ ...panelContentSx, "&:last-child": { pb: 2 } }}>
-                    <VolunteerAvailability embedded={true} />
-                  </CardContent>
-                </Card>
-              </Box>
-            )}
+    <Box className="volunteer-dashboard">
+      <Container {...instructorPortalContentContainerProps} sx={{ mb: 4, pt: 0, mt: 0 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sx={{ pb: "0 !important" }}>
+            <Card sx={instructorDashboardPanelCardSx} className="dashboard-messages-panel">
+              <CardContent sx={dashboardMessagesPanelContentSx}>
+                <DashboardMessages
+                  variant="volunteer"
+                  username={username}
+                  chapterId={chapterId}
+                  dashboardMessages={dashboardMessages}
+                  loading={messagesLoading}
+                />
+              </CardContent>
+            </Card>
+          </Grid>
 
-            <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-              <Card sx={{ ...panelCardSx, height: "100%" }}>
-                <CardContent sx={{ ...panelContentSx, "&:last-child": { pb: 2 }, height: "100%", display: "flex", flexDirection: "column" }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: 1,
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      mb: 0.5,
-                      borderBottom: "1px solid #dcebdc",
-                      pb: 0.5,
-                    }}
-                  >
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography
-                        variant="subtitle1"
-                        component="h1"
-                        sx={{ fontWeight: 800, color: "#1b5e20", letterSpacing: 0, lineHeight: 1.2 }}
-                      >
-                        Time sheet entry
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0 }}>
-                        Track tutoring, grading, operations, and other volunteer work in one place.
-                      </Typography>
-                    </Box>
-
-                    <Button
-                      variant="contained"
-                      startIcon={<AddIcon />}
-                      component={RouterLink}
-                      to="/pstudyware/volunteer/time-sheet"
-                      sx={{
-                        backgroundColor: "#43a047",
-                        "&:hover": {
-                          backgroundColor: "#2e7d32",
-                        },
-                        textTransform: "none",
-                        fontWeight: 700,
-                        borderRadius: 1.5,
-                        px: 1.5,
-                        py: 0.5,
-                        boxShadow: "0 4px 10px rgba(67, 160, 71, 0.2)",
-                      }}
-                    >
-                      Log hours
-                    </Button>
-                  </Box>
-
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, flex: 1 }}>
-                    {statItems.map((item) => (
-                      <Box key={item.label}>
-                        <Paper
-                          sx={{
-                            p: 0.75,
-                            height: "100%",
-                            border: "1px solid #dfe9df",
-                            borderLeft: `4px solid ${item.accent}`,
-                            borderRadius: 2,
-                            boxShadow: "none",
-                            background: "linear-gradient(180deg, #ffffff 0%, #fbfffb 100%)",
-                            display: "flex",
-                            gap: 0.75,
-                            alignItems: "flex-start",
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              width: 24,
-                              height: 24,
-                              borderRadius: "50%",
-                              bgcolor: "#e8f5e9",
-                              color: item.accent,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              flexShrink: 0,
-                            }}
-                          >
-                            {item.icon}
-                          </Box>
-                          <Box sx={{ minWidth: 0 }}>
-                            <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700 }}>
-                              {item.label}
-                            </Typography>
-                            <Typography
-                              variant={item.label === "Most frequent task" ? "caption" : "subtitle2"}
-                              sx={{
-                                fontWeight: 800,
-                                color: "#2d2d2d",
-                                mt: 0,
-                                lineHeight: 1.2,
-                                overflowWrap: "anywhere",
-                              }}
-                            >
-                              {item.value}
-                            </Typography>
-                          </Box>
-                        </Paper>
-                      </Box>
-                    ))}
-                  </Box>
+          {showVolunteerAvailability && (
+            <Grid
+              item
+              xs={12}
+              sx={{ pt: "0 !important", pb: "0 !important", width: "100%" }}
+            >
+              <Card
+                sx={{
+                  ...instructorDashboardPanelCardSx,
+                  width: "100%",
+                }}
+                className="volunteer-dashboard-availability-entry-panel"
+              >
+                <CardContent sx={instructorDashboardPanelContentSx}>
+                  <VolunteerAvailability
+                    embedded={true}
+                    onSaved={refreshVolunteerAvailabilityList}
+                  />
                 </CardContent>
               </Card>
-            </Box>
-          </Box>
+            </Grid>
+          )}
 
-          <Box sx={{ width: "100%", mt: 3 }}>
-            <Card sx={panelCardSx}>
-              <CardContent sx={{ ...panelContentSx, p: 0, "&:last-child": { pb: 0 } }}>
+          <Grid
+            item
+            xs={12}
+            sx={{ pt: "0 !important", pb: "0 !important", width: "100%" }}
+          >
+            <Card
+              sx={instructorDashboardPanelCardSx}
+              className="volunteer-dashboard-timesheet-summary-panel"
+            >
+              <CardContent sx={{ ...instructorDashboardPanelContentSx, "&:last-child": { pb: 2 } }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 1,
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    mb: 1.5,
+                    borderBottom: "1px solid #dcebdc",
+                    pb: 0.75,
+                  }}
+                >
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      variant="subtitle1"
+                      component="h1"
+                      sx={{
+                        fontWeight: 800,
+                        color: "#1b5e20",
+                        letterSpacing: 0,
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      Time sheet summary
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0 }}>
+                      Track tutoring, grading, operations, and other volunteer work in one place.
+                    </Typography>
+                  </Box>
+
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    component={RouterLink}
+                    to="/pstudyware/volunteer/time-sheet"
+                    sx={{
+                      backgroundColor: "#43a047",
+                      "&:hover": {
+                        backgroundColor: "#2e7d32",
+                      },
+                      textTransform: "none",
+                      fontWeight: 700,
+                      borderRadius: 1.5,
+                      px: 1.5,
+                      py: 0.5,
+                      boxShadow: "0 4px 10px rgba(67, 160, 71, 0.2)",
+                    }}
+                  >
+                    Log hours
+                  </Button>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      sm: "1fr 1fr",
+                      md: "repeat(4, 1fr)",
+                    },
+                    gap: 1.5,
+                  }}
+                >
+                  {statItems.map((item) => (
+                    <Paper
+                      key={item.label}
+                      className="volunteer-dashboard-stat-card"
+                      sx={{
+                        p: 1,
+                        height: "100%",
+                        border: "1px solid #dfe9df",
+                        borderLeft: `4px solid ${item.accent}`,
+                        borderRadius: 2,
+                        boxShadow: "none",
+                        background: "linear-gradient(180deg, #ffffff 0%, #fbfffb 100%)",
+                        display: "flex",
+                        gap: 1,
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: "50%",
+                          bgcolor: "#e8f5e9",
+                          color: item.accent,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {item.icon}
+                      </Box>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography
+                          variant="subtitle2"
+                          color="text.secondary"
+                          sx={{ fontWeight: 700 }}
+                        >
+                          {item.label}
+                        </Typography>
+                        <Typography
+                          variant={item.label === "Most frequent task" ? "caption" : "subtitle2"}
+                          sx={{
+                            fontWeight: 800,
+                            color: "#2d2d2d",
+                            mt: 0,
+                            lineHeight: 1.2,
+                            overflowWrap: "anywhere",
+                          }}
+                        >
+                          {item.value}
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid
+            item
+            xs={12}
+            className="volunteer-dashboard-grids-stack"
+            sx={{ display: "flex", flexDirection: "column", pt: "0 !important" }}
+          >
+            <Card
+              sx={instructorDashboardPanelCardSx}
+              className="volunteer-dashboard-availability-panel"
+            >
+              <CardContent sx={instructorDashboardPanelContentSx}>
+                <InstructorVolunteerAvailabilityGrid
+                  rows={availabilityRows}
+                  loading={availabilityLoading}
+                  error={availabilityError}
+                />
+              </CardContent>
+            </Card>
+
+            <Card
+              sx={instructorDashboardPanelCardSx}
+              className="volunteer-dashboard-timesheet-panel"
+            >
+              <CardContent sx={instructorDashboardPanelContentSx}>
                 <VolunteerTimeSheetGrid
                   rows={entries}
                   loading={listLoading}
@@ -368,10 +504,10 @@ const VolunteerDashboard = () => {
                 />
               </CardContent>
             </Card>
-          </Box>
+          </Grid>
         </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </Box>
   );
 };
 

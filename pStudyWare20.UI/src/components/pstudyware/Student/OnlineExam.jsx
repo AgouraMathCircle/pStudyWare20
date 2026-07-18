@@ -44,7 +44,7 @@ import {
   getOnlineExamDisplayChapterFromResponse,
 } from "../../../utils/studentChapterRouting";
 import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
-import FinalExamScoresGrid from "./FinalExamScoresGrid";
+import OnlineExamScoresGrid from "./OnlineExamScoresGrid";
 import AppConfirmDialog from "../Common/AppConfirmDialog";
 import {
   adminSessionListPanelCardSx,
@@ -598,8 +598,14 @@ const OnlineExam = () => {
         user.username || user.email,
       );
 
-      if (scoresResponse.isSuccess && scoresResponse.scores) {
-        setStudentScores(scoresResponse.scores);
+      if (scoresResponse?.isSuccess) {
+        const rows =
+          scoresResponse.scores ??
+          scoresResponse.Scores ??
+          scoresResponse.studentScores ??
+          scoresResponse.StudentScores ??
+          [];
+        setStudentScores(Array.isArray(rows) ? rows : []);
       }
     } catch (error) {
       console.error("Error loading student scores:", error);
@@ -913,207 +919,215 @@ const OnlineExam = () => {
       <StudentRoleHeaderSpacer />
 
       <Container maxWidth="xl" sx={{ mb: 4, mt: 0 }}>
-        {showForm && (
-          <Paper
-            className="online-exam-instructions"
-            elevation={0}
-            sx={{ ...answerSheetPanelSx, mb: 2 }}
+        <Card sx={{ ...adminSessionListPanelCardSx, mb: 2 }}>
+          <CardContent
+            sx={{
+              ...adminSessionListPanelContentSx,
+              pt: 1.5,
+              pb: 1.5,
+              "&:last-child": { pb: 1.5 },
+            }}
           >
-            <Box sx={answerSheetTitleSx}>On Line Exam</Box>
-            <Box sx={legacyInstructionBodySx}>
-              <Typography component="p" sx={legacyInstructionStepSx}>
-                <strong>Step 1:</strong> Download the questions (Quiz, Classwork,
-                Homework, Final exam) and answer each question carefully.{" "}
-                <Link
-                  href="/pstudyware/student/class-material"
-                  sx={legacyInstructionLinkSx}
-                >
-                  Click here to download the Questions (Quiz, Classwork, Homework,
-                  Final exam).
-                </Link>
-              </Typography>
-              <Typography component="p" sx={legacyInstructionStepSx}>
-                <strong>Step 2:</strong> Select the student from the list. (If you
-                have multiple kids enrolled, pay attention to the Student Name,
-                Session and Exam Type from the dropdown menu. You will only be able
-                to submit your answers once and they cannot be changed.)
-              </Typography>
-              <Typography component="p" sx={legacyInstructionStepSx}>
-                <strong>Step 3:</strong> Select the Correct Answer. If you did not
-                know the answer, skip it so you don&apos;t waste time.
-              </Typography>
-              <Typography component="p" sx={legacyInstructionStepSx}>
-                <strong>Step 4:</strong> Click the submit button after updating all
-                answers. Do not forget this step.
-              </Typography>
-              <Typography component="p" sx={{ ...legacyInstructionStepSx, mb: 1.5 }}>
-                <strong>Step 5:</strong> The answer sheet update option will be
-                disabled after you submitted. You can submit only one time. If you
-                have any questions, please contact us via Message Center.
-              </Typography>
-
-              {students.length === 0 ? (
-                <Alert severity="info" sx={{ backgroundColor: "#edfce9" }}>
-                  No students found for your account. Please contact support if you
-                  believe this is an error.
-                </Alert>
-              ) : (
-                <Box sx={legacyFormRowSx}>
-                  <Box sx={legacyFormGroupSx}>
-                    <Box sx={legacyFormCaptionCellSx}>Student Name</Box>
-                    <Box sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}>
-                      <FormControl size="small" fullWidth>
-                        <Select
-                          value={selectedStudent}
-                          onChange={handleStudentChange}
-                          displayEmpty
-                          sx={legacyInputSelectInlineSx}
-                        >
-                          {students.map((student) => {
-                            const studentValue = getStudentListItemValue(student);
-                            return (
-                              <MenuItem key={studentValue} value={studentValue}>
-                                {getStudentListItemText(student)}
-                              </MenuItem>
-                            );
-                          })}
-                        </Select>
-                      </FormControl>
-                    </Box>
-                  </Box>
-
-                  <Box sx={legacyFormGroupSx}>
-                    <Box sx={legacyFormCaptionCellSx}>Session</Box>
-                    <Box sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}>
-                      <FormControl size="small" fullWidth>
-                        <Select
-                          value={selectedSession}
-                          onChange={handleSessionChange}
-                          sx={legacyInputSelectInlineSx}
-                        >
-                          {sessions.map((session, index) => {
-                            const sessionLabel = getSessionLabel(session);
-                            return (
-                              <MenuItem key={`${sessionLabel}-${index}`} value={sessionLabel}>
-                                {sessionLabel}
-                              </MenuItem>
-                            );
-                          })}
-                        </Select>
-                      </FormControl>
-                    </Box>
-                  </Box>
-
-                  <Box sx={legacyFormGroupSx}>
-                    <Box sx={legacyFormCaptionCellSx}>Exam Type</Box>
-                    <Box sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}>
-                      <FormControl size="small" fullWidth>
-                        <Select
-                          value={selectedExamType}
-                          onChange={handleExamTypeChange}
-                          sx={legacyInputSelectInlineSx}
-                        >
-                          {examTypes.map((type, index) => (
-                            <MenuItem key={index} value={type}>
-                              {type}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Box>
-                  </Box>
-
-                  <Button
-                    variant="contained"
-                    onClick={handleGetAnswerSheet}
-                    disabled={questionsLoading || showAlreadySubmitted}
-                    sx={legacyGetAnswerSheetButtonSx}
-                  >
-                    {questionsLoading ? "Loading..." : "Get Answer Sheet"}
-                  </Button>
-                </Box>
-              )}
-            </Box>
-          </Paper>
-        )}
-
-        {showNoQuestions && (
-          <Alert severity="warning" sx={{ mb: 3 }}>
-            <Typography variant="body1">
-              <strong>
-                No answer sheet available for the selected options.
-              </strong>
-            </Typography>
-          </Alert>
-        )}
-
-        {showAlreadySubmitted && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            <Typography variant="body1">
-              <strong>
-                You have already submitted. You can&apos;t submit more than one time.
-                Here is your score. If you have a question, please contact us
-                via Message Center.
-              </strong>
-            </Typography>
-          </Alert>
-        )}
-
-        {submitSuccess && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            <Typography variant="body1">
-              {formatExamSubmitSuccessMessage(
-                submitSuccess.receivedScore,
-                submitSuccess.totalScore,
-              )}
-            </Typography>
-          </Alert>
-        )}
-
-        {showQuestions && questions.length > 0 && (
-          <Card
-            className="online-exam-answer-sheet"
-            sx={{ ...adminSessionListPanelCardSx, mb: 2 }}
-          >
-            <CardContent sx={adminSessionListPanelContentSx}>
-              <Typography
-                variant="subtitle1"
-                sx={{ ...adminSessionListTitleSx, mb: 1.5 }}
+            {showForm && (
+              <Paper
+                className="online-exam-instructions"
+                elevation={0}
+                sx={{ ...answerSheetPanelSx, mb: 0 }}
               >
-                Answer Sheet
-              </Typography>
+                <Box sx={answerSheetTitleSx}>On Line Exam</Box>
+                <Box sx={legacyInstructionBodySx}>
+                  <Typography component="p" sx={legacyInstructionStepSx}>
+                    <strong>Step 1:</strong> Download the questions (Quiz, Classwork,
+                    Homework, Final exam) and answer each question carefully.{" "}
+                    <Link
+                      href="/pstudyware/student/class-material"
+                      sx={legacyInstructionLinkSx}
+                    >
+                      Click here to download the Questions (Quiz, Classwork, Homework,
+                      Final exam).
+                    </Link>
+                  </Typography>
+                  <Typography component="p" sx={legacyInstructionStepSx}>
+                    <strong>Step 2:</strong> Select the student from the list. (If you
+                    have multiple kids enrolled, pay attention to the Student Name,
+                    Session and Exam Type from the dropdown menu. You will only be able
+                    to submit your answers once and they cannot be changed.)
+                  </Typography>
+                  <Typography component="p" sx={legacyInstructionStepSx}>
+                    <strong>Step 3:</strong> Select the Correct Answer. If you did not
+                    know the answer, skip it so you don&apos;t waste time.
+                  </Typography>
+                  <Typography component="p" sx={legacyInstructionStepSx}>
+                    <strong>Step 4:</strong> Click the submit button after updating all
+                    answers. Do not forget this step.
+                  </Typography>
+                  <Typography component="p" sx={{ ...legacyInstructionStepSx, mb: 1.5 }}>
+                    <strong>Step 5:</strong> The answer sheet update option will be
+                    disabled after you submitted. You can submit only one time. If you
+                    have any questions, please contact us via Message Center.
+                  </Typography>
 
-              <Grid container spacing={1.5}>
-                {renderQuestionGroup(group1, "Group 1")}
-                {renderQuestionGroup(group2, "Group 2")}
-                {renderQuestionGroup(group3, "Group 3")}
-              </Grid>
-
-              {canSubmit && (
-                <Box sx={{ mt: 2, textAlign: "center" }}>
-                  {submitting && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                      Your answers are being processed. Please wait and do not
-                      click the Submit button again.
+                  {students.length === 0 ? (
+                    <Alert severity="info" sx={{ backgroundColor: "#edfce9" }}>
+                      No students found for your account. Please contact support if you
+                      believe this is an error.
                     </Alert>
-                  )}
-                  <Button
-                    variant="contained"
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    sx={legacySubmitButtonSx}
-                  >
-                    {submitting ? "Submitting..." : "Submit"}
-                  </Button>
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-        )}
+                  ) : (
+                    <Box sx={legacyFormRowSx}>
+                      <Box sx={legacyFormGroupSx}>
+                        <Box sx={legacyFormCaptionCellSx}>Student Name</Box>
+                        <Box sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}>
+                          <FormControl size="small" fullWidth>
+                            <Select
+                              value={selectedStudent}
+                              onChange={handleStudentChange}
+                              displayEmpty
+                              sx={legacyInputSelectInlineSx}
+                            >
+                              {students.map((student) => {
+                                const studentValue = getStudentListItemValue(student);
+                                return (
+                                  <MenuItem key={studentValue} value={studentValue}>
+                                    {getStudentListItemText(student)}
+                                  </MenuItem>
+                                );
+                              })}
+                            </Select>
+                          </FormControl>
+                        </Box>
+                      </Box>
 
-        {studentScores.length > 0 && (
-          <FinalExamScoresGrid scores={studentScores} />
-        )}
+                      <Box sx={legacyFormGroupSx}>
+                        <Box sx={legacyFormCaptionCellSx}>Session</Box>
+                        <Box sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}>
+                          <FormControl size="small" fullWidth>
+                            <Select
+                              value={selectedSession}
+                              onChange={handleSessionChange}
+                              sx={legacyInputSelectInlineSx}
+                            >
+                              {sessions.map((session, index) => {
+                                const sessionLabel = getSessionLabel(session);
+                                return (
+                                  <MenuItem key={`${sessionLabel}-${index}`} value={sessionLabel}>
+                                    {sessionLabel}
+                                  </MenuItem>
+                                );
+                              })}
+                            </Select>
+                          </FormControl>
+                        </Box>
+                      </Box>
+
+                      <Box sx={legacyFormGroupSx}>
+                        <Box sx={legacyFormCaptionCellSx}>Exam Type</Box>
+                        <Box sx={{ ...legacyFormFieldCellSx, flex: 1, minWidth: 0 }}>
+                          <FormControl size="small" fullWidth>
+                            <Select
+                              value={selectedExamType}
+                              onChange={handleExamTypeChange}
+                              sx={legacyInputSelectInlineSx}
+                            >
+                              {examTypes.map((type, index) => (
+                                <MenuItem key={index} value={type}>
+                                  {type}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Box>
+                      </Box>
+
+                      <Button
+                        variant="contained"
+                        onClick={handleGetAnswerSheet}
+                        disabled={questionsLoading || showAlreadySubmitted}
+                        sx={legacyGetAnswerSheetButtonSx}
+                      >
+                        {questionsLoading ? "Loading..." : "Get Answer Sheet"}
+                      </Button>
+                    </Box>
+                  )}
+                </Box>
+              </Paper>
+            )}
+
+            {showNoQuestions && (
+              <Alert severity="warning" sx={{ mt: showForm ? 1.5 : 0, mb: 0 }}>
+                <Typography variant="body1">
+                  <strong>
+                    No answer sheet available for the selected options.
+                  </strong>
+                </Typography>
+              </Alert>
+            )}
+
+            {showAlreadySubmitted && (
+              <Alert severity="error" sx={{ mt: showForm ? 1.5 : 0, mb: 0 }}>
+                <Typography variant="body1">
+                  <strong>
+                    You have already submitted. You can&apos;t submit more than one time.
+                    Here is your score. If you have a question, please contact us
+                    via Message Center.
+                  </strong>
+                </Typography>
+              </Alert>
+            )}
+
+            {submitSuccess && (
+              <Alert severity="success" sx={{ mt: showForm ? 1.5 : 0, mb: 0 }}>
+                <Typography variant="body1">
+                  {formatExamSubmitSuccessMessage(
+                    submitSuccess.receivedScore,
+                    submitSuccess.totalScore,
+                  )}
+                </Typography>
+              </Alert>
+            )}
+
+            {showQuestions && questions.length > 0 && (
+              <Box
+                className="online-exam-answer-sheet"
+                sx={{ mt: 1.5, width: "100%" }}
+              >
+                <Typography
+                  variant="subtitle1"
+                  sx={{ ...adminSessionListTitleSx, mb: 1.5 }}
+                >
+                  Answer Sheet
+                </Typography>
+
+                <Grid container spacing={1.5}>
+                  {renderQuestionGroup(group1, "Group 1")}
+                  {renderQuestionGroup(group2, "Group 2")}
+                  {renderQuestionGroup(group3, "Group 3")}
+                </Grid>
+
+                {canSubmit && (
+                  <Box sx={{ mt: 2, textAlign: "center" }}>
+                    {submitting && (
+                      <Alert severity="error" sx={{ mb: 2 }}>
+                        Your answers are being processed. Please wait and do not
+                        click the Submit button again.
+                      </Alert>
+                    )}
+                    <Button
+                      variant="contained"
+                      onClick={handleSubmit}
+                      disabled={submitting}
+                      sx={legacySubmitButtonSx}
+                    >
+                      {submitting ? "Submitting..." : "Submit"}
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Legacy OnlineExam.aspx divScoreCard / kGrid1 — always visible */}
+        <OnlineExamScoresGrid scores={studentScores} />
       </Container>
 
       <AppConfirmDialog

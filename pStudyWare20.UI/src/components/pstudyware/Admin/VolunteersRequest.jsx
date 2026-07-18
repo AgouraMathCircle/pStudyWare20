@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Container,
@@ -244,10 +245,9 @@ function renderVolunteerChapterSelectValue(selected, chapterLocations) {
 }
 
 const volunteersRequestColumnWidths = {
-  edit: "4%",
-  delete: "4%",
-  status: "6%",
-  id: "5%",
+  action: "8%",
+  status: "8%",
+  id: "4%",
   volunteerName: "10%",
   grade: "5%",
   location: "8%",
@@ -355,6 +355,73 @@ async function copyTextToClipboard(text) {
   document.body.removeChild(textarea);
   return copied;
 }
+
+const DUPLICATE_STATUS_PATTERN = /^Duplicate[:\s]*(\d+)/i;
+
+function parseDuplicateStatusId(status) {
+  const text = String(status ?? "").trim();
+  const match = text.match(DUPLICATE_STATUS_PATTERN);
+  return match ? match[1] : null;
+}
+
+function buildInstructorSearchPath(instructorId) {
+  return `/pstudyware/admin/instructor?searchBy=INSTRUCTOR_ID&searchCriteria=equals&searchText=${encodeURIComponent(instructorId)}&from=volunteers-request`;
+}
+
+const VolunteersRequestStatusCell = ({ value }) => {
+  const navigate = useNavigate();
+  const display =
+    value == null || value === "" ? "—" : String(value).trim() || "—";
+  const duplicateId = parseDuplicateStatusId(display);
+
+  if (!duplicateId) {
+    return (
+      <Tooltip title={display}>
+        <Box
+          component="span"
+          sx={{
+            display: "block",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            maxWidth: "100%",
+          }}
+        >
+          {display}
+        </Box>
+      </Tooltip>
+    );
+  }
+
+  const linkPath = buildInstructorSearchPath(duplicateId);
+
+  return (
+    <Tooltip title={`View instructor #${duplicateId}`}>
+      <Box
+        component="span"
+        className="vr-status-duplicate"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          flexWrap: "nowrap",
+          whiteSpace: "nowrap",
+        }}
+      >
+        <Box component="span">Duplicate:</Box>
+        <Box
+          component="span"
+          onClick={(event) => {
+            event.stopPropagation();
+            navigate(linkPath);
+          }}
+          sx={adminSessionListTableActionLinkSx}
+        >
+          {duplicateId}
+        </Box>
+      </Box>
+    </Tooltip>
+  );
+};
 
 const VolunteersRequestCopyCell = ({ value, onCopied }) => {
   const display =
@@ -931,17 +998,10 @@ const VolunteersRequest = () => {
                         <TableRow sx={adminSessionListTableHeadRowSx}>
                           <TableCell
                             sx={adminSessionListTableHeadCellSx(
-                              volunteersRequestColumnWidths.edit,
+                              volunteersRequestColumnWidths.action,
                             )}
                           >
-                            Edit
-                          </TableCell>
-                          <TableCell
-                            sx={adminSessionListTableHeadCellSx(
-                              volunteersRequestColumnWidths.delete,
-                            )}
-                          >
-                            Delete
+                            Action
                           </TableCell>
                           <SortableHeader
                             label="Status"
@@ -1080,7 +1140,7 @@ const VolunteersRequest = () => {
                         {loading ? (
                           <TableRow>
                             <TableCell
-                              colSpan={15}
+                              colSpan={14}
                               align="center"
                               sx={adminSessionListEmptyCellSx}
                             >
@@ -1104,27 +1164,27 @@ const VolunteersRequest = () => {
                                   action: true,
                                 })}
                               >
-                                <Box
-                                  onClick={() => handleEdit(row)}
-                                  sx={adminSessionListTableActionLinkSx}
-                                >
-                                  Edit
+                                <Box sx={{ display: "flex", gap: 0.5, flexWrap: "nowrap" }}>
+                                  <Box
+                                    onClick={() => handleEdit(row)}
+                                    sx={adminSessionListTableActionLinkSx}
+                                  >
+                                    Edit
+                                  </Box>
+                                  <Box component="span" sx={{ color: "text.disabled", userSelect: "none" }}>|</Box>
+                                  <Box
+                                    onClick={() => handleDeleteClick(row)}
+                                    sx={adminSessionListTableDeleteLinkSx}
+                                  >
+                                    Delete
+                                  </Box>
                                 </Box>
                               </TableCell>
                               <TableCell
-                                sx={adminSessionListTableBodyCellSx({
-                                  action: true,
-                                })}
+                                className="vr-status-cell"
+                                sx={adminSessionListTableBodyCellSx()}
                               >
-                                <Box
-                                  onClick={() => handleDeleteClick(row)}
-                                  sx={adminSessionListTableDeleteLinkSx}
-                                >
-                                  Delete
-                                </Box>
-                              </TableCell>
-                              <TableCell sx={adminSessionListTableBodyCellSx()}>
-                                {row.status ?? "—"}
+                                <VolunteersRequestStatusCell value={row.status} />
                               </TableCell>
                               <TableCell sx={adminSessionListTableBodyCellSx()}>
                                 {row.volunteerID ?? "—"}
@@ -1149,7 +1209,7 @@ const VolunteersRequest = () => {
                         ) : (
                           <TableRow>
                             <TableCell
-                              colSpan={15}
+                              colSpan={14}
                               align="center"
                               sx={adminSessionListEmptyCellSx}
                             >

@@ -309,10 +309,10 @@ const StudentDashboard = () => {
     backgroundColor: "white",
     borderRadius: 2,
     boxShadow: PORTAL_CARD_BOX_SHADOW,
-    overflow: "hidden",
+    overflow: { xs: "visible", md: "hidden" },
     boxSizing: "border-box",
-    pl: "35px",
-    pr: "35px",
+    pl: { xs: 1.5, md: "35px" },
+    pr: { xs: 1.5, md: "35px" },
     ...portalCardAntiLiftSx,
   };
 
@@ -329,7 +329,7 @@ const StudentDashboard = () => {
       <StudentRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sx={{ pb: "0 !important", width: "100%", maxWidth: "100%" }}>
+          <Grid item xs={12} sx={{ width: "100%", maxWidth: "100%" }}>
             <Card sx={panelCardSx} className="dashboard-messages-panel">
               <CardContent sx={dashboardMessagesPanelContentSx}>
                 <DashboardMessages
@@ -343,22 +343,13 @@ const StudentDashboard = () => {
             </Card>
           </Grid>
 
-          <Grid
-            item
-            xs={12}
-            sx={{
-              pt: "0 !important",
-              mt: "-12px !important",
-              width: "100%",
-              maxWidth: "100%",
-            }}
-          >
+          <Grid item xs={12} sx={{ width: "100%", maxWidth: "100%" }}>
             <StudentMeetingSchedule username={username} panelCardSx={panelCardSx} />
           </Grid>
 
           {showRegistration && !registrationLoading && (
-            <Grid item xs={12} sx={{ pt: "0 !important", mt: "-12px !important" }}>
-              <Card sx={panelCardSx}>
+            <Grid item xs={12}>
+              <Card sx={panelCardSx} className="student-registration-panel">
                 <CardContent
                   sx={{
                     px: 1.5,
@@ -382,7 +373,7 @@ const StudentDashboard = () => {
           )}
 
           {registrationLoading && (
-            <Grid item xs={12} sx={{ pt: "0 !important", mt: "-12px !important" }}>
+            <Grid item xs={12}>
               <Card sx={panelCardSx}>
                 <CardContent sx={panelContentSx}>
                   <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
@@ -394,7 +385,7 @@ const StudentDashboard = () => {
           )}
 
           {showFinalExam && (
-            <Grid item xs={12} sx={{ pt: "0 !important", mt: "-4px !important" }}>
+            <Grid item xs={12}>
               <Card sx={panelCardSx}>
                 <CardContent sx={panelContentSx}>
                   <FinalExamSection />
@@ -403,8 +394,8 @@ const StudentDashboard = () => {
             </Grid>
           )}
 
-          <Grid item xs={12} sx={{ pt: "0 !important", mt: "-4px !important" }}>
-            <Card sx={panelCardSx}>
+          <Grid item xs={12}>
+            <Card sx={panelCardSx} className="student-profile-panel">
               <CardContent sx={panelContentSx}>
                 <StudentProfile
                   username={username}
@@ -415,8 +406,8 @@ const StudentDashboard = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sx={{ pt: "0 !important", mt: "-4px !important" }}>
-            <Card sx={panelCardSx}>
+          <Grid item xs={12}>
+            <Card sx={panelCardSx} className="student-report-card-panel">
               <CardContent
                 sx={{
                   ...panelContentSx,

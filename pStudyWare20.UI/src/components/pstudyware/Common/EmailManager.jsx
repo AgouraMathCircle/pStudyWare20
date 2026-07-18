@@ -50,6 +50,7 @@ import AdminHeader, { AdminRoleHeaderSpacer } from "../Admin/AdminHeader";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import { getPortalUsername, getPortalLoginIdentifier } from "../../../utils/portalUsername";
 import { notifyUnreadMessageCountChanged } from "../../../utils/messageCenterEvents";
+import config from "../../../utils/config";
 import {
   getMessagePreview,
   getMessageFieldValue,
@@ -330,9 +331,13 @@ const EmailManager = () => {
       if (selectedStudent) {
         return "";
       }
-      return memberType === "S"
-        ? "Please select From"
-        : "Please select a student to send to";
+      if (memberType === "S") {
+        return "Please select From";
+      }
+      if (memberType === "V") {
+        return "Please select a recipient";
+      }
+      return "Please select a student to send to";
     }
     return "";
   }, [
@@ -575,15 +580,58 @@ const EmailManager = () => {
 
   const loadStudentList = async () => {
     try {
+      // Legacy BindStudentList(..., "I") for I/V/S; BE maps V to Administrator-only list.
+      const emailListMode =
+        memberType === "I" || memberType === "V" || memberType === "S"
+          ? memberType === "V"
+            ? "V"
+            : "I"
+          : "I";
       const response = await emailManagerService.getStudentListForEmail({
-        username: loginIdentifier,
-        memberType: "I",
+        username: username || loginIdentifier,
+        memberType: emailListMode,
       });
-      if (response.isSuccess) {
-        setStudentList(response.students || []);
+      const success = response?.isSuccess === true || response?.IsSuccess === true;
+      const rawStudents = response?.students ?? response?.Students ?? [];
+      let students = (Array.isArray(rawStudents) ? rawStudents : [])
+        .map((s) => ({
+          value: s?.value ?? s?.Value ?? "",
+          text: s?.text ?? s?.Text ?? "",
+        }))
+        .filter((s) => s.value || s.text);
+
+      // Legacy volunteer SP: only Administrator (support@…~memberId).
+      if (memberType === "V") {
+        const hasAdministrator = students.some(
+          (s) => String(s.text).trim().toLowerCase() === "administrator",
+        );
+        if (!hasAdministrator) {
+          const adminEmail =
+            config?.contact?.email || "support@agouramathcircle.org";
+          students = [
+            {
+              value: `${adminEmail}~${userId || "0"}`,
+              text: "Administrator",
+            },
+          ];
+        }
+      }
+
+      if (success || students.length > 0) {
+        setStudentList(students);
       }
     } catch (error) {
       console.error("Error loading student list:", error);
+      if (memberType === "V") {
+        const adminEmail =
+          config?.contact?.email || "support@agouramathcircle.org";
+        setStudentList([
+          {
+            value: `${adminEmail}~${userId || "0"}`,
+            text: "Administrator",
+          },
+        ]);
+      }
     }
   };
 
@@ -1944,21 +1992,36 @@ useSessionListTableUi
                     error={!!composeRecipientFieldError}
                   >
                     <InputLabel>
-                      {memberType === "S" ? "From" : "Send To (Student)"}
+                      {memberType === "S"
+                        ? "From"
+                        : memberType === "V"
+                          ? "Send To"
+                          : "Send To (Student)"}
                     </InputLabel>
                     <PortalModalSelect
                       value={selectedStudent}
                       onChange={(e) => setSelectedStudent(e.target.value)}
-                      label={memberType === "S" ? "From" : "Send To (Student)"}
+                      label={
+                        memberType === "S"
+                          ? "From"
+                          : memberType === "V"
+                            ? "Send To"
+                            : "Send To (Student)"
+                      }
                       disabled={sendingMessage}
                     >
                       <MenuItem value="" disabled>
                         {memberType === "S"
                           ? "Select Instructor"
-                          : "Select Student"}
+                          : memberType === "V"
+                            ? "Select Recipient"
+                            : "Select Student"}
                       </MenuItem>
                       {studentList.map((student) => (
-                        <MenuItem key={student.value} value={student.value}>
+                        <MenuItem
+                          key={student.value || student.text}
+                          value={student.value}
+                        >
                           {student.text}
                         </MenuItem>
                       ))}
@@ -2119,7 +2182,10 @@ useSessionListTableUi
           elevation={useSessionListTableUi ? 0 : 3}
           sx={
             useSessionListTableUi
-              ? adminSessionListPanelCardSx
+              ? {
+                  ...adminSessionListPanelCardSx,
+                  ...(isAdminMessageCenter ? { pb: 2.5 } : {}),
+                }
               : { p: 3, ...portalPaperAntiLiftSx }
           }
         >

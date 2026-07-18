@@ -16,6 +16,8 @@ import StudentMeetingSchedule from "../Student/StudentMeetingSchedule";
 import instructorDashboardService from "../../../services/instructorDashboardService";
 import studentDashboardService from "../../../services/studentDashboardService";
 import volunteerAvailabilityService from "../../../services/volunteerAvailabilityService";
+import { getPortalUsername } from "../../../utils/portalUsername";
+import { applyVolunteerAvailabilityRefresh } from "../../../utils/volunteerAvailabilityGridMerge";
 import InstructorStudentListGrid from "./InstructorStudentListGrid";
 import InstructorVolunteerAvailabilityGrid from "./InstructorVolunteerAvailabilityGrid";
 import VolunteerAvailability, {
@@ -59,6 +61,7 @@ const InstructorDashboard = () => {
     () => user?.email || user?.username || "",
     [user?.email, user?.username]
   );
+  const portalUsername = useMemo(() => getPortalUsername(user), [user]);
   const chapterId = useMemo(
     () => user?.chapterId ?? user?.chapterID ?? 1,
     [user?.chapterId, user?.chapterID]
@@ -131,28 +134,44 @@ const InstructorDashboard = () => {
     }
   }, [username]);
 
-  const loadVolunteerAvailability = useCallback(async () => {
-    if (!username) return;
+  const loadVolunteerAvailability = useCallback(async ({ silent = false } = {}) => {
+    if (!portalUsername) return;
 
-    setAvailabilityError(null);
-    setAvailabilityLoading(true);
+    if (!silent) {
+      setAvailabilityError(null);
+      setAvailabilityLoading(true);
+    }
 
     try {
-      const res = await volunteerAvailabilityService.getAvailabilitySummary({ username });
-      if (res?.isSuccess) {
-        setAvailabilityRows(res.summaryData || []);
-        setAvailabilityError(null);
-      } else {
+      const res = await volunteerAvailabilityService.getAvailabilitySummary({
+        username: portalUsername,
+      });
+      if (res?.isSuccess !== false) {
+        const nextRows = res.summaryData || [];
+        if (nextRows.length > 0 || !silent) {
+          setAvailabilityRows(nextRows);
+          setAvailabilityError(null);
+        }
+      } else if (!silent) {
         setAvailabilityRows([]);
-        setAvailabilityError(res?.errorMessage || "Could not load volunteer availability list.");
+        setAvailabilityError(
+          res?.errorMessage || "Could not load volunteer availability list.",
+        );
       }
     } catch (e) {
-      setAvailabilityError(e?.message || "Failed to load volunteer availability list.");
-      setAvailabilityRows([]);
+      if (!silent) {
+        setAvailabilityError(e?.message || "Failed to load volunteer availability list.");
+        setAvailabilityRows([]);
+      }
     } finally {
-      setAvailabilityLoading(false);
+      if (!silent) setAvailabilityLoading(false);
     }
-  }, [username]);
+  }, [portalUsername]);
+
+  const refreshVolunteerAvailabilityList = useCallback((payload) => {
+    setAvailabilityRows((prev) => applyVolunteerAvailabilityRefresh(prev, payload));
+    setAvailabilityError(null);
+  }, []);
 
   useEffect(() => {
     if (!isValidated || !username) return;
@@ -171,7 +190,7 @@ const InstructorDashboard = () => {
     return () => {
       cancelled = true;
     };
-  }, [isValidated, username, loadStudentList, loadVolunteerAvailability]);
+  }, [isValidated, username, portalUsername, loadStudentList, loadVolunteerAvailability]);
 
   useEffect(() => {
     if (!isValidated || !username) return;
@@ -275,7 +294,10 @@ const InstructorDashboard = () => {
                   className="instructor-dashboard-volunteer-availability-entry-panel"
                 >
                   <CardContent sx={instructorDashboardPanelContentSx}>
-                    <VolunteerAvailability embedded={true} />
+                    <VolunteerAvailability
+                      embedded={true}
+                      onSaved={refreshVolunteerAvailabilityList}
+                    />
                   </CardContent>
                 </Card>
               </Grid>

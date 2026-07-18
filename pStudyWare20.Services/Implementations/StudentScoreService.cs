@@ -42,10 +42,17 @@ namespace pStudyWare20.Services.Implementations
                     {
                         foreach (var row in rows)
                         {
+                            var text = GetString(row, "StudentName", "Text");
+                            var value = GetString(row, "StudentID", "Value");
+                            if (IsStudentListPlaceholder(text, value))
+                            {
+                                continue;
+                            }
+
                             response.StudentList.Add(new StudentListItem
                             {
-                                Value = GetString(row, "StudentID", "Value"),
-                                Text = GetString(row, "StudentName", "Text"),
+                                Value = value,
+                                Text = text,
                             });
                         }
                     }
@@ -76,9 +83,20 @@ namespace pStudyWare20.Services.Implementations
                     {
                         foreach (var row in rows)
                         {
+                            var session = GetString(
+                                row,
+                                "Session",
+                                "CurrentSession",
+                                "SessionName",
+                                "session");
+                            if (string.IsNullOrWhiteSpace(session))
+                            {
+                                continue;
+                            }
+
                             response.Sessions.Add(new SessionItem
                             {
-                                Session = GetString(row, "Session"),
+                                Session = session.Trim(),
                             });
                         }
                     }
@@ -336,6 +354,26 @@ namespace pStudyWare20.Services.Implementations
             request.HomeWorkComments = request.HomeWorkComments?.Trim() ?? string.Empty;
             request.FinalExamComments = request.FinalExamComments?.Trim() ?? string.Empty;
             request.PlacementTestComments = request.PlacementTestComments?.Trim() ?? string.Empty;
+        }
+
+        private static bool IsStudentListPlaceholder(string text, string value)
+        {
+            var normalizedText = (text ?? string.Empty).Trim();
+            var normalizedValue = (value ?? string.Empty).Trim();
+
+            if (string.IsNullOrWhiteSpace(normalizedValue))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(normalizedText))
+            {
+                return true;
+            }
+
+            return normalizedText.Equals("Select Student", StringComparison.OrdinalIgnoreCase)
+                || normalizedText.StartsWith("Select Student", StringComparison.OrdinalIgnoreCase)
+                || normalizedValue.Equals("Select Student", StringComparison.OrdinalIgnoreCase);
         }
 
         private static string ExtractStudentId(string? studentId)
