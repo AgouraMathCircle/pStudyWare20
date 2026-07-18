@@ -272,6 +272,17 @@ namespace pStudyWare20.Services.Implementations
                 " <br/> <br/>Regards <br/> " + request.FromName +
                 "<br/> Agoura Math Circle<br/>www.agouramathcircle.org";
 
+            // Legacy AdminEmailID / AppSettings:AMCEmailID (group-send envelope From).
+            var adminEmail = configuration.GetSection("AppSettings")["AMCEmailID"]
+                ?? configuration.GetSection("AppSettings")["Email"]
+                ?? "support@agouramathcircle.org";
+
+            // Legacy checks SelectedItem.Text == "ALL"; FE puts that display text in FromName.
+            var isAllRecipients =
+                string.Equals(request.FromName?.Trim(), "ALL", StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrWhiteSpace(request.SendTo) &&
+                 request.SendTo.Contains("ALL", StringComparison.OrdinalIgnoreCase));
+
             if (request.MemberType == "S")
             {
                 await emailUtility.SendEmailAsync(request.SendTo, request.SendFrom, emailSubject, emailBody);
@@ -282,9 +293,8 @@ namespace pStudyWare20.Services.Implementations
                 {
                     await emailUtility.SendEmailAsync(request.SendTo, request.SendFrom, request.Subject, emailBody);
                 }
-                else if (request.SendTo.Contains("ALL", StringComparison.OrdinalIgnoreCase))
+                else if (isAllRecipients)
                 {
-                    var adminEmail = configuration["Email"] ?? "info@agouramathcircle.net";
                     await emailUtility.SendEmailGroupAsync(adminEmail, request.SendFrom, emailSubject, emailBody, request.SendTo);
                 }
                 else
@@ -301,20 +311,16 @@ namespace pStudyWare20.Services.Implementations
                 }
                 else
                 {
-                    var adminEmail = configuration["Email"] ?? "info@agouramathcircle.net";
                     await emailUtility.SendEmailGroupAsync(adminEmail, request.SendFrom, emailSubject, emailBody, request.SendTo);
                 }
             }
             else if (request.MemberType == "V")
             {
+                // Legacy saved to message center for V but skipped SMTP; new stack notifies by email.
+                // Volunteer recipients are Administrator (or reply target) — always single send.
                 if (mode == "R")
                 {
                     await emailUtility.SendEmailAsync(request.SendTo, request.SendFrom, request.Subject, emailBody);
-                }
-                else if (request.SendTo.Contains("ALL", StringComparison.OrdinalIgnoreCase))
-                {
-                    var adminEmail = configuration["Email"] ?? "info@agouramathcircle.net";
-                    await emailUtility.SendEmailGroupAsync(adminEmail, request.SendFrom, emailSubject, emailBody, request.SendTo);
                 }
                 else
                 {

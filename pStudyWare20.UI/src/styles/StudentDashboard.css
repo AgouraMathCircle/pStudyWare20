@@ -10,6 +10,9 @@
   background-repeat: no-repeat;
   padding-top: 0;
   box-sizing: border-box;
+  scroll-padding-top: calc(
+    var(--portal-navbar-bottom, 32px) + var(--student-role-header-height, 30px)
+  );
 }
 
 .student-dashboard .MuiCard-root {
@@ -231,10 +234,20 @@
 
 .student-dashboard .student-registration-grid-wrap {
   margin-top: 0.75rem;
+  max-width: 100%;
+  overflow: visible;
 }
 
 .student-dashboard .student-registration-table-container {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  width: 100%;
+}
+
+.student-dashboard .student-registration-panel > .MuiCardContent-root {
+  overflow-x: auto;
+  max-width: 100%;
 }
 
 .student-dashboard .student-registration-grid {
@@ -335,6 +348,98 @@
   color: #1b5e20;
   font-size: 0.875rem;
   box-sizing: border-box;
+}
+
+/* Report card — horizontal scroll on narrow screens (embedded + standalone page) */
+.student-dashboard .student-report-card-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.student-dashboard .student-report-card-panel > .MuiCardContent-root,
+.report-card-page .student-report-card-panel > .MuiCardContent-root,
+.report-card-page > .MuiContainer-root > .MuiCard-root > .MuiCardContent-root {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.student-dashboard .student-report-card-table-container,
+.report-card-page .student-report-card-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  width: 100%;
+}
+
+.student-dashboard .student-report-card-table-container .MuiTable-root,
+.report-card-page .student-report-card-table-container .MuiTable-root {
+  min-width: 920px;
+  width: 100%;
+}
+
+/* Student profile — horizontal scroll on narrow screens */
+.student-dashboard .student-profile-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.student-dashboard .student-profile-panel > .MuiCardContent-root {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.student-dashboard .student-profile-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  width: 100%;
+}
+
+.student-dashboard .student-profile-table-container .MuiTable-root {
+  min-width: 720px;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .student-dashboard .student-registration-warning-box {
+    padding: 12px;
+  }
+
+  .student-dashboard .student-registration-error-box,
+  .student-dashboard .student-registration-valid-box {
+    padding: 12px;
+  }
+
+  .student-dashboard .student-registration-submit-btn {
+    width: 100%;
+  }
+
+  .student-dashboard .student-report-card-panel,
+  .report-card-page .student-report-card-panel,
+  .student-dashboard .student-profile-panel {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    overflow: visible;
+  }
+
+  .student-dashboard .student-registration-panel {
+    overflow: visible;
+  }
+
+  .student-dashboard .student-report-card-search-bar,
+  .report-card-page .student-report-card-search-bar,
+  .student-dashboard .student-profile-search-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .student-dashboard .student-report-card-search-bar .MuiTextField-root,
+  .report-card-page .student-report-card-search-bar .MuiTextField-root,
+  .student-dashboard .student-profile-search-bar .MuiTextField-root {
+    width: 100%;
+  }
 }
 
 /* Card content — tighter than legacy 16px; no bottom padding (flush with card edge) */
@@ -683,10 +788,16 @@
   transform: scale(1.3) rotate(-8deg);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
+  .student-dashboard .meeting-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow-x: visible;
+  }
+}
+
+@media (max-width: 900px) {
   .student-dashboard .meeting-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    overflow-x: visible;
   }
 
   .student-dashboard .meeting-card {
@@ -708,8 +819,13 @@
   }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 600px) {
   .student-dashboard .meeting-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: 1fr;
+  }
+
+  .student-dashboard .meeting-detail-row {
+    white-space: normal;
+    flex-wrap: wrap;
   }
 }

@@ -364,14 +364,14 @@ const StudentProfile = ({ username, chapterId }) => {
   };
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box className="student-profile-wrap" sx={{ width: "100%" }}>
       <Box sx={adminSessionListHeaderBarSx}>
         <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
           Student Profile
         </Typography>
       </Box>
 
-      <Box sx={adminSessionListSearchBarSx}>
+      <Box className="student-profile-search-bar" sx={adminSessionListSearchBarSx}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
           <Typography sx={adminSessionListSearchLabelSx}>Search By:</Typography>
           <Select
@@ -449,7 +449,11 @@ const StudentProfile = ({ username, chapterId }) => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper} sx={adminSessionListTableContainerSx}>
+      <TableContainer
+        component={Paper}
+        className="student-profile-table-container"
+        sx={adminSessionListTableContainerSx}
+      >
         <Table size="small" sx={adminSessionListGridTableSx}>
           <TableHead>
             <TableRow sx={adminSessionListTableHeadRowSx}>

@@ -19,7 +19,7 @@ const VolunteerShell = ({ children }) => {
     >
       <VolunteerHeader user={user} />
       <VolunteerRoleHeaderSpacer />
-      <Box sx={{ px: { xs: 1, sm: 2 }, pt: 0, pb: 2, flex: 1 }} component="main">
+      <Box component="main" sx={{ flex: 1, minWidth: 0, pt: 0, pb: 2 }}>
         {children}
       </Box>
     </Box>

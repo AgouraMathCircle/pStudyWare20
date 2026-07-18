@@ -12,13 +12,15 @@ export const ROLE_HEADER_HEIGHT_VARS = {
 };
 
 export function createRoleHeaderSpacer(heightVar, className, fallbackPx = 30) {
-  // We use position: sticky so the header stays in the normal document flow.
-  // However, we return a small 24px spacer to maintain a visual gap 
-  // between the sticky header and the dashboard content cards below it.
+  // Sticky role headers stay in document flow; spacer is a small visual gap only.
   const RoleHeaderSpacer = () => (
     <Box
       className={className}
-      sx={{ height: 14, flexShrink: 0 }}
+      sx={{
+        height: 8,
+        flexShrink: 0,
+        scrollMarginTop: `calc(var(${PORTAL_NAVBAR_BOTTOM_VAR}, 32px) + var(${heightVar}, ${fallbackPx}px))`,
+      }}
       aria-hidden
     />
   );

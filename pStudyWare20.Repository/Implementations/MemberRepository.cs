@@ -296,5 +296,16 @@ namespace pStudyWare20.Repository.Implementations
 
             return (currentSession, currentSemester, volunteerAvailability);
         }
+
+        public async Task<MemberMaster?> GetMemberByIdAsync(int memberId)
+        {
+            if (memberId <= 0)
+            {
+                return null;
+            }
+
+            return await _context.MemberMasters.AsNoTracking()
+                .FirstOrDefaultAsync(m => m.pMemberID == memberId);
+        }
     }
 }

@@ -33,6 +33,11 @@ namespace pStudyWare20.Shared
     {
         public bool IsSuccess { get; set; }
         public string Message { get; set; } = string.Empty;
+        public string Session { get; set; } = string.Empty;
+        /// <summary>
+        /// Grid rows for Volunteers Availability List (summary SP + saved row upsert).
+        /// </summary>
+        public object SummaryData { get; set; } = Array.Empty<object>();
     }
 
     /// <summary>
@@ -86,5 +91,18 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Summary Data")]
         public object SummaryData { get; set; } = new object();
+    }
+
+    /// <summary>
+    /// Form context for volunteer availability entry (legacy dashboard message).
+    /// </summary>
+    public class VolunteerAvailabilityFormContextResponse
+    {
+        public bool IsSuccess { get; set; }
+        public string? ErrorMessage { get; set; }
+        public string CurrentSession { get; set; } = string.Empty;
+        public string TargetSession { get; set; } = string.Empty;
+        public string VolunteeringPrompt { get; set; } = string.Empty;
+        public string Semester { get; set; } = string.Empty;
     }
 }

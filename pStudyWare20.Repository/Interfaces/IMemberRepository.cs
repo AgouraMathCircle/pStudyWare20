@@ -12,5 +12,6 @@ namespace pStudyWare20.Repository.Interfaces
         Task AddUserTrackingAsync(string userId, string userName, string userType, string ipAddress);
         Task<bool> ChangePasswordAsync(string username, string password);
         Task<(string currentSession, string currentSemester, string volunteerAvailability)> GetCurrentSessionAndSemesterAsync(string chapterId);
+        Task<MemberMaster?> GetMemberByIdAsync(int memberId);
     }
 }

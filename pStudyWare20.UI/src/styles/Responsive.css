@@ -21,6 +21,32 @@ label,
   touch-action: manipulation;
 }
 
+/* Portal app chrome: compact controls — do not inflate MUI / dashboard UI */
+.App button,
+.App a,
+.App input[type="button"],
+.App input[type="submit"],
+.App input[type="checkbox"],
+.App input[type="radio"],
+.App select,
+.App label,
+.App [role="button"] {
+  min-height: unset;
+  min-width: unset;
+}
+
+.App .MuiButton-root,
+.App .MuiIconButton-root {
+  min-height: 36px;
+  min-width: 36px;
+}
+
+.App .MuiCheckbox-root,
+.App .MuiRadio-root {
+  min-height: unset;
+  min-width: unset;
+}
+
 /* Extra Small devices (phones, 576px and down) */
 @media (max-width: 575.98px) {
   .container {
@@ -82,8 +108,8 @@ label,
     padding: 30px 0;
   }
   
-  /* Improved touch targets for links */
-  a {
+  /* Improved touch targets for links (marketing pages only) */
+  body:not(:has(.App)) a {
     padding: 8px 4px;
     display: inline-block;
     min-height: 44px;
@@ -855,10 +881,16 @@ label,
     height: auto;
     display: block;
   }
-  
-  svg {
+
+  /* Marketing pages only — portal icons keep intrinsic sizing */
+  body:not(:has(.App)) svg {
     max-width: 100%;
     height: auto;
+  }
+
+  .App svg {
+    max-width: none;
+    height: inherit;
   }
   
   /* Icon buttons - touch-friendly */

@@ -129,6 +129,38 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
+        /// Gets form context (target session + prompt) for volunteer availability entry
+        /// </summary>
+        [HttpPost("GetFormContext")]
+        public async Task<IActionResult> GetFormContext()
+        {
+            try
+            {
+                var chapterId = User.FindFirst("ChapterID")?.Value
+                                ?? User.FindFirst("chapterId")?.Value
+                                ?? "";
+
+                var response =
+                    await _volunteerAvailabilityService.GetVolunteerAvailabilityFormContextAsync(chapterId);
+
+                if (response.IsSuccess)
+                {
+                    return Ok(response);
+                }
+
+                return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "An error occurred while getting volunteer availability form context",
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
         /// Gets the volunteer availability summary
         /// </summary>
         /// <param name="request">Volunteer availability summary request data</param>
@@ -147,11 +179,12 @@ namespace pStudyWare20.API.Controllers
                     });
                 }
 
-                // Get username from JWT token if not provided in request
+                // Legacy SP expects MemberMaster.UserName (Session["Username"]), not login email.
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value 
-                                     ?? User.FindFirst(ClaimTypes.Email)?.Value 
+                    request.Username = User.FindFirst("Username")?.Value
+                                     ?? User.FindFirst(ClaimTypes.Name)?.Value
+                                     ?? User.FindFirst(ClaimTypes.Email)?.Value
                                      ?? "";
                 }
 

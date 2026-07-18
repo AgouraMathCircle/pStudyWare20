@@ -55,3 +55,21 @@
     max-width: 100%;
   }
 }
+
+@media (max-width: 600px) {
+  .dashboard-messages-panel {
+    overflow: visible;
+  }
+
+  .dashboard-messages-widgets-row {
+    row-gap: 8px;
+  }
+
+  .dashboard-message-widget {
+    min-width: 0;
+  }
+
+  .dashboard-message-widget .MuiCardContent-root {
+    padding: 8px 10px;
+  }
+}

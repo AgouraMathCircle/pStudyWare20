@@ -1,11 +1,114 @@
-/* Volunteer Dashboard — dashboard messages panel spacing */
+/* Volunteer Dashboard — same layout patterns as Instructor Dashboard, green accent theme */
+
+.volunteer-dashboard {
+  min-height: 100%;
+  width: 100%;
+  background-color: transparent;
+  box-sizing: border-box;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.volunteer-dashboard > .MuiContainer-root {
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.volunteer-dashboard .MuiCard-root {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.volunteer-dashboard .MuiCard-root:hover {
+  box-shadow: 0 4px 16px rgba(46, 125, 50, 0.16);
+}
+
+.volunteer-dashboard .MuiCardHeader-root {
+  padding: 4px 8px 0;
+  min-height: 0;
+}
+
+.volunteer-dashboard .MuiCardHeader-title {
+  font-weight: 400;
+  font-size: 0.9375rem;
+}
+
+.volunteer-dashboard .MuiTableCell-root {
+  padding: 8px 12px;
+}
+
+.volunteer-dashboard .MuiTableCell-head {
+  font-weight: 600;
+  background-color: #e8f5e9;
+  border-bottom: 2px solid #81c784;
+}
+
+.volunteer-dashboard .MuiTableRow-root:hover {
+  background-color: rgba(46, 125, 50, 0.06);
+  cursor: pointer;
+}
+
+.volunteer-dashboard .MuiButton-root {
+  text-transform: none;
+  font-weight: 500;
+}
+
+.volunteer-dashboard .MuiAlert-root {
+  border-radius: 8px;
+}
+
+.volunteer-dashboard .MuiTableContainer-root::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.volunteer-dashboard .MuiTableContainer-root::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.volunteer-dashboard .MuiTableContainer-root::-webkit-scrollbar-thumb {
+  background: #81c784;
+  border-radius: 4px;
+}
+
+.volunteer-dashboard .MuiTableContainer-root::-webkit-scrollbar-thumb:hover {
+  background: #2e7d32;
+}
 
 .volunteer-dashboard .dashboard-messages-panel > .MuiCardContent-root {
+  padding-bottom: 6px !important;
   width: 100%;
 }
 
-.volunteer-dashboard .dashboard-message-widget:hover {
-  box-shadow: none;
+.volunteer-dashboard .volunteer-dashboard-availability-entry-panel {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.volunteer-dashboard .volunteer-dashboard-availability-entry-panel > .MuiCardContent-root {
+  padding-bottom: 14px !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.volunteer-dashboard .volunteer-dashboard-grids-stack {
+  gap: 8px !important;
+  margin-top: -14px !important;
+}
+
+.volunteer-dashboard .volunteer-dashboard-availability-panel > .MuiCardContent-root,
+.volunteer-dashboard .volunteer-dashboard-timesheet-panel > .MuiCardContent-root {
+  padding-top: 6px !important;
+}
+
+.volunteer-dashboard .volunteer-availability-title,
+.volunteer-dashboard .volunteer-availability-header h2 {
+  color: #2e7d32 !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
 }
 
 .volunteer-dashboard .dashboard-messages-panel .MuiGrid-root {
@@ -15,4 +118,126 @@
 .volunteer-dashboard .dashboard-messages-panel .MuiGrid-root > .MuiGrid-item {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
+}
+
+.volunteer-dashboard .dashboard-message-widget:hover {
+  box-shadow: none;
+}
+
+.volunteer-dashboard .MuiCardContent-root {
+  padding: 8px 8px 0;
+}
+
+.volunteer-dashboard h1,
+.volunteer-dashboard h2,
+.volunteer-dashboard h3,
+.volunteer-dashboard h4,
+.volunteer-dashboard h5,
+.volunteer-dashboard h6 {
+  color: #333;
+  font-weight: 600;
+}
+
+.volunteer-dashboard .MuiGrid-container {
+  margin-top: 0;
+}
+
+.volunteer-dashboard-availability-panel .admin-session-list-search,
+.volunteer-dashboard-availability-panel .admin-session-list-pagination,
+.volunteer-dashboard-timesheet-panel .admin-session-list-search,
+.volunteer-dashboard-timesheet-panel .admin-session-list-pagination {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.volunteer-dashboard-availability-panel .admin-session-list-pagination,
+.volunteer-dashboard-timesheet-panel .admin-session-list-pagination {
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+}
+
+.volunteer-dashboard-availability-panel .MuiTableCell-head,
+.volunteer-dashboard-timesheet-panel .MuiTableCell-head {
+  font-weight: 600;
+  background-color: #e8f5e8;
+  border-bottom: 2px solid #4caf50;
+}
+
+.volunteer-dashboard-availability-panel .MuiTableRow-root:hover,
+.volunteer-dashboard-timesheet-panel .MuiTableRow-root:hover {
+  background-color: rgba(76, 175, 80, 0.06);
+}
+
+.volunteer-dashboard .MuiTablePagination-root {
+  border-top: 1px solid rgba(129, 199, 132, 1);
+}
+
+.volunteer-dashboard .MuiChip-root {
+  font-weight: 500;
+  border-radius: 16px;
+}
+
+.volunteer-dashboard .MuiIconButton-root {
+  transition: all 0.2s ease-in-out;
+}
+
+.volunteer-dashboard .MuiIconButton-root:hover {
+  transform: scale(1.1);
+}
+
+.volunteer-dashboard a {
+  color: #2e7d32;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+.volunteer-dashboard a:hover {
+  color: #1b5e20;
+  text-decoration: underline;
+}
+
+.volunteer-dashboard .primary-color {
+  color: #2e7d32;
+}
+
+.volunteer-dashboard .secondary-color {
+  color: #43a047;
+}
+
+.volunteer-dashboard .volunteer-dashboard-stat-card {
+  min-height: 72px;
+}
+
+@keyframes volunteerDashboardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.volunteer-dashboard .MuiCard-root {
+  animation: volunteerDashboardFadeIn 0.3s ease-in-out;
+}
+
+@media (max-width: 900px) {
+  .volunteer-dashboard .volunteer-dashboard-grids-stack {
+    margin-top: -8px !important;
+  }
+}
+
+@media print {
+  .volunteer-dashboard .MuiCard-root {
+    box-shadow: none !important;
+    animation: none !important;
+  }
+
+  .volunteer-dashboard .MuiCard-root:hover {
+    box-shadow: none !important;
+  }
 }

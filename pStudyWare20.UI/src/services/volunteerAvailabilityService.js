@@ -15,6 +15,8 @@ const normalizeUpdateResponse = (body = {}) => ({
   isSuccess: body.isSuccess ?? body.IsSuccess ?? true,
   message: body.message ?? body.Message ?? "",
   errorMessage: body.errorMessage ?? body.ErrorMessage ?? "",
+  session: String(body.session ?? body.Session ?? "").trim(),
+  summaryData: normalizeSummaryRows(body.summaryData ?? body.SummaryData),
 });
 
 const buildRequestPayload = (request = {}) => ({
@@ -25,7 +27,31 @@ const buildRequestPayload = (request = {}) => ({
   comment: request.comment ?? request.comments ?? request.Comment ?? "",
 });
 
+const normalizeSummaryRows = (data) => (Array.isArray(data) ? data : []);
+
+const normalizeSummaryResponse = (body = {}) => ({
+  isSuccess: body.isSuccess ?? body.IsSuccess ?? true,
+  summaryData: normalizeSummaryRows(body.summaryData ?? body.SummaryData),
+  errorMessage: body.errorMessage ?? body.ErrorMessage ?? "",
+});
+
+const normalizeFormContextResponse = (body = {}) => ({
+  isSuccess: body.isSuccess ?? body.IsSuccess ?? true,
+  currentSession: String(body.currentSession ?? body.CurrentSession ?? "").trim(),
+  targetSession: String(body.targetSession ?? body.TargetSession ?? "").trim(),
+  volunteeringPrompt: String(
+    body.volunteeringPrompt ?? body.VolunteeringPrompt ?? "",
+  ).trim(),
+  semester: String(body.semester ?? body.Semester ?? "").trim(),
+  errorMessage: body.errorMessage ?? body.ErrorMessage ?? "",
+});
+
 const volunteerAvailabilityService = {
+  getFormContext: async () => {
+    const response = await api.post(`${BASE}/GetFormContext`, {});
+    return normalizeFormContextResponse(response.data);
+  },
+
   getAvailability: async (request) => {
     const payload = buildRequestPayload(request);
     const response = await api.post(`${BASE}/GetAvailability`, {
@@ -50,7 +76,7 @@ const volunteerAvailabilityService = {
 
   getAvailabilitySummary: async (request) => {
     const response = await api.post(`${BASE}/GetAvailabilitySummary`, request);
-    return response.data;
+    return normalizeSummaryResponse(response.data);
   },
 };
 
