@@ -21,6 +21,20 @@ import { countries } from "../../../constants/countries";
 
 const GRADES = Array.from({ length: 12 }, (_, i) => i + 1);
 
+const resolveCountryCode = (raw) => {
+  const value = String(raw ?? "").trim();
+  if (!value) return "";
+
+  const upper = value.toUpperCase();
+  const byCode = countries.find((c) => c.value.toUpperCase() === upper);
+  if (byCode) return byCode.value;
+
+  const byLabel = countries.find((c) => c.label.toUpperCase() === upper);
+  if (byLabel) return byLabel.value;
+
+  return value;
+};
+
 const emptyFormData = {
   studentID: "",
   studentFName: "",
@@ -58,7 +72,7 @@ const mapProfileToForm = (p, fallbackId = "") => ({
   phoneNumber: p.phoneNumber ?? p.PhoneNumber ?? p.phone ?? "",
   city: p.city ?? p.City ?? "",
   state: p.state ?? p.State ?? "",
-  country: (p.country ?? p.Country ?? "US").toString().slice(0, 2) || "US",
+  country: resolveCountryCode(p.country ?? p.Country),
 });
 
 const UpdateProfileModal = ({ open, onClose, studentId: studentIdProp, onSaved }) => {
