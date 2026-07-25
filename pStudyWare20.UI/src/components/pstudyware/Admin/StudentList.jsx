@@ -16,7 +16,6 @@ import {
   MenuItem,
 } from "@mui/material";
 import { Download as DownloadIcon } from "@mui/icons-material";
-import { useUpdateProfileModal } from "../../../contexts/UpdateProfileModalContext";
 import {
   adminSessionListFindButtonSx,
   adminSessionListGridTableSx,
@@ -31,29 +30,12 @@ import {
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 
-const tableActionLinkSx = {
-  fontSize: "0.75rem",
-  fontWeight: 400,
-  color: "#0000ee",
-  textDecoration: "underline",
-  cursor: "pointer",
-  lineHeight: 1.2,
-  "&:visited": { color: "#551a8b" },
-  "&:hover": { color: "#551a8b" },
-};
-
 const studentListColumnWidths = {
-  edit: "4%",
-  studentId: "10%",
-  studentName: "11%",
-  class: "15%",
-  grade: "5%",
-  school: "10%",
-  parent: "10%",
-  session: "7%",
-  location: "7%",
-  phone: "8%",
-  email: "13%",
+  studentId: "14%",
+  studentName: "26%",
+  class: "26%",
+  session: "17%",
+  location: "17%",
 };
 
 const StudentList = ({
@@ -68,7 +50,6 @@ const StudentList = ({
   const [orderBy, setOrderBy] = useState("studentID");
   const [order, setOrder] = useState("desc");
   const [goToPageInput, setGoToPageInput] = useState("1");
-  const { openUpdateProfile } = useUpdateProfileModal();
 
   const pageSize = 25;
 
@@ -123,21 +104,6 @@ const StudentList = ({
             break;
           case "CLASS":
             fieldValue = student.class || "";
-            break;
-          case "GRADE":
-            fieldValue = student.grade || "";
-            break;
-          case "SCHOOL":
-            fieldValue = student.school || "";
-            break;
-          case "PARENT":
-            fieldValue = student.parentName || "";
-            break;
-          case "PHONE":
-            fieldValue = student.phoneNumber || "";
-            break;
-          case "EMAIL":
-            fieldValue = student.emailAddress || "";
             break;
           case "SESSION":
             fieldValue = student.eventSession || "";
@@ -246,21 +212,6 @@ const StudentList = ({
             <MenuItem value="CLASS" sx={adminSessionListMenuItemSx}>
               Class
             </MenuItem>
-            <MenuItem value="GRADE" sx={adminSessionListMenuItemSx}>
-              Grade
-            </MenuItem>
-            <MenuItem value="SCHOOL" sx={adminSessionListMenuItemSx}>
-              School
-            </MenuItem>
-            <MenuItem value="PARENT" sx={adminSessionListMenuItemSx}>
-              Parent
-            </MenuItem>
-            <MenuItem value="PHONE" sx={adminSessionListMenuItemSx}>
-              Phone
-            </MenuItem>
-            <MenuItem value="EMAIL" sx={adminSessionListMenuItemSx}>
-              Email
-            </MenuItem>
             <MenuItem value="SESSION" sx={adminSessionListMenuItemSx}>
               Session
             </MenuItem>
@@ -315,16 +266,6 @@ const StudentList = ({
         <Table sx={adminSessionListGridTableSx} size="small">
           <TableHead>
             <TableRow sx={{ backgroundColor: "#e8f5e8" }}>
-              <TableCell
-                sx={{
-                  fontWeight: 400,
-                  width: studentListColumnWidths.edit,
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              >
-                Edit
-              </TableCell>
               <SortableHeader
                 label="Student #"
                 field="studentID"
@@ -365,45 +306,6 @@ const StudentList = ({
                 }}
               />
               <SortableHeader
-                label="Grade"
-                field="grade"
-                sortField={orderBy}
-                sortOrder={order}
-                onSort={handleSort}
-                headCellSx={{
-                  fontWeight: 400,
-                  width: studentListColumnWidths.grade,
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              />
-              <SortableHeader
-                label="School"
-                field="school"
-                sortField={orderBy}
-                sortOrder={order}
-                onSort={handleSort}
-                headCellSx={{
-                  fontWeight: 400,
-                  width: studentListColumnWidths.school,
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              />
-              <SortableHeader
-                label="Parent"
-                field="parentName"
-                sortField={orderBy}
-                sortOrder={order}
-                onSort={handleSort}
-                headCellSx={{
-                  fontWeight: 400,
-                  width: studentListColumnWidths.parent,
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              />
-              <SortableHeader
                 label="Session"
                 field="eventSession"
                 sortField={orderBy}
@@ -429,32 +331,6 @@ const StudentList = ({
                   padding: cellPadding,
                 }}
               />
-              <SortableHeader
-                label="Contact #"
-                field="phoneNumber"
-                sortField={orderBy}
-                sortOrder={order}
-                onSort={handleSort}
-                headCellSx={{
-                  fontWeight: 400,
-                  width: studentListColumnWidths.phone,
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              />
-              <SortableHeader
-                label="Email"
-                field="emailAddress"
-                sortField={orderBy}
-                sortOrder={order}
-                onSort={handleSort}
-                headCellSx={{
-                  fontWeight: 400,
-                  width: studentListColumnWidths.email,
-                  fontSize: "0.75rem",
-                  padding: cellPadding,
-                }}
-              />
             </TableRow>
           </TableHead>
           <TableBody>
@@ -468,24 +344,6 @@ const StudentList = ({
                       "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" },
                     }}
                   >
-                    <TableCell
-                      sx={{
-                        fontSize: "0.75rem",
-                        padding: cellPadding,
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      {sid ? (
-                        <Box
-                          onClick={() => openUpdateProfile(sid)}
-                          sx={tableActionLinkSx}
-                        >
-                          Edit
-                        </Box>
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
                     <TableCell
                       sx={{
                         fontSize: "0.75rem",
@@ -526,40 +384,6 @@ const StudentList = ({
                         padding: cellPadding,
                       }}
                     >
-                      {student.grade || "—"}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: "0.75rem",
-                        padding: cellPadding,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      <Tooltip title={student.school ?? "—"}>
-                        <span>{student.school || "—"}</span>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: "0.75rem",
-                        padding: cellPadding,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      <Tooltip title={student.parentName ?? "—"}>
-                        <span>{student.parentName || "—"}</span>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: "0.75rem",
-                        padding: cellPadding,
-                      }}
-                    >
                       {student.eventSession || "—"}
                     </TableCell>
                     <TableCell
@@ -570,34 +394,13 @@ const StudentList = ({
                     >
                       {student.eventLocation || "—"}
                     </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: "0.75rem",
-                        padding: cellPadding,
-                      }}
-                    >
-                      {student.phoneNumber || "—"}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: "0.75rem",
-                        padding: cellPadding,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      <Tooltip title={student.emailAddress ?? ""}>
-                        <span>{student.emailAddress || "—"}</span>
-                      </Tooltip>
-                    </TableCell>
                   </TableRow>
                 );
               })
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={11}
+                  colSpan={5}
                   align="center"
                   sx={{ fontSize: "0.75rem", padding: cellPadding, py: 3 }}
                 >

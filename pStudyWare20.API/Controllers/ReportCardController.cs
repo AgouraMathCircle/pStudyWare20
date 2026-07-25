@@ -417,6 +417,7 @@ namespace pStudyWare20.API.Controllers
                 var isStudent = memberType == "S";
                 var isAdmin = userRole == "Admin"
                     || userRole == "SystemAdmin"
+                    || userRole == "SystemAdmin"
                     || memberType == "A"
                     || string.Equals(systemAdmin, "Y", StringComparison.OrdinalIgnoreCase);
                 var isInstructor = userRole == "Instructor" || memberType == "I";
@@ -580,6 +581,7 @@ namespace pStudyWare20.API.Controllers
             }
 
             return string.Equals(userRole, "Admin", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(userRole, "SystemAdmin", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(userRole, "SystemAdmin", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(userRole, "Instructor", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(memberType, "A", StringComparison.OrdinalIgnoreCase)

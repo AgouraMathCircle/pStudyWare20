@@ -20,17 +20,31 @@ export const buildSavedAvailabilityGridRow = (saved, existingRow = null) => {
   if (!userID) return null;
 
   const response = String(saved?.response ?? "").trim().toUpperCase();
-  const availability = response === "Y" ? "Y" : response === "N" ? "N" : response;
+  const availability =
+    response === "Y" ? "Yes" : response === "N" ? "No" : response;
   const responseDate = saved?.responseDate ?? new Date().toISOString();
   const session = String(saved?.session ?? "").trim();
   const comment = String(saved?.comment ?? "").trim();
   const firstName = String(saved?.firstName ?? readRowValue(existingRow, ["FirstName", "firstName"])).trim();
   const lastName = String(saved?.lastName ?? readRowValue(existingRow, ["LastName", "lastName"])).trim();
-  const instructorType = String(
+  const instructorTypeRaw = String(
     saved?.instructorType ?? readRowValue(existingRow, ["InstructorType", "instructorType"]),
   ).trim();
+  const instructorTypeMap = {
+    P: "Primary Instructor",
+    I: "Primary Instructor",
+    S: "Secondary Instructor",
+    C: "Coordinator",
+    V: "Volunteers",
+    A: "Administrator",
+  };
+  const instructorType =
+    instructorTypeMap[instructorTypeRaw.toUpperCase()] || instructorTypeRaw;
   const className = String(
     saved?.className ?? readRowValue(existingRow, ["Class", "class"]),
+  ).trim();
+  const chapterName = String(
+    saved?.chapterName ?? readRowValue(existingRow, ["ChapterName", "chapterName"]),
   ).trim();
 
   return {
@@ -40,6 +54,8 @@ export const buildSavedAvailabilityGridRow = (saved, existingRow = null) => {
     firstName,
     LastName: lastName,
     lastName,
+    ChapterName: chapterName,
+    chapterName,
     Session: session,
     session,
     Class: className,

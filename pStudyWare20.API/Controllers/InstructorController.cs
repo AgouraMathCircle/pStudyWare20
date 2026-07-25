@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Cors;
+using pStudyWare20.API.Helpers;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
 
@@ -24,6 +26,7 @@ namespace pStudyWare20.API.Controllers
         /// <returns>Instructor list result</returns>
         [HttpPost]
         [Route("GetInstructorList")]
+        [Authorize(Roles = "Admin,SystemAdmin")]
         public object GetInstructorList([FromBody] InstructorListRequest request)
         {
             try
@@ -31,6 +34,12 @@ namespace pStudyWare20.API.Controllers
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                request.Username = PortalClaimsHelper.GetPortalUsername(User);
+                if (string.IsNullOrWhiteSpace(request.Username))
+                {
+                    return BadRequest(new { message = "Unable to resolve portal username from token." });
                 }
 
                 var response = _instructorService.GetInstructorList(request);
@@ -68,12 +77,13 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Delete instructor (matches legacy controller exactly)
+        /// Delete instructor — SystemAdmin portal only (Chapter Admin cannot delete).
         /// </summary>
         /// <param name="request">Instructor delete request</param>
         /// <returns>Operation result</returns>
         [HttpPost]
         [Route("DeleteInstructor")]
+        [Authorize(Roles = "SystemAdmin")]
         public object DeleteInstructor([FromBody] InstructorDeleteRequest request)
         {
             try
@@ -99,6 +109,7 @@ namespace pStudyWare20.API.Controllers
         /// <returns>Excel file</returns>
         [HttpPost]
         [Route("ExportInstructorListToExcel")]
+        [Authorize(Roles = "Admin,SystemAdmin")]
         public IActionResult ExportInstructorListToExcel([FromBody] InstructorListRequest request)
         {
             try
@@ -106,6 +117,12 @@ namespace pStudyWare20.API.Controllers
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                request.Username = PortalClaimsHelper.GetPortalUsername(User);
+                if (string.IsNullOrWhiteSpace(request.Username))
+                {
+                    return BadRequest(new { message = "Unable to resolve portal username from token." });
                 }
 
                 var response = _instructorService.ExportInstructorListToExcel(request);

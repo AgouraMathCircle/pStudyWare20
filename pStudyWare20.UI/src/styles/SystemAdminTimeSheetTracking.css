@@ -1,0 +1,124 @@
+/* Admin Time Sheet Tracking — page shell + table panel (pairs with applicationSurfaces sx in JSX) */
+
+.admin-time-sheet-tracking {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+  box-sizing: border-box;
+}
+
+/* Prevent global portal card hover lift on this page */
+.admin-time-sheet-tracking .MuiCard-root {
+  transition: none !important;
+  transform: none !important;
+}
+
+.admin-time-sheet-tracking .MuiCard-root:hover {
+  transform: none !important;
+}
+
+/* Table cell spacing — match Current Session Student List row height */
+.admin-time-sheet-tracking .admin-time-sheet-tracking-table-panel .MuiTableCell-root {
+  padding: 5px 4px !important;
+  vertical-align: middle;
+}
+
+.admin-time-sheet-tracking .admin-time-sheet-tracking-table-panel .MuiTableCell-head {
+  background-color: #e8f5e8;
+  overflow: hidden;
+  padding: 7px 4px !important;
+}
+
+.admin-time-sheet-tracking .admin-time-sheet-tracking-table-panel .MuiTableCell-body {
+  overflow: hidden;
+  max-width: 0;
+}
+
+.admin-time-sheet-tracking .admin-time-sheet-tracking-table-container {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.admin-time-sheet-tracking .admin-time-sheet-tracking-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.admin-time-sheet-tracking .admin-time-sheet-tracking-table-panel .MuiTableCell-body.time-sheet-delete-cell {
+  background-color: #ffebee !important;
+}
+
+/* Search bar + pagination controls — match session list sizing */
+.admin-time-sheet-tracking .MuiButton-root {
+  text-transform: none;
+}
+
+/* Time sheet modal — compact single-column form */
+.time-sheet-modal-form {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.time-sheet-modal-form .MuiFormControl-root {
+  max-width: 100%;
+}
+
+.time-sheet-modal-form .MuiSelect-select {
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.time-sheet-modal-time-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.85fr;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.time-sheet-modal-time-row .MuiFormControl-root {
+  width: 100%;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.time-sheet-modal-time-row .MuiOutlinedInput-root {
+  height: 32px;
+  width: 100%;
+}
+
+.time-sheet-modal-time-row .MuiSelect-select {
+  height: 32px !important;
+  min-height: 32px !important;
+  font-size: 0.8125rem;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.time-sheet-task-details-field .MuiOutlinedInput-root {
+  min-height: 72px;
+  align-items: flex-start;
+}
+
+.time-sheet-task-details-field textarea {
+  min-height: 56px !important;
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 899px) {
+  .admin-time-sheet-tracking .MuiCard-root {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}

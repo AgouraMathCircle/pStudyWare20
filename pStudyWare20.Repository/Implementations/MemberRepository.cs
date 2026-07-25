@@ -36,8 +36,63 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
-                // Match legacy ValidateUser: Approved=1, username or email, plain-text password.
-                using var command = new SqlCommand(@"
+                // Prefer SuperUser when present; fall back if column is missing on older DBs.
+                return await TryReadLoginUserAsync(connection, loginId, password, includeSuperUser: true);
+            }
+            catch (Exception ex) when (ex.Message.Contains("SuperUser", StringComparison.OrdinalIgnoreCase)
+                || (ex.InnerException?.Message?.Contains("SuperUser", StringComparison.OrdinalIgnoreCase) ?? false))
+            {
+                try
+                {
+                    using var connection = new SqlConnection(_connectionString);
+                    await connection.OpenAsync();
+                    return await TryReadLoginUserAsync(connection, (emailId ?? string.Empty).Trim(), password, includeSuperUser: false);
+                }
+                catch (Exception retryEx)
+                {
+                    throw new Exception($"Error validating user with stored procedure: {retryEx.Message}", retryEx);
+                }
+            }
+            catch (Exception ex)
+            {
+                // If selecting SuperUser failed at the SQL level, retry without it.
+                if (ex.Message.Contains("SuperUser", StringComparison.OrdinalIgnoreCase)
+                    || (ex.InnerException?.Message?.Contains("Invalid column name", StringComparison.OrdinalIgnoreCase) ?? false))
+                {
+                    try
+                    {
+                        using var connection = new SqlConnection(_connectionString);
+                        await connection.OpenAsync();
+                        return await TryReadLoginUserAsync(connection, (emailId ?? string.Empty).Trim(), password, includeSuperUser: false);
+                    }
+                    catch (Exception retryEx)
+                    {
+                        throw new Exception($"Error validating user with stored procedure: {retryEx.Message}", retryEx);
+                    }
+                }
+
+                throw new Exception($"Error validating user with stored procedure: {ex.Message}", ex);
+            }
+        }
+
+        private static async Task<MemberMaster?> TryReadLoginUserAsync(
+            SqlConnection connection,
+            string loginId,
+            string password,
+            bool includeSuperUser)
+        {
+            var sql = includeSuperUser
+                ? @"
+                    SELECT pMemberID, UserName, EmailID, FirstName, LastName, MemberType, ChapterID, systemAdmin, SuperUser
+                    FROM MemberMaster WITH (NOLOCK)
+                    WHERE [Password] = @password
+                      AND ISNULL(Approved, 0) = 1
+                      AND ISNULL(Active, 1) = 1
+                      AND (
+                        UPPER(LTRIM(UserName)) = UPPER(LTRIM(@loginId))
+                        OR UPPER(LTRIM(EmailID)) = UPPER(LTRIM(@loginId))
+                      )"
+                : @"
                     SELECT pMemberID, UserName, EmailID, FirstName, LastName, MemberType, ChapterID, systemAdmin
                     FROM MemberMaster WITH (NOLOCK)
                     WHERE [Password] = @password
@@ -46,33 +101,34 @@ namespace pStudyWare20.Repository.Implementations
                       AND (
                         UPPER(LTRIM(UserName)) = UPPER(LTRIM(@loginId))
                         OR UPPER(LTRIM(EmailID)) = UPPER(LTRIM(@loginId))
-                      )", connection);
+                      )"; 
 
-                command.Parameters.Add(new SqlParameter("@loginId", loginId));
-                command.Parameters.Add(new SqlParameter("@password", password));
+            using var command = new SqlCommand(sql, connection);
+            command.Parameters.Add(new SqlParameter("@loginId", loginId));
+            command.Parameters.Add(new SqlParameter("@password", password));
 
-                using var reader = await command.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
-                {
-                    return new MemberMaster
-                    {
-                        pMemberID = reader.GetInt32(reader.GetOrdinal("pMemberID")),
-                        UserName = reader.GetString(reader.GetOrdinal("UserName")),
-                        EmailID = reader.GetString(reader.GetOrdinal("EmailID")),
-                        FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                        LastName = reader.GetString(reader.GetOrdinal("LastName")),
-                        MemberType = reader.GetString(reader.GetOrdinal("MemberType")),
-                        ChapterID = reader.GetInt32(reader.GetOrdinal("ChapterID")),
-                        systemAdmin = reader.GetString(reader.GetOrdinal("systemAdmin"))
-                    };
-                }
-
+            using var reader = await command.ExecuteReaderAsync();
+            if (!await reader.ReadAsync())
+            {
                 return null;
             }
-            catch (Exception ex)
+
+            return new MemberMaster
             {
-                throw new Exception($"Error validating user with stored procedure: {ex.Message}", ex);
-            }
+                pMemberID = reader.GetInt32(reader.GetOrdinal("pMemberID")),
+                UserName = reader.GetString(reader.GetOrdinal("UserName")),
+                EmailID = reader.GetString(reader.GetOrdinal("EmailID")),
+                FirstName = GetOptionalString(reader, "FirstName") ?? string.Empty,
+                LastName = GetOptionalString(reader, "LastName") ?? string.Empty,
+                MemberType = (GetOptionalString(reader, "MemberType") ?? string.Empty).Trim(),
+                ChapterID = reader.IsDBNull(reader.GetOrdinal("ChapterID"))
+                    ? null
+                    : reader.GetInt32(reader.GetOrdinal("ChapterID")),
+                systemAdmin = (GetOptionalString(reader, "systemAdmin", "SystemAdmin") ?? "N").Trim(),
+                SuperUser = includeSuperUser
+                    ? (GetOptionalString(reader, "SuperUser") ?? "N").Trim()
+                    : "N"
+            };
         }
 
         public async Task<MemberMaster?> GetUserPasswordByEmailAsync(string emailId)
@@ -144,7 +200,8 @@ namespace pStudyWare20.Repository.Implementations
                     Password = password,
                     MemberType = fromDb.MemberType,
                     ChapterID = fromDb.ChapterID,
-                    systemAdmin = fromDb.systemAdmin
+                    systemAdmin = fromDb.systemAdmin,
+                    SuperUser = fromDb.SuperUser
                 };
             }
             catch (Exception ex)

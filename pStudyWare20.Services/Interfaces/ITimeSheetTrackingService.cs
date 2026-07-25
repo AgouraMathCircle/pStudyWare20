@@ -15,11 +15,21 @@ namespace pStudyWare20.Services.Interfaces
         Task<TimeSheetTrackingListResponse> GetTimeSheetTrackingListAsync(TimeSheetTrackingListRequest request);
 
         /// <summary>
+        /// Get only the signed-in member's own timesheet entries (admin self-service).
+        /// </summary>
+        Task<TimeSheetTrackingListResponse> GetMyTimeSheetTrackingListAsync(TimeSheetTrackingListRequest request);
+
+        /// <summary>
         /// Update timesheet tracking entry (get data for editing)
         /// </summary>
         /// <param name="request">Update timesheet tracking request</param>
         /// <returns>Update timesheet tracking response</returns>
         Task<UpdateTimeSheetTrackingResponse> UpdateTimeSheetTrackingAsync(UpdateTimeSheetTrackingRequest request);
+
+        /// <summary>
+        /// Load one own entry for edit (admin self-service).
+        /// </summary>
+        Task<UpdateTimeSheetTrackingResponse> GetMyTimeSheetTrackingForEditAsync(UpdateTimeSheetTrackingRequest request);
 
         /// <summary>
         /// Delete timesheet tracking entry

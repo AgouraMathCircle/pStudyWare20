@@ -1,16 +1,17 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { getPortalDashboardPath } from "../utils/routeUtils";
 
 const RoleProtectedRoute = ({
   children,
   allowedRoles = [],
   allowedMemberTypes = [],
+  deniedRoles = [],
 }) => {
   const location = useLocation();
   const { isAuthenticated, user, isLoading } = useAuth();
 
-  // Show loading while auth context is loading
   if (isLoading) {
     return (
       <div
@@ -27,59 +28,56 @@ const RoleProtectedRoute = ({
     );
   }
 
-  // If not authenticated, redirect to login
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If no user data, redirect to login
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check if user has the required role
-  const hasRequiredRole =
-    allowedRoles.length === 0 || allowedRoles.includes(user.role);
+  if (deniedRoles.length > 0 && deniedRoles.includes(user.role)) {
+    return <Navigate to={getPortalDashboardPath(user)} replace />;
+  }
 
-  // Check if user has the required member type
-  const hasRequiredMemberType =
-    allowedMemberTypes.length === 0 ||
-    (user.memberType &&
-      allowedMemberTypes.includes(user.memberType.toUpperCase()));
+  const hasRoleConstraint = allowedRoles.length > 0;
+  const hasMemberConstraint = allowedMemberTypes.length > 0;
+  const memberType = String(user.memberType ?? "")
+    .trim()
+    .toUpperCase();
 
-  // If user doesn't have required role or member type, redirect to appropriate dashboard
-  if (!hasRequiredRole && !hasRequiredMemberType) {
-    // Redirect based on user's actual role/member type
-    if (user.memberType) {
-      const memberType = user.memberType.toUpperCase();
-      switch (memberType) {
-        case "A":
-          return <Navigate to="/admin/dashboard" replace />;
-        case "I":
-          return <Navigate to="/instructor/dashboard" replace />;
-        case "S":
-          return <Navigate to="/pstudyware/student/dashboard" replace />;
-        case "V":
-          return <Navigate to="/pstudyware/volunteer/dashboard" replace />;
-        default:
-          return <Navigate to="/dashboard" replace />;
-      }
-    } else if (user.role) {
-      switch (user.role) {
-        case "Admin":
-          return <Navigate to="/admin/dashboard" replace />;
-        case "Instructor":
-          return <Navigate to="/instructor/dashboard" replace />;
-        case "Student":
-          return <Navigate to="/pstudyware/student/dashboard" replace />;
-        case "Volunteer":
-          return <Navigate to="/pstudyware/volunteer/dashboard" replace />;
-        default:
-          return <Navigate to="/dashboard" replace />;
-      }
-    } else {
-      return <Navigate to="/dashboard" replace />;
-    }
+  const roleMatch = hasRoleConstraint && allowedRoles.includes(user.role);
+  const memberMatch =
+    hasMemberConstraint &&
+    !!memberType &&
+    allowedMemberTypes.includes(memberType);
+
+  let allowed = true;
+  if (hasRoleConstraint || hasMemberConstraint) {
+    allowed = roleMatch || memberMatch;
+  }
+
+  if (!allowed) {
+    return <Navigate to={getPortalDashboardPath(user)} replace />;
+  }
+
+  // Keep SystemAdmin portal on /systemadmin and Admin on /admin
+  if (
+    user.role === "SystemAdmin" &&
+    location.pathname.startsWith("/pstudyware/admin")
+  ) {
+    const systemAdminPath = location.pathname.replace(
+      "/pstudyware/admin",
+      "/pstudyware/systemadmin",
+    );
+    return <Navigate to={systemAdminPath} replace />;
+  }
+
+  if (
+    user.role !== "SystemAdmin" &&
+    location.pathname.startsWith("/pstudyware/systemadmin")
+  ) {
+    return <Navigate to={getPortalDashboardPath(user)} replace />;
   }
 
   return children;

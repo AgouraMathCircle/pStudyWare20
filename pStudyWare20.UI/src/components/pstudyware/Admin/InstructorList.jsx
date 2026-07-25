@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Link as RouterLink, useSearchParams } from "react-router-dom";
+import { Link as RouterLink, useSearchParams, useLocation } from "react-router-dom";
 import {
   Typography,
   Button,
@@ -19,10 +19,9 @@ import {
 import {
   Download as DownloadIcon,
   Add as AddIcon,
-  Delete as DeleteIcon,
   ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
-import AppConfirmDialog from "../Common/AppConfirmDialog";
+import { toAdminPortalPath } from "../../../utils/adminPortalPaths";
 import {
   adminSessionListEmptyCellSx,
   adminSessionListEmptyTextSx,
@@ -34,7 +33,6 @@ import {
   adminSessionListSearchLabelSx,
   adminSessionListSearchSelectSx,
   adminSessionListTableActionLinkSx,
-  adminSessionListTableDeleteLinkSx,
   adminSessionListTableBodyCellSx,
   adminSessionListTableBodyRowSx,
   adminSessionListTableContainerSx,
@@ -48,7 +46,6 @@ import SortableHeader from "../Common/SortableHeader";
 
 const instructorListColumnWidths = {
   edit: "4%",
-  delete: "4%",
   id: "6%",
   firstName: "10%",
   lastName: "10%",
@@ -73,7 +70,7 @@ const instructorHeaderActionButtonSx = {
 const INSTRUCTOR_LIST_REFERRERS = {
   "volunteers-request": {
     label: "Back to Volunteer Waiting List",
-    path: "/pstudyware/admin/volunteers-request",
+    pathSuffix: "/volunteers-request",
   },
 };
 
@@ -91,8 +88,6 @@ const instructorListBackLinkSx = {
   },
 };
 
-const instructorDeleteLinkSx = adminSessionListTableDeleteLinkSx;
-
 /** Requested default: newest instructors first (ID DESC). */
 const DEFAULT_SORT_FIELD = "instructorID";
 const DEFAULT_SORT_ORDER = "desc";
@@ -102,15 +97,20 @@ const InstructorList = ({
   onExportToExcel,
   canExportData,
   onEdit,
-  onDelete,
   onAdd,
   canAddInstructor,
 }) => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const listReferrer = useMemo(() => {
     const from = searchParams.get("from");
-    return INSTRUCTOR_LIST_REFERRERS[from] ?? null;
-  }, [searchParams]);
+    const referrer = INSTRUCTOR_LIST_REFERRERS[from];
+    if (!referrer) return null;
+    return {
+      label: referrer.label,
+      path: toAdminPortalPath(location.pathname, referrer.pathSuffix),
+    };
+  }, [searchParams, location.pathname]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchBy, setSearchBy] = useState("ALL");
   const [searchCriteria, setSearchCriteria] = useState("");
@@ -118,8 +118,6 @@ const InstructorList = ({
   const [orderBy, setOrderBy] = useState(DEFAULT_SORT_FIELD);
   const [order, setOrder] = useState(DEFAULT_SORT_ORDER);
   const [goToPageInput, setGoToPageInput] = useState("1");
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedInstructor, setSelectedInstructor] = useState(null);
 
   const pageSize = 25;
 
@@ -175,25 +173,6 @@ const InstructorList = ({
     setOrderBy(field);
     setCurrentPage(1);
     setGoToPageInput("1");
-  };
-
-  // Handle delete confirmation dialog
-  const handleDeleteClick = (instructor) => {
-    setSelectedInstructor(instructor);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (selectedInstructor) {
-      onDelete(selectedInstructor.instructorID);
-    }
-    setDeleteDialogOpen(false);
-    setSelectedInstructor(null);
-  };
-
-  const handleDeleteCancel = () => {
-    setDeleteDialogOpen(false);
-    setSelectedInstructor(null);
   };
 
   // Get instructor type display text
@@ -465,9 +444,6 @@ const InstructorList = ({
               <TableCell sx={adminSessionListTableHeadCellSx(instructorListColumnWidths.edit)}>
                 Edit
               </TableCell>
-              <TableCell sx={adminSessionListTableHeadCellSx(instructorListColumnWidths.delete)}>
-                Delete
-              </TableCell>
               <SortableHeader
                 label="ID"
                 field="instructorID"
@@ -562,14 +538,6 @@ const InstructorList = ({
                       Edit
                     </Box>
                   </TableCell>
-                  <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
-                    <Box
-                      onClick={() => handleDeleteClick(instructor)}
-                      sx={instructorDeleteLinkSx}
-                    >
-                      Delete
-                    </Box>
-                  </TableCell>
                   <TableCell sx={adminSessionListTableBodyCellSx()}>
                     {instructor.instructorID ?? "—"}
                   </TableCell>
@@ -622,7 +590,7 @@ const InstructorList = ({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={12} align="center" sx={adminSessionListEmptyCellSx}>
+                <TableCell colSpan={11} align="center" sx={adminSessionListEmptyCellSx}>
                   <Typography variant="body2" color="textSecondary" sx={adminSessionListEmptyTextSx}>
                     {searchText
                       ? "No instructors found matching your search criteria."
@@ -644,25 +612,6 @@ const InstructorList = ({
         onGoToPageInputChange={setGoToPageInput}
         onPageChange={handlePageChange}
         onGoToPage={handleGoToPage}
-      />
-
-      <AppConfirmDialog
-        open={deleteDialogOpen}
-        onClose={handleDeleteCancel}
-        onConfirm={handleDeleteConfirm}
-        title="Delete Instructor"
-        message={
-          <>
-            Are you sure you want to delete instructor{" "}
-            <strong>
-              {selectedInstructor?.firstName} {selectedInstructor?.lastName}
-            </strong>
-            ?
-          </>
-        }
-        confirmLabel="Delete"
-        confirmColor="error"
-        icon={<DeleteIcon sx={{ fontSize: 20 }} />}
       />
     </Box>
   );

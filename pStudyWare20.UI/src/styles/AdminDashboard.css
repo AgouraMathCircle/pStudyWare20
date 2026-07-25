@@ -358,3 +358,37 @@
 .admin-dashboard .admin-dashboard-widget-list .MuiListItemText-primary {
   font-weight: 400;
 }
+
+/* Top row: two cards side-by-side with horizontal gap only */
+.admin-dashboard .admin-dashboard-top-cards-row {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-dashboard .admin-dashboard-volunteer-availability-entry-panel {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.admin-dashboard .admin-dashboard-volunteer-availability-entry-panel > .MuiCardContent-root {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.admin-dashboard .admin-dashboard-volunteer-availability-entry-panel .volunteer-availability-panel {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.admin-dashboard .admin-dashboard-volunteer-availability-entry-panel .volunteer-availability-entry-form,
+.admin-dashboard .admin-dashboard-volunteer-availability-entry-panel .volunteer-availability-table-wrap,
+.admin-dashboard .admin-dashboard-volunteer-availability-entry-panel .volunteer-availability-table,
+.admin-dashboard .admin-dashboard-volunteer-availability-entry-panel .volunteer-availability-submit-row,
+.admin-dashboard .admin-dashboard-volunteer-availability-entry-panel .volunteer-availability-status-note {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}

@@ -52,63 +52,6 @@ namespace pStudyWare20.Repository.Implementations
         }
 
         /// <summary>
-        /// Get user tracking summary for admin dashboard
-        /// </summary>
-        public async Task<object> GetUserTrackingSummaryAsync()
-        {
-            try
-            {
-                using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
-
-                using var command = new SqlCommand("AMC_spSelectUserTrackingSummary", connection)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                var dataTable = new DataTable();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataTable);
-
-                return dataTable;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error getting user tracking summary: {ex.Message}", ex);
-            }
-        }
-
-        /// <summary>
-        /// Get dashboard message with student counts
-        /// </summary>
-        public async Task<object> GetDashboardMessageAsync(string mode, string username)
-        {
-            try
-            {
-                using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
-
-                using var command = new SqlCommand("AMC_spSelectPostMessage", connection)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                command.Parameters.Add(new SqlParameter("@Mode", mode));
-                command.Parameters.Add(new SqlParameter("@userName", username));
-
-                var dataSet = new DataSet();
-                using var adapter = new SqlDataAdapter(command);
-                adapter.Fill(dataSet);
-
-                return dataSet;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error getting dashboard message: {ex.Message}", ex);
-            }
-        }
-
-        /// <summary>
         /// Send email notification to student group
         /// </summary>
         public async Task<bool> SendEmailNotificationAsync(string adminEmail, string studentEmailGroup, string subject, string body)

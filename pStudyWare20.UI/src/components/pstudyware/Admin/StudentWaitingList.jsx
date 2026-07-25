@@ -64,6 +64,7 @@ import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 import studentWaitingListService from "../../../services/studentWaitingListService";
+import { getAdminPortalBase } from "../../../utils/adminPortalPaths";
 import "../../../styles/StudentWaitingList.css";
 
 const studentWaitingListPageSx = {
@@ -158,7 +159,10 @@ function parseDuplicateStatusId(status) {
 }
 
 function buildRegisteredStudentSearchPath(studentId) {
-  return `/pstudyware/admin/registeredstudentlist?searchBy=STUDENT_ID&searchCriteria=equals&searchText=${encodeURIComponent(studentId)}&from=student-waiting-list`;
+  const base = getAdminPortalBase(
+    typeof window !== "undefined" ? window.location.pathname : "",
+  );
+  return `${base}/registeredstudentlist?searchBy=STUDENT_ID&searchCriteria=equals&searchText=${encodeURIComponent(studentId)}&from=student-waiting-list`;
 }
 
 const WaitingListStatusCell = ({ value }) => {

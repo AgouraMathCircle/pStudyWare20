@@ -32,6 +32,7 @@ import "../styles/Login.css";
 import pageHeaderImg from "../assets/images/about/page-header.jpg";
 // Import services
 import { authService } from "../services";
+import { getPortalDashboardPath } from "../utils/routeUtils";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -66,47 +67,7 @@ const Login = () => {
     if (isAuthenticated && user) {
       console.log("Login: User is authenticated, redirecting...", user);
       setRedirecting(true);
-
-      if (user.memberType) {
-        const memberType = user.memberType.toUpperCase();
-        switch (memberType) {
-          case "A":
-            navigate("/pstudyware/admin/dashboard", { replace: true });
-            break;
-          case "I":
-            navigate("/pstudyware/instructor/dashboard", { replace: true });
-            break;
-          case "S":
-            navigate("/pstudyware/student/dashboard", { replace: true });
-            break;
-          case "V":
-            navigate("/pstudyware/volunteer/dashboard", { replace: true });
-            break;
-          default:
-            navigate("/dashboard", { replace: true });
-            break;
-        }
-      } else if (user.role) {
-        switch (user.role) {
-          case "Admin":
-            navigate("/pstudyware/admin/dashboard", { replace: true });
-            break;
-          case "Instructor":
-            navigate("/pstudyware/instructor/dashboard", { replace: true });
-            break;
-          case "Student":
-            navigate("/pstudyware/student/dashboard", { replace: true });
-            break;
-          case "Volunteer":
-            navigate("/pstudyware/volunteer/dashboard", { replace: true });
-            break;
-          default:
-            navigate("/dashboard", { replace: true });
-            break;
-        }
-      } else {
-        navigate("/dashboard", { replace: true });
-      }
+      navigate(getPortalDashboardPath(user), { replace: true });
     } else {
       console.log("Login: User is not authenticated");
     }

@@ -46,6 +46,32 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
+        /// Self-service list — always scoped to the member account, even for chapter admins.
+        /// </summary>
+        public async Task<TimeSheetTrackingListResponse> GetMyTimeSheetTrackingListAsync(TimeSheetTrackingListRequest request)
+        {
+            try
+            {
+                var dataTable = await _timeSheetTrackingRepository.GetMyTimeSheetTrackingListAsync(request.Username);
+                var timeSheetEntries = ConvertDataTableToTimeSheetEntries(dataTable);
+
+                return new TimeSheetTrackingListResponse
+                {
+                    IsSuccess = true,
+                    TimeSheetTrackingList = timeSheetEntries
+                };
+            }
+            catch (Exception ex)
+            {
+                return new TimeSheetTrackingListResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
         /// Update timesheet tracking entry (get data for editing)
         /// </summary>
         public async Task<UpdateTimeSheetTrackingResponse> UpdateTimeSheetTrackingAsync(UpdateTimeSheetTrackingRequest request)
@@ -56,6 +82,39 @@ namespace pStudyWare20.Services.Implementations
                 var timeSheetEntries = ConvertDataTableToTimeSheetEntries(dataTable);
 
                 // Find the specific entry by LogID
+                var targetEntry = timeSheetEntries.FirstOrDefault(e => e.LogID == request.LogID);
+
+                if (targetEntry == null)
+                {
+                    return new UpdateTimeSheetTrackingResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "TimeSheet entry not found"
+                    };
+                }
+
+                return new UpdateTimeSheetTrackingResponse
+                {
+                    IsSuccess = true,
+                    TimeSheetEntry = targetEntry
+                };
+            }
+            catch (Exception ex)
+            {
+                return new UpdateTimeSheetTrackingResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        public async Task<UpdateTimeSheetTrackingResponse> GetMyTimeSheetTrackingForEditAsync(UpdateTimeSheetTrackingRequest request)
+        {
+            try
+            {
+                var dataTable = await _timeSheetTrackingRepository.GetMyTimeSheetTrackingListAsync(request.Username);
+                var timeSheetEntries = ConvertDataTableToTimeSheetEntries(dataTable);
                 var targetEntry = timeSheetEntries.FirstOrDefault(e => e.LogID == request.LogID);
 
                 if (targetEntry == null)

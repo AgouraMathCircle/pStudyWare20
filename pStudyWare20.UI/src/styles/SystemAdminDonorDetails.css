@@ -1,0 +1,69 @@
+/* Admin Donor Details — page shell + table panel (pairs with applicationSurfaces sx in JSX) */
+
+.admin-donor-details {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+  box-sizing: border-box;
+}
+
+/* Prevent global portal card hover lift on this page */
+.admin-donor-details .MuiCard-root {
+  transition: none !important;
+  transform: none !important;
+}
+
+.admin-donor-details .MuiCard-root:hover {
+  transform: none !important;
+}
+
+/* Table cell spacing — match Special Events Registration / session list row height */
+.admin-donor-details .admin-donor-details-table-panel .MuiTableCell-root {
+  padding: 5px 4px !important;
+  vertical-align: middle;
+}
+
+.admin-donor-details .admin-donor-details-table-panel .MuiTableCell-head {
+  background-color: #e8f5e8;
+  overflow: hidden;
+  padding: 7px 4px !important;
+}
+
+.admin-donor-details
+  .admin-donor-details-table-panel
+  .MuiTableCell-body:not(.admin-donor-details-edit-cell) {
+  overflow: hidden;
+  max-width: 0;
+}
+
+.admin-donor-details .admin-donor-details-edit-cell {
+  max-width: none !important;
+  overflow: visible !important;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.admin-donor-details .admin-donor-details-table-container {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.admin-donor-details .admin-donor-details-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* Search bar + pagination controls — match session list sizing */
+.admin-donor-details .MuiButton-root {
+  text-transform: none;
+}
+
+@media (max-width: 899px) {
+  .admin-donor-details .MuiCard-root {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}

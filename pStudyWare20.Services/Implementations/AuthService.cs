@@ -96,17 +96,27 @@ namespace pStudyWare20.Services.Implementations
 
         private string GetUserRole(MemberMaster user)
         {
-            // Same logic as original btnSubmit_Click method
-            if (!string.IsNullOrEmpty(user.systemAdmin) && user.systemAdmin.Equals("Y", StringComparison.OrdinalIgnoreCase))
+            var memberType = (user.MemberType ?? string.Empty).Trim().ToUpperInvariant();
+            var isSystemAdminFlag = IsFlagY(user.systemAdmin);
+            var isSystemAdminNo = IsFlagN(user.systemAdmin);
+
+            // SystemAdmin portal: MemberType=A + systemAdmin=Y → /pstudyware/systemadmin
+            // Admin portal:       MemberType=A + systemAdmin=N → /pstudyware/admin
+            // SuperUser is NOT used for login/role — only DB chapter scope (GettingAuthorizedChapter).
+            if (memberType == "A" && isSystemAdminFlag)
+            {
+                return "SystemAdmin";
+            }
+
+            if (memberType == "A" && isSystemAdminNo)
             {
                 return "Admin";
             }
-            else if (!string.IsNullOrEmpty(user.MemberType))
+
+            if (!string.IsNullOrEmpty(memberType))
             {
-                switch (user.MemberType.ToUpper())
+                switch (memberType)
                 {
-                    case "A":
-                        return "Admin";
                     case "I":
                         return "Instructor";
                     case "S":
@@ -120,6 +130,12 @@ namespace pStudyWare20.Services.Implementations
 
             return "User";
         }
+
+        private static bool IsFlagY(string? value) =>
+            !string.IsNullOrEmpty(value) && value.Equals("Y", StringComparison.OrdinalIgnoreCase);
+
+        private static bool IsFlagN(string? value) =>
+            !string.IsNullOrEmpty(value) && value.Equals("N", StringComparison.OrdinalIgnoreCase);
 
         private string GetClientIpAddress()
         {
