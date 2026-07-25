@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Container,
@@ -12,18 +18,27 @@ import {
   CardContent,
 } from "@mui/material";
 import { useAuth } from "../../../contexts/AuthContext";
-import adminDashboardService from "../../../services/adminDashboardService";
+import adminDashboardService, {
+  adminVolunteerAvailabilityApi,
+} from "../../../services/adminDashboardService";
+import {
+  getPortalUsername,
+  getPortalLoginIdentifier,
+} from "../../../utils/portalUsername";
+import { applyVolunteerAvailabilityRefresh } from "../../../utils/volunteerAvailabilityGridMerge";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import {
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
-  adminDashboardWidgetColumnSx,
+  adminSessionListPanelCardSx,
+  adminSessionListPanelContentSx,
+  adminSessionListHeaderBarSx,
+  adminSessionListTitleSx,
 } from "../styles/applicationSurfaces";
-import EnrolledStudents from "./EnrolledStudents";
-import ToDoList from "./ToDoList";
 import SystemSupport from "./SystemSupport";
-import WaitingListStudents from "./WaitingListStudents";
 import StudentList from "./StudentList";
+import VolunteerAvailability from "../Common/VolunteerAvailability";
+import AdminVolunteerAvailabilityGrid from "./AdminVolunteerAvailabilityGrid";
 import "../../../styles/AdminDashboard.css";
 
 const AdminDashboard = () => {
@@ -33,15 +48,12 @@ const AdminDashboard = () => {
   const [isValidated, setIsValidated] = useState(false);
   const hasRedirectedRef = useRef(false);
 
-  // Dashboard data state
-  const [dashboardData, setDashboardData] = useState(null);
-  const [studentCounts, setStudentCounts] = useState({});
-  const [waitingListCounts, setWaitingListCounts] = useState({});
-  const [userTrackingSummary, setUserTrackingSummary] = useState([]);
   const [studentList, setStudentList] = useState([]);
-  const [message, setMessage] = useState("");
 
-  // Admin privileges state
+  const [availabilityRows, setAvailabilityRows] = useState([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState(null);
+
   const [adminPrivileges, setAdminPrivileges] = useState({
     isAdmin: false,
     isSystemAdmin: false,
@@ -49,55 +61,36 @@ const AdminDashboard = () => {
     canExportData: false,
   });
 
-  // Global message state
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "info",
   });
 
-  // Handle authentication and validation
-  useEffect(() => {
-    console.log("AdminDashboard: useEffect triggered", {
-      authLoading,
-      isAuthenticated,
-      hasRedirected: hasRedirectedRef.current,
-      user: user
-        ? { email: user.email, memberType: user.memberType, role: user.role }
-        : null,
-    });
+  const portalUsername = useMemo(() => getPortalUsername(user), [user]);
 
+  useEffect(() => {
     if (authLoading) {
-      console.log("AdminDashboard: Auth context still loading");
       return;
     }
 
-    // Prevent multiple redirects
     if (hasRedirectedRef.current) {
-      console.log("AdminDashboard: Already redirected, skipping");
       return;
     }
 
     if (!isAuthenticated || !user) {
-      console.log(
-        "AdminDashboard: User not authenticated, redirecting to login"
-      );
       hasRedirectedRef.current = true;
       navigate("/login", { replace: true });
       return;
     }
 
-    // Check if user is an admin
-    const memberType = user.memberType?.toUpperCase();
+    const memberType = String(user.memberType ?? "")
+      .trim()
+      .toUpperCase();
     const role = user.role;
-    console.log("AdminDashboard: Checking user type", { memberType, role });
 
     if (memberType !== "A" && role !== "Admin" && role !== "SystemAdmin") {
-      console.log(
-        "AdminDashboard: User is not an admin, redirecting to appropriate dashboard"
-      );
       hasRedirectedRef.current = true;
-      // Redirect to appropriate dashboard based on user type
       if (memberType === "S" || role === "Student") {
         navigate("/pstudyware/student/dashboard", { replace: true });
       } else if (memberType === "I" || role === "Instructor") {
@@ -110,14 +103,56 @@ const AdminDashboard = () => {
       return;
     }
 
-    console.log(
-      "AdminDashboard: User is authenticated admin, validation complete"
-    );
     setIsValidated(true);
     setLoading(false);
   }, [isAuthenticated, user, authLoading, navigate]);
 
-  // Load dashboard data
+  const loadVolunteerAvailability = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!portalUsername) return;
+
+      if (!silent) {
+        setAvailabilityError(null);
+        setAvailabilityLoading(true);
+      }
+
+      try {
+        const res = await adminVolunteerAvailabilityApi.getAvailabilitySummary({
+          username: portalUsername,
+        });
+        if (res?.isSuccess !== false) {
+          const nextRows = res.summaryData || [];
+          if (nextRows.length > 0 || !silent) {
+            setAvailabilityRows(nextRows);
+            setAvailabilityError(null);
+          }
+        } else if (!silent) {
+          setAvailabilityRows([]);
+          setAvailabilityError(
+            res?.errorMessage || "Could not load volunteer availability list.",
+          );
+        }
+      } catch (e) {
+        if (!silent) {
+          setAvailabilityError(
+            e?.message || "Failed to load volunteer availability list.",
+          );
+          setAvailabilityRows([]);
+        }
+      } finally {
+        if (!silent) setAvailabilityLoading(false);
+      }
+    },
+    [portalUsername],
+  );
+
+  const refreshVolunteerAvailabilityList = useCallback((payload) => {
+    setAvailabilityRows((prev) =>
+      applyVolunteerAvailabilityRefresh(prev, payload),
+    );
+    setAvailabilityError(null);
+  }, []);
+
   useEffect(() => {
     const loadDashboardData = async () => {
       if (!isValidated || !user) {
@@ -126,14 +161,12 @@ const AdminDashboard = () => {
 
       try {
         setLoading(true);
-        console.log("AdminDashboard: Fetching dashboard data");
 
-        // Check admin privileges first
         const privilegesResponse =
           await adminDashboardService.checkAdminPrivileges();
-        console.log("AdminDashboard: Admin privileges", privilegesResponse);
         const systemAdminFromUser =
-          String(user?.systemAdmin ?? user?.SystemAdmin ?? "").toUpperCase() === "Y";
+          String(user?.systemAdmin ?? user?.SystemAdmin ?? "").toUpperCase() ===
+          "Y";
         const isSystemAdmin =
           privilegesResponse?.isSystemAdmin === true ||
           privilegesResponse?.IsSystemAdmin === true ||
@@ -141,8 +174,11 @@ const AdminDashboard = () => {
         const isAdmin =
           privilegesResponse?.isAdmin === true ||
           privilegesResponse?.IsAdmin === true ||
-          user?.memberType?.toUpperCase() === "A" ||
-          user?.role === "Admin";
+          String(user?.memberType ?? "")
+            .trim()
+            .toUpperCase() === "A" ||
+          user?.role === "Admin" ||
+          user?.role === "SystemAdmin";
         setAdminPrivileges({
           isAdmin,
           isSystemAdmin,
@@ -150,46 +186,25 @@ const AdminDashboard = () => {
           canExportData: isAdmin,
         });
 
-        // Get complete dashboard data
-        const response = await adminDashboardService.getDashboardData(
-          user.email || user.username
-        );
-
-        console.log("AdminDashboard: Dashboard data response", response);
+        const portalUser =
+          getPortalUsername(user) || getPortalLoginIdentifier(user);
+        const response =
+          await adminDashboardService.getDashboardData(portalUser);
 
         if (response) {
-          setDashboardData(response);
-
-          // Extract student list
-          if (response.studentList && response.studentList.students) {
-            setStudentList(response.studentList.students);
-          }
-
-          // Extract dashboard message, enrolled counts, and waiting list counts (legacy Admin_Dashboard.aspx)
-          const dm = response.dashboardMessage || response.DashboardMessage;
-          if (dm) {
-            setMessage(dm.message ?? dm.Message ?? "");
-            setStudentCounts(
-              dm.studentCounts ?? dm.StudentCounts ?? {},
-            );
-            setWaitingListCounts(
-              dm.waitingListCounts ?? dm.WaitingListCounts ?? {},
-            );
-          }
-
-          // Extract user tracking summary
-          if (
-            response.userTrackingSummary &&
-            response.userTrackingSummary.trackingData
-          ) {
-            setUserTrackingSummary(response.userTrackingSummary.trackingData);
+          const studentListPayload =
+            response.studentList || response.StudentList || {};
+          const students =
+            studentListPayload.students || studentListPayload.Students || [];
+          if (Array.isArray(students)) {
+            setStudentList(students);
           }
         }
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
         showMessage(
           "Error loading dashboard data. Please refresh the page.",
-          "error"
+          "error",
         );
       } finally {
         setLoading(false);
@@ -199,7 +214,11 @@ const AdminDashboard = () => {
     loadDashboardData();
   }, [isValidated, user]);
 
-  // Helper function to show messages
+  useEffect(() => {
+    if (!isValidated || !portalUsername) return;
+    loadVolunteerAvailability();
+  }, [isValidated, portalUsername, loadVolunteerAvailability]);
+
   const showMessage = (message, severity = "info") => {
     setSnackbar({
       open: true,
@@ -208,7 +227,6 @@ const AdminDashboard = () => {
     });
   };
 
-  // Helper function to close snackbar
   const handleCloseSnackbar = (event, reason) => {
     if (reason === "clickaway") {
       return;
@@ -216,10 +234,8 @@ const AdminDashboard = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Handle publish document
   const handlePublishDocument = async (sendEmail) => {
     try {
-      console.log("AdminDashboard: Publishing document", { sendEmail });
       const response = await adminDashboardService.publishDocument({
         sendEmail,
         SendEmail: sendEmail,
@@ -228,13 +244,17 @@ const AdminDashboard = () => {
       const success = response?.isSuccess ?? response?.IsSuccess;
       if (success) {
         showMessage(
-          response?.message ?? response?.Message ?? "Documents published successfully!",
-          "success"
+          response?.message ??
+            response?.Message ??
+            "Documents published successfully!",
+          "success",
         );
       } else {
         showMessage(
-          response?.errorMessage ?? response?.ErrorMessage ?? "Failed to publish documents.",
-          "error"
+          response?.errorMessage ??
+            response?.ErrorMessage ??
+            "Failed to publish documents.",
+          "error",
         );
       }
     } catch (err) {
@@ -243,14 +263,12 @@ const AdminDashboard = () => {
     }
   };
 
-  // Handle export to Excel
   const handleExportToExcel = async () => {
     try {
-      console.log("AdminDashboard: Exporting to Excel");
       showMessage("Generating Excel file...", "info");
 
       await adminDashboardService.exportStudentListToExcel({
-        username: user.email || user.username,
+        username: getPortalUsername(user) || getPortalLoginIdentifier(user),
         mode: "D",
       });
 
@@ -261,7 +279,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Show loading while auth context is loading or while validating user
   if (authLoading || loading) {
     return (
       <Box
@@ -282,7 +299,6 @@ const AdminDashboard = () => {
     );
   }
 
-  // Only render dashboard if user is authenticated, validated, and is an admin
   if (!isAuthenticated || !user || !isValidated) {
     return (
       <Box
@@ -318,98 +334,116 @@ const AdminDashboard = () => {
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sx={{ pb: 0 }}>
-            <Card
+            <Box
+              className="admin-dashboard-top-cards-row"
               sx={{
-                ...panelCardSx,
                 display: "flex",
-                flexDirection: "column",
-                minHeight: 0,
+                flexDirection: { xs: "column", md: "row" },
+                alignItems: "stretch",
+                gap: 2,
+                width: "100%",
               }}
             >
-              <CardContent
+              <Box
                 sx={{
-                  px: 2,
-                  pt: 1.5,
-                  pb: 0,
+                  flex: { xs: "1 1 auto", md: "1 1 0" },
+                  width: { xs: "100%", md: "50%" },
+                  minWidth: 0,
                   display: "flex",
-                  flexDirection: "column",
-                  minHeight: 0,
-                  "&:last-child": { pb: 0 },
                 }}
               >
-                <Grid
-                  container
-                  spacing={4}
-                  className="admin-dashboard-widgets-row"
+                <Card
                   sx={{
-                    alignItems: "flex-start",
-                    flexWrap: { xs: "wrap", md: "nowrap" },
+                    ...panelCardSx,
                     width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: 0,
                   }}
                 >
-                  <Grid item xs={12} sm={6} md={3} sx={adminDashboardWidgetColumnSx}>
-                    <Box
-                      sx={{
-                        width: "100%",
-                        minWidth: 0,
-                        maxWidth: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                      }}
-                    >
-                      <ToDoList trackingSummary={userTrackingSummary} />
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} sx={adminDashboardWidgetColumnSx}>
-                    <Box
-                      sx={{
-                        width: "100%",
-                        minWidth: 0,
-                        display: "flex",
-                        flexDirection: "column",
-                      }}
-                    >
-                      <EnrolledStudents studentCounts={studentCounts} />
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} sx={adminDashboardWidgetColumnSx}>
-                    <Box
-                      sx={{
-                        width: "100%",
-                        minWidth: 0,
-                        maxWidth: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                      }}
-                    >
-                      <WaitingListStudents
-                        waitingListCounts={waitingListCounts}
-                      />
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3} sx={adminDashboardWidgetColumnSx}>
-                    <Box
-                      sx={{
-                        width: "100%",
-                        minWidth: 0,
-                        maxWidth: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                      }}
-                    >
-                      <SystemSupport
-                        onPublishDocument={handlePublishDocument}
-                        canPublishDocuments={
-                          adminPrivileges.canPublishDocuments
-                        }
-                      />
-                    </Box>
-                  </Grid>
-                </Grid>
+                  <CardContent
+                    sx={{
+                      px: 2,
+                      pt: 1.5,
+                      pb: 0,
+                      display: "flex",
+                      flexDirection: "column",
+                      minHeight: 0,
+                      flex: 1,
+                      "&:last-child": { pb: 0 },
+                    }}
+                  >
+                    <SystemSupport
+                      onPublishDocument={handlePublishDocument}
+                      canPublishDocuments={adminPrivileges.canPublishDocuments}
+                    />
+                  </CardContent>
+                </Card>
+              </Box>
+
+              <Box
+                sx={{
+                  flex: { xs: "1 1 auto", md: "1 1 0" },
+                  width: { xs: "100%", md: "50%" },
+                  minWidth: 0,
+                  display: "flex",
+                }}
+              >
+                <Card
+                  sx={{
+                    ...adminSessionListPanelCardSx,
+                    width: "100%",
+                    height: "100%",
+                  }}
+                  className="admin-dashboard-volunteer-availability-entry-panel"
+                >
+                  <CardContent
+                    sx={{
+                      ...adminSessionListPanelContentSx,
+                      width: "100%",
+                      height: "100%",
+                    }}
+                  >
+                    <VolunteerAvailability
+                      embedded
+                      alwaysVisible
+                      availabilityService={adminVolunteerAvailabilityApi}
+                      onSaved={refreshVolunteerAvailabilityList}
+                    />
+                  </CardContent>
+                </Card>
+              </Box>
+            </Box>
+          </Grid>
+
+          <Grid item xs={12} sx={{ pt: "8px !important" }}>
+            <Card sx={adminSessionListPanelCardSx}>
+              <CardContent sx={adminSessionListPanelContentSx}>
+                <Box sx={adminSessionListHeaderBarSx}>
+                  <Typography
+                    variant="subtitle1"
+                    component="div"
+                    sx={adminSessionListTitleSx}
+                  >
+                    Volunteers Availability List for upcoming class
+                  </Typography>
+                </Box>
+                <AdminVolunteerAvailabilityGrid
+                  rows={availabilityRows}
+                  loading={availabilityLoading}
+                  error={availabilityError}
+                />
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} id="admin-student-list" sx={{ pt: "8px !important" }}>
+
+          <Grid
+            item
+            xs={12}
+            id="admin-student-list"
+            sx={{ pt: "8px !important" }}
+          >
             <Card sx={panelCardSx}>
               <CardContent sx={{ px: 1.5, pt: 1.5, pb: 0 }}>
                 <StudentList
@@ -423,7 +457,6 @@ const AdminDashboard = () => {
         </Grid>
       </Container>
 
-      {/* Global Snackbar for Success/Error Messages */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

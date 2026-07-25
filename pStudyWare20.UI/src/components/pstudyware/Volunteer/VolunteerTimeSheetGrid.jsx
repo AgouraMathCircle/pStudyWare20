@@ -34,6 +34,7 @@ import {
   isTimeSheetApiSuccess,
   resolveTimeSheetLogId,
 } from "../../../utils/timeSheetFormValidation";
+import { resolveSelfServiceTimeSheetPath } from "../../../utils/timeSheetPortalPaths";
 import {
   adminSessionListEmptyCellSx,
   adminSessionListEmptyTextSx,
@@ -169,11 +170,6 @@ const getTimeSheetFieldValue = (row, field) => {
   }
 };
 
-const timeSheetPathForUser = (user) =>
-  user?.role === "Volunteer"
-    ? "/pstudyware/volunteer/time-sheet"
-    : "/pstudyware/instructor/time-sheet";
-
 /**
  * My Time Sheet — Volunteer_Dashboard.aspx kGrid columns (AMC_spSelectTimeTracking).
  */
@@ -184,6 +180,8 @@ const VolunteerTimeSheetGrid = ({
   onEntriesChanged,
   usePortalStyle = false,
   hideTitle = false,
+  editPath,
+  deleteEntry,
 }) => {
   const { user } = useAuth();
   const [page, setPage] = useState(0);
@@ -344,7 +342,13 @@ const VolunteerTimeSheetGrid = ({
 
     setDeletingId(id);
     try {
-      const res = await timeSheetTrackingService.deleteTimeSheetTrackingById(id);
+      const deleteFn =
+        typeof deleteEntry === "function"
+          ? deleteEntry
+          : timeSheetTrackingService.deleteTimeSheetTrackingById.bind(
+              timeSheetTrackingService,
+            );
+      const res = await deleteFn(id);
       if (!isTimeSheetApiSuccess(res)) {
         setAlertDialog({
           open: true,
@@ -368,7 +372,7 @@ const VolunteerTimeSheetGrid = ({
     }
   };
 
-  const editPath = timeSheetPathForUser(user);
+  const resolvedEditPath = resolveSelfServiceTimeSheetPath(user, editPath);
 
   if (error) {
     return (
@@ -553,7 +557,7 @@ const VolunteerTimeSheetGrid = ({
                         {id ? (
                           <Box
                             component={RouterLink}
-                            to={`${editPath}?logId=${id}`}
+                            to={`${resolvedEditPath}?logId=${id}`}
                             sx={adminSessionListTableActionLinkSx}
                           >
                             Edit
@@ -792,7 +796,7 @@ const VolunteerTimeSheetGrid = ({
                       {id ? (
                         <Box
                           component={RouterLink}
-                          to={`${editPath}?logId=${id}`}
+                          to={`${resolvedEditPath}?logId=${id}`}
                           sx={adminSessionListTableActionLinkSx}
                         >
                           Edit

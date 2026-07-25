@@ -24,13 +24,15 @@ import InstructorHeader, {
 import VolunteerHeader, {
   VolunteerRoleHeaderSpacer,
 } from "../Volunteer/VolunteerHeader";
+import AdminHeader, {
+  AdminRoleHeaderSpacer,
+} from "../Admin/AdminHeader";
 import { adminSessionListTitleSx } from "../styles/applicationSurfaces";
 import {
   buildVolunteeringPrompt,
   getTargetSessionForDb,
   getVolunteeringSessionTableLabels,
 } from "../../../utils/volunteerAvailabilitySession";
-import { applyVolunteerAvailabilityRefresh } from "../../../utils/volunteerAvailabilityGridMerge";
 import "./VolunteerAvailability.css";
 
 const REASON_OPTIONS = [
@@ -82,6 +84,14 @@ const resolvePortalRole = (user, pathname = "") => {
   const role = String(user?.role || "").toLowerCase();
 
   if (
+    pathname.includes("/pstudyware/admin") ||
+    pathname.includes("/admin/") ||
+    (memberType === "A" && role === "admin") ||
+    role === "admin"
+  ) {
+    return "admin";
+  }
+  if (
     pathname.includes("/pstudyware/instructor") ||
     memberType === "I" ||
     memberType === "C" ||
@@ -104,12 +114,20 @@ const VolunteerAvailability = ({
   embedded = false,
   skipRoleHeader = false,
   onSaved,
+  /** Optional API adapter (e.g. AdminDashboard). Defaults to shared VolunteerAvailability service. */
+  availabilityService = volunteerAvailabilityService,
+  /** Admin always shows the form regardless of semester VolunteerAvailability flag. */
+  alwaysVisible = false,
 }) => {
   const location = useLocation();
   const { user } = useAuth();
+  const api = useMemo(
+    () => availabilityService || volunteerAvailabilityService,
+    [availabilityService],
+  );
   const showAvailability = useMemo(
-    () => shouldShowVolunteerAvailability(user),
-    [user],
+    () => alwaysVisible || shouldShowVolunteerAvailability(user),
+    [alwaysVisible, user],
   );
   const username = useMemo(
     () => user?.email || user?.username || "",
@@ -189,7 +207,7 @@ const VolunteerAvailability = ({
       );
 
       try {
-        const context = await volunteerAvailabilityService.getFormContext();
+        const context = await api.getFormContext();
         if (!cancelled && context?.isSuccess !== false) {
           if (context.currentSession) {
             display = context.currentSession;
@@ -228,7 +246,7 @@ const VolunteerAvailability = ({
     return () => {
       cancelled = true;
     };
-  }, [showAvailability, user]);
+  }, [showAvailability, user, api]);
 
   const applyAvailabilityResult = useCallback((result) => {
     if (result.hasValue) {
@@ -258,7 +276,7 @@ const VolunteerAvailability = ({
 
       if (!silent) setLoading(true);
       try {
-        const result = await volunteerAvailabilityService.getAvailability({
+        const result = await api.getAvailability({
           userID: memberId,
           session: sessionLabel,
           semester: resolvedSemester,
@@ -300,7 +318,7 @@ const VolunteerAvailability = ({
         }
       }
     },
-    [applyAvailabilityResult, memberId, resolvedSemester, showSnackbar],
+    [api, applyAvailabilityResult, memberId, resolvedSemester, showSnackbar],
   );
 
   const handleEditAvailability = (event) => {
@@ -320,7 +338,7 @@ const VolunteerAvailability = ({
     if (targetSession) {
       setLoading(true);
       try {
-        const result = await volunteerAvailabilityService.getAvailability({
+        const result = await api.getAvailability({
           userID: memberId,
           session: targetSession,
           semester: resolvedSemester,
@@ -406,7 +424,7 @@ const VolunteerAvailability = ({
 
     setSaving(true);
     try {
-      const result = await volunteerAvailabilityService.updateAvailability({
+      const result = await api.updateAvailability({
         userID: memberId,
         session: targetSession,
         semester: resolvedSemester,
@@ -701,6 +719,14 @@ const VolunteerAvailability = ({
 
   const roleHeader = (() => {
     if (!showOwnHeader) return null;
+    if (portalRole === "admin") {
+      return (
+        <>
+          <AdminHeader user={user} />
+          <AdminRoleHeaderSpacer />
+        </>
+      );
+    }
     if (portalRole === "instructor") {
       return (
         <>

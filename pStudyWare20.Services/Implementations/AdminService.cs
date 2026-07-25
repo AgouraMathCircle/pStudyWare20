@@ -14,12 +14,18 @@ namespace pStudyWare20.Services.Implementations
         private readonly IAdminRepository _adminRepository;
         private readonly IEmailUtility _emailUtility;
         private readonly IConfiguration _configuration;
+        private readonly IVolunteerAvailabilityService _volunteerAvailabilityService;
 
-        public AdminService(IAdminRepository adminRepository, IEmailUtility emailUtility, IConfiguration configuration)
+        public AdminService(
+            IAdminRepository adminRepository,
+            IEmailUtility emailUtility,
+            IConfiguration configuration,
+            IVolunteerAvailabilityService volunteerAvailabilityService)
         {
             _adminRepository = adminRepository;
             _emailUtility = emailUtility;
             _configuration = configuration;
+            _volunteerAvailabilityService = volunteerAvailabilityService;
         }
 
         /// <summary>
@@ -70,47 +76,6 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
-        /// Get user tracking summary for admin dashboard
-        /// </summary>
-        public async Task<UserTrackingSummaryResponse> GetUserTrackingSummaryAsync(UserTrackingSummaryRequest request)
-        {
-            try
-            {
-                var trackingSummaryData = await _adminRepository.GetUserTrackingSummaryAsync();
-                var trackingData = new List<UserTrackingData>();
-
-                // Convert DataTable to List<UserTrackingData>
-                if (trackingSummaryData is DataTable dataTable)
-                {
-                    foreach (DataRow row in dataTable.Rows)
-                    {
-                        trackingData.Add(new UserTrackingData
-                        {
-                            VisitedDate = row["VisitedDate"] != DBNull.Value ? Convert.ToDateTime(row["VisitedDate"]) : DateTime.MinValue,
-                            WebCount = GetIntValue(row, "WebCount"),
-                            AppCount = GetIntValue(row, "AppCount"),
-                            UpdateScoreCnt = GetIntValue(row, "UpdateScoreCnt")
-                        });
-                    }
-                }
-
-                return new UserTrackingSummaryResponse
-                {
-                    IsSuccess = true,
-                    TrackingData = trackingData
-                };
-            }
-            catch (Exception ex)
-            {
-                return new UserTrackingSummaryResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = ex.Message
-                };
-            }
-        }
-
-        /// <summary>
         /// Get user tracking list (legacy UserTracking.aspx).
         /// </summary>
         public async Task<UserTrackingListResponse> GetUserTrackingListAsync(UserTrackingListRequest request)
@@ -146,93 +111,6 @@ namespace pStudyWare20.Services.Implementations
             catch (Exception ex)
             {
                 return new UserTrackingListResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessage = ex.Message
-                };
-            }
-        }
-
-        /// <summary>
-        /// Get dashboard message with student counts
-        /// </summary>
-        public async Task<DashboardMessageResponse> GetDashboardMessageAsync(DashboardMessageRequest request)
-        {
-            try
-            {
-                var dashboardData = await _adminRepository.GetDashboardMessageAsync(request.Mode, request.Username);
-
-                var studentCounts = new Dictionary<string, int>();
-                var waitingListCounts = new Dictionary<string, int>();
-
-                if (dashboardData is DataSet dataSet && dataSet.Tables.Count > 0 && dataSet.Tables[0].Rows.Count > 0)
-                {
-                    var table = dataSet.Tables[0];
-
-                    // Map the data from the stored procedure result
-                    // Based on the original code, the data is accessed by row index
-                    if (table.Rows.Count > 13)
-                    {
-                        // OnSite Student Counts (matching frontend keys)
-                        studentCounts["onstudentCntJA"] = GetIntValue(table.Rows[7], "StudentOTotal");
-                        studentCounts["onstudentCntJB"] = GetIntValue(table.Rows[8], "StudentOTotal");
-                        studentCounts["onstudentCntJI"] = GetIntValue(table.Rows[9], "StudentOTotal");
-                        studentCounts["onstudentCntSA"] = GetIntValue(table.Rows[10], "StudentOTotal");
-                        studentCounts["onstudentCntSB"] = GetIntValue(table.Rows[11], "StudentOTotal");
-                        studentCounts["onstudentCntSI"] = GetIntValue(table.Rows[12], "StudentOTotal");
-                        studentCounts["onstudentCntAI"] = GetIntValue(table.Rows[4], "StudentOTotal");
-                        studentCounts["onstudentCntAT"] = GetIntValue(table.Rows[5], "StudentOTotal");
-                        studentCounts["onstudentCntDS"] = GetIntValue(table.Rows[6], "StudentOTotal");
-                        studentCounts["onstudentCntST"] = GetIntValue(table.Rows[13], "StudentOTotal");
-
-                        // Online Student Counts (matching frontend keys)
-                        studentCounts["instudentCntJA"] = GetIntValue(table.Rows[7], "StudentITotal");
-                        studentCounts["instudentCntJB"] = GetIntValue(table.Rows[8], "StudentITotal");
-                        studentCounts["instudentCntJI"] = GetIntValue(table.Rows[9], "StudentITotal");
-                        studentCounts["instudentCntSA"] = GetIntValue(table.Rows[10], "StudentITotal");
-                        studentCounts["instudentCntSB"] = GetIntValue(table.Rows[11], "StudentITotal");
-                        studentCounts["instudentCntSI"] = GetIntValue(table.Rows[12], "StudentITotal");
-                        studentCounts["instudentCntAI"] = GetIntValue(table.Rows[4], "StudentITotal");
-                        studentCounts["instudentCntAT"] = GetIntValue(table.Rows[5], "StudentITotal");
-                        studentCounts["instudentCntDS"] = GetIntValue(table.Rows[6], "StudentITotal");
-                        studentCounts["instudentCntST"] = GetIntValue(table.Rows[13], "StudentITotal");
-
-                        // Waiting list OnSite (WaitingOTotal) / Online (WaitingITotal) — same row index map as legacy Admin_Dashboard.aspx
-                        waitingListCounts["onwaitingCntJA"] = GetIntValue(table.Rows[7], "WaitingOTotal");
-                        waitingListCounts["onwaitingCntJB"] = GetIntValue(table.Rows[8], "WaitingOTotal");
-                        waitingListCounts["onwaitingCntJI"] = GetIntValue(table.Rows[9], "WaitingOTotal");
-                        waitingListCounts["onwaitingCntSA"] = GetIntValue(table.Rows[10], "WaitingOTotal");
-                        waitingListCounts["onwaitingCntSB"] = GetIntValue(table.Rows[11], "WaitingOTotal");
-                        waitingListCounts["onwaitingCntSI"] = GetIntValue(table.Rows[12], "WaitingOTotal");
-                        waitingListCounts["onwaitingCntAI"] = GetIntValue(table.Rows[4], "WaitingOTotal");
-                        waitingListCounts["onwaitingCntAT"] = GetIntValue(table.Rows[5], "WaitingOTotal");
-                        waitingListCounts["onwaitingCntDS"] = GetIntValue(table.Rows[6], "WaitingOTotal");
-                        waitingListCounts["onwaitingCntST"] = GetIntValue(table.Rows[13], "WaitingOTotal");
-
-                        waitingListCounts["inwaitingCntJA"] = GetIntValue(table.Rows[7], "WaitingITotal");
-                        waitingListCounts["inwaitingCntJB"] = GetIntValue(table.Rows[8], "WaitingITotal");
-                        waitingListCounts["inwaitingCntJI"] = GetIntValue(table.Rows[9], "WaitingITotal");
-                        waitingListCounts["inwaitingCntSA"] = GetIntValue(table.Rows[10], "WaitingITotal");
-                        waitingListCounts["inwaitingCntSB"] = GetIntValue(table.Rows[11], "WaitingITotal");
-                        waitingListCounts["inwaitingCntSI"] = GetIntValue(table.Rows[12], "WaitingITotal");
-                        waitingListCounts["inwaitingCntAI"] = GetIntValue(table.Rows[4], "WaitingITotal");
-                        waitingListCounts["inwaitingCntAT"] = GetIntValue(table.Rows[5], "WaitingITotal");
-                        waitingListCounts["inwaitingCntDS"] = GetIntValue(table.Rows[6], "WaitingITotal");
-                        waitingListCounts["inwaitingCntST"] = GetIntValue(table.Rows[13], "WaitingITotal");
-                    }
-                }
-
-                return new DashboardMessageResponse
-                {
-                    IsSuccess = true,
-                    Message = "",
-                    StudentCounts = studentCounts,
-                    WaitingListCounts = waitingListCounts
-                };
-            }
-            catch (Exception ex)
-            {
-                return new DashboardMessageResponse
                 {
                     IsSuccess = false,
                     ErrorMessage = ex.Message
@@ -287,7 +165,7 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
-        /// Export student list to Excel
+        /// Export student list to Excel — columns match Current Session Student List UI.
         /// </summary>
         public async Task<ExportExcelResponse> ExportStudentListToExcelAsync(ExportExcelRequest request)
         {
@@ -297,11 +175,12 @@ namespace pStudyWare20.Services.Implementations
 
                 if (studentList is DataTable dataTable && dataTable.Rows.Count > 0)
                 {
+                    var exportTable = BuildCurrentSessionStudentListExportTable(dataTable);
                     return new ExportExcelResponse
                     {
                         IsSuccess = true,
                         FileName = "StudentList.xlsx",
-                        FileContent = DataTableExcelExporter.ToXlsxBytes(dataTable, "StudentList"),
+                        FileContent = DataTableExcelExporter.ToXlsxBytes(exportTable, "StudentList"),
                         ContentType = DataTableExcelExporter.XlsxContentType
                     };
                 }
@@ -321,6 +200,57 @@ namespace pStudyWare20.Services.Implementations
                 };
             }
         }
+
+        /// <summary>
+        /// Project SP result to the same columns/order/labels as Admin StudentList UI:
+        /// Student #, Student Name, Class, Session, Location.
+        /// </summary>
+        private static DataTable BuildCurrentSessionStudentListExportTable(DataTable source)
+        {
+            var export = new DataTable();
+            export.Columns.Add("Student #", typeof(string));
+            export.Columns.Add("Student Name", typeof(string));
+            export.Columns.Add("Class", typeof(string));
+            export.Columns.Add("Session", typeof(string));
+            export.Columns.Add("Location", typeof(string));
+
+            foreach (DataRow row in source.Rows)
+            {
+                export.Rows.Add(
+                    GetStringValue(row, "StudentID"),
+                    GetStringValue(row, "StudentName"),
+                    GetStringValue(row, "Class"),
+                    GetStringValue(row, "EventSession"),
+                    GetStringValue(row, "EventLocation")
+                );
+            }
+
+            return export;
+        }
+
+        /// <summary>
+        /// Chapter Admin: update volunteer availability for the signed-in admin.
+        /// </summary>
+        public Task<VolunteerAvailabilityResponse> UpdateVolunteerAvailabilityAsync(VolunteerAvailabilityRequest request)
+            => _volunteerAvailabilityService.UpdateVolunteerAvailabilityAsync(request);
+
+        /// <summary>
+        /// Chapter Admin: get volunteer availability for the signed-in admin.
+        /// </summary>
+        public Task<VolunteerAvailabilitySelectResponse> GetVolunteerAvailabilityAsync(VolunteerAvailabilitySelectRequest request)
+            => _volunteerAvailabilityService.GetVolunteerAvailabilityAsync(request);
+
+        /// <summary>
+        /// Chapter Admin: form context (target session + prompt) for volunteer availability entry.
+        /// </summary>
+        public Task<VolunteerAvailabilityFormContextResponse> GetVolunteerAvailabilityFormContextAsync(string chapterId)
+            => _volunteerAvailabilityService.GetVolunteerAvailabilityFormContextAsync(chapterId);
+
+        /// <summary>
+        /// Chapter Admin: volunteers availability list for upcoming class (authorized chapters).
+        /// </summary>
+        public Task<VolunteerAvailabilitySummaryResponse> GetVolunteerAvailabilitySummaryAsync(VolunteerAvailabilitySummaryRequest request)
+            => _volunteerAvailabilityService.GetVolunteerAvailabilitySummaryAsync(request);
 
         /// <summary>
         /// Helper method to get integer value from DataRow

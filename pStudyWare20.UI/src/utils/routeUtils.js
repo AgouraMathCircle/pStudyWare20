@@ -1,7 +1,14 @@
 /**
- * Returns true when the path belongs to the authenticated portal (admin/student/etc.),
- * as opposed to the public marketing site.
+ * Portal path helpers after login.
+ *
+ * Roles (new app — not the same as legacy UI naming):
+ * - SystemAdmin: MemberType=A + systemAdmin=Y → /pstudyware/systemadmin
+ * - Admin:       MemberType=A + systemAdmin=N → /pstudyware/admin
+ *
+ * SuperUser is a DB flag for chapter scope only (GettingAuthorizedChapter);
+ * it is not used for portal/login role.
  */
+
 export function isPortalRoute(pathname) {
   if (!pathname) return false;
 
@@ -13,15 +20,34 @@ export function isPortalRoute(pathname) {
   return false;
 }
 
+/** True when user should use the SystemAdmin portal. */
+export function isSystemAdminUser(user) {
+  if (!user) return false;
+  if (user.role === "SystemAdmin") return true;
+
+  const memberType = String(user.memberType ?? "").trim().toUpperCase();
+  const systemAdmin = String(user.systemAdmin ?? user.SystemAdmin ?? "")
+    .trim()
+    .toUpperCase();
+
+  return memberType === "A" && systemAdmin === "Y";
+}
+
 export function getPortalDashboardPath(user) {
   if (!user) return "/";
 
+  if (isSystemAdminUser(user)) {
+    return "/pstudyware/systemadmin/dashboard";
+  }
+
   const memberType = user.memberType?.toUpperCase();
+  const systemAdmin = String(user.systemAdmin ?? user.SystemAdmin ?? "")
+    .trim()
+    .toUpperCase();
 
   if (
-    memberType === "A" ||
     user.role === "Admin" ||
-    user.role === "SystemAdmin"
+    (memberType === "A" && systemAdmin === "N")
   ) {
     return "/pstudyware/admin/dashboard";
   }
@@ -44,12 +70,18 @@ export function getPortalDashboardPath(user) {
 export function getMessageCenterPath(user) {
   if (!user) return "/login";
 
+  if (isSystemAdminUser(user)) {
+    return "/pstudyware/systemadmin/message-center";
+  }
+
   const memberType = user.memberType?.toUpperCase();
+  const systemAdmin = String(user.systemAdmin ?? user.SystemAdmin ?? "")
+    .trim()
+    .toUpperCase();
 
   if (
-    memberType === "A" ||
     user.role === "Admin" ||
-    user.role === "SystemAdmin"
+    (memberType === "A" && systemAdmin === "N")
   ) {
     return "/pstudyware/admin/message-center";
   }

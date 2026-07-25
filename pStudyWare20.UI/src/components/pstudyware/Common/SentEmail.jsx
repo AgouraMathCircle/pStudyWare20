@@ -27,6 +27,7 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import sentEmailService from "../../../services/sentEmailService";
 import { getPortalUsername, getPortalLoginIdentifier } from "../../../utils/portalUsername";
+import { getMessageCenterPath as getRoleMessageCenterPath } from "../../../utils/routeUtils";
 import {
   getMessagePreview,
   getMessageFieldValue,
@@ -87,12 +88,7 @@ const sentListColumnWidths = {
 };
 
 const getMessageCenterPath = (user) => {
-  const memberType = user?.memberType?.toUpperCase() || "";
-  if (memberType === "S") return "/pstudyware/student/message-center";
-  if (memberType === "I") return "/pstudyware/instructor/message-center";
-  if (memberType === "V") return "/pstudyware/volunteer/message-center";
-  if (memberType === "A") return "/pstudyware/admin/message-center";
-  return "/pstudyware/emailmanager";
+  return getRoleMessageCenterPath(user);
 };
 
 /** Legacy sentemail.aspx grid [SendFrom] — always the SP SendFrom column. */

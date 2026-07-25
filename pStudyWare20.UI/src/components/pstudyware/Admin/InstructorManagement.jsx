@@ -13,6 +13,7 @@ import AppSnackbar from "../Common/AppSnackbar";
 import { useAuth } from "../../../contexts/AuthContext";
 import instructorService from "../../../services/instructorService";
 import volunteersRequestService from "../../../services/volunteersRequestService";
+import { getPortalUsername } from "../../../utils/portalUsername";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import InstructorList from "./InstructorList";
 import InstructorForm from "./InstructorForm";
@@ -163,23 +164,28 @@ const InstructorManagement = () => {
         setLoading(true);
         console.log("InstructorManagement: Fetching instructor data");
 
-        // Check admin privileges
+        // Chapter Admin privileges (SystemAdmin uses a separate portal stack)
         const memberType = user.memberType?.toUpperCase();
-        const chapterID = user.chapterID || "1";
         const isAdmin = memberType === "A";
-        const isSystemAdmin = isAdmin && chapterID === "1";
+        const portalUsername = getPortalUsername(user);
 
         setAdminPrivileges({
           isAdmin,
-          isSystemAdmin,
-          canAddInstructor: isSystemAdmin,
+          isSystemAdmin: false,
+          canAddInstructor: false,
           canExportData: isAdmin,
         });
 
-        // Get instructor list
-        const response = await instructorService.getInstructorList(
-          user.email || user.username
-        );
+        if (!portalUsername) {
+          showSnackbar(
+            "Unable to resolve portal username. Please log in again.",
+            "error",
+          );
+          return;
+        }
+
+        // Get instructor list — BE filters to assigned classes for Chapter Admin
+        const response = await instructorService.getInstructorList(portalUsername);
 
         console.log("InstructorManagement: Instructor data response", response);
 
@@ -228,33 +234,6 @@ const InstructorManagement = () => {
     setSelectedInstructor(normalizeInstructorRow(instructor));
     setIsEdit(true);
     setFormOpen(true);
-  };
-
-  // Handle delete instructor
-  const handleDelete = async (instructorID) => {
-    try {
-      console.log("InstructorManagement: Deleting instructor", instructorID);
-      showSnackbar("Deleting instructor...", "info");
-
-      const response = await instructorService.deleteInstructor(instructorID);
-
-      if (response.isSuccess) {
-        showSnackbar(
-          response.message || "Instructor deleted successfully!",
-          "success"
-        );
-        // Refresh instructor list
-        await refreshInstructors();
-      } else {
-        showSnackbar(
-          response.errorMessage || "Failed to delete instructor.",
-          "error"
-        );
-      }
-    } catch (err) {
-      console.error("Error deleting instructor:", err);
-      showSnackbar("Error deleting instructor. Please try again.", "error");
-    }
   };
 
   // Handle form submit
@@ -328,12 +307,19 @@ const InstructorManagement = () => {
   // Handle export to Excel
   const handleExportToExcel = async () => {
     try {
+      const portalUsername = getPortalUsername(user);
+      if (!portalUsername) {
+        showSnackbar(
+          "Unable to resolve portal username. Please log in again.",
+          "error",
+        );
+        return;
+      }
+
       console.log("InstructorManagement: Exporting to Excel");
       showSnackbar("Generating Excel file...", "info");
 
-      await instructorService.exportInstructorListToExcel(
-        user.email || user.username
-      );
+      await instructorService.exportInstructorListToExcel(portalUsername);
 
       showSnackbar("Excel file downloaded successfully!", "success");
     } catch (err) {
@@ -345,9 +331,16 @@ const InstructorManagement = () => {
   // Refresh instructor list
   const refreshInstructors = async () => {
     try {
-      const response = await instructorService.getInstructorList(
-        user.email || user.username
-      );
+      const portalUsername = getPortalUsername(user);
+      if (!portalUsername) {
+        showSnackbar(
+          "Unable to resolve portal username. Please log in again.",
+          "error",
+        );
+        return;
+      }
+
+      const response = await instructorService.getInstructorList(portalUsername);
 
       if (response.isSuccess) {
         setInstructors(
@@ -404,7 +397,6 @@ const InstructorManagement = () => {
                   onExportToExcel={handleExportToExcel}
                   canExportData={adminPrivileges.canExportData}
                   onEdit={handleEdit}
-                  onDelete={handleDelete}
                   onAdd={handleAdd}
                   canAddInstructor={adminPrivileges.canAddInstructor}
                 />

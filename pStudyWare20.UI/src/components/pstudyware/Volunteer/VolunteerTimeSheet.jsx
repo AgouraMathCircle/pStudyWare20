@@ -35,6 +35,7 @@ import {
   isTimeSheetApiSuccess,
   validateTimeSheetForm,
 } from "../../../utils/timeSheetFormValidation";
+import { resolveSelfServiceTimeSheetPath } from "../../../utils/timeSheetPortalPaths";
 import {
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
@@ -279,10 +280,7 @@ const VolunteerTimeSheet = () => {
       loadEntries();
 
       if (isEdit) {
-        const addModePath = user?.role === "Volunteer"
-          ? "/pstudyware/volunteer/time-sheet"
-          : "/pstudyware/instructor/time-sheet";
-        navigate(addModePath, { replace: true });
+        navigate(resolveSelfServiceTimeSheetPath(user), { replace: true });
       } else {
         setTaskName("");
         setTaskDescription("");

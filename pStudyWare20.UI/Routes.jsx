@@ -45,6 +45,7 @@ import Rules from "./src/components/Rules";
 import Login from "./src/components/Login";
 import ProtectedRoute from "./src/components/ProtectedRoute";
 import RoleProtectedRoute from "./src/components/RoleProtectedRoute";
+import { buildSystemAdminPortalRoutes } from "./src/components/SystemAdminPortalRoutes";
 import StudentDashboard from "./src/components/pstudyware/Student/StudentDashboard";
 import ClassMaterial from "./src/components/pstudyware/Student/ClassMaterial";
 import { UpdateProfileRouteOpener } from "./src/contexts/UpdateProfileModalContext";
@@ -63,7 +64,6 @@ import {
   DocumentManagement,
   Documents,
 } from "./src/components/pstudyware/Admin";
-import RegisteredStudentList from "./src/components/pstudyware/Admin/RegisteredStudentList";
 import StudentWaitingList from "./src/components/pstudyware/Admin/StudentWaitingList";
 import VolunteersRequest from "./src/components/pstudyware/Admin/VolunteersRequest";
 import TimeSheetTracking from "./src/components/pstudyware/Admin/TimeSheetTracking";
@@ -74,6 +74,7 @@ import UploadAnswerKey from "./src/components/pstudyware/Admin/UploadAnswerKey";
 import UpdateLookupSemester from "./src/components/pstudyware/Admin/UpdateLookupSemester";
 import AdminReportCard from "./src/components/pstudyware/Admin/AdminReportCard";
 import AdminUserTracking from "./src/components/pstudyware/Admin/AdminUserTracking";
+import AdminTimeSheet from "./src/components/pstudyware/Admin/AdminTimeSheet";
 import AdminVolunteerAvailability from "./src/components/pstudyware/Admin/AdminVolunteerAvailability";
 import {
   InstructorShell,
@@ -87,7 +88,6 @@ import {
 } from "./src/components/pstudyware/Volunteer";
 import SentEmail from "./src/components/pstudyware/Common/SentEmail";
 import {
-  DocumentsRepository,
   EmailManager,
   MeetingDetails,
   ChangePassword,
@@ -447,23 +447,11 @@ const AppRoutes = () => {
             />
             <Route
               path="/pstudyware/admin/registeredstudentlist"
-              element={
-                <RoleProtectedRoute
-                  allowedRoles={["Admin", "SystemAdmin"]}
-                  allowedMemberTypes={["A"]}
-                >
-                  <RegisteredStudentList />
-                </RoleProtectedRoute>
-              }
+              element={<Navigate to="/pstudyware/admin/dashboard" replace />}
             />
             <Route
               path="/pstudyware/admin/students"
-              element={
-                <Navigate
-                  to="/pstudyware/admin/registeredstudentlist"
-                  replace
-                />
-              }
+              element={<Navigate to="/pstudyware/admin/dashboard" replace />}
             />
             <Route
               path="/pstudyware/admin/Studentwaiting-list"
@@ -528,6 +516,22 @@ const AppRoutes = () => {
                   allowedMemberTypes={["A"]}
                 >
                   <AdminVolunteerAvailability />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/admin/time-sheet"
+              element={
+                <RoleProtectedRoute allowedRoles={["Admin"]} allowedMemberTypes={["A"]}>
+                  <AdminTimeSheet />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/time-sheet"
+              element={
+                <RoleProtectedRoute allowedRoles={["Admin"]} allowedMemberTypes={["A"]}>
+                  <AdminTimeSheet />
                 </RoleProtectedRoute>
               }
             />
@@ -727,18 +731,11 @@ const AppRoutes = () => {
             />
             <Route
               path="/admin/registeredstudentlist"
-              element={
-                <RoleProtectedRoute
-                  allowedRoles={["Admin", "SystemAdmin"]}
-                  allowedMemberTypes={["A"]}
-                >
-                  <RegisteredStudentList />
-                </RoleProtectedRoute>
-              }
+              element={<Navigate to="/pstudyware/admin/dashboard" replace />}
             />
             <Route
               path="/admin/students"
-              element={<Navigate to="/admin/registeredstudentlist" replace />}
+              element={<Navigate to="/pstudyware/admin/dashboard" replace />}
             />
             <Route
               path="/admin/instructor"
@@ -861,17 +858,6 @@ const AppRoutes = () => {
               }
             />
             <Route
-              path="/pstudyware/admin/docs-repository"
-              element={
-                <RoleProtectedRoute
-                  allowedRoles={["Admin", "SystemAdmin"]}
-                  allowedMemberTypes={["A"]}
-                >
-                  <DocumentsRepository />
-                </RoleProtectedRoute>
-              }
-            />
-            <Route
               path="/pstudyware/admin/student-docs"
               element={
                 <RoleProtectedRoute
@@ -888,6 +874,9 @@ const AppRoutes = () => {
                 <Navigate to="/pstudyware/admin/student-docs" replace />
               }
             />
+
+            {/* SystemAdmin portal — independent /pstudyware/systemadmin tree */}
+            {buildSystemAdminPortalRoutes()}
 
             {/* Instructor routes — one layout so InstructorHeader appears on every page */}
             <Route

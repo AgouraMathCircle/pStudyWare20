@@ -15,23 +15,9 @@ namespace pStudyWare20.Services.Interfaces
         Task<AdminStudentListResponse> GetStudentListAsync(AdminStudentListRequest request);
 
         /// <summary>
-        /// Get user tracking summary for admin dashboard
-        /// </summary>
-        /// <param name="request">User tracking summary request</param>
-        /// <returns>User tracking summary response</returns>
-        Task<UserTrackingSummaryResponse> GetUserTrackingSummaryAsync(UserTrackingSummaryRequest request);
-
-        /// <summary>
         /// Get user tracking list (legacy UserTracking.aspx).
         /// </summary>
         Task<UserTrackingListResponse> GetUserTrackingListAsync(UserTrackingListRequest request);
-
-        /// <summary>
-        /// Get dashboard message with student counts
-        /// </summary>
-        /// <param name="request">Dashboard message request</param>
-        /// <returns>Dashboard message response</returns>
-        Task<DashboardMessageResponse> GetDashboardMessageAsync(DashboardMessageRequest request);
 
         /// <summary>
         /// Publish documents and send email notification
@@ -46,5 +32,25 @@ namespace pStudyWare20.Services.Interfaces
         /// <param name="request">Export Excel request</param>
         /// <returns>Export Excel response</returns>
         Task<ExportExcelResponse> ExportStudentListToExcelAsync(ExportExcelRequest request);
+
+        /// <summary>
+        /// Chapter Admin: update volunteer availability for the signed-in admin.
+        /// </summary>
+        Task<VolunteerAvailabilityResponse> UpdateVolunteerAvailabilityAsync(VolunteerAvailabilityRequest request);
+
+        /// <summary>
+        /// Chapter Admin: get volunteer availability for the signed-in admin.
+        /// </summary>
+        Task<VolunteerAvailabilitySelectResponse> GetVolunteerAvailabilityAsync(VolunteerAvailabilitySelectRequest request);
+
+        /// <summary>
+        /// Chapter Admin: form context (target session + prompt) for volunteer availability entry.
+        /// </summary>
+        Task<VolunteerAvailabilityFormContextResponse> GetVolunteerAvailabilityFormContextAsync(string chapterId);
+
+        /// <summary>
+        /// Chapter Admin: volunteers availability list for upcoming class (authorized chapters).
+        /// </summary>
+        Task<VolunteerAvailabilitySummaryResponse> GetVolunteerAvailabilitySummaryAsync(VolunteerAvailabilitySummaryRequest request);
     }
 }

@@ -230,23 +230,26 @@ namespace pStudyWare20.Services.Implementations
             var lastName = member?.LastName
                            ?? GetRowString(existingRow, "LastName")
                            ?? string.Empty;
-            var instructorType = member?.MemberType
-                                 ?? GetRowString(existingRow, "InstructorType")
-                                 ?? string.Empty;
+            var instructorType = MapInstructorTypeLabel(
+                member?.MemberType,
+                GetRowString(existingRow, "InstructorType"));
             var className = GetRowString(existingRow, "Class") ?? string.Empty;
+            var chapterName = GetRowString(existingRow, "ChapterName") ?? string.Empty;
             var response = (request.Response ?? string.Empty).Trim().ToUpperInvariant();
+            var availability = response == "Y" ? "Yes" : response == "N" ? "No" : response;
 
             return new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
             {
                 ["InstructorID"] = userId,
                 ["FirstName"] = firstName,
                 ["LastName"] = lastName,
+                ["ChapterName"] = chapterName,
                 ["Session"] = request.Session,
                 ["Class"] = className,
                 ["InstructorType"] = instructorType,
-                ["Availability"] = response,
+                ["Availability"] = availability,
                 ["Comments"] = request.Comment ?? string.Empty,
-                ["ResponseDate"] = DateTime.UtcNow,
+                ["ResponseDate"] = DateTime.Now,
             };
         }
 
@@ -303,6 +306,32 @@ namespace pStudyWare20.Services.Implementations
             }
 
             return null;
+        }
+
+        private static string MapInstructorTypeLabel(string? memberType, string? existingLabel)
+        {
+            if (!string.IsNullOrWhiteSpace(existingLabel)
+                && existingLabel.Length > 1
+                && !existingLabel.Equals("A", StringComparison.OrdinalIgnoreCase)
+                && !existingLabel.Equals("I", StringComparison.OrdinalIgnoreCase)
+                && !existingLabel.Equals("V", StringComparison.OrdinalIgnoreCase)
+                && !existingLabel.Equals("C", StringComparison.OrdinalIgnoreCase)
+                && !existingLabel.Equals("P", StringComparison.OrdinalIgnoreCase)
+                && !existingLabel.Equals("S", StringComparison.OrdinalIgnoreCase))
+            {
+                return existingLabel.Trim();
+            }
+
+            return (memberType ?? existingLabel ?? string.Empty).Trim().ToUpperInvariant() switch
+            {
+                "P" => "Primary Instructor",
+                "I" => "Primary Instructor",
+                "S" => "Secondary Instructor",
+                "C" => "Coordinator",
+                "V" => "Volunteers",
+                "A" => "Administrator",
+                _ => existingLabel?.Trim() ?? memberType?.Trim() ?? string.Empty,
+            };
         }
 
         private async Task<List<Dictionary<string, object?>>> LoadSummaryRowsAsync()

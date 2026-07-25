@@ -1,0 +1,19 @@
+/**
+ * Admin portal tables — typography matches System Support widget body rows
+ * (e.g. "Student Waiting List": 0.75rem / line-height 1.2 / weight 400).
+ * Loaded via AdminHeader on every admin page.
+ */
+body:has(.admin-role-header) .MuiTable-root .MuiTableCell-root {
+  font-size: 0.75rem !important;
+  line-height: 1.2 !important;
+  font-weight: 400;
+}
+
+body:has(.admin-role-header) .MuiTable-root .MuiTableCell-head {
+  font-weight: 400;
+}
+
+body:has(.admin-role-header) .MuiTable-root .MuiTableCell-root .MuiTypography-root {
+  font-size: inherit;
+  line-height: inherit;
+}

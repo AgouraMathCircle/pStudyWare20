@@ -64,6 +64,7 @@ import {
 } from "../styles/applicationSurfaces";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
+import { getAdminPortalBase } from "../../../utils/adminPortalPaths";
 import "../../../styles/AdminVolunteersRequest.css";
 
 const volunteersRequestPageSx = {
@@ -365,7 +366,10 @@ function parseDuplicateStatusId(status) {
 }
 
 function buildInstructorSearchPath(instructorId) {
-  return `/pstudyware/admin/instructor?searchBy=INSTRUCTOR_ID&searchCriteria=equals&searchText=${encodeURIComponent(instructorId)}&from=volunteers-request`;
+  const base = getAdminPortalBase(
+    typeof window !== "undefined" ? window.location.pathname : "",
+  );
+  return `${base}/instructor?searchBy=INSTRUCTOR_ID&searchCriteria=equals&searchText=${encodeURIComponent(instructorId)}&from=volunteers-request`;
 }
 
 const VolunteersRequestStatusCell = ({ value }) => {

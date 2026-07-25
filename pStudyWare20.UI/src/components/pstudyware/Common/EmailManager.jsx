@@ -49,6 +49,8 @@ import StudentHeader, { StudentRoleHeaderSpacer } from "../Student/StudentHeader
 import AdminHeader, { AdminRoleHeaderSpacer } from "../Admin/AdminHeader";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import { getPortalUsername, getPortalLoginIdentifier } from "../../../utils/portalUsername";
+import { isSystemAdminUser } from "../../../utils/routeUtils";
+import { getSystemAdminPortalBase } from "../../../utils/systemAdminPortalPaths";
 import { notifyUnreadMessageCountChanged } from "../../../utils/messageCenterEvents";
 import config from "../../../utils/config";
 import {
@@ -921,13 +923,18 @@ const EmailManager = () => {
   };
 
   const handleAdminStudentIdClick = (studentId) => {
+    if (!isSystemAdminUser(user)) {
+      return;
+    }
+
     const normalizedId = String(studentId ?? "").trim();
     if (!normalizedId) {
       return;
     }
 
+    const base = getSystemAdminPortalBase();
     navigate(
-      `/admin/registeredstudentlist?searchBy=STUDENT_ID&searchCriteria=equals&searchText=${encodeURIComponent(normalizedId)}&from=message-center`,
+      `${base}/registeredstudentlist?searchBy=STUDENT_ID&searchCriteria=equals&searchText=${encodeURIComponent(normalizedId)}&from=message-center`,
     );
   };
 
@@ -942,6 +949,7 @@ const EmailManager = () => {
     const suffix = [studentName, classLocation ? `(${classLocation})` : ""]
       .filter(Boolean)
       .join(" - ");
+    const canOpenRegisteredStudentList = isSystemAdminUser(user);
 
     if (!studentId) {
       return (
@@ -964,13 +972,17 @@ const EmailManager = () => {
             whiteSpace: "nowrap",
           }}
         >
-          <Box
-            component="span"
-            onClick={() => handleAdminStudentIdClick(studentId)}
-            sx={adminSessionListTableActionLinkSx}
-          >
-            {studentId}
-          </Box>
+          {canOpenRegisteredStudentList ? (
+            <Box
+              component="span"
+              onClick={() => handleAdminStudentIdClick(studentId)}
+              sx={adminSessionListTableActionLinkSx}
+            >
+              {studentId}
+            </Box>
+          ) : (
+            <Box component="span">{studentId}</Box>
+          )}
           {suffix ? ` - ${suffix}` : ""}
         </Box>
       </Tooltip>

@@ -43,6 +43,11 @@ class AuthService {
             userData?.username ??
             userData?.Username ??
             "",
+          systemAdmin:
+            response.data?.systemAdmin ??
+            response.data?.SystemAdmin ??
+            userData?.systemAdmin ??
+            "N",
           volunteerAvailability,
           VolunteerAvailability: volunteerAvailability,
         };

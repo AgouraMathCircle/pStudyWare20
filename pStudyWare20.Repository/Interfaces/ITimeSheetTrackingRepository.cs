@@ -16,6 +16,11 @@ namespace pStudyWare20.Repository.Interfaces
         Task<DataTable> GetTimeSheetTrackingListAsync(string username);
 
         /// <summary>
+        /// Get timesheet entries for the signed-in member only (ignores admin chapter-wide SP branch).
+        /// </summary>
+        Task<DataTable> GetMyTimeSheetTrackingListAsync(string username);
+
+        /// <summary>
         /// Get timesheet tracking entry by LogID for editing
         /// </summary>
         /// <param name="username">Username</param>

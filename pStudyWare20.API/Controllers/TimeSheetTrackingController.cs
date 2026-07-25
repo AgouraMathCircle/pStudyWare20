@@ -22,6 +22,15 @@ namespace pStudyWare20.API.Controllers
             _logger = logger;
         }
 
+        private string ResolvePortalUsername(string? username = null)
+        {
+            return username
+                ?? User.FindFirst("Username")?.Value
+                ?? User.FindFirst(ClaimTypes.Name)?.Value
+                ?? User.FindFirst(ClaimTypes.Email)?.Value
+                ?? "";
+        }
+
         /// <summary>
         /// Get timesheet tracking list (matches BindGridView method)
         /// </summary>
@@ -37,10 +46,10 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                // Get username from JWT token if not provided in request
+                // Prefer portal Username claim (MemberMaster.UserName) for SP lookups.
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.Username = ResolvePortalUsername();
                 }
 
                 var response = await _timeSheetTrackingService.GetTimeSheetTrackingListAsync(request);
@@ -68,10 +77,10 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                // Get username from JWT token if not provided in request
+                // Prefer portal Username claim (MemberMaster.UserName) for SP lookups.
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.Username = ResolvePortalUsername();
                 }
 
                 var response = await _timeSheetTrackingService.UpdateTimeSheetTrackingAsync(request);
@@ -124,10 +133,10 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                // Get username from JWT token if not provided in request
+                // Prefer portal Username claim (MemberMaster.UserName) for SP lookups.
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.Username = ResolvePortalUsername();
                 }
 
                 var response = await _timeSheetTrackingService.UpsertTimeSheetTrackingAsync(request);
@@ -155,10 +164,10 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
-                // Get username from JWT token if not provided in request
+                // Prefer portal Username claim (MemberMaster.UserName) for SP lookups.
                 if (string.IsNullOrEmpty(request.Username))
                 {
-                    request.Username = User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                    request.Username = ResolvePortalUsername();
                 }
 
                 var response = await _timeSheetTrackingService.HandleTimeSheetTrackingActionAsync(request);
@@ -236,11 +245,13 @@ namespace pStudyWare20.API.Controllers
         /// <param name="username">Username (optional, will use JWT token if not provided)</param>
         /// <returns>Timesheet tracking list response</returns>
         [HttpGet("GetAllTimeSheetTrackingEntries")]
-        public async Task<IActionResult> GetAllTimeSheetTrackingEntries([FromQuery] string? username = null)
+        public async Task<IActionResult> GetAllTimeSheetTrackingEntries(
+            [FromQuery] string? username = null,
+            [FromQuery] bool selfOnly = false)
         {
             try
             {
-                var userUsername = username ?? User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                var userUsername = ResolvePortalUsername(username);
 
                 if (string.IsNullOrEmpty(userUsername))
                 {
@@ -252,7 +263,9 @@ namespace pStudyWare20.API.Controllers
                     Username = userUsername
                 };
 
-                var response = await _timeSheetTrackingService.GetTimeSheetTrackingListAsync(request);
+                var response = selfOnly
+                    ? await _timeSheetTrackingService.GetMyTimeSheetTrackingListAsync(request)
+                    : await _timeSheetTrackingService.GetTimeSheetTrackingListAsync(request);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -294,11 +307,14 @@ namespace pStudyWare20.API.Controllers
         /// <param name="username">Username (optional, will use JWT token if not provided)</param>
         /// <returns>Update timesheet tracking response</returns>
         [HttpGet("GetTimeSheetTrackingForEdit/{logId}")]
-        public async Task<IActionResult> GetTimeSheetTrackingForEdit(int logId, [FromQuery] string? username = null)
+        public async Task<IActionResult> GetTimeSheetTrackingForEdit(
+            int logId,
+            [FromQuery] string? username = null,
+            [FromQuery] bool selfOnly = false)
         {
             try
             {
-                var userUsername = username ?? User.FindFirst(ClaimTypes.Name)?.Value ?? User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+                var userUsername = ResolvePortalUsername(username);
 
                 if (string.IsNullOrEmpty(userUsername))
                 {
@@ -311,7 +327,9 @@ namespace pStudyWare20.API.Controllers
                     LogID = logId
                 };
 
-                var response = await _timeSheetTrackingService.UpdateTimeSheetTrackingAsync(request);
+                var response = selfOnly
+                    ? await _timeSheetTrackingService.GetMyTimeSheetTrackingForEditAsync(request)
+                    : await _timeSheetTrackingService.UpdateTimeSheetTrackingAsync(request);
                 return Ok(response);
             }
             catch (Exception ex)

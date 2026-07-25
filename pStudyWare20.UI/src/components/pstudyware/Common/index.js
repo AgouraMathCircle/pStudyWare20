@@ -2,7 +2,6 @@ export { default as AppConfirmDialog } from "./AppConfirmDialog";
 export { default as AppSnackbar } from "./AppSnackbar";
 export { default as PortalDialog } from "./PortalDialog";
 export { default as PortalModalSelect } from "./PortalModalSelect";
-export { default as DocumentsRepository } from "./DocumentsRepository";
 export { default as EmailManager } from "./EmailManager";
 export { default as MeetingDetails } from "./MeetingDetails";
 export { default as MeetingForm } from "./MeetingForm";

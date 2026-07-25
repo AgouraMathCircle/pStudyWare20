@@ -63,7 +63,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../services";
 import { useAuth } from "../contexts/AuthContext";
 import useNavigation from "../hooks/useNavigation";
-import { getPortalDashboardPath, isPortalRoute } from "../utils/routeUtils";
+import { getPortalDashboardPath, isPortalRoute, isSystemAdminUser } from "../utils/routeUtils";
+import { getAdminPortalBase } from "../utils/adminPortalPaths";
+import { getSystemAdminPortalBase } from "../utils/systemAdminPortalPaths";
 import {
   clearPortalNavbarBottom,
   publishPortalNavbarBottom,
@@ -234,51 +236,72 @@ const Navbar = ({ usePortalLogo = false }) => {
   ];
 
   // Admin menu items for authenticated admins
-  const adminMenuItems = [
+  const adminPortalBase = getAdminPortalBase(user || location.pathname);
+  const systemAdminPortalBase = getSystemAdminPortalBase();
+  const buildStaffMenuItems = (
+    portalBase,
+    { includeStudentList = true, includeDocsRepository = true, includeTimeSheet = false } = {},
+  ) => [
     {
       label: "Dashboard",
-      href: "/pstudyware/admin/dashboard",
+      href: `${portalBase}/dashboard`,
       icon: <AdminIcon fontSize="small" />,
     },
+    ...(includeTimeSheet
+      ? [
+          {
+            label: "Time Sheet",
+            href: `${portalBase}/time-sheet`,
+            icon: <AssignmentIcon fontSize="small" />,
+          },
+        ]
+      : []),
     {
       label: "Instructor",
-      href: "/pstudyware/admin/instructor",
+      href: `${portalBase}/instructor`,
       icon: <SchoolIcon fontSize="small" />,
     },
-
-    {
-      label: "Student List",
-      href: "/pstudyware/admin/registeredstudentlist",
-      icon: <PeopleIcon fontSize="small" />,
-    },
+    ...(includeStudentList
+      ? [
+          {
+            label: "Student List",
+            href: `${portalBase}/registeredstudentlist`,
+            icon: <PeopleIcon fontSize="small" />,
+          },
+        ]
+      : []),
     {
       label: "Class Material",
-      href: "/pstudyware/admin/class-material",
+      href: `${portalBase}/class-material`,
       icon: <AssessmentIcon fontSize="small" />,
     },
     {
       label: "Student Docs",
-      href: "/pstudyware/admin/student-docs",
+      href: `${portalBase}/student-docs`,
       icon: <SettingsIcon fontSize="small" />,
     },
     {
       label: "Report Card",
-      href: "/pstudyware/admin/report-card",
+      href: `${portalBase}/report-card`,
       icon: <AssessmentIcon fontSize="small" />,
     },
-    {
-      label: "Docs Repository",
-      href: "/pstudyware/admin/docs-repository",
-      icon: <AssessmentIcon fontSize="small" />,
-    },
+    ...(includeDocsRepository
+      ? [
+          {
+            label: "Docs Repository",
+            href: `${portalBase}/docs-repository`,
+            icon: <AssessmentIcon fontSize="small" />,
+          },
+        ]
+      : []),
     {
       label: "Message Center",
-      href: "/pstudyware/admin/message-center",
+      href: `${portalBase}/message-center`,
       icon: <MessageIcon fontSize="small" />,
     },
     {
       label: "Password",
-      href: "/pstudyware/admin/change-password",
+      href: `${portalBase}/change-password`,
       icon: <LockIcon fontSize="small" />,
     },
     {
@@ -288,6 +311,12 @@ const Navbar = ({ usePortalLogo = false }) => {
       action: "logout",
     },
   ];
+  const adminMenuItems = buildStaffMenuItems(adminPortalBase, {
+    includeStudentList: false,
+    includeDocsRepository: false,
+    includeTimeSheet: true,
+  });
+  const systemAdminMenuItems = buildStaffMenuItems(systemAdminPortalBase);
 
   // Instructor menu — aligned with pStudyware_Menu.ascx (divInstructor)
   const instructorMenuItems = [
@@ -375,12 +404,18 @@ const Navbar = ({ usePortalLogo = false }) => {
     user &&
     (user.memberType?.toUpperCase() === "S" || user.role === "Student");
 
+  const isSystemAdminRole =
+    isAuthenticated && user && (user.role === "SystemAdmin" || isSystemAdminUser(user));
+
   const isAdmin =
     isAuthenticated &&
     user &&
-    (user.memberType?.toUpperCase() === "A" ||
-      user.role === "Admin" ||
-      user.role === "SystemAdmin");
+    !isSystemAdminRole &&
+    (user.role === "Admin" ||
+      (user.memberType?.toUpperCase() === "A" &&
+        String(user.systemAdmin ?? user.SystemAdmin ?? "")
+          .trim()
+          .toUpperCase() === "N"));
 
   const isInstructor =
     isAuthenticated &&
@@ -396,7 +431,8 @@ const Navbar = ({ usePortalLogo = false }) => {
 
   const onPortalRoute = isPortalRoute(location.pathname);
   const showPortalMenu =
-    onPortalRoute && (isAdmin || isInstructor || isVolunteer || isStudent);
+    onPortalRoute &&
+    (isSystemAdminRole || isAdmin || isInstructor || isVolunteer || isStudent);
 
   const getPublicMenuItems = () => {
     if (!isAuthenticated || !user) {
@@ -418,7 +454,9 @@ const Navbar = ({ usePortalLogo = false }) => {
   // Public pages always use the external menu; portal pages use role menus
   let menuItems = getPublicMenuItems();
   if (showPortalMenu) {
-    if (isAdmin) {
+    if (isSystemAdminRole) {
+      menuItems = systemAdminMenuItems;
+    } else if (isAdmin) {
       menuItems = adminMenuItems;
     } else if (isInstructor) {
       menuItems = instructorMenuItems;

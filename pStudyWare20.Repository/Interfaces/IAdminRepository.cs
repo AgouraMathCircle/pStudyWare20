@@ -16,23 +16,9 @@ namespace pStudyWare20.Repository.Interfaces
         Task<object> GetStudentListAsync(string username, string mode);
 
         /// <summary>
-        /// Get user tracking summary for admin dashboard
-        /// </summary>
-        /// <returns>User tracking summary data</returns>
-        Task<object> GetUserTrackingSummaryAsync();
-
-        /// <summary>
         /// Get user tracking list (legacy UserTracking.aspx).
         /// </summary>
         Task<object> GetUserTrackingListAsync(string username);
-
-        /// <summary>
-        /// Get dashboard message with student counts
-        /// </summary>
-        /// <param name="mode">Mode parameter (A for admin)</param>
-        /// <param name="username">Admin username</param>
-        /// <returns>Dashboard message data with student counts</returns>
-        Task<object> GetDashboardMessageAsync(string mode, string username);
 
         /// <summary>
         /// Send email notification to student group

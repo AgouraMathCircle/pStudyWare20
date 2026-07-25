@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Card,
@@ -27,59 +27,31 @@ import {
   adminDashboardWidgetTrackingTableSx,
   adminDashboardWidgetTableRowSx,
 } from "../../../styles/applicationSurfaces";
+import { toAdminPortalPath } from "../../../utils/adminPortalPaths";
 
 const SystemSupport = ({ onPublishDocument, canPublishDocuments }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const supportLinks = [
     {
-      label: "Student Waiting List",
-      href: "/pstudyware/admin/Studentwaiting-list",
-      isReact: true,
-    },
-    {
       label: "Volunteers Request",
-      href: "/pstudyware/admin/volunteers-request",
+      href: toAdminPortalPath(location.pathname, "/volunteers-request"),
       isReact: true,
     },
     {
       label: "Volunteers Availability",
-      href: "/pstudyware/admin/volunteers-availability",
+      href: toAdminPortalPath(location.pathname, "/volunteers-availability"),
       isReact: true,
     },
     {
-      label: "Time Sheet",
-      href: "/pstudyware/admin/time-sheet-tracking",
-      isReact: true,
-    },
-    {
-      label: "Special Events Registration List",
-      href: "/pstudyware/admin/special-events-registration",
+      label: "Time Sheet Approval",
+      href: toAdminPortalPath(location.pathname, "/time-sheet-tracking"),
       isReact: true,
     },
     {
       label: "Upload Online Exam Answer Key",
-      href: "/pstudyware/admin/upload-answer-key",
-      isReact: true,
-    },
-    {
-      label: "Update Lookup",
-      href: "/pstudyware/admin/update-lookup-semester",
-      isReact: true,
-    },
-    {
-      label: "Meeting Schedule",
-      href: "/pstudyware/admin/meeting-details",
-      isReact: true,
-    },
-    {
-      label: "Update Donor Details",
-      href: "/pstudyware/admin/donor-details",
-      isReact: true,
-    },
-    {
-      label: "Post Message",
-      href: "/pstudyware/admin/post-message",
+      href: toAdminPortalPath(location.pathname, "/upload-answer-key"),
       isReact: true,
     },
     ...(canPublishDocuments
@@ -90,11 +62,6 @@ const SystemSupport = ({ onPublishDocument, canPublishDocuments }) => {
           },
         ]
       : []),
-    {
-      label: "User Tracking",
-      href: "/pstudyware/admin/user-tracking",
-      isReact: true,
-    },
   ];
 
   const handleLinkClick = (link) => {
@@ -115,7 +82,7 @@ const SystemSupport = ({ onPublishDocument, canPublishDocuments }) => {
         avatar={<SupportIcon fontSize="small" />}
         title={
           <Typography variant="subtitle1" component="div" sx={adminDashboardWidgetTitleSx}>
-            System Support
+            To Do List
           </Typography>
         }
         sx={adminPortalCardHeaderStripSx}
