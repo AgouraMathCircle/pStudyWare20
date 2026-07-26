@@ -163,23 +163,6 @@ const AdminVolunteerAvailability = () => {
       <AdminRoleHeaderSpacer />
       <Container maxWidth="xl" sx={{ mb: 4 }}>
         <Grid container spacing={3}>
-          <Grid item xs={12} sx={{ width: "100%" }}>
-            <Card
-              sx={{ ...adminSessionListPanelCardSx, width: "100%" }}
-              className="admin-volunteer-availability-entry-panel"
-            >
-              <CardContent
-                sx={{ ...adminSessionListPanelContentSx, width: "100%" }}
-              >
-                <VolunteerAvailability
-                  embedded
-                  alwaysVisible
-                  availabilityService={adminVolunteerAvailabilityApi}
-                  onSaved={refreshListAfterSave}
-                />
-              </CardContent>
-            </Card>
-          </Grid>
           <Grid item xs={12}>
             <Card sx={adminSessionListPanelCardSx}>
               <CardContent sx={adminSessionListPanelContentSx}>
