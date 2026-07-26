@@ -1,0 +1,248 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>pStudyWare20.DB</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>4.1</ProjectVersion>
+    <ProjectGuid>{dc269b47-54d1-483d-9bb1-3ac183b17bea}</ProjectGuid>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
+    <OutputType>Database</OutputType>
+    <RootPath>
+    </RootPath>
+    <RootNamespace>pStudyWare20.DB</RootNamespace>
+    <AssemblyName>pStudyWare20.DB</AssemblyName>
+    <ModelCollation>1033,CI</ModelCollation>
+    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <DeployToDatabase>True</DeployToDatabase>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetLanguage>CS</TargetLanguage>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <SqlServerVerification>False</SqlServerVerification>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <BuildScriptName>$(MSBuildProjectName).sql</BuildScriptName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
+    <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
+    <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
+  </PropertyGroup>
+  <Import Condition="'$(SQLDBExtensionsRefPath)' != ''" Project="$(SQLDBExtensionsRefPath)\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+  <ItemGroup>
+    <Folder Include="Properties" />
+    <Folder Include="Functions" />
+    <Folder Include="Stored Procedures" />
+    <Folder Include="Tables" />
+    <Folder Include="User Defined Types" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="Functions\Fn_Dateonly.sql" />
+    <Build Include="Functions\GettingAuthorizedChapter.sql" />
+    <Build Include="Stored Procedures\AMC_spAccountPayable_Delete.sql" />
+    <Build Include="Stored Procedures\AMC_spAccountPayable_Select.sql" />
+    <Build Include="Stored Procedures\AMC_spAccountPayable_Update.sql" />
+    <Build Include="Stored Procedures\AMC_spAccountReceivable_Delete.sql" />
+    <Build Include="Stored Procedures\AMC_spAccountReceivable_Select.sql" />
+    <Build Include="Stored Procedures\AMC_spAccountReceivable_Update.sql" />
+    <Build Include="Stored Procedures\AMC_spAddDocument.sql" />
+    <Build Include="Stored Procedures\AMC_spAddEmailTracking.sql" />
+    <Build Include="Stored Procedures\AMC_spAddEnquiry.sql" />
+    <Build Include="Stored Procedures\AMC_spAddInstructor.sql" />
+    <Build Include="Stored Procedures\AMC_spAddSpecialEventsRegistration.sql" />
+    <Build Include="Stored Procedures\AMC_spAddStudent.sql" />
+    <Build Include="Stored Procedures\AMC_spAddStudentDocument.sql" />
+    <Build Include="Stored Procedures\AMC_spAddStudentExamAnswerKey.sql" />
+    <Build Include="Stored Procedures\AMC_spAddStudentScore.sql" />
+    <Build Include="Stored Procedures\AMC_spAddTimeTracking.sql" />
+    <Build Include="Stored Procedures\AMC_spAddTriangularRegistration.sql" />
+    <Build Include="Stored Procedures\AMC_spAddUserTracking.sql" />
+    <Build Include="Stored Procedures\AMC_spAddVolunteerAvailability.sql" />
+    <Build Include="Stored Procedures\AMC_spAddVolunteersRequest.sql" />
+    <Build Include="Stored Procedures\AMC_spDeleteDocuments.sql" />
+    <Build Include="Stored Procedures\AMC_spDeleteExistingReport.sql" />
+    <Build Include="Stored Procedures\AMC_spDeleteInstructor.sql" />
+    <Build Include="Stored Procedures\AMC_spDeleteRegisterednfo.sql" />
+    <Build Include="Stored Procedures\AMC_spDeleteSpecialEventsRegistration.sql" />
+    <Build Include="Stored Procedures\AMC_spDeleteStudentScore.sql" />
+    <Build Include="Stored Procedures\AMC_spDeleteTimeTracking.sql" />
+    <Build Include="Stored Procedures\AMC_spDocuments.sql" />
+    <Build Include="Stored Procedures\AMC_spDocumentsRepository.sql" />
+    <Build Include="Stored Procedures\AMC_spDonors_Insert.sql" />
+    <Build Include="Stored Procedures\AMC_spExamMaster_Delete.sql" />
+    <Build Include="Stored Procedures\AMC_spExamMaster_Insert.sql" />
+    <Build Include="Stored Procedures\AMC_spExamMaster_Select.sql" />
+    <Build Include="Stored Procedures\AMC_spExamMaster_Update.sql" />
+    <Build Include="Stored Procedures\AMC_spExamMasterByID.sql" />
+    <Build Include="Stored Procedures\AMC_spGENERATEPASSWORD.sql" />
+    <Build Include="Stored Procedures\AMC_spGetAllDonors.sql" />
+    <Build Include="Stored Procedures\AMC_spGetChannel.sql" />
+    <Build Include="Stored Procedures\AMC_spGetDisplayFinalExamSection.sql" />
+    <Build Include="Stored Procedures\AMC_spGetDisplayStudentBoardRegistration.sql" />
+    <Build Include="Stored Procedures\AMC_spGetDonors.sql" />
+    <Build Include="Stored Procedures\AMC_spGetMessageCenter.sql" />
+    <Build Include="Stored Procedures\AMC_spGetMessageCenter_Message.sql" />
+    <Build Include="Stored Procedures\AMC_spGetSemesterList.sql" />
+    <Build Include="Stored Procedures\AMC_spGetSentMessages.sql" />
+    <Build Include="Stored Procedures\AMC_spGetTestimonials.sql" />
+    <Build Include="Stored Procedures\AMC_spGetVolunteerAvailabilityHistory.sql" />
+    <Build Include="Stored Procedures\AMC_spMeetingSchedule_Select.sql" />
+    <Build Include="Stored Procedures\AMC_spNewsltr.sql" />
+    <Build Include="Stored Procedures\AMC_spPasswordUpdate.sql" />
+    <Build Include="Stored Procedures\AMC_spPostMessage_Insert.sql" />
+    <Build Include="Stored Procedures\AMC_spPublishDocuments.sql" />
+    <Build Include="Stored Procedures\AMC_spRegisterednfo.sql" />
+    <Build Include="Stored Procedures\AMC_spRegisterExistingUser.sql" />
+    <Build Include="Stored Procedures\AMC_spRegisterExistingUserCheck.sql" />
+    <Build Include="Stored Procedures\AMC_spRegisterStudent.sql" />
+    <Build Include="Stored Procedures\AMC_spRegisterUser.sql" />
+    <Build Include="Stored Procedures\AMC_spRegistrationSemesterLookup.sql" />
+    <Build Include="Stored Procedures\AMC_spReportCard.sql" />
+    <Build Include="Stored Procedures\AMC_spReportCard_SemesterReport.sql" />
+    <Build Include="Stored Procedures\AMC_spReportCard_StudentDashboard.sql" />
+    <Build Include="Stored Procedures\AMC_spReportCard_SummaryReport.sql" />
+    <Build Include="Stored Procedures\AMC_spReportCard1.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectChapter.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectClassListbyInstructor.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectCurrentSession.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectEmailGroupbyUserName.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectExamQuestions.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectInstructorList.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectPostMessage.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectReportCardDate.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectScheduleLookup.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectSemesterLookup.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectSpecialEventsRegistration.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectStudentList.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectStudentListbyUserName.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectStudentProfile.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectStudentWaitingList.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectTimeTracking.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectUserTrackingList.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectUserTrackingSummary.sql" />
+    <Build Include="Stored Procedures\AMC_spSelectVolunteersRequest.sql" />
+    <Build Include="Stored Procedures\AMC_spSetTestimonial.sql" />
+    <Build Include="Stored Procedures\AMC_spStudentDocuments.sql" />
+    <Build Include="Stored Procedures\AMC_spStudentExamAnswerKey_Insert.sql" />
+    <Build Include="Stored Procedures\AMC_spStudentExamAnswerKey_Insert_All.sql" />
+    <Build Include="Stored Procedures\AMC_spStudentScore_Select.sql" />
+    <Build Include="Stored Procedures\AMC_spStudentScore_Validate.sql" />
+    <Build Include="Stored Procedures\AMC_spUpdateAddEmailTracking.sql" />
+    <Build Include="Stored Procedures\AMC_spUpdateDocuments.sql" />
+    <Build Include="Stored Procedures\AMC_spUpdateSemesterLookup.sql" />
+    <Build Include="Stored Procedures\AMC_spUpdateStudentClass.sql" />
+    <Build Include="Stored Procedures\AMC_spUpdateStudentdetail.sql" />
+    <Build Include="Stored Procedures\AMC_spUpdateStudentProfile.sql" />
+    <Build Include="Stored Procedures\AMC_spUpdateStudentScore.sql" />
+    <Build Include="Stored Procedures\AMC_spUpdateStudentWaitingListStatus.sql" />
+    <Build Include="Stored Procedures\AMC_spUpdateVolunteerAvailability.sql" />
+    <Build Include="Stored Procedures\AMC_spUpdateVolunteerStatus.sql" />
+    <Build Include="Stored Procedures\AMC_spUserNotificationToken_Insert.sql" />
+    <Build Include="Stored Procedures\AMC_spUserNotificationToken_Select.sql" />
+    <Build Include="Stored Procedures\AMC_spValidateStudentExamAnswerKey.sql" />
+    <Build Include="Stored Procedures\AMC_spValidateStudentExamAnswerKeyALL.sql" />
+    <Build Include="Stored Procedures\AMC_spVolunteerAvailability_Select.sql" />
+    <Build Include="Stored Procedures\AMC_spVolunteerAvailability_Summary.sql" />
+    <Build Include="Stored Procedures\AMC_spVolunteerAvailability_Update.sql" />
+    <Build Include="Stored Procedures\AMC_spVolunteersRequest_Delete.sql" />
+    <Build Include="Stored Procedures\AMC_tblMeetingSchedule_Insert.sql" />
+    <Build Include="Stored Procedures\AMC_tblMeetingSchedule_Select.sql" />
+    <Build Include="Stored Procedures\AMCAPI_spDashboardMessage_Select.sql" />
+    <Build Include="Stored Procedures\Apps_AuthenticateUser.sql" />
+    <Build Include="Stored Procedures\Apps_GetAlertList.sql" />
+    <Build Include="Stored Procedures\Apps_GetChannelList.sql" />
+    <Build Include="Stored Procedures\Apps_GetStudentDocumentsById.sql" />
+    <Build Include="Stored Procedures\Apps_GetStudentListsByUserId.sql" />
+    <Build Include="Stored Procedures\Apps_GetStudentReportDetailsById.sql" />
+    <Build Include="Stored Procedures\EC_spAddEnquiry.sql" />
+    <Build Include="Stored Procedures\pAdminAddMember.sql" />
+    <Build Include="Stored Procedures\pAdminLog.sql" />
+    <Build Include="Stored Procedures\pStdentReports.sql" />
+    <Build Include="Stored Procedures\pStudentLogFrm.sql" />
+    <Build Include="Stored Procedures\pWebComments.sql" />
+    <Build Include="Stored Procedures\pWebMemberFrm.sql" />
+    <Build Include="Stored Procedures\usp_pStudyware_Select_StudentLog.sql" />
+    <Build Include="Tables\AMC_AuthorizedChapter.sql" />
+    <Build Include="Tables\AMC_ChapterMaster.sql" />
+    <Build Include="Tables\AMC_ClassMaster.sql" />
+    <Build Include="Tables\AMC_ClassSchedule.sql" />
+    <Build Include="Tables\AMC_ClassType.sql" />
+    <Build Include="Tables\AMC_Country.sql" />
+    <Build Include="Tables\AMC_ExamMaster.sql" />
+    <Build Include="Tables\AMC_ExamMaster_Bak.sql" />
+    <Build Include="Tables\AMC_ExamMaster_bak2021.sql" />
+    <Build Include="Tables\AMC_ExamMaster_RowScoreLookup.sql" />
+    <Build Include="Tables\AMC_ExamMasterAnswerKey.sql" />
+    <Build Include="Tables\AMC_ExamMasterAnswerKey_2021.sql" />
+    <Build Include="Tables\AMC_ExamMasterAnswerKey_Bak.sql" />
+    <Build Include="Tables\AMC_InstructorMaster.sql" />
+    <Build Include="Tables\AMC_MailMerger.sql" />
+    <Build Include="Tables\AMC_tblAccountPayable.sql" />
+    <Build Include="Tables\AMC_tblAccountReceivable.sql" />
+    <Build Include="Tables\AMC_tblChannel.sql" />
+    <Build Include="Tables\AMC_tblDocuments.sql" />
+    <Build Include="Tables\AMC_tblDonors.sql" />
+    <Build Include="Tables\AMC_tblEmailTracking.sql" />
+    <Build Include="Tables\AMC_tblEnquiry.sql" />
+    <Build Include="Tables\AMC_tblLookupSemester.sql" />
+    <Build Include="Tables\AMC_tblMeetingSchedule.sql" />
+    <Build Include="Tables\AMC_tblNewsltr.sql" />
+    <Build Include="Tables\AMC_tblPostMessage.sql" />
+    <Build Include="Tables\AMC_tblRegistration.sql" />
+    <Build Include="Tables\AMC_tblReportCard.sql" />
+    <Build Include="Tables\AMC_tblReportCard_Bak.sql" />
+    <Build Include="Tables\AMC_tblSpecialEventsRegistration.sql" />
+    <Build Include="Tables\AMC_tblStates.sql" />
+    <Build Include="Tables\AMC_tblStudentDocuments.sql" />
+    <Build Include="Tables\AMC_tblStudents.sql" />
+    <Build Include="Tables\AMC_tblStudents_History.sql" />
+    <Build Include="Tables\AMC_tblTestimonials.sql" />
+    <Build Include="Tables\AMC_tblTimeTracking.sql" />
+    <Build Include="Tables\AMC_tblTriangularRegistration.sql" />
+    <Build Include="Tables\AMC_tblUserNotificationToken.sql" />
+    <Build Include="Tables\AMC_tblUsers.sql" />
+    <Build Include="Tables\AMC_tblUserTracking.sql" />
+    <Build Include="Tables\AMC_tblVideos.sql" />
+    <Build Include="Tables\AMC_tblVolunteersRequest.sql" />
+    <Build Include="Tables\AMC_VolunteerAvailability.sql" />
+    <Build Include="Tables\Comments.sql" />
+    <Build Include="Tables\EC_tblEnquiry.sql" />
+    <Build Include="Tables\MemberMaster.sql" />
+    <Build Include="Tables\MemberMasterBackup.sql" />
+    <Build Include="Tables\MemberReference.sql" />
+    <Build Include="Tables\MemberType.sql" />
+    <Build Include="Tables\PageHitsCounter.sql" />
+    <Build Include="Tables\StudentLog.sql" />
+    <Build Include="Tables\SubjectMaster.sql" />
+    <Build Include="Tables\temp.sql" />
+    <Build Include="Tables\upload1.sql" />
+    <Build Include="User Defined Types\AMCAdminDB.AMC_tblTypeExamMasterAnswerKey.sql" />
+    <Build Include="User Defined Types\dbo.AMC_tblTypeExamMasterAnswerKey.sql" />
+  </ItemGroup>
+</Project>

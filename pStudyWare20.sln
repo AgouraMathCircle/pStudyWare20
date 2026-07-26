@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pStudyWare20.Repository", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pStudyWare20.Shared", "pStudyWare20.Shared\pStudyWare20.Shared.csproj", "{AB675FB4-37C0-6067-4AC6-F13B3C247120}"
 EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "pStudyWare20.DB", "pStudyWare20.DB\pStudyWare20.DB.sqlproj", "{DC269B47-54D1-483D-9BB1-3AC183B17BEA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +99,24 @@ Global
 		{AB675FB4-37C0-6067-4AC6-F13B3C247120}.Release|x64.Build.0 = Release|Any CPU
 		{AB675FB4-37C0-6067-4AC6-F13B3C247120}.Release|x86.ActiveCfg = Release|Any CPU
 		{AB675FB4-37C0-6067-4AC6-F13B3C247120}.Release|x86.Build.0 = Release|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Debug|x64.Build.0 = Debug|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Debug|x64.Deploy.0 = Debug|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Debug|x86.Build.0 = Debug|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Debug|x86.Deploy.0 = Debug|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Release|x64.ActiveCfg = Release|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Release|x64.Build.0 = Release|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Release|x64.Deploy.0 = Release|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Release|x86.ActiveCfg = Release|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Release|x86.Build.0 = Release|Any CPU
+		{DC269B47-54D1-483D-9BB1-3AC183B17BEA}.Release|x86.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
