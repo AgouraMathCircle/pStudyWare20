@@ -1,4 +1,14 @@
-﻿CREATE  FUNCTION [dbo].[GettingAuthorizedChapter]
+﻿/********************************************************************************************** 
+ Name			: GettingAuthorizedChapter
+ Purpose		: Getting Authorized Chapter by User
+ Created by		: Kalyan
+ Created Date	: 01/01/2026	
+**Modified by******Modified Date****Comments*************** 
+ Kalyan			   07/26/2026	    Added the comments					
+
+
+**********************************************************************************************/
+CREATE OR ALTER FUNCTION [dbo].[GettingAuthorizedChapter]
 (
 @UserName varchar(100)
 )
