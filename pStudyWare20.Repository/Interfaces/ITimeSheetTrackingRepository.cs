@@ -40,5 +40,10 @@ namespace pStudyWare20.Repository.Interfaces
         /// <param name="request">Upsert timesheet tracking request</param>
         /// <returns>DataTable with result</returns>
         Task<DataTable> UpsertTimeSheetTrackingAsync(UpsertTimeSheetTrackingRequest request);
+
+        /// <summary>
+        /// True when the timesheet row belongs to the given portal username.
+        /// </summary>
+        Task<bool> MemberOwnsTimeSheetEntryAsync(int logId, string username);
     }
 }

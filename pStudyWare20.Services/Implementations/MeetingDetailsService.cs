@@ -18,24 +18,52 @@ namespace pStudyWare20.Services.Implementations
         }
 
         /// <summary>
-        /// Get meeting schedule list. When request.UserName is set (student dashboard), uses AMC_spMeetingSchedule_Select
-        /// to return only meetings for that user (matches legacy pStudyware_DashboardMessage.ascx.cs). Otherwise returns all.
+        /// Dashboard meeting schedules for the signed-in user via AMC_spMeetingSchedule_Select
+        /// (legacy BingMeetingSchedule — student, instructor, volunteer, chapter admin).
         /// </summary>
         public async Task<MeetingScheduleListResponse> GetMeetingScheduleListAsync(MeetingScheduleListRequest request)
         {
             try
             {
-                object meetingSchedulesData;
-                if (!string.IsNullOrWhiteSpace(request.UserName))
+                if (string.IsNullOrWhiteSpace(request.UserName))
                 {
-                    // Student/instructor/volunteer dashboard: only meetings for this user (legacy BingMeetingSchedule)
-                    meetingSchedulesData = await _meetingDetailsRepository.GetMeetingScheduleListByUserAsync(request.UserName.Trim());
+                    return new MeetingScheduleListResponse
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = "Username is required."
+                    };
                 }
-                else
+
+                var meetingSchedulesData = await _meetingDetailsRepository
+                    .GetMeetingScheduleListByUserAsync(request.UserName.Trim());
+
+                var meetingSchedulesList = MapDataTableToMeetingScheduleList(meetingSchedulesData);
+
+                return new MeetingScheduleListResponse
                 {
-                    // Admin: all meeting schedules (AMC_tblMeetingSchedule_Select)
-                    meetingSchedulesData = await _meetingDetailsRepository.GetMeetingScheduleListAsync(request.RowId);
-                }
+                    IsSuccess = true,
+                    MeetingSchedules = meetingSchedulesList
+                };
+            }
+            catch (Exception ex)
+            {
+                return new MeetingScheduleListResponse
+                {
+                    IsSuccess = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
+        /// SystemAdmin Meeting Details grid — all rows via AMC_tblMeetingSchedule_Select.
+        /// </summary>
+        public async Task<MeetingScheduleListResponse> GetMeetingScheduleGridListAsync(MeetingScheduleListRequest request)
+        {
+            try
+            {
+                var meetingSchedulesData = await _meetingDetailsRepository
+                    .GetMeetingScheduleListAsync(request.RowId ?? "0");
 
                 var meetingSchedulesList = MapDataTableToMeetingScheduleList(meetingSchedulesData);
 

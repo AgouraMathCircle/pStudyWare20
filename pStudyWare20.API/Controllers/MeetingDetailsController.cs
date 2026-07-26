@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Cors;
 using pStudyWare20.Services.Interfaces;
 using pStudyWare20.Shared;
 using System.Security.Claims;
+using pStudyWare20.API.Helpers;
 
 namespace pStudyWare20.API.Controllers
 {
@@ -185,21 +186,30 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Get meeting schedules. When username is provided (e.g. student dashboard), returns only meetings for that user
-        /// via AMC_spMeetingSchedule_Select (matches legacy pStudyware_DashboardMessage.ascx.cs BingMeetingSchedule()).
-        /// When username is not provided (admin), returns all schedules via AMC_tblMeetingSchedule_Select.
+        /// Dashboard meeting schedules for the signed-in user via AMC_spMeetingSchedule_Select
+        /// (matches legacy pStudyware_DashboardMessage.ascx.cs BingMeetingSchedule()).
         /// </summary>
-        /// <param name="username">Optional. When set, returns only schedules for this user (student/instructor/volunteer).</param>
+        /// <param name="username">Portal username (MemberMaster.Username). JWT fallback when omitted.</param>
         /// <returns>Meeting schedule list response</returns>
         [HttpGet("GetAllMeetingSchedules")]
         public async Task<IActionResult> GetAllMeetingSchedules([FromQuery] string? username = null)
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    username = PortalClaimsHelper.GetMeetingScheduleUsername(User);
+                }
+
+                if (string.IsNullOrWhiteSpace(username))
+                {
+                    return BadRequest(new { message = "Username is required." });
+                }
+
                 var request = new MeetingScheduleListRequest
                 {
                     RowId = "0",
-                    UserName = string.IsNullOrWhiteSpace(username) ? null : username.Trim()
+                    UserName = username.Trim()
                 };
 
                 var response = await _meetingDetailsService.GetMeetingScheduleListAsync(request);
@@ -227,6 +237,25 @@ namespace pStudyWare20.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "An error occurred while getting all meeting schedules", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// SystemAdmin Meeting Details grid — all schedules (AMC_tblMeetingSchedule_Select).
+        /// </summary>
+        [HttpGet("GetMeetingScheduleGrid")]
+        [Authorize(Roles = "Admin,SystemAdmin")]
+        public async Task<IActionResult> GetMeetingScheduleGrid()
+        {
+            try
+            {
+                var request = new MeetingScheduleListRequest { RowId = "0" };
+                var response = await _meetingDetailsService.GetMeetingScheduleGridListAsync(request);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while getting meeting schedule grid", error = ex.Message });
             }
         }
 

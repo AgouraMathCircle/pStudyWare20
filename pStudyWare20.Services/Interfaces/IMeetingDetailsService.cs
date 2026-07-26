@@ -15,6 +15,11 @@ namespace pStudyWare20.Services.Interfaces
         Task<MeetingScheduleListResponse> GetMeetingScheduleListAsync(MeetingScheduleListRequest request);
 
         /// <summary>
+        /// SystemAdmin Meeting Details grid (AMC_tblMeetingSchedule_Select).
+        /// </summary>
+        Task<MeetingScheduleListResponse> GetMeetingScheduleGridListAsync(MeetingScheduleListRequest request);
+
+        /// <summary>
         /// Get specific meeting schedule by ID
         /// </summary>
         /// <param name="request">Get meeting schedule request</param>
