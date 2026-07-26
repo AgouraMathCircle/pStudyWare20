@@ -14,12 +14,18 @@ namespace pStudyWare20.Services.Implementations
         private readonly ISystemAdminRepository _systemAdminRepository;
         private readonly IEmailUtility _emailUtility;
         private readonly IConfiguration _configuration;
+        private readonly IVolunteerAvailabilityService _volunteerAvailabilityService;
 
-        public SystemAdminService(ISystemAdminRepository systemAdminRepository, IEmailUtility emailUtility, IConfiguration configuration)
+        public SystemAdminService(
+            ISystemAdminRepository systemAdminRepository,
+            IEmailUtility emailUtility,
+            IConfiguration configuration,
+            IVolunteerAvailabilityService volunteerAvailabilityService)
         {
             _systemAdminRepository = systemAdminRepository;
             _emailUtility = emailUtility;
             _configuration = configuration;
+            _volunteerAvailabilityService = volunteerAvailabilityService;
         }
 
         /// <summary>
@@ -269,6 +275,12 @@ namespace pStudyWare20.Services.Implementations
                 };
             }
         }
+
+        /// <summary>
+        /// SystemAdmin: volunteers availability list for upcoming class.
+        /// </summary>
+        public Task<VolunteerAvailabilitySummaryResponse> GetVolunteerAvailabilitySummaryAsync(VolunteerAvailabilitySummaryRequest request)
+            => _volunteerAvailabilityService.GetVolunteerAvailabilitySummaryAsync(request);
 
         /// <summary>
         /// Map enrolled and waiting-list counts by Class code from AMC_spSelectPostMessage.

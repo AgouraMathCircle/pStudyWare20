@@ -208,5 +208,41 @@ namespace pStudyWare20.Repository.Implementations
                 throw new Exception($"Error saving time sheet ({SpAddTimeTracking}): {ex.Message}", ex);
             }
         }
+
+        public async Task<bool> MemberOwnsTimeSheetEntryAsync(int logId, string username)
+        {
+            if (logId <= 0 || string.IsNullOrWhiteSpace(username))
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(_connectionString))
+                throw new InvalidOperationException("Database connection is not configured (DefaultConnection).");
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                const string sql = """
+                    SELECT COUNT(1)
+                    FROM AMC_tblTimeTracking TT WITH (NOLOCK)
+                    INNER JOIN MemberMaster MM WITH (NOLOCK) ON TT.MemberId = MM.pMemberID
+                    WHERE TT.LogId = @LogID
+                      AND UPPER(LTRIM(MM.Username)) = UPPER(LTRIM(@Username))
+                    """;
+
+                using var command = new SqlCommand(sql, connection);
+                command.Parameters.Add(new SqlParameter("@LogID", logId));
+                command.Parameters.Add(new SqlParameter("@Username", username));
+
+                var result = await command.ExecuteScalarAsync();
+                return Convert.ToInt32(result) > 0;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error verifying timesheet ownership: {ex.Message}", ex);
+            }
+        }
     }
 }

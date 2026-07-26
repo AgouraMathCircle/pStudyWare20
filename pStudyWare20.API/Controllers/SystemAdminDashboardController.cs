@@ -244,6 +244,49 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
+        /// SystemAdmin: Volunteers Availability List for upcoming class.
+        /// </summary>
+        [HttpPost("GetVolunteerAvailabilitySummary")]
+        public async Task<IActionResult> GetVolunteerAvailabilitySummary([FromBody] VolunteerAvailabilitySummaryRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Invalid request data",
+                        errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
+                    });
+                }
+
+                var portalUsername = User.FindFirst("Username")?.Value
+                    ?? User.FindFirst(ClaimTypes.Name)?.Value
+                    ?? User.FindFirst(ClaimTypes.Email)?.Value
+                    ?? "";
+                if (!string.IsNullOrWhiteSpace(portalUsername))
+                {
+                    request.Username = portalUsername;
+                }
+                else if (string.IsNullOrWhiteSpace(request.Username))
+                {
+                    return BadRequest(new { message = "Username is required." });
+                }
+
+                var response = await _systemAdminService.GetVolunteerAvailabilitySummaryAsync(request);
+                return response.IsSuccess ? Ok(response) : BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "An error occurred while getting volunteer availability summary",
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
         /// Elevated privilege: JWT role SystemAdmin or claim SystemAdmin=Y (MemberMaster.systemAdmin).
         /// </summary>
         private bool HasSystemAdminPrivilege()

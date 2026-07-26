@@ -65,5 +65,10 @@ namespace pStudyWare20.Services.Interfaces
         /// <param name="username">Username</param>
         /// <returns>Timesheet tracking privileges response</returns>
         Task<TimeSheetTrackingPrivilegesResponse> CheckTimeSheetTrackingPrivilegesAsync(string username);
+
+        /// <summary>
+        /// True when the timesheet row belongs to the given portal username.
+        /// </summary>
+        Task<bool> MemberOwnsTimeSheetEntryAsync(int logId, string username);
     }
 }

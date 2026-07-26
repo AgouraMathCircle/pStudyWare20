@@ -18,5 +18,10 @@ namespace pStudyWare20.Services.Interfaces
         Task<PublishDocumentResponse> PublishDocumentAsync(PublishDocumentRequest request);
 
         Task<ExportExcelResponse> ExportStudentListToExcelAsync(ExportExcelRequest request);
+
+        /// <summary>
+        /// SystemAdmin: volunteers availability list for upcoming class.
+        /// </summary>
+        Task<VolunteerAvailabilitySummaryResponse> GetVolunteerAvailabilitySummaryAsync(VolunteerAvailabilitySummaryRequest request);
     }
 }

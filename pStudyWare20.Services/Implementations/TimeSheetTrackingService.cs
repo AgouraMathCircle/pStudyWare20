@@ -319,6 +319,11 @@ namespace pStudyWare20.Services.Implementations
             }
         }
 
+        public Task<bool> MemberOwnsTimeSheetEntryAsync(int logId, string username)
+        {
+            return _timeSheetTrackingRepository.MemberOwnsTimeSheetEntryAsync(logId, username);
+        }
+
         /// <summary>
         /// Resolve column name case-insensitively; try preferred then alternates.
         /// </summary>

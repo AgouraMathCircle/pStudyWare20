@@ -31,6 +31,30 @@ namespace pStudyWare20.API.Controllers
                 ?? "";
         }
 
+        private static bool IsChapterAdmin(ClaimsPrincipal user) =>
+            user.IsInRole("Admin") && !user.IsInRole("SystemAdmin");
+
+        private async Task<IActionResult?> EnsureChapterAdminCanMutateEntryAsync(int logId, string portalUsername)
+        {
+            if (!IsChapterAdmin(User))
+            {
+                return null;
+            }
+
+            if (logId <= 0)
+            {
+                return null;
+            }
+
+            var ownsEntry = await _timeSheetTrackingService.MemberOwnsTimeSheetEntryAsync(logId, portalUsername);
+            if (!ownsEntry)
+            {
+                return Forbid();
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Get timesheet tracking list (matches BindGridView method)
         /// </summary>
@@ -77,6 +101,11 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
                 }
 
+                if (IsChapterAdmin(User))
+                {
+                    return Forbid();
+                }
+
                 // Prefer portal Username claim (MemberMaster.UserName) for SP lookups.
                 if (string.IsNullOrEmpty(request.Username))
                 {
@@ -106,6 +135,13 @@ namespace pStudyWare20.API.Controllers
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                var portalUsername = ResolvePortalUsername();
+                var forbidden = await EnsureChapterAdminCanMutateEntryAsync(request.LogID, portalUsername);
+                if (forbidden != null)
+                {
+                    return forbidden;
                 }
 
                 var response = await _timeSheetTrackingService.DeleteTimeSheetTrackingAsync(request);
@@ -139,6 +175,13 @@ namespace pStudyWare20.API.Controllers
                     request.Username = ResolvePortalUsername();
                 }
 
+                var logId = request.LogID ?? 0;
+                var forbidden = await EnsureChapterAdminCanMutateEntryAsync(logId, request.Username);
+                if (forbidden != null)
+                {
+                    return forbidden;
+                }
+
                 var response = await _timeSheetTrackingService.UpsertTimeSheetTrackingAsync(request);
                 return Ok(response);
             }
@@ -162,6 +205,11 @@ namespace pStudyWare20.API.Controllers
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                if (IsChapterAdmin(User))
+                {
+                    return Forbid();
                 }
 
                 // Prefer portal Username claim (MemberMaster.UserName) for SP lookups.
@@ -285,6 +333,13 @@ namespace pStudyWare20.API.Controllers
         {
             try
             {
+                var portalUsername = ResolvePortalUsername();
+                var forbidden = await EnsureChapterAdminCanMutateEntryAsync(logId, portalUsername);
+                if (forbidden != null)
+                {
+                    return forbidden;
+                }
+
                 var request = new DeleteTimeSheetTrackingRequest
                 {
                     LogID = logId
@@ -319,6 +374,11 @@ namespace pStudyWare20.API.Controllers
                 if (string.IsNullOrEmpty(userUsername))
                 {
                     return BadRequest(new { message = "Username is required" });
+                }
+
+                if (IsChapterAdmin(User) && !selfOnly)
+                {
+                    return Forbid();
                 }
 
                 var request = new UpdateTimeSheetTrackingRequest
