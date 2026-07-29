@@ -77,22 +77,3 @@
     padding-right: 12px !important;
   }
 }
-
-/* Entry form card — span full panel width like the list card */
-.admin-volunteer-availability .admin-volunteer-availability-entry-panel {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box;
-}
-
-.admin-volunteer-availability .admin-volunteer-availability-entry-panel > .MuiCardContent-root {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box;
-}
-
-.admin-volunteer-availability .admin-volunteer-availability-entry-panel .volunteer-availability-panel {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box;
-}

@@ -196,7 +196,7 @@ const MeetingDetails = () => {
 
       const [meetingsResponse, chaptersResponse] = await Promise.all([
 
-        meetingDetailsService.getAllMeetingSchedules(),
+        meetingDetailsService.getMeetingScheduleGrid(),
 
         meetingDetailsService.getChapterLocations(),
 
@@ -258,7 +258,7 @@ const MeetingDetails = () => {
 
       setLoading(true);
 
-      const response = await meetingDetailsService.getAllMeetingSchedules();
+      const response = await meetingDetailsService.getMeetingScheduleGrid();
 
       if (response.isSuccess) {
 

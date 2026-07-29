@@ -3,6 +3,25 @@ import { downloadExcelBlob, postExcelExport } from "../utils/excelExport";
 
 const SYSTEMADMIN_DASHBOARD_API_BASE_URL = "/SystemAdminDashboard";
 
+const normalizeSummaryResponse = (body = {}) => ({
+  isSuccess: body.isSuccess ?? body.IsSuccess ?? true,
+  summaryData: Array.isArray(body.summaryData ?? body.SummaryData)
+    ? body.summaryData ?? body.SummaryData
+    : [],
+  errorMessage: body.errorMessage ?? body.ErrorMessage ?? "",
+});
+
+/** SystemAdmin volunteer-availability API (SystemAdminDashboard), not Admin/Instructor shared routes. */
+export const systemAdminVolunteerAvailabilityApi = {
+  getAvailabilitySummary: async (request) => {
+    const response = await api.post(
+      `${SYSTEMADMIN_DASHBOARD_API_BASE_URL}/GetVolunteerAvailabilitySummary`,
+      request,
+    );
+    return normalizeSummaryResponse(response.data);
+  },
+};
+
 const systemAdminDashboardService = {
   /**
    * Gets complete dashboard data for admin (combined endpoint for efficiency)
@@ -155,6 +174,9 @@ const systemAdminDashboardService = {
       throw error;
     }
   },
+
+  getVolunteerAvailabilitySummary:
+    systemAdminVolunteerAvailabilityApi.getAvailabilitySummary,
 
   /**
    * Helper function to download Excel file from blob

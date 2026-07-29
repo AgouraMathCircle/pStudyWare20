@@ -13,12 +13,8 @@ import {
 import { Download as DownloadIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
-import {
-  adminVolunteerAvailabilityApi,
-} from "../../../services/adminDashboardService";
+import { adminVolunteerAvailabilityApi } from "../../../services/adminDashboardService";
 import { getPortalUsername } from "../../../utils/portalUsername";
-import { applyVolunteerAvailabilityRefresh } from "../../../utils/volunteerAvailabilityGridMerge";
-import VolunteerAvailability from "../Common/VolunteerAvailability";
 import AdminVolunteerAvailabilityGrid from "./AdminVolunteerAvailabilityGrid";
 import {
   adminSessionListPanelCardSx,
@@ -50,48 +46,35 @@ const AdminVolunteerAvailability = () => {
 
   const portalUsername = getPortalUsername(user);
 
-  const loadList = useCallback(async ({ silent = false } = {}) => {
+  const loadList = useCallback(async () => {
     if (!portalUsername) {
       setLoading(false);
       return;
     }
-    if (!silent) {
-      setLoading(true);
-      setError(null);
-    }
+    setLoading(true);
+    setError(null);
     try {
       const res = await adminVolunteerAvailabilityApi.getAvailabilitySummary({
         username: portalUsername,
       });
       if (res?.isSuccess !== false) {
-        const nextRows = res.summaryData || [];
-        if (nextRows.length > 0 || !silent) {
-          setRows(nextRows);
-          setError(null);
-        }
-      } else if (!silent) {
+        setRows(res.summaryData || []);
+      } else {
         setRows([]);
         setError(res?.errorMessage || "Could not load volunteer availability.");
       }
     } catch (err) {
       console.error("Error loading volunteer availability:", err);
-      if (!silent) {
-        setError(err?.message || "Error loading list.");
-        setRows([]);
-      }
+      setError(err?.message || "Error loading list.");
+      setRows([]);
     } finally {
-      if (!silent) setLoading(false);
+      setLoading(false);
     }
   }, [portalUsername]);
 
   useEffect(() => {
     loadList();
   }, [loadList]);
-
-  const refreshListAfterSave = useCallback((payload) => {
-    setRows((prev) => applyVolunteerAvailabilityRefresh(prev, payload));
-    setError(null);
-  }, []);
 
   const handleExport = (type) => {
     if (rows.length === 0) {
@@ -172,7 +155,7 @@ const AdminVolunteerAvailability = () => {
                     component="div"
                     sx={adminSessionListTitleSx}
                   >
-                    Volunteers Availability List for upcoming class
+                    Volunteers Availability List
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1, flexShrink: 0 }}>
                     <Button

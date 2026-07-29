@@ -13,7 +13,9 @@ import {
 import { Download as DownloadIcon } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import SystemAdminHeader, { SystemAdminRoleHeaderSpacer } from "./SystemAdminHeader";
-import volunteerAvailabilityService from "../../../services/volunteerAvailabilityService";
+import {
+  systemAdminVolunteerAvailabilityApi,
+} from "../../../services/systemAdminDashboardService";
 import { getPortalUsername } from "../../../utils/portalUsername";
 import SystemAdminVolunteerAvailabilityGrid from "./SystemAdminVolunteerAvailabilityGrid";
 import {
@@ -44,7 +46,6 @@ const SystemAdminVolunteerAvailability = () => {
     severity: "info",
   });
 
-  const username = user?.email || user?.username || "";
   const portalUsername = getPortalUsername(user);
 
   const loadList = useCallback(async () => {
@@ -55,10 +56,10 @@ const SystemAdminVolunteerAvailability = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await volunteerAvailabilityService.getAvailabilitySummary({
+      const res = await systemAdminVolunteerAvailabilityApi.getAvailabilitySummary({
         username: portalUsername,
       });
-      if (res?.isSuccess) {
+      if (res?.isSuccess !== false) {
         setRows(res.summaryData || []);
       } else {
         setRows([]);

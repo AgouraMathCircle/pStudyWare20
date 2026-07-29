@@ -392,3 +392,243 @@
   min-width: 0;
   max-width: 100%;
 }
+
+/* Meeting schedule — compact cards (matches student dashboard) */
+.admin-dashboard .meeting-schedule-card {
+  width: 100% !important;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-dashboard .meeting-schedule-card > .MuiCardContent-root {
+  width: 100%;
+}
+
+.admin-dashboard .meeting-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+  padding-bottom: 4px;
+  overflow-x: visible;
+}
+
+.admin-dashboard .meeting-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1px;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid #2e7d32;
+  border-radius: 8px;
+  padding: 5px 6px;
+  background: #eaf4ef;
+  box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-dashboard .meeting-card:hover {
+  transform: translateY(-2px);
+  border-color: #1b5e20;
+  box-shadow: 0 4px 12px rgba(27, 94, 32, 0.18);
+}
+
+.admin-dashboard .meeting-card-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.admin-dashboard .meeting-class {
+  font-weight: 700;
+  font-size: 0.76rem;
+  color: #1b8f2e;
+  line-height: 1.3;
+  text-decoration: underline;
+}
+
+.admin-dashboard .meeting-datetime {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #000000;
+  margin-top: 0;
+}
+
+.admin-dashboard .meeting-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  font-size: 0.68rem;
+  font-weight: 600;
+  margin-top: 0;
+}
+
+.admin-dashboard .meeting-detail-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 3px;
+  margin-bottom: 0;
+  white-space: nowrap;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.admin-dashboard .meeting-detail-label {
+  color: #000000;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.admin-dashboard .meeting-detail-value {
+  font-weight: 600;
+  color: #0f7d22;
+  flex-shrink: 0;
+}
+
+.admin-dashboard .meeting-copy-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  outline: none;
+  border-radius: 3px;
+  background-color: #e3f2fd;
+  color: #1565c0;
+  line-height: 0;
+  vertical-align: middle;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.admin-dashboard .meeting-copy-icon:hover {
+  background-color: #bbdefb;
+}
+
+.admin-dashboard .meeting-copy-icon:focus-visible {
+  outline: 2px solid #1565c0;
+  outline-offset: 1px;
+}
+
+.admin-dashboard .meeting-copy-icon svg,
+.admin-dashboard .meeting-copy-icon .MuiSvgIcon-root {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-dashboard .meeting-join-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  padding: 4px 6px;
+  background-color: #4caf50;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 600;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.admin-dashboard .meeting-join-btn:hover {
+  background-color: #388e3c;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+@keyframes adminZoomIconPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.8));
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+}
+
+.admin-dashboard .meeting-join-btn .zoom-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
+  animation: adminZoomIconPulse 2s infinite ease-in-out;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.admin-dashboard .meeting-join-btn:hover .zoom-icon {
+  animation: none;
+  transform: scale(1.3) rotate(-8deg);
+}
+
+@media (max-width: 1200px) {
+  .admin-dashboard .meeting-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow-x: visible;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-dashboard .meeting-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-dashboard .meeting-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .admin-dashboard .meeting-card-main {
+    width: 100%;
+  }
+
+  .admin-dashboard .meeting-meta {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .admin-dashboard .meeting-join-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-dashboard .meeting-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-dashboard .meeting-detail-row {
+    white-space: normal;
+    flex-wrap: wrap;
+  }
+}

@@ -69,7 +69,6 @@ import {
   adminSessionListTableActionLinkSx,
   adminSessionListTableDeleteLinkSx,
   adminSessionListTitleSx,
-  portalHeaderActionButtonSx,
 } from "../styles/applicationSurfaces";
 import "../../../styles/SystemAdminTimeSheetTracking.css";
 
@@ -491,24 +490,6 @@ const TimeSheetTracking = () => {
     }
   };
 
-  const resetFormDefaults = () => {
-    setTaskName(TASK_OPTIONS[0]);
-    setVolunteerDate(toDateInputValue(new Date()));
-    setStartHour("09");
-    setStartMin("00");
-    setStartType("AM");
-    setEndHour("05");
-    setEndMin("00");
-    setEndType("PM");
-    setTaskDescription("");
-  };
-
-  const openAdd = () => {
-    setEditingLogId(null);
-    resetFormDefaults();
-    setFormOpen(true);
-  };
-
   const openEdit = async (row) => {
     const logId = resolveTimeSheetLogId(row);
     if (!logId) {
@@ -710,18 +691,8 @@ const TimeSheetTracking = () => {
               <CardContent sx={adminSessionListPanelContentSx}>
                 <Box sx={adminSessionListHeaderBarSx}>
                   <Typography variant="subtitle1" component="div" sx={adminSessionListTitleSx}>
-                    My Time Sheet
+                    Time Sheet Approval
                   </Typography>
-                  <Button
-                    variant="contained"
-                    color="success"
-                    size="small"
-                    startIcon={<AddIcon />}
-                    onClick={openAdd}
-                    sx={portalHeaderActionButtonSx}
-                  >
-                    Enter Time Sheet
-                  </Button>
                 </Box>
 
                 <Box className="admin-time-sheet-tracking-table-panel">
