@@ -4,9 +4,8 @@ const MEETING_DETAILS_API_BASE_URL = "/MeetingDetails";
 
 const meetingDetailsService = {
   /**
-   * Gets meeting schedules. When username is provided (student dashboard), returns only meetings for that user.
-   * When omitted (admin), returns all meeting schedules.
-   * @param {string} [username] - Optional. Student/instructor username (e.g. email) to filter schedules for that user
+   * Dashboard meeting schedules for the signed-in user (AMC_spMeetingSchedule_Select).
+   * @param {string} username - Portal username (MemberMaster.Username)
    * @returns {Promise<object>} Meeting schedule list response
    */
   getAllMeetingSchedules: async (username) => {
@@ -19,6 +18,22 @@ const meetingDetailsService = {
       return response.data;
     } catch (error) {
       console.error("Error fetching meeting schedules:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * SystemAdmin Meeting Details grid (all rows — AMC_tblMeetingSchedule_Select).
+   * @returns {Promise<object>} Meeting schedule list response
+   */
+  getMeetingScheduleGrid: async () => {
+    try {
+      const response = await api.get(
+        `${MEETING_DETAILS_API_BASE_URL}/GetMeetingScheduleGrid`,
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching meeting schedule grid:", error);
       throw error;
     }
   },

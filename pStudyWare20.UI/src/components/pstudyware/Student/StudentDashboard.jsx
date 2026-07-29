@@ -21,6 +21,10 @@ import FinalExamSection from "./FinalExamSection";
 import StudentMeetingSchedule from "./StudentMeetingSchedule";
 import studentDashboardService from "../../../services/studentDashboardService";
 import {
+  getPortalLoginIdentifier,
+  getMeetingScheduleUsername,
+} from "../../../utils/portalUsername";
+import {
   PORTAL_CARD_BOX_SHADOW,
   dashboardMessagesPanelContentSx,
   portalCardAntiLiftSx,
@@ -68,9 +72,10 @@ const StudentDashboard = () => {
   const [reportCardEntries, setReportCardEntries] = useState([]);
   const [reportCardError, setReportCardError] = useState(null);
 
-  const username = useMemo(
-    () => user?.email || user?.username || "",
-    [user?.email, user?.username]
+  const username = useMemo(() => getPortalLoginIdentifier(user), [user]);
+  const meetingScheduleUsername = useMemo(
+    () => getMeetingScheduleUsername(user) || username,
+    [user, username],
   );
   const chapterId = useMemo(
     () => user?.chapterId ?? user?.chapterID ?? 1,
@@ -344,7 +349,7 @@ const StudentDashboard = () => {
           </Grid>
 
           <Grid item xs={12} sx={{ width: "100%", maxWidth: "100%" }}>
-            <StudentMeetingSchedule username={username} panelCardSx={panelCardSx} />
+            <StudentMeetingSchedule username={meetingScheduleUsername} panelCardSx={panelCardSx} />
           </Grid>
 
           {showRegistration && !registrationLoading && (

@@ -16,7 +16,7 @@ import StudentMeetingSchedule from "../Student/StudentMeetingSchedule";
 import instructorDashboardService from "../../../services/instructorDashboardService";
 import studentDashboardService from "../../../services/studentDashboardService";
 import volunteerAvailabilityService from "../../../services/volunteerAvailabilityService";
-import { getPortalUsername } from "../../../utils/portalUsername";
+import { getPortalUsername, getPortalLoginIdentifier, getMeetingScheduleUsername } from "../../../utils/portalUsername";
 import { applyVolunteerAvailabilityRefresh } from "../../../utils/volunteerAvailabilityGridMerge";
 import InstructorStudentListGrid from "./InstructorStudentListGrid";
 import InstructorVolunteerAvailabilityGrid from "./InstructorVolunteerAvailabilityGrid";
@@ -58,10 +58,17 @@ const InstructorDashboard = () => {
   const [messagesLoading, setMessagesLoading] = useState(false);
 
   const username = useMemo(
-    () => user?.email || user?.username || "",
-    [user?.email, user?.username]
+    () => getPortalUsername(user) || getPortalLoginIdentifier(user),
+    [user],
   );
-  const portalUsername = useMemo(() => getPortalUsername(user), [user]);
+  const portalUsername = useMemo(
+    () => getPortalUsername(user) || username,
+    [user, username],
+  );
+  const meetingScheduleUsername = useMemo(
+    () => getMeetingScheduleUsername(user) || portalUsername,
+    [user, portalUsername],
+  );
   const chapterId = useMemo(
     () => user?.chapterId ?? user?.chapterID ?? 1,
     [user?.chapterId, user?.chapterID]
@@ -303,7 +310,7 @@ const InstructorDashboard = () => {
               </Grid>
               <Grid item xs={12} md={6} sx={{ pt: "0 !important", pb: "0 !important", zoom: "85%" }}>
                 <StudentMeetingSchedule
-                  username={username}
+                  username={meetingScheduleUsername}
                   panelCardSx={{ ...instructorDashboardPanelCardSx, height: "100%" }}
                   sectionTitleSx={adminSessionListTitleSx}
                 />
@@ -312,7 +319,7 @@ const InstructorDashboard = () => {
           ) : (
             <Grid item xs={12} sx={{ pt: "0 !important", zoom: "85%" }}>
               <StudentMeetingSchedule
-                username={username}
+                username={meetingScheduleUsername}
                 panelCardSx={instructorDashboardPanelCardSx}
                 sectionTitleSx={adminSessionListTitleSx}
               />

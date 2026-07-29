@@ -43,6 +43,12 @@ class AuthService {
             userData?.username ??
             userData?.Username ??
             "",
+          chapterID:
+            response.data?.chapterID ??
+            response.data?.ChapterID ??
+            userData?.chapterID ??
+            userData?.ChapterID ??
+            "",
           systemAdmin:
             response.data?.systemAdmin ??
             response.data?.SystemAdmin ??

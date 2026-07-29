@@ -2,7 +2,6 @@ import React, {
   useState,
   useEffect,
   useRef,
-  useCallback,
   useMemo,
 } from "react";
 import { useNavigate } from "react-router-dom";
@@ -24,21 +23,20 @@ import adminDashboardService, {
 import {
   getPortalUsername,
   getPortalLoginIdentifier,
+  getMeetingScheduleUsername,
 } from "../../../utils/portalUsername";
-import { applyVolunteerAvailabilityRefresh } from "../../../utils/volunteerAvailabilityGridMerge";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import {
   PORTAL_CARD_BOX_SHADOW,
   portalCardAntiLiftSx,
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
-  adminSessionListHeaderBarSx,
   adminSessionListTitleSx,
 } from "../styles/applicationSurfaces";
 import SystemSupport from "./SystemSupport";
 import StudentList from "./StudentList";
 import VolunteerAvailability from "../Common/VolunteerAvailability";
-import AdminVolunteerAvailabilityGrid from "./AdminVolunteerAvailabilityGrid";
+import StudentMeetingSchedule from "../Student/StudentMeetingSchedule";
 import "../../../styles/AdminDashboard.css";
 
 const AdminDashboard = () => {
@@ -49,10 +47,6 @@ const AdminDashboard = () => {
   const hasRedirectedRef = useRef(false);
 
   const [studentList, setStudentList] = useState([]);
-
-  const [availabilityRows, setAvailabilityRows] = useState([]);
-  const [availabilityLoading, setAvailabilityLoading] = useState(false);
-  const [availabilityError, setAvailabilityError] = useState(null);
 
   const [adminPrivileges, setAdminPrivileges] = useState({
     isAdmin: false,
@@ -67,7 +61,14 @@ const AdminDashboard = () => {
     severity: "info",
   });
 
-  const portalUsername = useMemo(() => getPortalUsername(user), [user]);
+  const meetingScheduleUsername = useMemo(
+    () =>
+      getMeetingScheduleUsername(user) ||
+      getPortalUsername(user) ||
+      getPortalLoginIdentifier(user) ||
+      "",
+    [user],
+  );
 
   useEffect(() => {
     if (authLoading) {
@@ -106,52 +107,6 @@ const AdminDashboard = () => {
     setIsValidated(true);
     setLoading(false);
   }, [isAuthenticated, user, authLoading, navigate]);
-
-  const loadVolunteerAvailability = useCallback(
-    async ({ silent = false } = {}) => {
-      if (!portalUsername) return;
-
-      if (!silent) {
-        setAvailabilityError(null);
-        setAvailabilityLoading(true);
-      }
-
-      try {
-        const res = await adminVolunteerAvailabilityApi.getAvailabilitySummary({
-          username: portalUsername,
-        });
-        if (res?.isSuccess !== false) {
-          const nextRows = res.summaryData || [];
-          if (nextRows.length > 0 || !silent) {
-            setAvailabilityRows(nextRows);
-            setAvailabilityError(null);
-          }
-        } else if (!silent) {
-          setAvailabilityRows([]);
-          setAvailabilityError(
-            res?.errorMessage || "Could not load volunteer availability list.",
-          );
-        }
-      } catch (e) {
-        if (!silent) {
-          setAvailabilityError(
-            e?.message || "Failed to load volunteer availability list.",
-          );
-          setAvailabilityRows([]);
-        }
-      } finally {
-        if (!silent) setAvailabilityLoading(false);
-      }
-    },
-    [portalUsername],
-  );
-
-  const refreshVolunteerAvailabilityList = useCallback((payload) => {
-    setAvailabilityRows((prev) =>
-      applyVolunteerAvailabilityRefresh(prev, payload),
-    );
-    setAvailabilityError(null);
-  }, []);
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -213,11 +168,6 @@ const AdminDashboard = () => {
 
     loadDashboardData();
   }, [isValidated, user]);
-
-  useEffect(() => {
-    if (!isValidated || !portalUsername) return;
-    loadVolunteerAvailability();
-  }, [isValidated, portalUsername, loadVolunteerAvailability]);
 
   const showMessage = (message, severity = "info") => {
     setSnackbar({
@@ -409,7 +359,6 @@ const AdminDashboard = () => {
                       embedded
                       alwaysVisible
                       availabilityService={adminVolunteerAvailabilityApi}
-                      onSaved={refreshVolunteerAvailabilityList}
                     />
                   </CardContent>
                 </Card>
@@ -417,25 +366,13 @@ const AdminDashboard = () => {
             </Box>
           </Grid>
 
-          <Grid item xs={12} sx={{ pt: "8px !important" }}>
-            <Card sx={adminSessionListPanelCardSx}>
-              <CardContent sx={adminSessionListPanelContentSx}>
-                <Box sx={adminSessionListHeaderBarSx}>
-                  <Typography
-                    variant="subtitle1"
-                    component="div"
-                    sx={adminSessionListTitleSx}
-                  >
-                    Volunteers Availability List for upcoming class
-                  </Typography>
-                </Box>
-                <AdminVolunteerAvailabilityGrid
-                  rows={availabilityRows}
-                  loading={availabilityLoading}
-                  error={availabilityError}
-                />
-              </CardContent>
-            </Card>
+          <Grid item xs={12} sx={{ width: "100%", maxWidth: "100%", pt: "0 !important" }}>
+            <StudentMeetingSchedule
+              username={meetingScheduleUsername}
+              alwaysShowCard
+              panelCardSx={panelCardSx}
+              sectionTitleSx={adminSessionListTitleSx}
+            />
           </Grid>
 
           <Grid

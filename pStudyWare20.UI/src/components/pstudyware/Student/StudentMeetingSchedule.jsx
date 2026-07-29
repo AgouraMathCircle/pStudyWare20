@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -6,9 +6,12 @@ import {
   Box,
   Link,
   Tooltip,
+  CircularProgress,
 } from "@mui/material";
 import AppSnackbar from "../Common/AppSnackbar";
 import { useAppSnackbar } from "../Common/useAppSnackbar";
+import { useAuth } from "../../../contexts/AuthContext";
+import { getMeetingScheduleUsername } from "../../../utils/portalUsername";
 import {
   AccessTime as AccessTimeIcon,
   VpnKey as VpnKeyIcon,
@@ -87,8 +90,12 @@ const MEETING_CACHE_TTL_MS = 2 * 60 * 1000;
 const meetingSchedulesCacheByUser = {};
 
 const getMeetingSchedules = (response) => {
-  if (!response?.isSuccess) return null;
-  return response.meetingSchedules || [];
+  const isSuccess = response?.isSuccess ?? response?.IsSuccess;
+  if (isSuccess === false) {
+    return null;
+  }
+
+  return response?.meetingSchedules ?? response?.MeetingSchedules ?? [];
 };
 
 const renderSectionHeader = (sectionTitleSx) => (
@@ -100,10 +107,18 @@ const renderSectionHeader = (sectionTitleSx) => (
 );
 
 const StudentMeetingSchedule = ({
-  username,
+  username: usernameProp,
   panelCardSx = defaultPanelCardSx,
   sectionTitleSx = adminSessionListTitleSx,
+  alwaysShowCard = false,
 }) => {
+  const { user } = useAuth();
+  const username = useMemo(
+    () =>
+      String(usernameProp ?? "").trim() || getMeetingScheduleUsername(user),
+    [usernameProp, user],
+  );
+
   const [meetings, setMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -171,7 +186,11 @@ const StudentMeetingSchedule = ({
             "StudentMeetingSchedule: Exception loading meetings",
             err,
           );
-          setError(`Error loading meeting schedules: ${err.message}`);
+          const apiMessage =
+            err.response?.data?.errorMessage ||
+            err.response?.data?.message ||
+            err.message;
+          setError(`Error loading meeting schedules: ${apiMessage}`);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -306,8 +325,66 @@ const StudentMeetingSchedule = ({
       </Box>
   );
 
-  if (loading || meetings.length === 0) {
-    return error ? <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} /> : null;
+  if (loading) {
+    if (!alwaysShowCard) {
+      return error ? (
+        <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+      ) : null;
+    }
+
+    return (
+      <Box sx={{ width: "100%", maxWidth: "100%" }}>
+        <Card
+          sx={cardSx}
+          className="dashboard-messages-panel meeting-schedule-card"
+        >
+          <CardContent sx={dashboardMessagesPanelContentSx}>
+            {renderSectionHeader(sectionTitleSx)}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                minHeight: 120,
+                py: 2,
+              }}
+            >
+              <CircularProgress size={32} />
+            </Box>
+          </CardContent>
+        </Card>
+        <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+      </Box>
+    );
+  }
+
+  if (meetings.length === 0) {
+    if (!alwaysShowCard) {
+      return error ? (
+        <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+      ) : null;
+    }
+
+    const emptyMessage = !username
+      ? "Unable to load meeting schedules (missing portal username)."
+      : error || "No meeting schedules at this time.";
+
+    return (
+      <Box sx={{ width: "100%", maxWidth: "100%" }}>
+        <Card
+          sx={cardSx}
+          className="dashboard-messages-panel meeting-schedule-card"
+        >
+          <CardContent sx={dashboardMessagesPanelContentSx}>
+            {renderSectionHeader(sectionTitleSx)}
+            <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+              {emptyMessage}
+            </Typography>
+          </CardContent>
+        </Card>
+        <AppSnackbar snackbar={snackbar} onClose={closeSnackbar} />
+      </Box>
+    );
   }
 
   return (

@@ -21,6 +21,7 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import DashboardMessages from "../Student/DashboardMessages";
+import StudentMeetingSchedule from "../Student/StudentMeetingSchedule";
 import InstructorVolunteerAvailabilityGrid from "../Instructor/InstructorVolunteerAvailabilityGrid";
 import VolunteerTimeSheetGrid from "./VolunteerTimeSheetGrid";
 import VolunteerAvailability, {
@@ -29,13 +30,18 @@ import VolunteerAvailability, {
 import studentDashboardService from "../../../services/studentDashboardService";
 import volunteerDashboardService from "../../../services/volunteerDashboardService";
 import volunteerAvailabilityService from "../../../services/volunteerAvailabilityService";
-import { getPortalUsername } from "../../../utils/portalUsername";
+import {
+  getPortalUsername,
+  getPortalLoginIdentifier,
+  getMeetingScheduleUsername,
+} from "../../../utils/portalUsername";
 import { applyVolunteerAvailabilityRefresh } from "../../../utils/volunteerAvailabilityGridMerge";
 import {
   instructorDashboardPanelCardSx,
   instructorDashboardPanelContentSx,
 } from "../Instructor/instructorPortalTableStyles";
 import {
+  adminSessionListTitleSx,
   dashboardMessagesPanelContentSx,
   instructorPortalContentContainerProps,
   portalDashboardPageSx,
@@ -80,10 +86,17 @@ const VolunteerDashboard = () => {
   const [messagesLoading, setMessagesLoading] = useState(false);
 
   const username = useMemo(
-    () => user?.email || user?.username || "",
-    [user?.email, user?.username]
+    () => getPortalLoginIdentifier(user),
+    [user],
   );
-  const portalUsername = useMemo(() => getPortalUsername(user), [user]);
+  const portalUsername = useMemo(
+    () => getPortalUsername(user) || username,
+    [user, username],
+  );
+  const meetingScheduleUsername = useMemo(
+    () => getMeetingScheduleUsername(user) || portalUsername,
+    [user, portalUsername],
+  );
   const chapterId = useMemo(
     () => user?.chapterId ?? user?.chapterID ?? 1,
     [user?.chapterId, user?.chapterID]
@@ -314,6 +327,14 @@ const VolunteerDashboard = () => {
                 />
               </CardContent>
             </Card>
+          </Grid>
+
+          <Grid item xs={12} sx={{ pt: "0 !important", zoom: "85%" }}>
+            <StudentMeetingSchedule
+              username={meetingScheduleUsername}
+              panelCardSx={instructorDashboardPanelCardSx}
+              sectionTitleSx={adminSessionListTitleSx}
+            />
           </Grid>
 
           {showVolunteerAvailability && (

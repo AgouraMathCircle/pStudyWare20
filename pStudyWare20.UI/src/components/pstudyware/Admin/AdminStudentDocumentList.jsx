@@ -224,9 +224,6 @@ const AdminStudentDocumentList = ({
           <Typography variant="subtitle1" sx={adminSessionListTitleSx}>
             Student Documents List
           </Typography>
-          <Typography variant="caption" color="text.secondary" display="block">
-            View and manage student-uploaded documents (legacy StudentDocuments.aspx).
-          </Typography>
         </Box>
       </Box>
 

@@ -50,7 +50,7 @@ const SystemSupport = ({ onPublishDocument, canPublishDocuments }) => {
       isReact: true,
     },
     {
-      label: "Time Sheet Approval Request",
+      label: "Time Sheet Approval",
       href: toSystemAdminPortalPath(location.pathname, "/time-sheet-tracking"),
       isReact: true,
     },
