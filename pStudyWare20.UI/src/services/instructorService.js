@@ -50,10 +50,14 @@ const instructorService = {
           instructorData?.classCode ??
           "",
         section: instructorData?.section ?? instructorData?.Section ?? "A",
+        
         instructorType:
           instructorData?.instructorType ??
           instructorData?.InstructorType ??
           "P",
+        LastLogin: String(
+          instructorData?.LastLogin ?? instructorData?.LastLogin ?? "",
+        ),
         memberStatus: String(
           memberStatus === "0" ||
             String(memberStatus).trim().toLowerCase() === "inactive" ||

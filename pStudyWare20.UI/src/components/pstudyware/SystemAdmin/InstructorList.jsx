@@ -59,6 +59,7 @@ const instructorListColumnWidths = {
   username: "10%",
   email: "10%",
   phone: "8%",
+  LastLogin: "8%",
   status: "7%",
 };
 
@@ -547,6 +548,16 @@ const InstructorList = ({
                 onSort={handleSort}
                 headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.phone)}
               />
+
+              <SortableHeader
+                label="Last Login"
+                field="LastLogin"
+                sortField={orderBy}
+                sortOrder={order}
+                onSort={handleSort}
+                headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.LastLogin)}
+              />
+
               <SortableHeader
                 label="Status"
                 field="memberStatus"
@@ -622,6 +633,11 @@ const InstructorList = ({
                   <TableCell sx={adminSessionListTableBodyCellSx()}>
                     {instructor.contactPhone || "—"}
                   </TableCell>
+                  
+                  <TableCell sx={adminSessionListTableBodyCellSx()}>
+                    {instructor.LastLogin || "—"}
+                  </TableCell>
+
                   <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
                     {getStatusDisplay(instructor.memberStatus)}
                   </TableCell>
