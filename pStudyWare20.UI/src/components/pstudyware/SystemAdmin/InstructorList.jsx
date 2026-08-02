@@ -59,7 +59,7 @@ const instructorListColumnWidths = {
   username: "10%",
   email: "10%",
   phone: "8%",
-  LastLogin: "8%",
+  lastLogin: "8%",
   status: "7%",
 };
 
@@ -551,11 +551,11 @@ const InstructorList = ({
 
               <SortableHeader
                 label="Last Login"
-                field="LastLogin"
+                field="lastLogin"
                 sortField={orderBy}
                 sortOrder={order}
                 onSort={handleSort}
-                headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.LastLogin)}
+                headCellSx={adminSessionListTableHeadCellSx(instructorListColumnWidths.lastLogin)}
               />
 
               <SortableHeader
@@ -635,7 +635,7 @@ const InstructorList = ({
                   </TableCell>
                   
                   <TableCell sx={adminSessionListTableBodyCellSx()}>
-                    {instructor.LastLogin || "—"}
+                    {instructor.lastLogin ? new Date(instructor.lastLogin).toLocaleDateString() : "—"}
                   </TableCell>
 
                   <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
