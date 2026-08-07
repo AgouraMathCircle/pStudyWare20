@@ -199,6 +199,7 @@ namespace pStudyWare20.Repository.Implementations
                 command.Parameters.Add(new SqlParameter("@EndType", request.EndType ?? ""));
                 command.Parameters.Add(new SqlParameter("@LogID", logId));
                 command.Parameters.Add(new SqlParameter("@TaskDescription", request.TaskDescription ?? ""));
+                command.Parameters.Add(new SqlParameter("@ApprovalStatus", request.ApprovalStatus ?? "P"));
 
                 await command.ExecuteNonQueryAsync();
                 return new DataTable();

@@ -1,5 +1,5 @@
 ﻿/****** Object:  StoredProcedure [dbo].[AMC_spUpdateSemesterLookup]    Script Date: 23-Jul-20 3:52:31 PM ******/
-CREATE proc [dbo].[AMC_spSelectTimeTracking] 
+CREATE OR ALTER proc [dbo].[AMC_spSelectTimeTracking] 
 @Username varchar(100)= null
 AS
 BEGIN
@@ -19,10 +19,14 @@ BEGIN
 			 ,Ltrim(right(convert(varchar(25), StartTime, 100), 7)) As StartTime
 			 ,Ltrim(right(convert(varchar(25), EndTime, 100), 7)) As EndTime 
 			 ,Cast((DATEDIFF(MINUTE,TT.StartTime , TT.EndTime))/60 as Varchar) +':' + Cast((DATEDIFF(MINUTE,TT.StartTime , TT.EndTime))%60 as Varchar) as TotalHours
-			 ,TT.CreatedDate  CreatedDate,
-			 TT.TaskDescription TaskDescription
+			 ,TT.CreatedDate  CreatedDate 
+			 ,TT.TaskDescription TaskDescription
 			 ,TT.Comments Comments
 			 ,TT.Approved Approved
+			 ,ApprovalStatus =Case when ApprovalStatus='A' then 'Approved'
+								   when ApprovalStatus='R' then 'Rejected'
+								   when ApprovalStatus='P' then 'Pending'
+							  End	
 			 ,convert(varchar,[LogID]) + '~#' + [TaskName] 
 			 + '~#' + CONVERT(VARCHAR(10), DateVolunteer, 101) as TimeTrackInfo
 			 FROM AMC_tblTimeTracking TT WITH (NOLOCK) 
@@ -45,6 +49,10 @@ BEGIN
 			 TT.TaskDescription TaskDescription
 			  ,TT.Comments Comments
 			 ,TT.Approved Approved
+			 ,ApprovalStatus =Case when ApprovalStatus='A' then 'Approved'
+								   when ApprovalStatus='R' then 'Rejected'
+								   when ApprovalStatus='P' then 'Pending'
+							  End	
 			 ,convert(varchar,[LogID]) + '~#' + [TaskName] 
 			 + '~#' + CONVERT(VARCHAR(10), DateVolunteer, 101) as TimeTrackInfo
 			 FROM AMC_tblTimeTracking TT WITH (NOLOCK) 
