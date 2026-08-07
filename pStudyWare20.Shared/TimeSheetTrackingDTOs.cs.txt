@@ -28,7 +28,6 @@ namespace pStudyWare20.Shared
         /// <summary>Legacy grid TotalHours column.</summary>
         public string TotalHours { get; set; } = string.Empty;
         public string TaskDescription { get; set; } = string.Empty;
-        public string ApprovalStatus { get; set; } = string.Empty;
         /// <summary>Display row number from AMC_spSelectTimeTracking (not the primary key).</summary>
         public int MLogID { get; set; }
         public DateTime? CreatedDate { get; set; }
@@ -117,8 +116,9 @@ namespace pStudyWare20.Shared
         public string EndMin { get; set; } = string.Empty;
         [Required]
         public string EndType { get; set; } = string.Empty;
+        [Required]
+        public string ApprovalStatus { get; set; } = string.Empty;
         public string TaskDescription { get; set; } = string.Empty;
-        public string? ApprovalStatus { get; set; }
         public int? LogID { get; set; } // For updates, null for new entries
     }
 

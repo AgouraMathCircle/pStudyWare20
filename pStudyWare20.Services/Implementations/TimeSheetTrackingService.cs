@@ -390,6 +390,7 @@ namespace pStudyWare20.Services.Implementations
                         EndMin = GetValue(row, table, "EndMin", "Endmin")?.ToString() ?? "",
                         EndType = GetValue(row, table, "EndType")?.ToString() ?? "",
                         TaskDescription = GetValue(row, table, "TaskDescription")?.ToString() ?? "",
+                        ApprovalStatus = GetValue(row, table, "ApprovalStatus")?.ToString() ?? "",
                         CreatedDate = createdVal != null && createdVal != DBNull.Value ? Convert.ToDateTime(createdVal) : null,
                         ModifiedDate = modifiedVal != null && modifiedVal != DBNull.Value ? Convert.ToDateTime(modifiedVal) : null
                     };

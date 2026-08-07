@@ -110,21 +110,21 @@ const WhatWeDo = () => {
                 <a href="#">Fall Semester 2026</a>
               </Typography>
               <Box className="what-we-do-des" component="div">
-                08/29/2026 : 1.30 - 5.30 PM (SATURDAY)
+                08/29/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                09/12/2026 : 1.30 - 5.30 PM (SATURDAY)
+                09/12/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                09/26/2026 : 1.30 - 5.30 PM (SATURDAY)
+                09/26/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                10/10/2026 : 1.30 - 5.30 PM (SATURDAY)
+                10/10/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                10/24/2026 : 1.30 - 5.30 PM (SATURDAY)
+                10/24/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                11/07/2026 : 1.30 - 5.30 PM (SATURDAY)
+                11/07/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                11/21/2026 : 1.30 - 5.30 PM (SATURDAY)
+                11/21/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
-                12/05/2026 : 1.30 - 5.30 PM (SATURDAY)
+                12/05/2026 : 2.00 - 5.00 PM (SATURDAY)
                 <br />
                 12/19/2026 : 12.00 - 5.00 PM FINAL EXAM
               </Box>

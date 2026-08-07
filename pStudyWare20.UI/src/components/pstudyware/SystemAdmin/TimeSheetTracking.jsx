@@ -89,8 +89,7 @@ const timeSheetColumnWidths = {
   endTime: "11%",
   totalHours: "8%",
   createdDate: "11%",
-  edit: "7%",
-  delete: "7%",
+  status: "14%",
 };
 
 const timeSheetDeleteLinkSx = adminSessionListTableDeleteLinkSx;
@@ -253,6 +252,7 @@ function rowSearchFieldValues(row) {
     String(row.totalHours ?? row.TotalHours ?? ""),
     cd ? new Date(cd).toLocaleString() : "",
     String(row.taskDescription ?? row.TaskDescription ?? ""),
+    String(row.approvalStatus ?? row.ApprovalStatus ?? "Pending"),
   ];
 }
 
@@ -316,6 +316,7 @@ const TimeSheetTracking = () => {
   const [endMin, setEndMin] = useState("00");
   const [endType, setEndType] = useState("PM");
   const [taskDescription, setTaskDescription] = useState("");
+  const [approvalStatus, setApprovalStatus] = useState("Pending");
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteLogId, setDeleteLogId] = useState(null);
@@ -430,6 +431,9 @@ const TimeSheetTracking = () => {
         case "DESCRIPTION":
           fieldValue = row.taskDescription ?? row.TaskDescription ?? "";
           break;
+        case "STATUS":
+          fieldValue = row.approvalStatus ?? row.ApprovalStatus ?? "Pending";
+          break;
         default:
           return true;
       }
@@ -535,6 +539,11 @@ const TimeSheetTracking = () => {
       setEndMin(endFields.min);
       setEndType(endFields.type);
       setTaskDescription(entry.taskDescription ?? entry.TaskDescription ?? "");
+      
+      const dbStatus = entry.approvalStatus ?? entry.ApprovalStatus ?? "Pending";
+      if (dbStatus === "Approved" || dbStatus === "Accepted") setApprovalStatus("Accepted");
+      else if (dbStatus === "Rejected") setApprovalStatus("Rejected");
+      else setApprovalStatus("Pending");
     } catch (e) {
       setSnackbar({
         open: true,
@@ -603,6 +612,7 @@ const TimeSheetTracking = () => {
         endMin: em,
         endType,
         taskDescription: taskDescription.trim(),
+        approvalStatus: approvalStatus === "Accepted" || approvalStatus === "Approved" ? "A" : (approvalStatus === "Rejected" ? "R" : "P"),
         logID: editingLogId && editingLogId > 0 ? editingLogId : null,
       };
       const res = await timeSheetTrackingService.upsertTimeSheetTracking(payload);
@@ -735,6 +745,9 @@ const TimeSheetTracking = () => {
                         <MenuItem value="DESCRIPTION" sx={adminSessionListMenuItemSx}>
                           Task Details
                         </MenuItem>
+                        <MenuItem value="STATUS" sx={adminSessionListMenuItemSx}>
+                          Status
+                        </MenuItem>
                       </Select>
                     </Box>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -851,14 +864,9 @@ const TimeSheetTracking = () => {
                             headCellSx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.createdDate)}
                           />
                           <TableCell
-                            sx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.edit)}
+                            sx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.status, true)}
                           >
-                            Edit
-                          </TableCell>
-                          <TableCell
-                            sx={adminSessionListTableHeadCellSx(timeSheetColumnWidths.delete, true)}
-                          >
-                            Delete
+                            Status
                           </TableCell>
                         </TableRow>
                       </TableHead>
@@ -917,20 +925,17 @@ const TimeSheetTracking = () => {
                                 <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
                                   {cd ? new Date(cd).toLocaleString() : "—"}
                                 </TableCell>
-                                <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
+                                <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true, action: true })}>
                                   <Box
                                     onClick={() => openEdit(row)}
-                                    sx={adminSessionListTableActionLinkSx}
+                                    sx={{
+                                      ...adminSessionListTableActionLinkSx,
+                                      color: (row.approvalStatus ?? row.ApprovalStatus) === "Approved" || (row.approvalStatus ?? row.ApprovalStatus) === "Accepted" ? "green" : (row.approvalStatus ?? row.ApprovalStatus) === "Rejected" ? "red" : "blue",
+                                      fontWeight: 'bold',
+                                      textDecoration: 'underline'
+                                    }}
                                   >
-                                    Edit
-                                  </Box>
-                                </TableCell>
-                                <TableCell
-                                  className="time-sheet-delete-cell"
-                                  sx={adminSessionListTableBodyCellSx({ isLast: true, action: true })}
-                                >
-                                  <Box onClick={() => confirmDelete(row)} sx={timeSheetDeleteLinkSx}>
-                                    Delete
+                                    {row.approvalStatus ?? row.ApprovalStatus ?? "Pending"}
                                   </Box>
                                 </TableCell>
                               </TableRow>
@@ -1144,6 +1149,22 @@ const TimeSheetTracking = () => {
               InputLabelProps={{ shrink: true }}
               sx={timeSheetTaskDetailsSx}
             />
+
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
+              <InputLabel id="time-sheet-approval-status" shrink>
+                Status
+              </InputLabel>
+              <PortalModalSelect
+                labelId="time-sheet-approval-status"
+                label="Status"
+                value={approvalStatus}
+                onChange={(e) => setApprovalStatus(e.target.value)}
+              >
+                <MenuItem value="Pending">Pending</MenuItem>
+                <MenuItem value="Accepted">Accepted</MenuItem>
+                <MenuItem value="Rejected">Rejected</MenuItem>
+              </PortalModalSelect>
+            </FormControl>
           </Box>
         )}
       </PortalDialog>
