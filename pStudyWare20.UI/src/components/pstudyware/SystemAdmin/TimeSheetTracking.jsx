@@ -1161,8 +1161,8 @@ const TimeSheetTracking = () => {
                 onChange={(e) => setApprovalStatus(e.target.value)}
               >
                 <MenuItem value="Pending">Pending</MenuItem>
-                <MenuItem value="Accepted">Accepted</MenuItem>
-                <MenuItem value="Rejected">Rejected</MenuItem>
+                <MenuItem value="Approved">Approve</MenuItem>
+                <MenuItem value="Rejected">Reject</MenuItem>
               </PortalModalSelect>
             </FormControl>
           </Box>
