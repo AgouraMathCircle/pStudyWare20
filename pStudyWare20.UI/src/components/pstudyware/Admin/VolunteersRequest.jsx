@@ -708,7 +708,25 @@ const VolunteersRequest = () => {
   const handleDeleteConfirm = async () => {
     if (!selectedRow?.volunteerID) return;
     setSubmitting(true);
+    
+    // Find if they are in an email group before deleting
+    const oldChapterID = parseVolunteerInfo(selectedRow?.volunteerInfo)?.chapterID;
+    const chapter = chapterLocations.find(
+      (c) => String(c.chapterID || c.ChapterID) === String(oldChapterID)
+    );
+    const groupEmail = chapter?.volunteerEmailGroup || chapter?.VolunteerEmailGroup;
+    const volunteerEmail = selectedVolunteerEmail;
+
     try {
+      // Remove from email group first
+      if (groupEmail && volunteerEmail) {
+        try {
+          await volunteersRequestService.removeMemberFromGroup(groupEmail, volunteerEmail);
+        } catch (e) {
+          console.error("Failed to remove member from group", e);
+        }
+      }
+
       const res = await volunteersRequestService.deleteVolunteerRequest({
         RequestID: String(selectedRow.volunteerID),
       });
@@ -772,6 +790,38 @@ const VolunteersRequest = () => {
       const res = await volunteersRequestService.updateVolunteerStatus(payload);
       const ok = res?.isSuccess === true || res?.IsSuccess === true;
       if (ok) {
+        // Google Workspace Email Group Sync
+        const volunteerEmail = selectedVolunteerEmail;
+        
+        const oldChapterID = parseVolunteerInfo(selectedRow?.volunteerInfo)?.chapterID;
+        const oldChapter = chapterLocations.find(
+          (c) => String(c.chapterID || c.ChapterID) === String(oldChapterID)
+        );
+        const oldGroupEmail = oldChapter?.volunteerEmailGroup || oldChapter?.VolunteerEmailGroup;
+
+        const newChapter = chapterLocations.find(
+          (c) => String(c.chapterID || c.ChapterID) === String(form.chapterID)
+        );
+        const newGroupEmail = newChapter?.volunteerEmailGroup || newChapter?.VolunteerEmailGroup;
+
+        if (volunteerEmail) {
+          if (oldGroupEmail && oldGroupEmail !== newGroupEmail) {
+            try {
+              await volunteersRequestService.removeMemberFromGroup(oldGroupEmail, volunteerEmail);
+            } catch (e) {
+              console.error("Failed to remove from old group", e);
+            }
+          }
+          if (newGroupEmail) {
+            try {
+              // Always attempt to add. If they are already in the group, backend handles 409 Conflict gracefully.
+              await volunteersRequestService.addMemberToGroup(newGroupEmail, volunteerEmail);
+            } catch (e) {
+              console.error("Failed to add to new group", e);
+            }
+          }
+        }
+
         setSnackbar({
           open: true,
           message:

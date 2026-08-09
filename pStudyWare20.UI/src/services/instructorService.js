@@ -95,6 +95,26 @@ const instructorService = {
     }
   },
 
+  addMemberToGroup: async (groupEmail, userEmail) => {
+    try {
+      const response = await api.post(`/GoogleWorkspace/AddMember`, { groupEmail, userEmail });
+      return response.data;
+    } catch (error) {
+      console.error("Error adding to Google group:", error);
+      throw error;
+    }
+  },
+
+  removeMemberFromGroup: async (groupEmail, userEmail) => {
+    try {
+      const response = await api.post(`/GoogleWorkspace/RemoveMember`, { groupEmail, userEmail });
+      return response.data;
+    } catch (error) {
+      console.error("Error removing from Google group:", error);
+      throw error;
+    }
+  },
+
   /**
    * Export instructor list to Excel
    * @param {string} username - Username for authorization

@@ -107,6 +107,7 @@ const mapChapterOptions = (chapterRows) =>
         name,
         location,
         city,
+        volunteerEmailGroup: chapter.volunteerEmailGroup ?? chapter.VolunteerEmailGroup ?? "",
         label: label || `Chapter ${chapterID}`,
       };
     })
@@ -242,6 +243,20 @@ const InstructorManagement = () => {
       console.log("InstructorManagement: Deleting instructor", instructorID);
       showSnackbar("Deleting instructor...", "info");
 
+      // Find if they are in an email group before deleting
+      const instructorToDelete = instructors.find(i => String(i.instructorID || i.InstructorID) === String(instructorID));
+      const targetUsername = instructorToDelete?.userName?.trim() || instructorToDelete?.emailID?.trim();
+      const chapter = chapters.find(c => String(c.chapterID) === String(instructorToDelete?.chapterID || instructorToDelete?.ChapterID));
+      const groupEmail = chapter?.volunteerEmailGroup;
+
+      if (groupEmail && targetUsername) {
+        try {
+          await instructorService.removeMemberFromGroup(groupEmail, targetUsername);
+        } catch (e) {
+          console.error("Failed to remove member from group", e);
+        }
+      }
+
       const response = await instructorService.deleteInstructor(instructorID);
 
       if (response.isSuccess) {
@@ -308,6 +323,41 @@ const InstructorManagement = () => {
       });
 
       if (response.isSuccess) {
+        // --- GOOGLE GROUP SYNC ---
+        try {
+          // Instructors use 'userName' for Google Workspace email, fallback to emailID for backward compatibility
+          const targetUsername = selectedInstructor?.userName?.trim() || formData?.userName?.trim() || formData?.emailID?.trim() || selectedInstructor?.emailID?.trim();
+          const oldChapter = chapters.find(c => String(c.chapterID) === String(selectedInstructor?.chapterID || selectedInstructor?.ChapterID));
+          const newChapter = chapters.find(c => String(c.chapterID) === String(chapterID));
+          
+          const oldGroupEmail = oldChapter?.volunteerEmailGroup;
+          const newGroupEmail = newChapter?.volunteerEmailGroup;
+
+          const oldStatus = String(selectedInstructor?.memberStatus ?? "1").trim().toLowerCase();
+          const newStatus = String(formData?.memberStatus ?? formData?.MemberStatus ?? "1").trim().toLowerCase();
+
+          const isOldActive = oldStatus === "1" || oldStatus === "active";
+          const isNewActive = newStatus === "1" || newStatus === "active";
+
+          if (targetUsername) {
+            if (isEdit) {
+              if (isOldActive && oldGroupEmail && (!isNewActive || oldGroupEmail !== newGroupEmail)) {
+                await instructorService.removeMemberFromGroup(oldGroupEmail, targetUsername).catch(e => console.error("Failed to remove from old group", e));
+              }
+              if (isNewActive && newGroupEmail && (!isOldActive || oldGroupEmail !== newGroupEmail)) {
+                await instructorService.addMemberToGroup(newGroupEmail, targetUsername).catch(e => console.error("Failed to add to new group", e));
+              }
+            } else {
+              if (isNewActive && newGroupEmail) {
+                await instructorService.addMemberToGroup(newGroupEmail, targetUsername).catch(e => console.error("Failed to add to new group", e));
+              }
+            }
+          }
+        } catch (syncErr) {
+          console.error("Google Group Sync Error:", syncErr);
+        }
+        // --- END GOOGLE GROUP SYNC ---
+
         showSnackbar(
           response.message ||
             (isEdit
