@@ -520,7 +520,7 @@ const InstructorList = ({
 
               <SortableHeader
                 label="Last Login"
-                field="LastLogin"
+                field="lastLogin"
                 sortField={orderBy}
                 sortOrder={order}
                 onSort={handleSort}
@@ -597,7 +597,7 @@ const InstructorList = ({
                   </TableCell>
 
                   <TableCell sx={adminSessionListTableBodyCellSx()}>
-                    {instructor.LastLogin || "—"}
+                    {instructor.lastLogin ? new Date(instructor.lastLogin).toLocaleDateString() : "—"}
                   </TableCell>
 
                   <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true })}>
