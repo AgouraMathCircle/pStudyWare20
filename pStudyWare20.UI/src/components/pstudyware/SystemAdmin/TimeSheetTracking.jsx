@@ -632,8 +632,38 @@ const TimeSheetTracking = () => {
           "Time Sheet Entry has been recorded successfully",
         severity: "success",
       });
+      
+      if (editingLogId && editingLogId > 0) {
+        setList((prev) =>
+          prev.map((item) => {
+            if (resolveTimeSheetLogId(item) === editingLogId) {
+              const updatedStatus = 
+                (approvalStatus === "Accepted" || approvalStatus === "Approved") 
+                  ? "Approved" 
+                  : approvalStatus;
+              
+              return {
+                ...item,
+                taskName: taskName.trim(),
+                volunteerDate: volunteerDateObj.toISOString(),
+                startHour: sh,
+                startMin: sm,
+                startType,
+                endHour: eh,
+                endMin: em,
+                endType,
+                taskDescription: taskDescription.trim(),
+                approvalStatus: updatedStatus,
+                ApprovalStatus: updatedStatus,
+              };
+            }
+            return item;
+          })
+        );
+      } else {
+        await loadList();
+      }
       closeForm();
-      await loadList();
     } catch (err) {
       setSnackbar({
         open: true,
@@ -678,9 +708,11 @@ const TimeSheetTracking = () => {
         message: res?.message ?? res?.Message ?? "Entry has been deleted successfully",
         severity: "success",
       });
+      
+      setList((prev) => prev.filter((item) => resolveTimeSheetLogId(item) !== deleteLogId));
+      
       setDeleteOpen(false);
       setDeleteLogId(null);
-      await loadList();
     } catch (err) {
       setSnackbar({
         open: true,
