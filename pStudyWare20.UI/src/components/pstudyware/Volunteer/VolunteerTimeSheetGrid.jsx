@@ -140,13 +140,13 @@ const legacyTableHeadCellSx = {
 
 const portalColumnWidths = {
   logID: "5%",
-  name: "12%",
   taskName: "14%",
   volunteerDate: "10%",
   startTime: "11%",
   endTime: "11%",
   totalHours: "8%",
   createdDate: "11%",
+  approvalStatus: "10%",
   edit: "7%",
   delete: "7%",
 };
@@ -165,6 +165,8 @@ const getTimeSheetFieldValue = (row, field) => {
       return toSortableNumber(row?.totalHours ?? row?.TotalHours);
     case "createdDate":
       return toSortableDate(row?.createdDate ?? row?.CreatedDate);
+    case "approvalStatus":
+      return row?.approvalStatus ?? row?.ApprovalStatus ?? "Pending";
     default:
       return "";
   }
@@ -251,6 +253,9 @@ const VolunteerTimeSheetGrid = ({
             break;
           case "DESCRIPTION":
             fieldValue = row?.taskDescription ?? row?.TaskDescription ?? "";
+            break;
+          case "STATUS":
+            fieldValue = row?.approvalStatus ?? row?.ApprovalStatus ?? "Pending";
             break;
           default:
             return true;
@@ -416,6 +421,7 @@ const VolunteerTimeSheetGrid = ({
               <MenuItem value="HOURS" sx={adminSessionListMenuItemSx}>Total Hours</MenuItem>
               <MenuItem value="CREATED" sx={adminSessionListMenuItemSx}>Created Date</MenuItem>
               <MenuItem value="DESCRIPTION" sx={adminSessionListMenuItemSx}>Task Details</MenuItem>
+              <MenuItem value="STATUS" sx={adminSessionListMenuItemSx}>Approval Status</MenuItem>
             </Select>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -457,14 +463,6 @@ const VolunteerTimeSheetGrid = ({
                   headCellSx={adminSessionListTableHeadCellSx(portalColumnWidths.logID)}
                 />
                 <SortableHeader
-                  label="Name"
-                  field="username"
-                  sortField={sortField}
-                  sortOrder={sortOrder}
-                  onSort={handleSort}
-                  headCellSx={adminSessionListTableHeadCellSx(portalColumnWidths.name)}
-                />
-                <SortableHeader
                   label="Task Name"
                   field="taskName"
                   sortField={sortField}
@@ -502,6 +500,14 @@ const VolunteerTimeSheetGrid = ({
                   onSort={handleSort}
                   headCellSx={adminSessionListTableHeadCellSx(portalColumnWidths.createdDate)}
                 />
+                <SortableHeader
+                  label="Approval Status"
+                  field="approvalStatus"
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                  headCellSx={adminSessionListTableHeadCellSx(portalColumnWidths.approvalStatus)}
+                />
                 <TableCell sx={adminSessionListTableHeadCellSx(portalColumnWidths.edit)}>
                   Edit
                 </TableCell>
@@ -533,12 +539,11 @@ const VolunteerTimeSheetGrid = ({
                 pageRows.map((row, idx) => {
                   const id = rowId(row);
                   const { start, end } = displayStartEnd(row);
+                  const status = row?.approvalStatus ?? row?.ApprovalStatus ?? "Pending";
+                  const isLocked = ["Approved", "Rejected", "A", "R"].includes(status);
                   return (
                     <TableRow key={id ?? `row-${idx}`} sx={adminSessionListTableBodyRowSx}>
                       <TableCell sx={adminSessionListTableBodyCellSx()}>{id ?? "—"}</TableCell>
-                      <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
-                        {row?.username ?? row?.Username ?? row?.name ?? row?.Name ?? "—"}
-                      </TableCell>
                       <TableCell sx={adminSessionListTableBodyCellSx({ ellipsis: true })}>
                         {row?.taskName ?? row?.TaskName ?? "—"}
                       </TableCell>
@@ -553,8 +558,11 @@ const VolunteerTimeSheetGrid = ({
                       <TableCell sx={adminSessionListTableBodyCellSx()}>
                         {formatDate(row?.createdDate ?? row?.CreatedDate)}
                       </TableCell>
+                      <TableCell sx={adminSessionListTableBodyCellSx()}>
+                        {status}
+                      </TableCell>
                       <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
-                        {id ? (
+                        {id && !isLocked ? (
                           <Box
                             component={RouterLink}
                             to={`${resolvedEditPath}?logId=${id}`}
@@ -570,7 +578,7 @@ const VolunteerTimeSheetGrid = ({
                         className="time-sheet-delete-cell"
                         sx={adminSessionListTableBodyCellSx({ isLast: true, action: true })}
                       >
-                        {id ? (
+                        {id && !isLocked ? (
                           <Box
                             onClick={deletingId === id ? undefined : () => handleDeleteClick(id)}
                             sx={{
@@ -713,14 +721,6 @@ const VolunteerTimeSheetGrid = ({
                 headCellSx={legacyTableHeadCellSx}
               />
               <SortableHeader
-                label="Name"
-                field="username"
-                sortField={sortField}
-                sortOrder={sortOrder}
-                onSort={handleSort}
-                headCellSx={legacyTableHeadCellSx}
-              />
-              <SortableHeader
                 label="Task name"
                 field="taskName"
                 sortField={sortField}
@@ -755,6 +755,14 @@ const VolunteerTimeSheetGrid = ({
                 onSort={handleSort}
                 headCellSx={legacyTableHeadCellSx}
               />
+              <SortableHeader
+                label="Approval Status"
+                field="approvalStatus"
+                sortField={sortField}
+                sortOrder={sortOrder}
+                onSort={handleSort}
+                headCellSx={legacyTableHeadCellSx}
+              />
               <TableCell align="center" sx={legacyTableHeadCellSx}>
                 Edit
               </TableCell>
@@ -782,18 +790,20 @@ const VolunteerTimeSheetGrid = ({
               pageRows.map((row, idx) => {
                 const id = rowId(row);
                 const { start, end } = displayStartEnd(row);
+                const status = row?.approvalStatus ?? row?.ApprovalStatus ?? "Pending";
+                const isLocked = ["Approved", "Rejected", "A", "R"].includes(status);
                 return (
                   <TableRow key={id ?? `row-${idx}`} hover>
                     <TableCell sx={legacyTableCellSx}>{id ?? "—"}</TableCell>
-                    <TableCell sx={legacyTableCellSx}>{row?.username ?? row?.Username ?? "—"}</TableCell>
                     <TableCell sx={legacyTableCellSx}>{row?.taskName ?? row?.TaskName ?? "—"}</TableCell>
                     <TableCell sx={legacyTableCellSx}>{formatDate(row?.volunteerDate ?? row?.VolunteerDate)}</TableCell>
                     <TableCell sx={legacyTableCellSx}>{start}</TableCell>
                     <TableCell sx={legacyTableCellSx}>{end}</TableCell>
                     <TableCell sx={legacyTableCellSx} align="right">{formatHours(row?.totalHours ?? row?.TotalHours)}</TableCell>
                     <TableCell sx={legacyTableCellSx}>{formatDate(row?.createdDate ?? row?.CreatedDate)}</TableCell>
+                    <TableCell sx={legacyTableCellSx}>{status}</TableCell>
                     <TableCell align="center" sx={legacyTableCellSx}>
-                      {id ? (
+                      {id && !isLocked ? (
                         <Box
                           component={RouterLink}
                           to={`${resolvedEditPath}?logId=${id}`}
@@ -806,7 +816,7 @@ const VolunteerTimeSheetGrid = ({
                       )}
                     </TableCell>
                     <TableCell align="center" sx={legacyTableCellSx}>
-                      {id ? (
+                      {id && !isLocked ? (
                         <Box
                           onClick={deletingId === id ? undefined : () => handleDeleteClick(id)}
                           sx={{

@@ -81,6 +81,7 @@ namespace pStudyWare20.Shared
         public string City { get; set; } = string.Empty;
         /// <summary>Display label: Name - Location - City</summary>
         public string Label { get; set; } = string.Empty;
+        public string VolunteerEmailGroup { get; set; } = string.Empty;
     }
 
     public class GetVolunteerChapterLocationsResponse

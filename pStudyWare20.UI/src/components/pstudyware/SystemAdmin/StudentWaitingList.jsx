@@ -1551,7 +1551,7 @@ const StudentWaitingList = () => {
               sx={waitingListReviewDisabledFieldSx}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
               fullWidth
               size="small"
@@ -1561,7 +1561,7 @@ const StudentWaitingList = () => {
               sx={waitingListReviewDisabledFieldSx}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
               fullWidth
               size="small"
@@ -1575,7 +1575,7 @@ const StudentWaitingList = () => {
               sx={waitingListReviewDisabledFieldSx}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
               fullWidth
               size="small"
@@ -1589,7 +1589,7 @@ const StudentWaitingList = () => {
               sx={waitingListReviewDisabledFieldSx}
             />
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
               fullWidth
               size="small"
@@ -1599,7 +1599,7 @@ const StudentWaitingList = () => {
               sx={waitingListReviewDisabledFieldSx}
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12, sm: 8 }}>
             <Tooltip
               title={
                 getSelectedChapterLabel(form.chapterID, chapterLocations) ||
@@ -1657,7 +1657,7 @@ const StudentWaitingList = () => {
               </Box>
             </Tooltip>
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <FormControl fullWidth size="small" sx={portalModalFieldSx}>
               <InputLabel>Location</InputLabel>
               <PortalModalSelect
@@ -1675,7 +1675,7 @@ const StudentWaitingList = () => {
               </PortalModalSelect>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 5 }}>
             <FormControl fullWidth size="small" sx={portalModalFieldSx}>
               <InputLabel>Session</InputLabel>
               <PortalModalSelect
@@ -1698,7 +1698,7 @@ const StudentWaitingList = () => {
               </PortalModalSelect>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <FormControl fullWidth size="small" sx={portalModalFieldSx}>
               <InputLabel>Class</InputLabel>
               <PortalModalSelect
@@ -1727,21 +1727,22 @@ const StudentWaitingList = () => {
               </PortalModalSelect>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl
-              fullWidth
-              size="small"
-              disabled
-              sx={waitingListReviewDisabledFieldSx}
-            >
+          <Grid size={{ xs: 12, sm: 3 }}>
+            <FormControl fullWidth size="small" sx={portalModalFieldSx}>
               <InputLabel>Section</InputLabel>
-              <PortalModalSelect value={form.section} label="Section" disabled>
+              <PortalModalSelect
+                value={form.section}
+                label="Section"
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, section: e.target.value }))
+                }
+              >
                 <MenuItem value="A">A</MenuItem>
                 <MenuItem value="B">B</MenuItem>
               </PortalModalSelect>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <FormControl fullWidth size="small" sx={portalModalFieldSx}>
               <InputLabel>Application Status</InputLabel>
               <PortalModalSelect
@@ -1764,7 +1765,7 @@ const StudentWaitingList = () => {
               </PortalModalSelect>
             </FormControl>
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12, sm: 8 }}>
             <TextField
               fullWidth
               size="small"

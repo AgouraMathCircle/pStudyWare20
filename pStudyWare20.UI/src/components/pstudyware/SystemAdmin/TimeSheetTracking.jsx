@@ -958,17 +958,29 @@ const TimeSheetTracking = () => {
                                   {cd ? new Date(cd).toLocaleString() : "—"}
                                 </TableCell>
                                 <TableCell sx={adminSessionListTableBodyCellSx({ isLast: true, action: true })}>
-                                  <Box
-                                    onClick={() => openEdit(row)}
-                                    sx={{
-                                      ...adminSessionListTableActionLinkSx,
-                                      color: (row.approvalStatus ?? row.ApprovalStatus) === "Approved" || (row.approvalStatus ?? row.ApprovalStatus) === "Accepted" ? "green" : (row.approvalStatus ?? row.ApprovalStatus) === "Rejected" ? "red" : "blue",
-                                      fontWeight: 'bold',
-                                      textDecoration: 'underline'
-                                    }}
-                                  >
-                                    {row.approvalStatus ?? row.ApprovalStatus ?? "Pending"}
-                                  </Box>
+                                  {((row.approvalStatus ?? row.ApprovalStatus) === "Pending" || (row.approvalStatus ?? row.ApprovalStatus) === null || (row.approvalStatus ?? row.ApprovalStatus) === undefined) ? (
+                                    <Box
+                                      onClick={() => openEdit(row)}
+                                      sx={{
+                                        ...adminSessionListTableActionLinkSx,
+                                        color: "blue",
+                                        fontWeight: 'bold',
+                                        textDecoration: 'underline'
+                                      }}
+                                    >
+                                      {row.approvalStatus ?? row.ApprovalStatus ?? "Pending"}
+                                    </Box>
+                                  ) : (
+                                    <Box
+                                      sx={{
+                                        color: (row.approvalStatus ?? row.ApprovalStatus) === "Approved" || (row.approvalStatus ?? row.ApprovalStatus) === "Accepted" ? "green" : "red",
+                                        fontWeight: 'bold',
+                                        fontSize: 'inherit'
+                                      }}
+                                    >
+                                      {row.approvalStatus ?? row.ApprovalStatus}
+                                    </Box>
+                                  )}
                                 </TableCell>
                               </TableRow>
                             );

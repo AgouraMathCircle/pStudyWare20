@@ -207,6 +207,7 @@ builder.Services.AddScoped<IDonorDetailsService, DonorDetailsService>();
 builder.Services.AddScoped<IRegistrationLookupService, RegistrationLookupService>();
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<INewsletterService, NewsletterService>();
+builder.Services.AddScoped<IGoogleWorkspaceService, GoogleWorkspaceService>();
 
 // Configure Swagger
 builder.Services.AddEndpointsApiExplorer();

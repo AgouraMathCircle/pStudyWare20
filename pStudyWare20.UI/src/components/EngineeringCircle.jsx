@@ -1044,8 +1044,8 @@ const EngineeringCircle = () => {
             {[
               { img: sriyaImg, name: "SRIYA KALYAN(AHS)", role: "Founder" },
               { img: andrewImg, name: "ANDREW XU (MIT)", role: "Director" },
-              { img: Amarpal_Singh_Img, name: "Amarpal Singh", role: "Senior Vice President" },
-              { img: Vibusha_Img, name: "Vibusha", role: "EVP" },
+              { img: Amarpal_Singh_Img, name: "Amarpal Singh", role: "EVP" },
+              { img: Vibusha_Img, name: "Vibusha", role: "Senior Vice President" },
               { img: balajiImg, name: "BALAJI", role: "Coordinator" },
               { img: hussainImg, name: "Kumar", role: "Coordinator" },
               { img: Simran_Kaur_Img, name: "Simran Kaur", role: "Lead Instructor" },
