@@ -298,7 +298,9 @@ namespace pStudyWare20.Repository.Implementations
                         ChapterID,
                         LTRIM(RTRIM(Name)) AS Name,
                         LTRIM(RTRIM(Location)) AS Location,
-                        LTRIM(RTRIM(City)) AS City
+                        LTRIM(RTRIM(City)) AS City,
+                        VolunteerEmailGroup,
+                        StudentEmailGroup
                     FROM dbo.AMC_ChapterMaster WITH (NOLOCK)
                     WHERE Active = 1
                     ORDER BY Name, Location, City", connection);
@@ -318,6 +320,8 @@ namespace pStudyWare20.Repository.Implementations
                     var name = ReadTrimmedString(reader, "Name");
                     var location = ReadTrimmedString(reader, "Location");
                     var city = ReadTrimmedString(reader, "City");
+                    var volunteerEmailGroup = ReadTrimmedString(reader, "VolunteerEmailGroup");
+                    var studentEmailGroup = ReadTrimmedString(reader, "StudentEmailGroup");
 
                     chapterLocations.Add(new ChapterLocation
                     {
@@ -325,7 +329,9 @@ namespace pStudyWare20.Repository.Implementations
                         ChapterName = name,
                         Location = location,
                         City = city,
-                        Label = RegistrationFormatHelper.FormatLocationEmailText(name, location, city)
+                        Label = RegistrationFormatHelper.FormatLocationEmailText(name, location, city),
+                        VolunteerEmailGroup = volunteerEmailGroup,
+                        StudentEmailGroup = studentEmailGroup
                     });
                 }
 

@@ -64,6 +64,7 @@ import SystemAdminHeader, { SystemAdminRoleHeaderSpacer } from "./SystemAdminHea
 import SystemAdminSessionListPagination from "./SystemAdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 import studentWaitingListService from "../../../services/studentWaitingListService";
+import instructorService from "../../../services/instructorService";
 import { getSystemAdminPortalBase } from "../../../utils/systemAdminPortalPaths";
 import "../../../styles/StudentWaitingList.css";
 
@@ -952,6 +953,14 @@ const StudentWaitingList = () => {
         await studentWaitingListService.updateStudentWaitingListStatus(payload);
       const ok = res?.isSuccess === true || res?.IsSuccess === true;
       if (ok) {
+        if (form.applicationStatus === "A") {
+          const chapter = chapterLocations.find(c => c.chapterID === String(form.chapterID));
+          const studentGroupEmail = chapter?.studentEmailGroup || chapter?.StudentEmailGroup;
+          if (studentGroupEmail) {
+            await instructorService.addMemberToGroup(studentGroupEmail, payload.email).catch(e => console.error("Failed to add student to group", e));
+          }
+        }
+
         const defaultMessage =
           form.applicationStatus === "D"
             ? "You have declined the student successfully."

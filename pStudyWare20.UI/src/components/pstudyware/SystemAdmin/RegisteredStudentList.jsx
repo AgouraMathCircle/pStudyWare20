@@ -31,6 +31,8 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "../../../contexts/AuthContext";
 import registeredStudentListService from "../../../services/registeredStudentListService";
+import instructorService from "../../../services/instructorService";
+import studentWaitingListService from "../../../services/studentWaitingListService";
 import { toSystemAdminPortalPath } from "../../../utils/systemAdminPortalPaths";
 import SystemAdminHeader, { SystemAdminRoleHeaderSpacer } from "./SystemAdminHeader";
 import SystemAdminSessionListPagination from "./SystemAdminSessionListPagination";
@@ -284,12 +286,13 @@ const RegisteredStudentList = () => {
     studentId: "",
     firstName: "",
     lastName: "",
-    class: "JB",
-    section: "A",
-    chapterId: "",
-    location: "O",
-    session: "F2024",
+    class: "",
     email: "",
+    location: "",
+    section: "",
+    chapterId: "",
+    oldChapterId: "",
+    session: "",
   });
 
   const pageSize = 25; // Match original page size
@@ -401,6 +404,7 @@ const RegisteredStudentList = () => {
       location: registeredListLocationCode(parsed.location, student.eventLocation),
       section: parsed.section || "A",
       chapterId,
+      oldChapterId: chapterId,
       session: parsed.session || student.eventSession || sessionOptions[0]?.value || "F2024",
     });
     setShowUpdateForm(true);
@@ -466,6 +470,30 @@ const RegisteredStudentList = () => {
       );
 
       if (response.isSuccess) {
+        let chapterLocationsApi = [];
+        try {
+          const apiRes = await studentWaitingListService.getChapterLocation();
+          if (apiRes && apiRes.chapterLocations) {
+            chapterLocationsApi = apiRes.chapterLocations;
+          }
+        } catch (e) {
+          console.error("Failed to fetch chapter locations from API", e);
+        }
+
+        if (updateFormData.chapterId !== updateFormData.oldChapterId) {
+          const oldChapter = chapterLocationsApi.find(c => String(c.chapterID ?? c.ChapterID) === String(updateFormData.oldChapterId));
+          const oldGroupEmail = oldChapter?.studentEmailGroup || oldChapter?.StudentEmailGroup;
+          if (oldGroupEmail) {
+            await instructorService.removeMemberFromGroup(oldGroupEmail, updateFormData.email).catch(e => console.error("Failed to remove from old group", e));
+          }
+        }
+
+        const newChapter = chapterLocationsApi.find(c => String(c.chapterID ?? c.ChapterID) === String(updateFormData.chapterId));
+        const newGroupEmail = newChapter?.studentEmailGroup || newChapter?.StudentEmailGroup;
+        if (newGroupEmail) {
+          await instructorService.addMemberToGroup(newGroupEmail, updateFormData.email).catch(e => console.error("Failed to add to new group", e));
+        }
+
         const message =
           response.message || "You have updated the class/location successfully";
         showSnackbar(message, "success");

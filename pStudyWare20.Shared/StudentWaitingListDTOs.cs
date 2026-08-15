@@ -78,6 +78,12 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Label")]
         public string Label { get; set; } = string.Empty;
+
+        [Display(Name = "Volunteer Email Group")]
+        public string VolunteerEmailGroup { get; set; } = string.Empty;
+
+        [Display(Name = "Student Email Group")]
+        public string StudentEmailGroup { get; set; } = string.Empty;
     }
 
     /// <summary>
