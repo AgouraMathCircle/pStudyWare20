@@ -237,6 +237,19 @@ const InstructorManagement = () => {
     setFormOpen(true);
   };
 
+  const findChapterForInstructor = (instructor) => {
+    if (!instructor) return null;
+    let chapter = chapters.find(c => String(c.chapterID) === String(instructor.chapterID || instructor.ChapterID));
+    if (!chapter && instructor.chapterName) {
+      const normalizedName = String(instructor.chapterName).trim().toLowerCase();
+      chapter = chapters.find(c => {
+        const cName = String(c.chapterName || c.name || c.Name || "").trim().toLowerCase();
+        return cName && (cName === normalizedName || cName.includes(normalizedName) || normalizedName.includes(cName));
+      });
+    }
+    return chapter;
+  };
+
   // Handle delete instructor
   const handleDelete = async (instructorID) => {
     try {
@@ -246,7 +259,7 @@ const InstructorManagement = () => {
       // Find if they are in an email group before deleting
       const instructorToDelete = instructors.find(i => String(i.instructorID || i.InstructorID) === String(instructorID));
       const targetUsername = instructorToDelete?.userName?.trim() || instructorToDelete?.emailID?.trim();
-      const chapter = chapters.find(c => String(c.chapterID) === String(instructorToDelete?.chapterID || instructorToDelete?.ChapterID));
+      const chapter = findChapterForInstructor(instructorToDelete);
       const groupEmail = chapter?.volunteerEmailGroup;
 
       if (groupEmail && targetUsername) {
@@ -325,9 +338,10 @@ const InstructorManagement = () => {
       if (response.isSuccess) {
         // --- GOOGLE GROUP SYNC ---
         try {
-          // Instructors use 'userName' for Google Workspace email, fallback to emailID for backward compatibility
-          const targetUsername = selectedInstructor?.userName?.trim() || formData?.userName?.trim() || formData?.emailID?.trim() || selectedInstructor?.emailID?.trim();
-          const oldChapter = chapters.find(c => String(c.chapterID) === String(selectedInstructor?.chapterID || selectedInstructor?.ChapterID));
+          const oldUsername = selectedInstructor?.userName?.trim() || selectedInstructor?.emailID?.trim();
+          const newUsername = formData?.userName?.trim() || formData?.emailID?.trim() || selectedInstructor?.emailID?.trim();
+
+          const oldChapter = findChapterForInstructor(selectedInstructor);
           const newChapter = chapters.find(c => String(c.chapterID) === String(chapterID));
           
           const oldGroupEmail = oldChapter?.volunteerEmailGroup;
@@ -339,18 +353,20 @@ const InstructorManagement = () => {
           const isOldActive = oldStatus === "1" || oldStatus === "active";
           const isNewActive = newStatus === "1" || newStatus === "active";
 
-          if (targetUsername) {
-            if (isEdit) {
-              if (isOldActive && oldGroupEmail && (!isNewActive || oldGroupEmail !== newGroupEmail)) {
-                await instructorService.removeMemberFromGroup(oldGroupEmail, targetUsername).catch(e => console.error("Failed to remove from old group", e));
+          if (isEdit) {
+            if (isOldActive && oldGroupEmail && oldUsername) {
+              if (!isNewActive || oldGroupEmail !== newGroupEmail || oldUsername !== newUsername) {
+                await instructorService.removeMemberFromGroup(oldGroupEmail, oldUsername).catch(e => console.error("Failed to remove from old group", e));
               }
-              if (isNewActive && newGroupEmail && (!isOldActive || oldGroupEmail !== newGroupEmail)) {
-                await instructorService.addMemberToGroup(newGroupEmail, targetUsername).catch(e => console.error("Failed to add to new group", e));
+            }
+            if (isNewActive && newGroupEmail && newUsername) {
+              if (!isOldActive || oldGroupEmail !== newGroupEmail || oldUsername !== newUsername) {
+                await instructorService.addMemberToGroup(newGroupEmail, newUsername).catch(e => console.error("Failed to add to new group", e));
               }
-            } else {
-              if (isNewActive && newGroupEmail) {
-                await instructorService.addMemberToGroup(newGroupEmail, targetUsername).catch(e => console.error("Failed to add to new group", e));
-              }
+            }
+          } else {
+            if (isNewActive && newGroupEmail && newUsername) {
+              await instructorService.addMemberToGroup(newGroupEmail, newUsername).catch(e => console.error("Failed to add to new group", e));
             }
           }
         } catch (syncErr) {
