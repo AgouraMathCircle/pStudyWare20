@@ -44,6 +44,7 @@ const AdminHeader = ({ user }) => {
         <Box
           sx={{
             display: "flex",
+            flexWrap: { xs: "wrap", sm: "nowrap" },
             alignItems: "center",
             justifyContent: "space-between",
             gap: 1,
@@ -111,7 +112,7 @@ const AdminHeader = ({ user }) => {
 
             <Box
               sx={{
-                display: "flex",
+                display: { xs: "none", sm: "flex" },
                 alignItems: "center",
                 gap: 0.5,
                 backgroundColor: "#e8f5e9",

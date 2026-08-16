@@ -17,6 +17,7 @@ body {
   display: flex;
   flex-direction: column;
   background-color: #e8f5e9;
+  overflow-x: hidden;
 }
 
 .App {
@@ -25,6 +26,7 @@ body {
   display: flex;
   flex-direction: column;
   background-color: #e8f5e9;
+  overflow-x: hidden;
 }
 
 /* Global breadcrumb hero title color (e.g., LOGIN, ABOUT US) */
