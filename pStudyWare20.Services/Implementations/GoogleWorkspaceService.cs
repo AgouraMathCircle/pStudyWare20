@@ -72,7 +72,7 @@ namespace pStudyWare20.Services.Implementations
 
                 foreach (var singleGroup in groups)
                 {
-                    string trimmedGroup = singleGroup.Trim();
+                    string trimmedGroup = singleGroup.Trim().ToLowerInvariant();
                     try
                     {
                         var member = new Member
@@ -115,7 +115,7 @@ namespace pStudyWare20.Services.Implementations
 
                 foreach (var singleGroup in groups)
                 {
-                    string trimmedGroup = singleGroup.Trim();
+                    string trimmedGroup = singleGroup.Trim().ToLowerInvariant();
                     try
                     {
                         var request = service.Members.Delete(trimmedGroup, memberEmail);
