@@ -226,11 +226,11 @@ namespace pStudyWare20.Services.Implementations
 
                 if (!string.IsNullOrEmpty(result))
                 {
-                    var dataTable = JsonSerializer.Deserialize<System.Data.DataTable>(result);
-                    if (dataTable != null && dataTable.Rows.Count > 0)
+                    var rows = JsonSerializer.Deserialize<List<JsonElement>>(result);
+                    if (rows != null && rows.Count > 0)
                     {
-                        response.TotalScore = dataTable.Rows[0]["FinalExamTotalScore"]?.ToString() ?? "0";
-                        response.ReceivedScore = dataTable.Rows[0]["FinalExamReceivedScore"]?.ToString() ?? "0";
+                        response.TotalScore = GetStringFromElement(rows[0], "FinalExamTotalScore");
+                        response.ReceivedScore = GetStringFromElement(rows[0], "FinalExamReceivedScore");
                         response.Message = "Online exam submitted successfully";
                     }
                 }

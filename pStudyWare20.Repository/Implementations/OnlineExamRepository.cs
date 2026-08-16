@@ -162,6 +162,30 @@ namespace pStudyWare20.Repository.Implementations
                 using var connection = new SqlConnection(_connectionString);
                 await connection.OpenAsync();
 
+                var semester = string.Empty;
+                var scoreId = request.ScoreID ?? "0";
+
+                if (scoreId == "0")
+                {
+                    using var deleteCmd = new SqlCommand("AMC_spDeleteExistingReport", connection)
+                    {
+                        CommandType = CommandType.StoredProcedure
+                    };
+                    deleteCmd.Parameters.Add(new SqlParameter("@StudentID", int.Parse(request.StudentID)));
+                    deleteCmd.Parameters.Add(new SqlParameter("@Class", request.Class ?? ""));
+                    deleteCmd.Parameters.Add(new SqlParameter("@ExamType", request.ExamType ?? ""));
+                    deleteCmd.Parameters.Add(new SqlParameter("@Session", request.Session ?? ""));
+
+                    using var reader = await deleteCmd.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
+                    {
+                        semester = reader["CurrentSemester"]?.ToString()?.Trim() ?? string.Empty;
+                    }
+                    await reader.CloseAsync();
+                }
+
+                var answerTable = BuildAnswerTable(request, semester);
+
                 using var command = new SqlCommand("AMC_spSubmitOnlineExam", connection)
                 {
                     CommandType = CommandType.StoredProcedure
@@ -171,8 +195,14 @@ namespace pStudyWare20.Repository.Implementations
                 command.Parameters.Add(new SqlParameter("@Class", request.Class ?? ""));
                 command.Parameters.Add(new SqlParameter("@ExamType", request.ExamType ?? ""));
                 command.Parameters.Add(new SqlParameter("@Session", request.Session ?? ""));
-                command.Parameters.Add(new SqlParameter("@Answers", request.Answers ?? new List<StudentOnlineExamAnswer>()));
-                command.Parameters.Add(new SqlParameter("@ScoreID", request.ScoreID ?? "0"));
+
+                var answersParam = new SqlParameter("@Answers", SqlDbType.Structured)
+                {
+                    TypeName = "dbo.AMC_tblTypeExamMasterAnswerKey",
+                    Value = answerTable
+                };
+                command.Parameters.Add(answersParam);
+                command.Parameters.Add(new SqlParameter("@ScoreID", scoreId));
 
                 var dataTable = new DataTable();
                 using var adapter = new SqlDataAdapter(command);
@@ -184,6 +214,48 @@ namespace pStudyWare20.Repository.Implementations
             {
                 throw new Exception($"Error submitting online exam: {ex.GetBaseException().Message}", ex);
             }
+        }
+
+        private static DataTable BuildAnswerTable(SubmitOnlineExamRequest request, string semester)
+        {
+            var dt = new DataTable();
+            dt.Columns.Add("StudentID", typeof(int));
+            dt.Columns.Add("Semester", typeof(string));
+            dt.Columns.Add("Class", typeof(string));
+            dt.Columns.Add("Question", typeof(int));
+            dt.Columns.Add("AnswerKey", typeof(string));
+            dt.Columns.Add("Points", typeof(int));
+            dt.Columns.Add("CreatedDate", typeof(DateTime));
+            dt.Columns.Add("ExamType", typeof(string));
+            dt.Columns.Add("Session", typeof(string));
+
+            var studentId = int.Parse(request.StudentID);
+
+            foreach (var answer in request.Answers ?? new List<StudentOnlineExamAnswer>())
+            {
+                if (string.IsNullOrWhiteSpace(answer.AnswerKey))
+                {
+                    continue;
+                }
+
+                var rowSemester = !string.IsNullOrWhiteSpace(answer.CurrentSemester)
+                    ? answer.CurrentSemester
+                    : semester;
+
+                dt.Rows.Add(
+                    answer.StudentID > 0 ? answer.StudentID : studentId,
+                    rowSemester,
+                    request.Class ?? answer.Class,
+                    answer.Question,
+                    answer.AnswerKey,
+                    0,
+                    DateTime.Now,
+                    request.ExamType ?? answer.ExamType,
+                    request.Session ?? answer.Session
+                );
+            }
+
+            return dt;
         }
 
         private static string DataTableToJson(DataTable dataTable)
