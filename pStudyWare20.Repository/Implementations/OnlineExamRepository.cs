@@ -186,23 +186,23 @@ namespace pStudyWare20.Repository.Implementations
 
                 var answerTable = BuildAnswerTable(request, semester);
 
-                using var command = new SqlCommand("AMC_spSubmitOnlineExam", connection)
+                using var command = new SqlCommand("AMC_spStudentExamAnswerKey_Insert_All", connection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
 
-                command.Parameters.Add(new SqlParameter("@StudentID", request.StudentID ?? ""));
+                command.Parameters.Add(new SqlParameter("@StudentID", int.Parse(request.StudentID)));
                 command.Parameters.Add(new SqlParameter("@Class", request.Class ?? ""));
+                command.Parameters.Add(new SqlParameter("@CurrentSemester", semester));
                 command.Parameters.Add(new SqlParameter("@ExamType", request.ExamType ?? ""));
                 command.Parameters.Add(new SqlParameter("@Session", request.Session ?? ""));
 
-                var answersParam = new SqlParameter("@Answers", SqlDbType.Structured)
+                var answersParam = new SqlParameter("@TempTable", SqlDbType.Structured)
                 {
                     TypeName = "dbo.AMC_tblTypeExamMasterAnswerKey",
                     Value = answerTable
                 };
                 command.Parameters.Add(answersParam);
-                command.Parameters.Add(new SqlParameter("@ScoreID", scoreId));
 
                 var dataTable = new DataTable();
                 using var adapter = new SqlDataAdapter(command);
