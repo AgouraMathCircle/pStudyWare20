@@ -13,6 +13,7 @@ import {
   compactRoleHeaderBarSx,
   useFixedRoleHeaderLayout,
 } from "../Common/roleHeaderLayout";
+import "../../../styles/InstructorPortalTables.css";
 
 export { InstructorRoleHeaderSpacer };
 
@@ -48,6 +49,7 @@ const InstructorHeader = ({ user }) => {
         <Box
           sx={{
             display: "flex",
+            flexWrap: { xs: "wrap", sm: "nowrap" },
             alignItems: "center",
             justifyContent: "space-between",
             gap: 1,
@@ -115,7 +117,7 @@ const InstructorHeader = ({ user }) => {
 
             <Box
               sx={{
-                display: "flex",
+                display: { xs: "none", sm: "flex" },
                 alignItems: "center",
                 gap: 0.5,
                 backgroundColor: "#e3f2fd",

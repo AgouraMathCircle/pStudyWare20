@@ -276,7 +276,7 @@ const StudentDocumentList = ({
           justifyContent: "space-between",
           gap: 2,
           mb: 1,
-          flexWrap: "nowrap",
+          flexWrap: { xs: "wrap", sm: "nowrap" },
         }}
       >
         <Typography
@@ -285,10 +285,11 @@ const StudentDocumentList = ({
             ...studentPortalIntroTextSx,
             mb: 0,
             flex: 1,
-            whiteSpace: "nowrap",
+            minWidth: 0,
+            whiteSpace: { xs: "normal", sm: "nowrap" },
             fontSize: "calc(1rem - 1pt)",
             lineHeight: 1.25,
-            overflow: "hidden",
+            overflow: { xs: "visible", sm: "hidden" },
           }}
         >
           {" Lecture Notes Video "}

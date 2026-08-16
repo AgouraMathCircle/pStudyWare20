@@ -17,3 +17,49 @@ body:has(.admin-role-header) .MuiTable-root .MuiTableCell-root .MuiTypography-ro
   font-size: inherit;
   line-height: inherit;
 }
+
+/* Mobile: let wide grids scroll horizontally inside their container instead of
+   squashing columns or overflowing the viewport. See MOBILE_RESPONSIVE_GUIDE.md. */
+body:has(.admin-role-header) .MuiTableContainer-root {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 600px) {
+  body:has(.admin-role-header) .MuiTable-root .MuiTableCell-root {
+    padding: 4px 6px !important;
+    white-space: nowrap;
+  }
+}
+
+/* Most grids use table-layout:fixed with percentage column widths for their
+   desktop layout. Fixed layout locks column widths from those percentages
+   and ignores cell content entirely, so on narrow screens columns squash to
+   a few px and wide cell content (e.g. Actions "View / Download / Video")
+   overflows visually into neighboring cells instead of the table growing.
+   Below 900px, switch to auto layout so columns size to their content and
+   the table grows past the viewport, letting the horizontal scroll above
+   actually engage. */
+@media (max-width: 900px) {
+  body:has(.admin-role-header) .MuiTable-root {
+    table-layout: auto !important;
+    width: auto !important;
+    min-width: 100%;
+  }
+
+  body:has(.admin-role-header) .MuiTable-root .MuiTableCell-root {
+    white-space: nowrap;
+  }
+}
+
+/* Dialogs (forms, confirmations) render via a portal into <body>, not inside
+   the header-scoped subtree, but are still selectable via body:has(...). Fill
+   most of the viewport on phones instead of a cramped centered box. */
+@media (max-width: 600px) {
+  body:has(.admin-role-header) .MuiDialog-paper {
+    margin: 8px;
+    width: calc(100% - 16px);
+    max-width: calc(100% - 16px);
+    max-height: calc(100% - 16px);
+  }
+}

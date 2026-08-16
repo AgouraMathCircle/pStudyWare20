@@ -23,6 +23,7 @@ import {
   TableCell,
   TableRow,
 } from "@mui/material";
+import ResponsiveTableContainer from "../Common/ResponsiveTableContainer";
 import { Send as SendIcon } from "@mui/icons-material";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -198,8 +199,16 @@ const legacyInputSelectSx = {
 
 const legacyInputSelectInlineSx = {
   ...legacyInputSelectSx,
-  minWidth: { xs: 160, md: 140 },
+  minWidth: { xs: 0, md: 140 },
   width: "100%",
+  maxWidth: "100%",
+  "& .MuiSelect-select": {
+    ...legacyInputSelectSx["& .MuiSelect-select"],
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    minWidth: 0,
+  },
 };
 
 const legacyGetAnswerSheetButtonSx = {
@@ -881,9 +890,11 @@ const OnlineExam = () => {
       <Grid size={{ xs: 12, md: questions.length > 10 ? 4 : 12 }}>
         <Paper elevation={0} sx={answerSheetGroupPaperSx}>
           <Box sx={answerSheetGroupHeaderSx}>{title}</Box>
-          <Table size="small" sx={examQuestionTableSx}>
-            <TableBody>{items.map(renderQuestionRow)}</TableBody>
-          </Table>
+          <ResponsiveTableContainer component={Box} minWidth={320}>
+            <Table size="small" sx={examQuestionTableSx}>
+              <TableBody>{items.map(renderQuestionRow)}</TableBody>
+            </Table>
+          </ResponsiveTableContainer>
         </Paper>
       </Grid>
     );

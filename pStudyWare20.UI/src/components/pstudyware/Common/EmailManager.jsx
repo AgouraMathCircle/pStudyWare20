@@ -47,6 +47,9 @@ import { useAuth } from "../../../contexts/AuthContext";
 import emailManagerService from "../../../services/emailManagerService";
 import StudentHeader, { StudentRoleHeaderSpacer } from "../Student/StudentHeader";
 import AdminHeader, { AdminRoleHeaderSpacer } from "../Admin/AdminHeader";
+import SystemAdminHeader, {
+  SystemAdminRoleHeaderSpacer,
+} from "../SystemAdmin/SystemAdminHeader";
 import AdminSessionListPagination from "../Admin/AdminSessionListPagination";
 import { getPortalUsername, getPortalLoginIdentifier } from "../../../utils/portalUsername";
 import { isSystemAdminUser } from "../../../utils/routeUtils";
@@ -1057,11 +1060,18 @@ const EmailManager = () => {
       location.pathname === "/admin/message-center" ||
       location.pathname.endsWith("/admin/message-center"));
 
+  const isSystemAdminMessageCenter = location.pathname.startsWith(
+    "/pstudyware/systemadmin/",
+  );
+
   const showAdminFromFormat =
     isAdminMessageCenterUser(user, memberType) && !isStudentMessageCenter;
 
   const useSessionListTableUi =
-    isAdminMessageCenter || isStudentMessageCenter || isRoleDashboardShell;
+    isAdminMessageCenter ||
+    isSystemAdminMessageCenter ||
+    isStudentMessageCenter ||
+    isRoleDashboardShell;
 
   const containerTopMargin =
     shouldShowStudentHeader ||
@@ -2186,6 +2196,8 @@ useSessionListTableUi
     <Box>
       {isAdminMessageCenter && <AdminHeader user={user} />}
       {isAdminMessageCenter && <AdminRoleHeaderSpacer />}
+      {isSystemAdminMessageCenter && <SystemAdminHeader user={user} />}
+      {isSystemAdminMessageCenter && <SystemAdminRoleHeaderSpacer />}
       {shouldShowStudentHeader && <StudentHeader user={user} />}
       {/* Spacer to account for fixed StudentHeader */}
       {shouldShowStudentHeader && <StudentRoleHeaderSpacer />}

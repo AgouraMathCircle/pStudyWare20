@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:qa": "vite build --mode dev1",
     "lint": "eslint src/components/ src/services/ --ext .js,.jsx",
     "preview": "vite preview"
   },

@@ -13,6 +13,7 @@ import {
   compactRoleHeaderBarSx,
   useFixedRoleHeaderLayout,
 } from "../Common/roleHeaderLayout";
+import "../../../styles/VolunteerPortalTables.css";
 
 export { VolunteerRoleHeaderSpacer };
 
@@ -43,6 +44,7 @@ const VolunteerHeader = ({ user }) => {
         <Box
           sx={{
             display: "flex",
+            flexWrap: { xs: "wrap", sm: "nowrap" },
             alignItems: "center",
             justifyContent: "space-between",
             gap: 1,
@@ -110,7 +112,7 @@ const VolunteerHeader = ({ user }) => {
 
             <Box
               sx={{
-                display: "flex",
+                display: { xs: "none", sm: "flex" },
                 alignItems: "center",
                 gap: 0.5,
                 backgroundColor: "#e8f5e9",
