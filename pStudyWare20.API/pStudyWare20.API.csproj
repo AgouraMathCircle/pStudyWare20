@@ -28,4 +28,10 @@
     <ProjectReference Include="..\pStudyWare20.Repository\pStudyWare20.Repository.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="google-service-account.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
