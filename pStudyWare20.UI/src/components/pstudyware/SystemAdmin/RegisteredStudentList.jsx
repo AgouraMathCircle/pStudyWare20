@@ -473,8 +473,8 @@ const RegisteredStudentList = () => {
         let chapterLocationsApi = [];
         try {
           const apiRes = await studentWaitingListService.getChapterLocation();
-          if (apiRes && apiRes.chapterLocations) {
-            chapterLocationsApi = apiRes.chapterLocations;
+          if (apiRes) {
+            chapterLocationsApi = apiRes.chapterLocations || apiRes.ChapterLocations || [];
           }
         } catch (e) {
           console.error("Failed to fetch chapter locations from API", e);

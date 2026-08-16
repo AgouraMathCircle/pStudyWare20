@@ -25,16 +25,27 @@ namespace pStudyWare20.Services.Implementations
 
         private async Task<DirectoryService> GetDirectoryServiceAsync()
         {
-            string keyFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "google-service-account.json");
-            if (!File.Exists(keyFilePath))
+            var possiblePaths = new[]
             {
-                // Fallback to searching in the content root
-                keyFilePath = Path.Combine(Directory.GetCurrentDirectory(), "google-service-account.json");
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "google-service-account.json"),
+                Path.Combine(Directory.GetCurrentDirectory(), "google-service-account.json"),
+                Path.Combine(AppContext.BaseDirectory, "google-service-account.json"),
+                Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "", "google-service-account.json")
+            };
+
+            string keyFilePath = null;
+            foreach (var path in possiblePaths)
+            {
+                if (File.Exists(path))
+                {
+                    keyFilePath = path;
+                    break;
+                }
             }
 
-            if (!File.Exists(keyFilePath))
+            if (keyFilePath == null)
             {
-                throw new FileNotFoundException("Google Service Account JSON key file not found.", keyFilePath);
+                throw new FileNotFoundException($"Google Service Account JSON key file not found. Checked paths: {string.Join(", ", possiblePaths)}");
             }
 
             GoogleCredential credential;
@@ -72,7 +83,7 @@ namespace pStudyWare20.Services.Implementations
 
                 foreach (var singleGroup in groups)
                 {
-                    string trimmedGroup = singleGroup.Trim();
+                    string trimmedGroup = singleGroup.Trim().ToLowerInvariant();
                     try
                     {
                         var member = new Member
@@ -115,7 +126,7 @@ namespace pStudyWare20.Services.Implementations
 
                 foreach (var singleGroup in groups)
                 {
-                    string trimmedGroup = singleGroup.Trim();
+                    string trimmedGroup = singleGroup.Trim().ToLowerInvariant();
                     try
                     {
                         var request = service.Members.Delete(trimmedGroup, memberEmail);
