@@ -131,6 +131,33 @@ namespace pStudyWare20.Repository.Implementations
             }
         }
 
+        public async Task<string?> GetChapterVolunteerEmailGroupAsync(string chapterId)
+        {
+            var id = ParseChapterId(chapterId);
+            if (id <= 0) return null;
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand(@"
+                    SELECT LTRIM(RTRIM(VolunteerEmailGroup))
+                    FROM dbo.AMC_ChapterMaster WITH (NOLOCK)
+                    WHERE ChapterID = @ChapterID", connection);
+
+                command.Parameters.Add(new SqlParameter("@ChapterID", id));
+
+                var result = await command.ExecuteScalarAsync();
+                return result as string;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+
         private static int ParseMemberStatus(string? memberStatus)
         {
             var value = (memberStatus ?? "1").Trim().ToLowerInvariant();

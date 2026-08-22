@@ -14,11 +14,13 @@ namespace pStudyWare20.Services.Implementations
     {
         private readonly IInstructorRepository _instructorRepository;
         private readonly IConfiguration _configuration;
+        private readonly IGoogleWorkspaceService _googleWorkspaceService;
 
-        public InstructorService(IInstructorRepository instructorRepository, IConfiguration configuration)
+        public InstructorService(IInstructorRepository instructorRepository, IConfiguration configuration, IGoogleWorkspaceService googleWorkspaceService)
         {
             _instructorRepository = instructorRepository;
             _configuration = configuration;
+            _googleWorkspaceService = googleWorkspaceService;
         }
 
         /// <summary>
@@ -94,6 +96,30 @@ namespace pStudyWare20.Services.Implementations
 
                 if (result)
                 {
+                    try
+                    {
+                        var groupEmail = _instructorRepository.GetChapterVolunteerEmailGroupAsync(request.ChapterID).Result;
+                        if (!string.IsNullOrWhiteSpace(groupEmail) && !string.IsNullOrWhiteSpace(request.EmailID))
+                        {
+                            var memberStatusValue = (request.MemberStatus ?? "1").Trim().ToLowerInvariant();
+                            var isActive = memberStatusValue is not ("0" or "inactive" or "deactive" or "false");
+                            
+                            if (isActive)
+                            {
+                                _googleWorkspaceService.AddMemberToGroupAsync(groupEmail, request.EmailID).Wait();
+                            }
+                            else
+                            {
+                                _googleWorkspaceService.RemoveMemberFromGroupAsync(groupEmail, request.EmailID).Wait();
+                            }
+                        }
+                    }
+                    catch (Exception syncEx)
+                    {
+                        // Optionally log syncEx here, but don't fail the primary DB operation
+                        Console.WriteLine($"Google Workspace sync failed: {syncEx.Message}");
+                    }
+
                     response.IsSuccess = true;
                     response.ErrorMessage = "";
                     response.Message = "User has been created/Updated successfully";

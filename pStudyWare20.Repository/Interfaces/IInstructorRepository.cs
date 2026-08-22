@@ -22,6 +22,13 @@ namespace pStudyWare20.Repository.Interfaces
         Task<bool> AddOrUpdateInstructorAsync(InstructorRequest request);
 
         /// <summary>
+        /// Get the volunteer email group for a chapter
+        /// </summary>
+        /// <param name="chapterId">Chapter ID</param>
+        /// <returns>Volunteer email group</returns>
+        Task<string?> GetChapterVolunteerEmailGroupAsync(string chapterId);
+
+        /// <summary>
         /// Delete instructor using stored procedure
         /// </summary>
         /// <param name="request">Instructor delete request</param>
