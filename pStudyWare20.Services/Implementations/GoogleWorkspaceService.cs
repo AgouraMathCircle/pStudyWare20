@@ -25,33 +25,57 @@ namespace pStudyWare20.Services.Implementations
 
         private async Task<DirectoryService> GetDirectoryServiceAsync()
         {
-            var possiblePaths = new[]
-            {
-                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "google-service-account.json"),
-                Path.Combine(Directory.GetCurrentDirectory(), "google-service-account.json"),
-                Path.Combine(AppContext.BaseDirectory, "google-service-account.json"),
-                Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "", "google-service-account.json")
-            };
-
-            string keyFilePath = null;
-            foreach (var path in possiblePaths)
-            {
-                if (File.Exists(path))
-                {
-                    keyFilePath = path;
-                    break;
-                }
-            }
-
-            if (keyFilePath == null)
-            {
-                throw new FileNotFoundException($"Google Service Account JSON key file not found. Checked paths: {string.Join(", ", possiblePaths)}");
-            }
-
             GoogleCredential credential;
-            using (var stream = new FileStream(keyFilePath, FileMode.Open, FileAccess.Read))
+
+            var gsaSection = _configuration.GetSection("GoogleServiceAccount");
+            if (gsaSection.Exists())
             {
-                credential = GoogleCredential.FromStream(stream).CreateScoped(_scopes);
+                var gsa = new
+                {
+                    type = gsaSection["type"],
+                    project_id = gsaSection["project_id"],
+                    private_key_id = gsaSection["private_key_id"],
+                    private_key = gsaSection["private_key"],
+                    client_email = gsaSection["client_email"],
+                    client_id = gsaSection["client_id"],
+                    auth_uri = gsaSection["auth_uri"],
+                    token_uri = gsaSection["token_uri"],
+                    auth_provider_x509_cert_url = gsaSection["auth_provider_x509_cert_url"],
+                    client_x509_cert_url = gsaSection["client_x509_cert_url"],
+                    universe_domain = gsaSection["universe_domain"]
+                };
+                var json = System.Text.Json.JsonSerializer.Serialize(gsa);
+                credential = GoogleCredential.FromJson(json).CreateScoped(_scopes);
+            }
+            else
+            {
+                var possiblePaths = new[]
+                {
+                    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "google-service-account.json"),
+                    Path.Combine(Directory.GetCurrentDirectory(), "google-service-account.json"),
+                    Path.Combine(AppContext.BaseDirectory, "google-service-account.json"),
+                    Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "", "google-service-account.json")
+                };
+
+                string keyFilePath = null;
+                foreach (var path in possiblePaths)
+                {
+                    if (File.Exists(path))
+                    {
+                        keyFilePath = path;
+                        break;
+                    }
+                }
+
+                if (keyFilePath == null)
+                {
+                    throw new FileNotFoundException($"Google Service Account JSON key not found in appsettings and file not found.");
+                }
+
+                using (var stream = new FileStream(keyFilePath, FileMode.Open, FileAccess.Read))
+                {
+                    credential = GoogleCredential.FromStream(stream).CreateScoped(_scopes);
+                }
             }
 
             // If Domain-Wide Delegation is set up and an Admin Email is provided
