@@ -254,9 +254,13 @@ namespace pStudyWare20.Services.Implementations
             {
                 if (row.TryGetProperty(propertyName, out var prop))
                 {
-                    return prop.ValueKind == JsonValueKind.Null || prop.ValueKind == JsonValueKind.Undefined
-                        ? string.Empty
-                        : prop.GetString() ?? string.Empty;
+                    return prop.ValueKind switch
+                    {
+                        JsonValueKind.Null or JsonValueKind.Undefined => string.Empty,
+                        JsonValueKind.String => prop.GetString() ?? string.Empty,
+                        JsonValueKind.Number => prop.GetRawText(),
+                        _ => prop.GetRawText()
+                    };
                 }
             }
 
