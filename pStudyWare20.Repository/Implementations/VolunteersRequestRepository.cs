@@ -293,6 +293,82 @@ namespace pStudyWare20.Repository.Implementations
                 };
             }
         }
+        
+        public async Task<string?> GetVolunteerEmailAsync(string requestId)
+        {
+            if (!int.TryParse(requestId, out var id) || id <= 0) return null;
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand(@"
+                    SELECT LTRIM(RTRIM(Email))
+                    FROM dbo.AMC_tblVolunteersRequest WITH (NOLOCK)
+                    WHERE RequestID = @RequestID", connection);
+
+                command.Parameters.Add(new SqlParameter("@RequestID", id));
+
+                var result = await command.ExecuteScalarAsync();
+                return result as string;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+        
+        public async Task<string?> GetVolunteerChapterIdAsync(string requestId)
+        {
+            if (!int.TryParse(requestId, out var id) || id <= 0) return null;
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand(@"
+                    SELECT ChapterID
+                    FROM dbo.AMC_tblVolunteersRequest WITH (NOLOCK)
+                    WHERE RequestID = @RequestID", connection);
+
+                command.Parameters.Add(new SqlParameter("@RequestID", id));
+
+                var result = await command.ExecuteScalarAsync();
+                return result == null || result == DBNull.Value ? null : Convert.ToInt32(result).ToString();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>Chapter's VolunteerEmailGroup, for Google Workspace group sync after approval.</summary>
+        public async Task<string?> GetChapterVolunteerEmailGroupAsync(string chapterId)
+        {
+            if (!int.TryParse(chapterId, out var id) || id <= 0) return null;
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand(@"
+                    SELECT LTRIM(RTRIM(VolunteerEmailGroup))
+                    FROM dbo.AMC_ChapterMaster WITH (NOLOCK)
+                    WHERE ChapterID = @ChapterID", connection);
+
+                command.Parameters.Add(new SqlParameter("@ChapterID", id));
+
+                var result = await command.ExecuteScalarAsync();
+                return result as string;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
 
         private static string ReadTrimmedString(SqlDataReader reader, string columnName)
         {

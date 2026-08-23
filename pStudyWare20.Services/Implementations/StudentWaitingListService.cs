@@ -15,6 +15,7 @@ namespace pStudyWare20.Services.Implementations
         private readonly IStudentWaitingListRepository _repository;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly IConfiguration _configuration;
+        private readonly IGoogleWorkspaceService _googleWorkspaceService;
 
         /// <summary>
         /// Constructor
@@ -22,14 +23,17 @@ namespace pStudyWare20.Services.Implementations
         /// <param name="repository">IStudentWaitingListRepository</param>
         /// <param name="serviceScopeFactory">IServiceScopeFactory</param>
         /// <param name="configuration">IConfiguration</param>
+        /// <param name="googleWorkspaceService">IGoogleWorkspaceService</param>
         public StudentWaitingListService(
             IStudentWaitingListRepository repository,
             IServiceScopeFactory serviceScopeFactory,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IGoogleWorkspaceService googleWorkspaceService)
         {
             _repository = repository;
             _serviceScopeFactory = serviceScopeFactory;
             _configuration = configuration;
+            _googleWorkspaceService = googleWorkspaceService;
         }
 
         private string RegistrationNotificationEmail =>
@@ -104,6 +108,11 @@ namespace pStudyWare20.Services.Implementations
 
                     UpdateClassSectionDefault(request);
                     response = await _repository.UpdateStudentWaitingListStatusAsync(request);
+
+                    if (response.IsSuccess)
+                    {
+                        await SyncGoogleWorkspaceGroupAsync(request);
+                    }
                 }
                 else
                 {
@@ -133,6 +142,29 @@ namespace pStudyWare20.Services.Implementations
                     IsSuccess = false,
                     ErrorMessage = ex.Message
                 };
+            }
+        }
+
+        /// <summary>
+        /// Adds a newly-approved student to their chapter's Google Workspace StudentEmailGroup.
+        /// Failures here never fail the approval.
+        /// </summary>
+        private async Task SyncGoogleWorkspaceGroupAsync(UpdateStudentWaitingListStatusRequest request)
+        {
+            var email = (request.Email ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(request.ChapterID)) return;
+
+            try
+            {
+                var groupEmail = await _repository.GetChapterStudentEmailGroupAsync(request.ChapterID);
+                if (!string.IsNullOrWhiteSpace(groupEmail))
+                {
+                    await _googleWorkspaceService.AddMemberToGroupAsync(groupEmail, email);
+                }
+            }
+            catch (Exception syncEx)
+            {
+                Console.WriteLine($"Google Workspace sync failed: {syncEx.Message}");
             }
         }
 

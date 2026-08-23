@@ -37,6 +37,13 @@ namespace pStudyWare20.Repository.Interfaces
         Task<ChapterLocationResponse> GetChapterLocationAsync(GetChapterLocationRequest request);
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="chapterId"></param>
+        /// <returns></returns>
+        Task<string?> GetChapterStudentEmailGroupAsync(string chapterId);
+
+        /// <summary>
         /// Active session options from AMC_tblLookupSemester (Semester, LastSemester, NextSemester).
         /// </summary>
         Task<StudentWaitingListSessionOptionsResponse> GetActiveSessionOptionsAsync();

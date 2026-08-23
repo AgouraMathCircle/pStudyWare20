@@ -92,33 +92,15 @@ namespace pStudyWare20.Services.Implementations
                     request.InstructorType = NormalizeInstructorTypeCode(request.InstructorType);
                 }
 
+                var priorState = request.InstructorID > 0
+                    ? _instructorRepository.GetInstructorPriorStateAsync(request.InstructorID).Result
+                    : null;
+
                 var result = _instructorRepository.AddOrUpdateInstructorAsync(request).Result;
 
                 if (result)
                 {
-                    try
-                    {
-                        var groupEmail = _instructorRepository.GetChapterVolunteerEmailGroupAsync(request.ChapterID).Result;
-                        if (!string.IsNullOrWhiteSpace(groupEmail) && !string.IsNullOrWhiteSpace(request.EmailID))
-                        {
-                            var memberStatusValue = (request.MemberStatus ?? "1").Trim().ToLowerInvariant();
-                            var isActive = memberStatusValue is not ("0" or "inactive" or "deactive" or "false");
-                            
-                            if (isActive)
-                            {
-                                _googleWorkspaceService.AddMemberToGroupAsync(groupEmail, request.EmailID).Wait();
-                            }
-                            else
-                            {
-                                _googleWorkspaceService.RemoveMemberFromGroupAsync(groupEmail, request.EmailID).Wait();
-                            }
-                        }
-                    }
-                    catch (Exception syncEx)
-                    {
-                        // Optionally log syncEx here, but don't fail the primary DB operation
-                        Console.WriteLine($"Google Workspace sync failed: {syncEx.Message}");
-                    }
+                    SyncGoogleWorkspaceGroup(request, priorState);
 
                     response.IsSuccess = true;
                     response.ErrorMessage = "";
@@ -140,6 +122,56 @@ namespace pStudyWare20.Services.Implementations
 
             return response;
         }
+        
+        private void SyncGoogleWorkspaceGroup(InstructorRequest request, InstructorGoogleSyncState? priorState)
+        {
+            try
+            {
+                var newGroupEmail = _instructorRepository.GetChapterVolunteerEmailGroupAsync(request.ChapterID).Result;
+                var newUsername = (request.EmailID ?? "").Trim();
+
+                var memberStatusValue = (request.MemberStatus ?? "1").Trim().ToLowerInvariant();
+                var isActive = memberStatusValue is not ("0" or "inactive" or "deactive" or "false");
+
+                var oldGroupEmail = priorState?.VolunteerEmailGroup;
+                var oldUsername = (priorState?.EmailID ?? "").Trim();
+                var wasActive = priorState?.IsActive ?? false;
+
+                var groupUnchanged = string.Equals(oldGroupEmail, newGroupEmail, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(oldUsername, newUsername, StringComparison.OrdinalIgnoreCase);
+
+                if (wasActive && !string.IsNullOrWhiteSpace(oldGroupEmail) && !string.IsNullOrWhiteSpace(oldUsername)
+                    && (!isActive || !groupUnchanged))
+                {
+                    _googleWorkspaceService.RemoveMemberFromGroupAsync(oldGroupEmail!, oldUsername).Wait();
+                }
+
+                if (isActive && !string.IsNullOrWhiteSpace(newGroupEmail) && !string.IsNullOrWhiteSpace(newUsername)
+                    && (!wasActive || !groupUnchanged))
+                {
+                    _googleWorkspaceService.AddMemberToGroupAsync(newGroupEmail!, newUsername).Wait();
+                }
+            }
+            catch (Exception syncEx)
+            {
+                // Don't fail the primary DB operation over a directory sync issue.
+                Console.WriteLine($"Google Workspace sync failed: {syncEx.Message}");
+            }
+        }
+        private void RemoveFromGoogleWorkspaceGroup(InstructorGoogleSyncState? priorState)
+        {
+            if (priorState == null || !priorState.IsActive) return;
+            if (string.IsNullOrWhiteSpace(priorState.VolunteerEmailGroup) || string.IsNullOrWhiteSpace(priorState.EmailID)) return;
+
+            try
+            {
+                _googleWorkspaceService.RemoveMemberFromGroupAsync(priorState.VolunteerEmailGroup, priorState.EmailID).Wait();
+            }
+            catch (Exception syncEx)
+            {
+                Console.WriteLine($"Google Workspace sync failed: {syncEx.Message}");
+            }
+        }
 
         /// <summary>
         /// Delete instructor (matches legacy controller exactly)
@@ -148,11 +180,13 @@ namespace pStudyWare20.Services.Implementations
         {
             InstructorOperationResponse response = new InstructorOperationResponse();
             try
-            {
+            {      
+                var priorState = _instructorRepository.GetInstructorPriorStateAsync(request.InstructorID).Result;
                 var result = _instructorRepository.DeleteInstructorAsync(request).Result;
 
                 if (result)
                 {
+                    RemoveFromGoogleWorkspaceGroup(priorState);
                     response.IsSuccess = true;
                     response.ErrorMessage = "";
                     response.Message = "User has been deleted successfully";

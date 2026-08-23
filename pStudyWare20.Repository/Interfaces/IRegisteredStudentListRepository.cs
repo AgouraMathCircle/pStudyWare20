@@ -53,5 +53,8 @@ namespace pStudyWare20.Repository.Interfaces
         /// Get active semester session codes for update-class dialog.
         /// </summary>
         Task<List<RegisteredStudentSessionOption>> GetActiveSessionOptionsAsync();
+        Task<string?> GetStudentChapterIdAsync(string studentId);
+        Task<string?> GetStudentEmailAsync(string studentId);
+        Task<string?> GetChapterStudentEmailGroupAsync(string chapterId);
     }
 }

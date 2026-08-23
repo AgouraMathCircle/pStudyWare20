@@ -56,7 +56,7 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Update student class request</param>
         /// <returns>Update student class response</returns>
         [HttpPost("UpdateStudentClass")]
-        [Authorize(Roles = "Admin,SystemAdmin")] // Only admins can update student classes
+        [Authorize(Roles = "SystemAdmin")] // SystemAdmin only — this triggers Google Workspace group changes
         public async Task<IActionResult> UpdateStudentClass([FromBody] UpdateStudentClassRequest request)
         {
             try
@@ -90,7 +90,7 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Delete student request</param>
         /// <returns>Delete student response</returns>
         [HttpPost("DeleteStudent")]
-        [Authorize(Roles = "Admin,SystemAdmin")] // Only admins can delete students
+        [Authorize(Roles = "SystemAdmin")] // SystemAdmin only — this triggers Google Workspace group changes
         public async Task<IActionResult> DeleteStudent([FromBody] DeleteStudentRequest request)
         {
             try
@@ -201,7 +201,7 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">Student action request</param>
         /// <returns>Student action response</returns>
         [HttpPost("HandleStudentAction")]
-        [Authorize(Roles = "Admin,SystemAdmin")] // Only admins can perform student actions
+        [Authorize(Roles = "SystemAdmin")] // SystemAdmin only — the Delete branch triggers Google Workspace group changes
         public async Task<IActionResult> HandleStudentAction([FromBody] StudentActionRequest request)
         {
             try
@@ -264,6 +264,7 @@ namespace pStudyWare20.API.Controllers
                 var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
                 var memberType = User.FindFirst("MemberType")?.Value ?? "";
                 var isAdmin = userRole == "Admin" || memberType == "A";
+                var isSystemAdmin = userRole == "SystemAdmin";
 
                 return Ok(new RegisteredStudentListPrivilegesResponse
                 {
@@ -271,9 +272,10 @@ namespace pStudyWare20.API.Controllers
                     IsAdmin = isAdmin,
                     Role = userRole,
                     MemberType = memberType,
-                    CanUpdateStudents = isAdmin,
-                    CanDeleteStudents = isAdmin,
-                    CanExportData = isAdmin
+                    // Update/Delete trigger Google Workspace group changes — SystemAdmin only.
+                    CanUpdateStudents = isSystemAdmin,
+                    CanDeleteStudents = isSystemAdmin,
+                    CanExportData = isAdmin || isSystemAdmin
                 });
             }
             catch (Exception ex)
@@ -345,7 +347,7 @@ namespace pStudyWare20.API.Controllers
         /// <param name="studentId">Student ID</param>
         /// <returns>Delete student response</returns>
         [HttpDelete("DeleteStudent/{studentId}")]
-        [Authorize(Roles = "Admin,SystemAdmin")] // Only admins can delete students
+        [Authorize(Roles = "SystemAdmin")] // SystemAdmin only — this triggers Google Workspace group changes
         public async Task<IActionResult> DeleteStudent(string studentId)
         {
             try

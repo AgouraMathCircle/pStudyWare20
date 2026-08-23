@@ -100,6 +100,7 @@ const InstructorList = ({
   onEdit,
   onAdd,
   canAddInstructor,
+  canEditInstructor = true,
 }) => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
@@ -545,9 +546,13 @@ const InstructorList = ({
                   sx={adminSessionListTableBodyRowSx}
                 >
                   <TableCell sx={adminSessionListTableBodyCellSx({ action: true })}>
-                    <Box onClick={() => onEdit(instructor)} sx={adminSessionListTableActionLinkSx}>
-                      Edit
-                    </Box>
+                    {canEditInstructor ? (
+                      <Box onClick={() => onEdit(instructor)} sx={adminSessionListTableActionLinkSx}>
+                        Edit
+                      </Box>
+                    ) : (
+                      "—"
+                    )}
                   </TableCell>
                   <TableCell sx={adminSessionListTableBodyCellSx()}>
                     {instructor.instructorID ?? "—"}

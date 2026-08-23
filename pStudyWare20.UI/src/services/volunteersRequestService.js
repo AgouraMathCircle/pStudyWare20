@@ -24,16 +24,6 @@ const volunteersRequestService = {
     return response.data;
   },
 
-  addMemberToGroup: async (groupEmail, userEmail) => {
-    const response = await api.post(`/GoogleWorkspace/AddMember`, { groupEmail, userEmail });
-    return response.data;
-  },
-
-  removeMemberFromGroup: async (groupEmail, userEmail) => {
-    const response = await api.post(`/GoogleWorkspace/RemoveMember`, { groupEmail, userEmail });
-    return response.data;
-  },
-
   exportToExcel: async (request) => {
     const fileName = await postExcelExport(
       api,

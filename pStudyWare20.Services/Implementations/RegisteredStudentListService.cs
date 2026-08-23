@@ -15,15 +15,18 @@ namespace pStudyWare20.Services.Implementations
         private readonly IRegisteredStudentListRepository _registeredStudentListRepository;
         private readonly IConfiguration _configuration;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IGoogleWorkspaceService _googleWorkspaceService;
 
         public RegisteredStudentListService(
             IRegisteredStudentListRepository registeredStudentListRepository,
             IConfiguration configuration,
-            IServiceScopeFactory serviceScopeFactory)
+            IServiceScopeFactory serviceScopeFactory,
+            IGoogleWorkspaceService googleWorkspaceService)
         {
             _registeredStudentListRepository = registeredStudentListRepository;
             _configuration = configuration;
             _serviceScopeFactory = serviceScopeFactory;
+            _googleWorkspaceService = googleWorkspaceService;
         }
 
         /// <summary>
@@ -120,14 +123,19 @@ namespace pStudyWare20.Services.Implementations
                     };
                 }
 
+                var oldChapterId = await _registeredStudentListRepository.GetStudentChapterIdAsync(request.StudentId);
+                var newChapterId = request.ChapterId.Trim();
+
                 await _registeredStudentListRepository.UpdateStudentClassAsync(
                     request.StudentId,
                     classCode,
                     section,
-                    request.ChapterId.Trim(),
+                    newChapterId,
                     location,
                     session
                 );
+
+                await SyncGoogleWorkspaceGroupAsync(oldChapterId, newChapterId, request.Email);
 
                 var classLabel = !string.IsNullOrWhiteSpace(request.ClassLabel)
                     ? request.ClassLabel
@@ -171,6 +179,51 @@ namespace pStudyWare20.Services.Implementations
                     IsSuccess = false,
                     ErrorMessage = ex.Message
                 };
+            }
+        }
+
+        private async Task SyncGoogleWorkspaceGroupAsync(string? oldChapterId, string newChapterId, string? email)
+        {
+            if (string.IsNullOrWhiteSpace(email)) return;
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(oldChapterId) && oldChapterId != newChapterId)
+                {
+                    var oldGroupEmail = await _registeredStudentListRepository.GetChapterStudentEmailGroupAsync(oldChapterId);
+                    if (!string.IsNullOrWhiteSpace(oldGroupEmail))
+                    {
+                        await _googleWorkspaceService.RemoveMemberFromGroupAsync(oldGroupEmail, email);
+                    }
+                }
+
+                var newGroupEmail = await _registeredStudentListRepository.GetChapterStudentEmailGroupAsync(newChapterId);
+                if (!string.IsNullOrWhiteSpace(newGroupEmail))
+                {
+                    await _googleWorkspaceService.AddMemberToGroupAsync(newGroupEmail, email);
+                }
+            }
+            catch (Exception syncEx)
+            {
+                Console.WriteLine($"Google Workspace sync failed: {syncEx.Message}");
+            }
+        }
+     
+        private async Task RemoveFromGoogleWorkspaceGroupAsync(string? chapterId, string? email)
+        {
+            if (string.IsNullOrWhiteSpace(chapterId) || string.IsNullOrWhiteSpace(email)) return;
+
+            try
+            {
+                var groupEmail = await _registeredStudentListRepository.GetChapterStudentEmailGroupAsync(chapterId);
+                if (!string.IsNullOrWhiteSpace(groupEmail))
+                {
+                    await _googleWorkspaceService.RemoveMemberFromGroupAsync(groupEmail, email);
+                }
+            }
+            catch (Exception syncEx)
+            {
+                Console.WriteLine($"Google Workspace sync failed: {syncEx.Message}");
             }
         }
 
@@ -268,7 +321,13 @@ namespace pStudyWare20.Services.Implementations
         {
             try
             {
+                // Capture chapter/email before the row is deleted.
+                var chapterId = await _registeredStudentListRepository.GetStudentChapterIdAsync(request.StudentId);
+                var email = await _registeredStudentListRepository.GetStudentEmailAsync(request.StudentId);
+
                 await _registeredStudentListRepository.DeleteStudentAsync(request.StudentId);
+
+                await RemoveFromGoogleWorkspaceGroupAsync(chapterId, email);
 
                 return new DeleteStudentResponse
                 {
@@ -447,7 +506,14 @@ namespace pStudyWare20.Services.Implementations
                         break;
 
                     case "D": // Delete
-                        await _registeredStudentListRepository.DeleteStudentAsync(request.StudentId);
+                        {
+                            var chapterId = await _registeredStudentListRepository.GetStudentChapterIdAsync(request.StudentId);
+                            var email = await _registeredStudentListRepository.GetStudentEmailAsync(request.StudentId);
+
+                            await _registeredStudentListRepository.DeleteStudentAsync(request.StudentId);
+
+                            await RemoveFromGoogleWorkspaceGroupAsync(chapterId, email);
+                        }
                         response.Message = "You have deleted the student successfully";
                         break;
 

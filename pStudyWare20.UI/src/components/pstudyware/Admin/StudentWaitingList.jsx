@@ -38,6 +38,7 @@ import {
   portalModalSendButtonSx,
 } from "../Common/portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
+import { isSystemAdminUser } from "../../../utils/routeUtils";
 import {
   adminSessionListEmptyCellSx,
   adminSessionListEmptyTextSx,
@@ -64,7 +65,6 @@ import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import AdminSessionListPagination from "./AdminSessionListPagination";
 import SortableHeader from "../Common/SortableHeader";
 import studentWaitingListService from "../../../services/studentWaitingListService";
-import instructorService from "../../../services/instructorService";
 import { getAdminPortalBase } from "../../../utils/adminPortalPaths";
 import "../../../styles/StudentWaitingList.css";
 
@@ -517,6 +517,8 @@ const waitingListReviewDisabledFieldSx = {
 
 const StudentWaitingList = () => {
   const { user, isAuthenticated } = useAuth();
+  // Approve/Decline/Delete trigger Google Workspace group changes — SystemAdmin only.
+  const canManageWaitingList = isSystemAdminUser(user);
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [waitingForOnSite, setWaitingForOnSite] = useState("N");
@@ -953,14 +955,6 @@ const StudentWaitingList = () => {
         await studentWaitingListService.updateStudentWaitingListStatus(payload);
       const ok = res?.isSuccess === true || res?.IsSuccess === true;
       if (ok) {
-        if (form.applicationStatus === "A") {
-          const chapter = chapterLocations.find(c => c.chapterID === String(form.chapterID));
-          const studentGroupEmail = chapter?.studentEmailGroup || chapter?.StudentEmailGroup;
-          if (studentGroupEmail) {
-            await instructorService.addMemberToGroup(studentGroupEmail, payload.email).catch(e => console.error("Failed to add student to group", e));
-          }
-        }
-
         const defaultMessage =
           form.applicationStatus === "D"
             ? "You have declined the student successfully."
@@ -1440,13 +1434,17 @@ const StudentWaitingList = () => {
                                     action: true,
                                   })}
                                 >
-                                  <Box
-                                    component="span"
-                                    onClick={() => handleEdit(row)}
-                                    sx={adminSessionListTableActionLinkSx}
-                                  >
-                                    Edit
-                                  </Box>
+                                  {canManageWaitingList ? (
+                                    <Box
+                                      component="span"
+                                      onClick={() => handleEdit(row)}
+                                      sx={adminSessionListTableActionLinkSx}
+                                    >
+                                      Edit
+                                    </Box>
+                                  ) : (
+                                    "—"
+                                  )}
                                 </TableCell>
                                 <TableCell
                                   className="student-waiting-list-delete-cell"
@@ -1454,7 +1452,9 @@ const StudentWaitingList = () => {
                                     action: true,
                                   })}
                                 >
-                                  {row.studentID === 0 ? (
+                                  {!canManageWaitingList ? (
+                                    "—"
+                                  ) : row.studentID === 0 ? (
                                     <Box component="span" sx={{ color: "#999" }}>
                                       Delete
                                     </Box>

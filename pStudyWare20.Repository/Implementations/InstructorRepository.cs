@@ -130,6 +130,48 @@ namespace pStudyWare20.Repository.Implementations
                 throw new Exception($"Error adding or updating instructor: {ex.Message}", ex);
             }
         }
+        public async Task<InstructorGoogleSyncState?> GetInstructorPriorStateAsync(int instructorId)
+        {
+            if (instructorId <= 0) return null;
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand(@"
+                    SELECT
+                        LTRIM(RTRIM(m.EmailID)) AS EmailID,
+                        m.Active AS Active,
+                        LTRIM(RTRIM(c.VolunteerEmailGroup)) AS VolunteerEmailGroup
+                    FROM MemberMaster m WITH (NOLOCK)
+                    LEFT JOIN dbo.AMC_ChapterMaster c WITH (NOLOCK) ON c.ChapterID = m.ChapterID
+                    WHERE m.pMemberID = @InstructorID", connection);
+
+                command.Parameters.Add(new SqlParameter("@InstructorID", instructorId));
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (!await reader.ReadAsync())
+                {
+                    return null;
+                }
+
+                var emailOrdinal = reader.GetOrdinal("EmailID");
+                var activeOrdinal = reader.GetOrdinal("Active");
+                var groupOrdinal = reader.GetOrdinal("VolunteerEmailGroup");
+
+                return new InstructorGoogleSyncState
+                {
+                    EmailID = reader.IsDBNull(emailOrdinal) ? "" : reader.GetString(emailOrdinal),
+                    IsActive = !reader.IsDBNull(activeOrdinal) && reader.GetBoolean(activeOrdinal),
+                    VolunteerEmailGroup = reader.IsDBNull(groupOrdinal) ? null : reader.GetString(groupOrdinal)
+                };
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
 
         public async Task<string?> GetChapterVolunteerEmailGroupAsync(string chapterId)
         {

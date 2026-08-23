@@ -20,6 +20,31 @@ namespace pStudyWare20.Repository.Implementations
             _context = context;
             _connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new ArgumentNullException(nameof(configuration));
         }
+     
+        public async Task<string?> GetChapterStudentEmailGroupAsync(string chapterId)
+        {
+            if (!int.TryParse(chapterId, out var id) || id <= 0) return null;
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand(@"
+                    SELECT LTRIM(RTRIM(StudentEmailGroup))
+                    FROM dbo.AMC_ChapterMaster WITH (NOLOCK)
+                    WHERE ChapterID = @ChapterID", connection);
+
+                command.Parameters.Add(new SqlParameter("@ChapterID", id));
+
+                var result = await command.ExecuteScalarAsync();
+                return result as string;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
 
         private static string ResolveColumnName(DataTable table, string preferredName)
         {

@@ -237,19 +237,6 @@ const InstructorManagement = () => {
     setFormOpen(true);
   };
 
-  const findChapterForInstructor = (instructor) => {
-    if (!instructor) return null;
-    let chapter = chapters.find(c => String(c.chapterID) === String(instructor.chapterID || instructor.ChapterID));
-    if (!chapter && (instructor.chapterName || instructor.ChapterName)) {
-      const normalizedName = String(instructor.chapterName || instructor.ChapterName || "").trim().toLowerCase();
-      chapter = chapters.find(c => {
-        const cName = String(c.chapterName || c.name || c.Name || "").trim().toLowerCase();
-        return cName && (cName === normalizedName || cName.includes(normalizedName) || normalizedName.includes(cName));
-      });
-    }
-    return chapter;
-  };
-
   // Handle form submit
   const handleFormSubmit = async (formData) => {
     try {
@@ -295,44 +282,7 @@ const InstructorManagement = () => {
       });
 
       if (response.isSuccess) {
-        // --- GOOGLE GROUP SYNC ---
-        try {
-          const oldUsername = selectedInstructor?.userName?.trim() || selectedInstructor?.emailID?.trim();
-          const newUsername = formData?.userName?.trim() || formData?.emailID?.trim() || selectedInstructor?.emailID?.trim();
-
-          const oldChapter = findChapterForInstructor(selectedInstructor);
-          const newChapter = chapters.find(c => String(c.chapterID) === String(chapterID));
-          
-          const oldGroupEmail = oldChapter?.volunteerEmailGroup;
-          const newGroupEmail = newChapter?.volunteerEmailGroup;
-
-          const oldStatus = String(selectedInstructor?.memberStatus ?? "1").trim().toLowerCase();
-          const newStatus = String(formData?.memberStatus ?? formData?.MemberStatus ?? "1").trim().toLowerCase();
-
-          const isOldActive = oldStatus === "1" || oldStatus === "active";
-          const isNewActive = newStatus === "1" || newStatus === "active";
-
-          if (isEdit) {
-            if (isOldActive && oldGroupEmail && oldUsername) {
-              if (!isNewActive || oldGroupEmail !== newGroupEmail || oldUsername !== newUsername) {
-                await instructorService.removeMemberFromGroup(oldGroupEmail, oldUsername).catch(e => console.error("Failed to remove from old group", e));
-              }
-            }
-            if (isNewActive && newGroupEmail && newUsername) {
-              if (!isOldActive || oldGroupEmail !== newGroupEmail || oldUsername !== newUsername) {
-                await instructorService.addMemberToGroup(newGroupEmail, newUsername).catch(e => console.error("Failed to add to new group", e));
-              }
-            }
-          } else {
-            if (isNewActive && newGroupEmail && newUsername) {
-              await instructorService.addMemberToGroup(newGroupEmail, newUsername).catch(e => console.error("Failed to add to new group", e));
-            }
-          }
-        } catch (syncErr) {
-          console.error("Google Group Sync Error:", syncErr);
-        }
-        // --- END GOOGLE GROUP SYNC ---
-
+  
         showSnackbar(
           response.message ||
             (isEdit
@@ -451,6 +401,7 @@ const InstructorManagement = () => {
                   onEdit={handleEdit}
                   onAdd={handleAdd}
                   canAddInstructor={adminPrivileges.canAddInstructor}
+                  canEditInstructor={false}
                 />
               </CardContent>
             </Card>
