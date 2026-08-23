@@ -27,7 +27,7 @@ import gopiImg from "../assets/images/team/volunteers/Gopi.jpg";
 import anneImg from "../assets/images/team/volunteers/Anne.jpg";
 import elyImg from "../assets/images/team/volunteers/Ely.jpg";
 import sathyaImg from "../assets/images/team/volunteers/Sathya.png";
-import srihariImg from "../assets/images/team/volunteers/Srihari.jpg";
+import srihariImg from "../assets/images/team/volunteers/srihari.jpeg";
 import vaibhavTechImg from "../assets/images/team/volunteers/Vaibhav.png";
 import haridevImg from "../assets/images/team/volunteers/Haridev.jpg";
 import nayanaImg from "../assets/images/team/volunteers/Nayana_Ashok_Photo.jpg";
