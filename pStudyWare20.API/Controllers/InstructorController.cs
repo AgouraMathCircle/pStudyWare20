@@ -58,6 +58,7 @@ namespace pStudyWare20.API.Controllers
         /// <returns>Operation result</returns>
         [HttpPost]
         [Route("AddOrUpdateInstructor")]
+        [Authorize(Roles = "SystemAdmin")]
         public object AddOrUpdateInstructor([FromBody] InstructorRequest request)
         {
             try

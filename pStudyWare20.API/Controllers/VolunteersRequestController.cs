@@ -7,7 +7,7 @@ namespace pStudyWare20.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Roles = "Admin,SystemAdmin")]
     public class VolunteersRequestController : ControllerBase
     {
         private readonly IVolunteersRequestService _service;
@@ -42,6 +42,7 @@ namespace pStudyWare20.API.Controllers
         }
 
         [HttpPost("UpdateVolunteerStatus")]
+        [Authorize(Roles = "SystemAdmin")]
         public async Task<ActionResult<OperationResponse>> UpdateVolunteerStatus([FromBody] UpdateVolunteerStatusRequest request)
         {
             if (request == null)
@@ -58,6 +59,7 @@ namespace pStudyWare20.API.Controllers
         }
 
         [HttpPost("DeleteVolunteerRequest")]
+        [Authorize(Roles = "SystemAdmin")]
         public async Task<ActionResult<OperationResponse>> DeleteVolunteerRequest([FromBody] DeleteVolunteerRequestRequest request)
         {
             if (request == null)

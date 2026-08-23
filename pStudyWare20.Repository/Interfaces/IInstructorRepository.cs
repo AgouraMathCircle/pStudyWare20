@@ -29,6 +29,14 @@ namespace pStudyWare20.Repository.Interfaces
         Task<string?> GetChapterVolunteerEmailGroupAsync(string chapterId);
 
         /// <summary>
+        /// Snapshot of an existing instructor's email/chapter-group/active-state,
+        /// captured before AddOrUpdateInstructorAsync overwrites it.
+        /// </summary>
+        /// <param name="instructorId">Instructor ID (MemberMaster.pMemberID)</param>
+        /// <returns>Prior state, or null if the instructor does not exist</returns>
+        Task<InstructorGoogleSyncState?> GetInstructorPriorStateAsync(int instructorId);
+
+        /// <summary>
         /// Delete instructor using stored procedure
         /// </summary>
         /// <param name="request">Instructor delete request</param>

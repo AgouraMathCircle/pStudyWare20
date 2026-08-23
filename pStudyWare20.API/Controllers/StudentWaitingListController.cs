@@ -75,6 +75,7 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">UpdateStudentWaitingListStatusRequest</param>
         /// <returns>OperationResponse</returns>
         [HttpPost("UpdateStudentWaitingListStatus")]
+        [Authorize(Roles = "SystemAdmin")]
         public async Task<ActionResult<OperationResponse>> UpdateStudentWaitingListStatus([FromBody] UpdateStudentWaitingListStatusRequest request)
         {
             if (!ModelState.IsValid)
@@ -103,6 +104,7 @@ namespace pStudyWare20.API.Controllers
         /// <param name="request">DeleteStudentRequest</param>
         /// <returns>OperationResponse</returns>
         [HttpPost("DeleteStudent")]
+        [Authorize(Roles = "SystemAdmin")]
         public async Task<ActionResult<OperationResponse>> DeleteStudent([FromBody] DeleteStudentRequest request)
         {
             if (!ModelState.IsValid)

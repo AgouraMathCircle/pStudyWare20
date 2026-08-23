@@ -154,6 +154,12 @@ namespace pStudyWare20.Shared
         [Display(Name = "Instructor")]
         public Instructor? Instructor { get; set; }
     }
+    public class InstructorGoogleSyncState
+    {
+        public string EmailID { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public string? VolunteerEmailGroup { get; set; }
+    }
 
     /// <summary>
     /// Model for instructor operation response

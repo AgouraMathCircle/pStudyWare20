@@ -8,10 +8,12 @@ namespace pStudyWare20.Services.Implementations
     public class VolunteersRequestService : IVolunteersRequestService
     {
         private readonly IVolunteersRequestRepository _repository;
+        private readonly IGoogleWorkspaceService _googleWorkspaceService;
 
-        public VolunteersRequestService(IVolunteersRequestRepository repository)
+        public VolunteersRequestService(IVolunteersRequestRepository repository, IGoogleWorkspaceService googleWorkspaceService)
         {
             _repository = repository;
+            _googleWorkspaceService = googleWorkspaceService;
         }
 
         public async Task<GetVolunteersRequestResponse> GetVolunteersRequestAsync(GetVolunteersRequestRequest request)
@@ -21,12 +23,53 @@ namespace pStudyWare20.Services.Implementations
 
         public async Task<OperationResponse> UpdateVolunteerStatusAsync(UpdateVolunteerStatusRequest request)
         {
-            return await _repository.UpdateVolunteerStatusAsync(request);
+            var response = await _repository.UpdateVolunteerStatusAsync(request);
+
+            if (response.IsSuccess)
+            {
+                try
+                {
+                    var email = await _repository.GetVolunteerEmailAsync(request.VolundeerID);
+                    var groupEmail = await _repository.GetChapterVolunteerEmailGroupAsync(request.ChapterID);
+
+                    if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(groupEmail))
+                    {
+                        await _googleWorkspaceService.AddMemberToGroupAsync(groupEmail, email);
+                    }
+                }
+                catch (Exception syncEx)
+                {
+                    // Don't fail the approval over a directory sync issue.
+                    Console.WriteLine($"Google Workspace sync failed: {syncEx.Message}");
+                }
+            }
+
+            return response;
         }
 
         public async Task<OperationResponse> DeleteVolunteerRequestAsync(DeleteVolunteerRequestRequest request)
-        {
-            return await _repository.DeleteVolunteerRequestAsync(request);
+        {        
+            var email = await _repository.GetVolunteerEmailAsync(request.RequestID);
+            var chapterId = await _repository.GetVolunteerChapterIdAsync(request.RequestID);
+            var groupEmail = !string.IsNullOrWhiteSpace(chapterId)
+                ? await _repository.GetChapterVolunteerEmailGroupAsync(chapterId)
+                : null;
+
+            var response = await _repository.DeleteVolunteerRequestAsync(request);
+
+            if (response.IsSuccess && !string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(groupEmail))
+            {
+                try
+                {
+                    await _googleWorkspaceService.RemoveMemberFromGroupAsync(groupEmail, email);
+                }
+                catch (Exception syncEx)
+                {
+                    Console.WriteLine($"Google Workspace sync failed: {syncEx.Message}");
+                }
+            }
+
+            return response;
         }
 
         public async Task<GetVolunteerChapterLocationsResponse> GetChapterLocationsAsync()

@@ -223,6 +223,83 @@ namespace pStudyWare20.Repository.Implementations
             }
         }
 
+        public async Task<string?> GetStudentChapterIdAsync(string studentId)
+        {
+            if (!int.TryParse(studentId, out var id) || id <= 0) return null;
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand(@"
+                    SELECT ChapterID
+                    FROM dbo.AMC_tblStudents WITH (NOLOCK)
+                    WHERE colStudentID = @StudentID", connection);
+
+                command.Parameters.Add(new SqlParameter("@StudentID", id));
+
+                var result = await command.ExecuteScalarAsync();
+                return result == null || result == DBNull.Value ? null : Convert.ToInt32(result).ToString();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+        
+        public async Task<string?> GetStudentEmailAsync(string studentId)
+        {
+            if (!int.TryParse(studentId, out var id) || id <= 0) return null;
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand(@"
+                    SELECT LTRIM(RTRIM(TU.coluserEmail))
+                    FROM dbo.AMC_tblStudents TS WITH (NOLOCK)
+                    INNER JOIN dbo.AMC_tblUsers TU WITH (NOLOCK) ON TU.coluserID = TS.colParentID
+                    WHERE TS.colStudentID = @StudentID", connection);
+
+                command.Parameters.Add(new SqlParameter("@StudentID", id));
+
+                var result = await command.ExecuteScalarAsync();
+                return result as string;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>Chapter's StudentEmailGroup, for Google Workspace group sync.</summary>
+        public async Task<string?> GetChapterStudentEmailGroupAsync(string chapterId)
+        {
+            if (!int.TryParse(chapterId, out var id) || id <= 0) return null;
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand(@"
+                    SELECT LTRIM(RTRIM(StudentEmailGroup))
+                    FROM dbo.AMC_ChapterMaster WITH (NOLOCK)
+                    WHERE ChapterID = @ChapterID", connection);
+
+                command.Parameters.Add(new SqlParameter("@ChapterID", id));
+
+                var result = await command.ExecuteScalarAsync();
+                return result as string;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         private static string ReadString(SqlDataReader reader, string columnName)
         {
             var ordinal = reader.GetOrdinal(columnName);

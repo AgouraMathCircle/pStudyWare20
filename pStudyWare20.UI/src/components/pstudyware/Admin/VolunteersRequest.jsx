@@ -38,6 +38,7 @@ import {
   portalModalSendButtonSx,
 } from "../Common/portalModalStyles";
 import { useAuth } from "../../../contexts/AuthContext";
+import { isSystemAdminUser } from "../../../utils/routeUtils";
 import AdminHeader, { AdminRoleHeaderSpacer } from "./AdminHeader";
 import volunteersRequestService from "../../../services/volunteersRequestService";
 import {
@@ -467,6 +468,8 @@ const VolunteersRequestCopyCell = ({ value, onCopied }) => {
 
 const VolunteersRequest = () => {
   const { user, isAuthenticated } = useAuth();
+  // Approve/Delete trigger Google Workspace group changes — SystemAdmin only.
+  const canManageVolunteerRequests = isSystemAdminUser(user);
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chapterLocations, setChapterLocations] = useState([]);
@@ -708,25 +711,8 @@ const VolunteersRequest = () => {
   const handleDeleteConfirm = async () => {
     if (!selectedRow?.volunteerID) return;
     setSubmitting(true);
-    
-    // Find if they are in an email group before deleting
-    const oldChapterID = parseVolunteerInfo(selectedRow?.volunteerInfo)?.chapterID;
-    const chapter = chapterLocations.find(
-      (c) => String(c.chapterID || c.ChapterID) === String(oldChapterID)
-    );
-    const groupEmail = chapter?.volunteerEmailGroup || chapter?.VolunteerEmailGroup;
-    const volunteerEmail = selectedVolunteerEmail;
 
     try {
-      // Remove from email group first
-      if (groupEmail && volunteerEmail) {
-        try {
-          await volunteersRequestService.removeMemberFromGroup(groupEmail, volunteerEmail);
-        } catch (e) {
-          console.error("Failed to remove member from group", e);
-        }
-      }
-
       const res = await volunteersRequestService.deleteVolunteerRequest({
         RequestID: String(selectedRow.volunteerID),
       });
@@ -790,38 +776,8 @@ const VolunteersRequest = () => {
       const res = await volunteersRequestService.updateVolunteerStatus(payload);
       const ok = res?.isSuccess === true || res?.IsSuccess === true;
       if (ok) {
-        // Google Workspace Email Group Sync
-        const volunteerEmail = selectedVolunteerEmail;
-        
-        const oldChapterID = parseVolunteerInfo(selectedRow?.volunteerInfo)?.chapterID;
-        const oldChapter = chapterLocations.find(
-          (c) => String(c.chapterID || c.ChapterID) === String(oldChapterID)
-        );
-        const oldGroupEmail = oldChapter?.volunteerEmailGroup || oldChapter?.VolunteerEmailGroup;
-
-        const newChapter = chapterLocations.find(
-          (c) => String(c.chapterID || c.ChapterID) === String(form.chapterID)
-        );
-        const newGroupEmail = newChapter?.volunteerEmailGroup || newChapter?.VolunteerEmailGroup;
-
-        if (volunteerEmail) {
-          if (oldGroupEmail && oldGroupEmail !== newGroupEmail) {
-            try {
-              await volunteersRequestService.removeMemberFromGroup(oldGroupEmail, volunteerEmail);
-            } catch (e) {
-              console.error("Failed to remove from old group", e);
-            }
-          }
-          if (newGroupEmail) {
-            try {
-              // Always attempt to add. If they are already in the group, backend handles 409 Conflict gracefully.
-              await volunteersRequestService.addMemberToGroup(newGroupEmail, volunteerEmail);
-            } catch (e) {
-              console.error("Failed to add to new group", e);
-            }
-          }
-        }
-
+        // Google Workspace group sync (add to the selected chapter's VolunteerEmailGroup)
+        // now happens server-side in VolunteersRequestService.UpdateVolunteerStatusAsync.
         setSnackbar({
           open: true,
           message:
@@ -1218,21 +1174,25 @@ const VolunteersRequest = () => {
                                   action: true,
                                 })}
                               >
-                                <Box sx={{ display: "flex", gap: 0.5, flexWrap: "nowrap" }}>
-                                  <Box
-                                    onClick={() => handleEdit(row)}
-                                    sx={adminSessionListTableActionLinkSx}
-                                  >
-                                    Edit
+                                {canManageVolunteerRequests ? (
+                                  <Box sx={{ display: "flex", gap: 0.5, flexWrap: "nowrap" }}>
+                                    <Box
+                                      onClick={() => handleEdit(row)}
+                                      sx={adminSessionListTableActionLinkSx}
+                                    >
+                                      Edit
+                                    </Box>
+                                    <Box component="span" sx={{ color: "text.disabled", userSelect: "none" }}>|</Box>
+                                    <Box
+                                      onClick={() => handleDeleteClick(row)}
+                                      sx={adminSessionListTableDeleteLinkSx}
+                                    >
+                                      Delete
+                                    </Box>
                                   </Box>
-                                  <Box component="span" sx={{ color: "text.disabled", userSelect: "none" }}>|</Box>
-                                  <Box
-                                    onClick={() => handleDeleteClick(row)}
-                                    sx={adminSessionListTableDeleteLinkSx}
-                                  >
-                                    Delete
-                                  </Box>
-                                </Box>
+                                ) : (
+                                  "—"
+                                )}
                               </TableCell>
                               <TableCell
                                 className="vr-status-cell"
