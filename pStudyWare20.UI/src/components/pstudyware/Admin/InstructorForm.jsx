@@ -80,8 +80,9 @@ const normalizeInstructorType = (type) => {
     Coordinator: "C",
     Volunteer: "V",
     Volunteers: "V",
+    Administrator: "A",
   };
-  return byLabel[value] || (/^[PSCV]$/i.test(value) ? value.toUpperCase() : "P");
+  return byLabel[value] || (/^[PSCVA]$/i.test(value) ? value.toUpperCase() : "P");
 };
 
 const normalizeClassCode = (classValue) => {
@@ -242,6 +243,7 @@ const InstructorForm = ({
     { value: "S", label: "Secondary" },
     { value: "C", label: "Coordinator" },
     { value: "V", label: "Volunteer" },
+    { value: "A", label: "Administrator" },
   ];
 
   // Status options
@@ -568,119 +570,123 @@ const InstructorForm = ({
           </Tooltip>
         </Grid>
 
-        {/* Row 3: Type, Class, Section, Status */}
-        <Grid item xs={12}>
-          <Box sx={{ display: "flex", gap: 1.5, flexWrap: "nowrap" }}>
-            <FormControl
-              fullWidth
-              error={!!errors.instructorType}
-              required
-              size="small"
-              sx={{ ...portalModalFieldSx, flex: 1, minWidth: 0 }}
+        {/* Row 3: Type, Class, Section, Status — 2-up on mobile, 4-up from sm up */}
+        <Grid item xs={6} sm={3}>
+          <FormControl
+            fullWidth
+            error={!!errors.instructorType}
+            required
+            size="small"
+            sx={{ ...portalModalFieldSx, minWidth: 0 }}
+          >
+            <InputLabel>Type</InputLabel>
+            <PortalModalSelect
+              name="instructorType"
+              value={formData.instructorType}
+              onChange={handleChange}
+              label="Type"
             >
-              <InputLabel>Type</InputLabel>
-              <PortalModalSelect
-                name="instructorType"
-                value={formData.instructorType}
-                onChange={handleChange}
-                label="Type"
-              >
-                {typeOptions.map((type) => (
-                  <MenuItem key={type.value} value={type.value}>
-                    {type.label}
-                  </MenuItem>
-                ))}
-              </PortalModalSelect>
-              {errors.instructorType && (
-                <Typography variant="caption" color="error">
-                  {errors.instructorType}
-                </Typography>
-              )}
-            </FormControl>
+              {typeOptions.map((type) => (
+                <MenuItem key={type.value} value={type.value}>
+                  {type.label}
+                </MenuItem>
+              ))}
+            </PortalModalSelect>
+            {errors.instructorType && (
+              <Typography variant="caption" color="error">
+                {errors.instructorType}
+              </Typography>
+            )}
+          </FormControl>
+        </Grid>
 
-            <FormControl
-              fullWidth
-              error={!!errors.classCode}
-              required
-              size="small"
-              sx={{ ...portalModalFieldSx, flex: 1.4, minWidth: 0 }}
+        <Grid item xs={6} sm={3}>
+          <FormControl
+            fullWidth
+            error={!!errors.classCode}
+            required
+            size="small"
+            sx={{ ...portalModalFieldSx, minWidth: 0 }}
+          >
+            <InputLabel id="instructor-class-label">Class</InputLabel>
+            <PortalModalSelect
+              labelId="instructor-class-label"
+              name="classCode"
+              value={ensureClassCode(formData.classCode)}
+              onChange={handleChange}
+              label="Class"
+              renderValue={(selected) => getClassLabel(selected)}
             >
-              <InputLabel id="instructor-class-label">Class</InputLabel>
-              <PortalModalSelect
-                labelId="instructor-class-label"
-                name="classCode"
-                value={ensureClassCode(formData.classCode)}
-                onChange={handleChange}
-                label="Class"
-                renderValue={(selected) => getClassLabel(selected)}
-              >
-                {classOptions.map((classOption) => (
-                  <MenuItem key={classOption.value} value={classOption.value}>
-                    {classOption.label}
-                  </MenuItem>
-                ))}
-              </PortalModalSelect>
-              {errors.classCode && (
-                <Typography variant="caption" color="error">
-                  {errors.classCode}
-                </Typography>
-              )}
-            </FormControl>
+              {classOptions.map((classOption) => (
+                <MenuItem key={classOption.value} value={classOption.value}>
+                  {classOption.label}
+                </MenuItem>
+              ))}
+            </PortalModalSelect>
+            {errors.classCode && (
+              <Typography variant="caption" color="error">
+                {errors.classCode}
+              </Typography>
+            )}
+          </FormControl>
+        </Grid>
 
-            <FormControl
-              fullWidth
-              error={!!errors.section}
-              required
-              size="small"
-              sx={{ ...portalModalFieldSx, flex: 0.7, minWidth: 0 }}
+        <Grid item xs={6} sm={3}>
+          <FormControl
+            fullWidth
+            error={!!errors.section}
+            required
+            size="small"
+            sx={{ ...portalModalFieldSx, minWidth: 0 }}
+          >
+            <InputLabel>Section</InputLabel>
+            <PortalModalSelect
+              name="section"
+              value={formData.section || "A"}
+              onChange={handleChange}
+              label="Section"
             >
-              <InputLabel>Section</InputLabel>
-              <PortalModalSelect
-                name="section"
-                value={formData.section || "A"}
-                onChange={handleChange}
-                label="Section"
-              >
-                {sectionOptions.map((section) => (
-                  <MenuItem key={section.value} value={section.value}>
-                    {section.label}
-                  </MenuItem>
-                ))}
-              </PortalModalSelect>
-              {errors.section && (
-                <Typography variant="caption" color="error">
-                  {errors.section}
-                </Typography>
-              )}
-            </FormControl>
+              {sectionOptions.map((section) => (
+                <MenuItem key={section.value} value={section.value}>
+                  {section.label}
+                </MenuItem>
+              ))}
+            </PortalModalSelect>
+            {errors.section && (
+              <Typography variant="caption" color="error">
+                {errors.section}
+              </Typography>
+            )}
+          </FormControl>
+        </Grid>
 
-            <FormControl
-              fullWidth
-              error={!!errors.memberStatus}
-              required
-              size="small"
-              sx={{ ...portalModalFieldSx, flex: 1, minWidth: 0 }}
+        <Grid item xs={6} sm={3}>
+          <FormControl
+            fullWidth
+            error={!!errors.memberStatus}
+            required
+            size="small"
+            sx={{ ...portalModalFieldSx, minWidth: 0 }}
+          >
+            <InputLabel>Status</InputLabel>
+            <PortalModalSelect
+              name="memberStatus"
+              value={formData.memberStatus}
+              onChange={handleChange}
+              label="Status"
             >
-              <InputLabel>Status</InputLabel>
-              <PortalModalSelect
-                name="memberStatus"
-                value={formData.memberStatus}
-                onChange={handleChange}
-                label="Status"
-              >
-                {statusOptions.map((status) => (
-                  <MenuItem key={status.value} value={status.value}>
-                    {status.label}
-                  </MenuItem>
-                ))}
-              </PortalModalSelect>
-              {errors.memberStatus && (
-                <Typography variant="caption" color="error">
-                  {errors.memberStatus}
-                </Typography>
-              )}
-            </FormControl>
-          </Box>
+              {statusOptions.map((status) => (
+                <MenuItem key={status.value} value={status.value}>
+                  {status.label}
+                </MenuItem>
+              ))}
+            </PortalModalSelect>
+            {errors.memberStatus && (
+              <Typography variant="caption" color="error">
+                {errors.memberStatus}
+              </Typography>
+            )}
+          </FormControl>
         </Grid>
       </Grid>
     </Box>
