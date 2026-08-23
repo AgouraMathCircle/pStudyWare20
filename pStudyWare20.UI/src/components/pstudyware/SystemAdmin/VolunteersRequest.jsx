@@ -267,6 +267,7 @@ const TYPE_OPTIONS = [
   { value: "S", label: "Secondary Instructor" },
   { value: "C", label: "Coordinator" },
   { value: "V", label: "Volunteers" },
+  { value: "A", label: "Administrator" },
 ];
 
 const CLASS_OPTIONS = [

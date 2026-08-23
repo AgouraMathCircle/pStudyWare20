@@ -184,6 +184,7 @@ const InstructorList = ({
       S: "Secondary",
       C: "Coordinator",
       V: "Volunteer",
+      A: "Administrator",
     };
     return types[type] || type;
   };
