@@ -37,7 +37,7 @@ export const teamMembers = [
   // Senior Vice Presidents
   { name: "JOSHNA JUDE", role: "SENIOR VICE PRESIDENT", image: joshna },
   { name: "MUGIL", role: "SENIOR VICE PRESIDENT", image: mugil },
-  { name: "VIBUSHA", role: "SENIOR VICE PRESIDENT", image: vibusha },
+  { name: "VIBUSHA", role: "SVP", image: vibusha },
   { name: "MONISHKA TANWANI", role: "SENIOR VICE PRESIDENT", image: monishka },
   { name: "RUHAN", role: "SENIOR VICE PRESIDENT", image: ruhan },
   // { name: "AUSTIN LAW", role: "SENIOR VICE PRESIDENT", image: austinLaw },

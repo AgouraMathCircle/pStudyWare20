@@ -43,6 +43,7 @@ import Srihari_Img from "../assets/images/team/volunteers/srihari.jpeg";
 import Simran_Kaur_Img from "../assets/images/team/volunteers/Simran.jpeg";
 import Amarpal_Singh_Img from "../assets/images/team/volunteers/Amarpal.png";
 import Vibusha_Img from "../assets/images/team/volunteers/Vibusha.png";
+import personIcon from "../assets/images/team/person-icon.png";
 
 
 
@@ -1045,7 +1046,7 @@ const EngineeringCircle = () => {
               { img: sriyaImg, name: "SRIYA KALYAN(AHS)", role: "Founder" },
               { img: andrewImg, name: "ANDREW XU (MIT)", role: "Director" },
               { img: Amarpal_Singh_Img, name: "Amarpal Singh", role: "EVP" },
-              { img: Vibusha_Img, name: "Vibusha", role: "Senior Vice President" },
+              { img: Vibusha_Img, name: "Vibusha", role: "SVP" },
               { img: balajiImg, name: "BALAJI", role: "Coordinator" },
               { img: hussainImg, name: "Kumar", role: "Coordinator" },
               { img: Simran_Kaur_Img, name: "Simran Kaur", role: "Lead Instructor" },
@@ -1055,6 +1056,7 @@ const EngineeringCircle = () => {
               { img: haridevImg, name: "Haridev", role: "Instructor" },
               { img: Ethan_Yang_Img, name: "Ethan Yang", role: "Instructor" },
               { img: Joshua_Manoj_Img, name: "Joshua Manoj", role: "Instructor" },
+              { img: personIcon, name: "Neelima Panicker", role: "Instructor" },
             ].map((member) => (
               <Grid
                 key={member.name}
