@@ -22,19 +22,32 @@ namespace pStudyWare20.Services.Implementations
         }
 
         public async Task<OperationResponse> UpdateVolunteerStatusAsync(UpdateVolunteerStatusRequest request)
-        {
+        {        
+            var email = await _repository.GetVolunteerEmailAsync(request.VolundeerID);
+            var oldGroupEmail = !string.IsNullOrWhiteSpace(email)
+                ? await _repository.GetExistingMemberVolunteerEmailGroupAsync(email)
+                : null;
+
             var response = await _repository.UpdateVolunteerStatusAsync(request);
 
             if (response.IsSuccess)
             {
                 try
                 {
-                    var email = await _repository.GetVolunteerEmailAsync(request.VolundeerID);
-                    var groupEmail = await _repository.GetChapterVolunteerEmailGroupAsync(request.ChapterID);
+                    var newGroupEmail = await _repository.GetChapterVolunteerEmailGroupAsync(request.ChapterID);
 
-                    if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(groupEmail))
+                    if (!string.IsNullOrWhiteSpace(email))
                     {
-                        await _googleWorkspaceService.AddMemberToGroupAsync(groupEmail, email);
+                        if (!string.IsNullOrWhiteSpace(oldGroupEmail)
+                            && !string.Equals(oldGroupEmail, newGroupEmail, StringComparison.OrdinalIgnoreCase))
+                        {
+                            await _googleWorkspaceService.RemoveMemberFromGroupAsync(oldGroupEmail, email);
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(newGroupEmail))
+                        {
+                            await _googleWorkspaceService.AddMemberToGroupAsync(newGroupEmail, email);
+                        }
                     }
                 }
                 catch (Exception syncEx)
@@ -48,11 +61,14 @@ namespace pStudyWare20.Services.Implementations
         }
 
         public async Task<OperationResponse> DeleteVolunteerRequestAsync(DeleteVolunteerRequestRequest request)
-        {        
+        {
+            // AMC_tblVolunteersRequest.ChapterID is never updated by approval (it stays at
+            // whatever chapter was originally requested), so it can't be trusted for "which
+            // group are they actually in" if an admin approved into a different chapter — look
+            // up their real current chapter via MemberMaster instead (same as the edit flow).
             var email = await _repository.GetVolunteerEmailAsync(request.RequestID);
-            var chapterId = await _repository.GetVolunteerChapterIdAsync(request.RequestID);
-            var groupEmail = !string.IsNullOrWhiteSpace(chapterId)
-                ? await _repository.GetChapterVolunteerEmailGroupAsync(chapterId)
+            var groupEmail = !string.IsNullOrWhiteSpace(email)
+                ? await _repository.GetExistingMemberVolunteerEmailGroupAsync(email)
                 : null;
 
             var response = await _repository.DeleteVolunteerRequestAsync(request);

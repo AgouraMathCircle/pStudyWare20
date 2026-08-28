@@ -248,6 +248,15 @@ namespace pStudyWare20.Repository.Implementations
                     var ds = new DataSet();
                     adapter.Fill(ds);
                 }
+               
+                using (var syncCommand = new SqlCommand(
+                    "UPDATE dbo.AMC_tblStudents SET ChapterID = @ChapterID WHERE colStudentID = @StudentID",
+                    connection))
+                {
+                    syncCommand.Parameters.Add(new SqlParameter("@ChapterID", SqlDbType.Int) { Value = chapterId });
+                    syncCommand.Parameters.Add(new SqlParameter("@StudentID", SqlDbType.Int) { Value = studentId });
+                    await syncCommand.ExecuteNonQueryAsync();
+                }
 
                 return new OperationResponse
                 {

@@ -32,6 +32,7 @@ namespace pStudyWare20.Services.Implementations
             {
                 var gsa = new
                 {
+                    adminemail = gsaSection["admin_email"],
                     type = gsaSection["type"],
                     project_id = gsaSection["project_id"],
                     private_key_id = gsaSection["private_key_id"],
@@ -79,7 +80,7 @@ namespace pStudyWare20.Services.Implementations
             }
 
             // If Domain-Wide Delegation is set up and an Admin Email is provided
-            string adminEmail = _configuration["GoogleWorkspace:AdminEmail"];
+            string adminEmail = _configuration["GoogleServiceAccount:admin_email"];
             if (!string.IsNullOrWhiteSpace(adminEmail))
             {
                 credential = credential.CreateWithUser(adminEmail);

@@ -9,7 +9,7 @@ namespace pStudyWare20.Repository.Interfaces
         Task<OperationResponse> DeleteVolunteerRequestAsync(DeleteVolunteerRequestRequest request);
         Task<GetVolunteerChapterLocationsResponse> GetChapterLocationsAsync();
         Task<string?> GetVolunteerEmailAsync(string requestId);
-        Task<string?> GetVolunteerChapterIdAsync(string requestId);
         Task<string?> GetChapterVolunteerEmailGroupAsync(string chapterId);
+        Task<string?> GetExistingMemberVolunteerEmailGroupAsync(string email);
     }
 }

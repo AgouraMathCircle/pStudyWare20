@@ -116,7 +116,18 @@ function filterRows(rows, searchBy, searchCriteria, searchText) {
   });
 }
 
+const DEFAULT_SORT_FIELD = "SP_DEFAULT_ORDER";
+
 const getAvailabilityFieldValue = (row, field) => {
+  if (field === DEFAULT_SORT_FIELD) {
+    // Mirrors AMC_spVolunteerAvailability_Summary's `ORDER BY CM.Name, Class, InstructorType`.
+    return [
+      cell(row, ["Class", "class"]),
+      cell(row, ["InstructorType", "instructorType"]),
+    ]
+      .join("")
+      .toLowerCase();
+  }
   const col = COLS.find((c) => c.searchBy === field);
   if (!col) return "";
   if (field === "INSTRUCTOR_ID") {
@@ -165,8 +176,8 @@ const InstructorVolunteerAvailabilityGrid = ({
   const [filteredRows, setFilteredRows] = useState(rows);
   const [currentPage, setCurrentPage] = useState(1);
   const [goToPageInput, setGoToPageInput] = useState("1");
-  const [sortField, setSortField] = useState("RESPONSE_DATE");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortField, setSortField] = useState(DEFAULT_SORT_FIELD);
+  const [sortOrder, setSortOrder] = useState("asc");
   const pageSize = 10;
 
   useEffect(() => {
