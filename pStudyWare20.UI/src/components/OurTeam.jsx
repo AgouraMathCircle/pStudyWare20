@@ -32,7 +32,6 @@ import vaibhavTechImg from "../assets/images/team/volunteers/Vaibhav.png";
 import haridevImg from "../assets/images/team/volunteers/Haridev.jpg";
 import nayanaImg from "../assets/images/team/volunteers/Nayana_Ashok_Photo.jpg";
 import harshaImg from "../assets/images/team/volunteers/Harsha Mullangi.jpg";
-import neelabhImg from "../assets/images/team/volunteers/Neelabh.jpg";
 import shreyamImg from "../assets/images/team/volunteers/SHREYAM.jpg";
 import prabakaranImg from "../assets/images/team/prabakaran.jpg";
 import jonesImg from "../assets/images/team/volunteers/Jones.jpg";
@@ -40,7 +39,6 @@ import suhaImg from "../assets/images/team/volunteers/Suha.jpg";
 import syleshImg from "../assets/images/team/volunteers/Sylesh.jpg";
 import ValliImg from "../assets/images/team/volunteers/Kanagavalli_Mani.jpeg";
 import UshaImg from "../assets/images/team/volunteers/Usha_Sekar.jpg";
-import ReshmaImg from "../assets/images/team/volunteers/Reshma.jpeg";
 
 import hussainImg from "../assets/images/team/volunteers/Hussain.jpg";
 import "../styles/OurTeam.css";
@@ -137,17 +135,15 @@ const OurTeam = () => {
         <Grid container spacing={2} justifyContent="flex-start" alignItems="stretch">
           {[
             { img: hussainImg, name: "HUSSAIN PATEL", role: "EVP Technology Executive" },
-            { img: srihariImg, name: "SRI HARI", role: "VP Software Engineer" },
             { img: sathyaImg, name: "SATHYA", role: "SVP Software Engineer" },
+            { img: srihariImg, name: "SRI HARI", role: "VP Software Engineer" },
+            { img: ValliImg, name: "KANAGAVALLI MANI", role: "Service delivery manager" },
+            { img: UshaImg, name: "USHA", role: "QA manager" },
             { img: syleshImg, name: "SYLESH SUNDARESAN", role: "Developer" },
-            { img: harshaImg, name: "HARSHA MULLANGI", role: "Developer" },
             { img: jonesImg, name: "JONES", role: "Developer" },
-
-            { img: UshaImg, name: "USHA", role: "QA Analyst" },
-            { img: ReshmaImg, name: "RESHMA", role: "QA lead" },
-            { img: ValliImg, name: "KANAGAVALLI MANI", role: "Service Delivery Manager" },
+            { img: harshaImg, name: "HARSHA MULLANGI", role: "Developer" },
+            { img: personIcon, name: "RADHIKA", role: "Developer" },
             //{ img: haridevImg, name: "HARIDEV", role: "Developer" },
-            { img: neelabhImg, name: "NEELABH", role: "Programmer" },
             //{ img: personIcon, name: "DHARSHANA", role: "Developer" },
           ].map((m) => (
             <Grid key={m.name} item xs={12} sm={3} md={3}>
