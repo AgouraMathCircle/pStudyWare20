@@ -18,6 +18,7 @@ import {
 } from "../../../services/systemAdminDashboardService";
 import { getPortalUsername } from "../../../utils/portalUsername";
 import SystemAdminVolunteerAvailabilityGrid from "./SystemAdminVolunteerAvailabilityGrid";
+import { exportVolunteerAvailability } from "../../../utils/volunteerAvailabilityExport";
 import {
   adminSessionListPanelCardSx,
   adminSessionListPanelContentSx,
@@ -79,7 +80,7 @@ const SystemAdminVolunteerAvailability = () => {
     loadList();
   }, [loadList]);
 
-  const handleExport = (type) => {
+  const handleExport = async (type) => {
     if (rows.length === 0) {
       setSnackbar({
         open: true,
@@ -89,55 +90,21 @@ const SystemAdminVolunteerAvailability = () => {
       return;
     }
 
-    const headers = [
-      "Instructor #",
-      "First Name",
-      "Last Name",
-      "Chapter",
-      "Session",
-      "Class",
-      "Type",
-      "Availability",
-      "Comments",
-      "ResponseDate",
-    ];
-
-    const csvRows = [];
-    csvRows.push(headers.join(","));
-
-    for (const r of rows) {
-      const values = [
-        r.InstructorID ?? r.instructorID ?? "",
-        `"${(r.FirstName ?? r.firstName ?? "").toString().replace(/"/g, '""')}"`,
-        `"${(r.LastName ?? r.lastName ?? "").toString().replace(/"/g, '""')}"`,
-        `"${(r.ChapterName ?? r.chapterName ?? "").toString().replace(/"/g, '""')}"`,
-        `"${(r.Session ?? r.session ?? "").toString().replace(/"/g, '""')}"`,
-        `"${(r.Class ?? r.class ?? "").toString().replace(/"/g, '""')}"`,
-        `"${(r.InstructorType ?? r.instructorType ?? "").toString().replace(/"/g, '""')}"`,
-        `"${(r.Availability ?? r.availability ?? "").toString().replace(/"/g, '""')}"`,
-        `"${(r.Comments ?? r.comments ?? "").toString().replace(/"/g, '""')}"`,
-        r.ResponseDate ?? r.responseDate ?? "",
-      ];
-      csvRows.push(values.join(","));
+    try {
+      await exportVolunteerAvailability(rows, type);
+      setSnackbar({
+        open: true,
+        message: `Exported to ${type === "excel" ? "Excel" : "CSV"} successfully.`,
+        severity: "success",
+      });
+    } catch (err) {
+      console.error("Error exporting volunteer availability:", err);
+      setSnackbar({
+        open: true,
+        message: "Error exporting the list.",
+        severity: "error",
+      });
     }
-
-    const csvContent = "\uFEFF" + csvRows.join("\r\n");
-    const mimeType = type === "excel" ? "application/vnd.ms-excel" : "text/csv";
-    const extension = type === "excel" ? "xls" : "csv";
-    const blob = new Blob([csvContent], { type: `${mimeType};charset=utf-8;` });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `VolunteerAvailabilityList.${extension}`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    setSnackbar({
-      open: true,
-      message: `Exported to ${type === "excel" ? "Excel" : "CSV"} successfully.`,
-      severity: "success",
-    });
   };
 
   return (

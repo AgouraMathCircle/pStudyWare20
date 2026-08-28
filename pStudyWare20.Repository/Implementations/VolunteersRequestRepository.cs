@@ -104,26 +104,26 @@ namespace pStudyWare20.Repository.Implementations
                 if (dataTable.Rows != null)
                 {
                     foreach (DataRow row in dataTable.Rows)
-                {
-                    list.Add(new VolunteerRequestItem
                     {
-                        VolunteerID = GetInt(row, "VolunteerID"),
-                        VolunteerName = GetString(row, "VolunteerName"),
-                        Grade = GetString(row, "Grade"),
-                        Location = GetString(row, "Location"),
-                        School = GetString(row, "School"),
-                        Phone = GetString(row, "Phone"),
-                        Email = GetString(row, "Email"),
-                        City = GetString(row, "City"),
-                        EnrolledSession = GetString(row, "EnrolledSession"),
-                        Interest = GetString(row, "Interest"),
-                        Status = GetString(row, "Status"),
-                        InsertDate = GetDateTime(row, "InsertDate"),
-                        Comments = GetString(row, "Comments"),
-                        VolunteerInfo = GetString(row, "VolunteerInfo").Length > 0
-                            ? GetString(row, "VolunteerInfo")
-                            : BuildVolunteerInfo(GetString(row, "VolunteerName"), GetString(row, "Email"), GetString(row, "ChapterID")),
-                    });
+                        list.Add(new VolunteerRequestItem
+                        {
+                            VolunteerID = GetInt(row, "VolunteerID"),
+                            VolunteerName = GetString(row, "VolunteerName"),
+                            Grade = GetString(row, "Grade"),
+                            Location = GetString(row, "Location"),
+                            School = GetString(row, "School"),
+                            Phone = GetString(row, "Phone"),
+                            Email = GetString(row, "Email"),
+                            City = GetString(row, "City"),
+                            EnrolledSession = GetString(row, "EnrolledSession"),
+                            Interest = GetString(row, "Interest"),
+                            Status = GetString(row, "Status"),
+                            InsertDate = GetDateTime(row, "InsertDate"),
+                            Comments = GetString(row, "Comments"),
+                            VolunteerInfo = GetString(row, "VolunteerInfo").Length > 0
+                                ? GetString(row, "VolunteerInfo")
+                                : BuildVolunteerInfo(GetString(row, "VolunteerName"), GetString(row, "Email"), GetString(row, "ChapterID")),
+                        });
                     }
                 }
 
@@ -293,7 +293,7 @@ namespace pStudyWare20.Repository.Implementations
                 };
             }
         }
-        
+
         public async Task<string?> GetVolunteerEmailAsync(string requestId)
         {
             if (!int.TryParse(requestId, out var id) || id <= 0) return null;
@@ -318,31 +318,6 @@ namespace pStudyWare20.Repository.Implementations
                 return null;
             }
         }
-        
-        public async Task<string?> GetVolunteerChapterIdAsync(string requestId)
-        {
-            if (!int.TryParse(requestId, out var id) || id <= 0) return null;
-
-            try
-            {
-                using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
-
-                using var command = new SqlCommand(@"
-                    SELECT ChapterID
-                    FROM dbo.AMC_tblVolunteersRequest WITH (NOLOCK)
-                    WHERE RequestID = @RequestID", connection);
-
-                command.Parameters.Add(new SqlParameter("@RequestID", id));
-
-                var result = await command.ExecuteScalarAsync();
-                return result == null || result == DBNull.Value ? null : Convert.ToInt32(result).ToString();
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
 
         /// <summary>Chapter's VolunteerEmailGroup, for Google Workspace group sync after approval.</summary>
         public async Task<string?> GetChapterVolunteerEmailGroupAsync(string chapterId)
@@ -360,6 +335,36 @@ namespace pStudyWare20.Repository.Implementations
                     WHERE ChapterID = @ChapterID", connection);
 
                 command.Parameters.Add(new SqlParameter("@ChapterID", id));
+
+                var result = await command.ExecuteScalarAsync();
+                return result as string;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<string?> GetExistingMemberVolunteerEmailGroupAsync(string email)
+        {
+            var trimmedEmail = (email ?? "").Trim();
+            if (trimmedEmail.Length == 0) return null;
+
+            try
+            {
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                using var command = new SqlCommand(@"
+                    SELECT TOP 1 LTRIM(RTRIM(c.VolunteerEmailGroup))
+                    FROM MemberMaster m WITH (NOLOCK)
+                    LEFT JOIN dbo.AMC_ChapterMaster c WITH (NOLOCK) ON c.ChapterID = m.ChapterID
+                    WHERE UPPER(LTRIM(m.EmailID)) = UPPER(LTRIM(@Email))
+                      AND m.MemberType IN ('V', 'I', 'C', 'A')
+                      AND m.Active = 1
+                    ORDER BY m.pMemberID DESC", connection);
+
+                command.Parameters.Add(new SqlParameter("@Email", trimmedEmail));
 
                 var result = await command.ExecuteScalarAsync();
                 return result as string;
