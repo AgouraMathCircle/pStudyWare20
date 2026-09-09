@@ -184,7 +184,11 @@ namespace pStudyWare20.Services.Implementations
 
         private async Task SyncGoogleWorkspaceGroupAsync(string? oldChapterId, string newChapterId, string? email)
         {
-            if (string.IsNullOrWhiteSpace(email)) return;
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                Console.WriteLine($"[GoogleSync] Skipped student chapter sync: no email on the request (studentEmail='{email}', oldChapterId='{oldChapterId}', newChapterId='{newChapterId}').");
+                return;
+            }
 
             try
             {
@@ -193,37 +197,57 @@ namespace pStudyWare20.Services.Implementations
                     var oldGroupEmail = await _registeredStudentListRepository.GetChapterStudentEmailGroupAsync(oldChapterId);
                     if (!string.IsNullOrWhiteSpace(oldGroupEmail))
                     {
+                        Console.WriteLine($"[GoogleSync] Removing {email} from old group {oldGroupEmail} (chapter {oldChapterId}).");
                         await _googleWorkspaceService.RemoveMemberFromGroupAsync(oldGroupEmail, email);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[GoogleSync] Chapter {oldChapterId} has no StudentEmailGroup configured — skipping removal for {email}.");
                     }
                 }
 
                 var newGroupEmail = await _registeredStudentListRepository.GetChapterStudentEmailGroupAsync(newChapterId);
                 if (!string.IsNullOrWhiteSpace(newGroupEmail))
                 {
+                    Console.WriteLine($"[GoogleSync] Adding {email} to group {newGroupEmail} (chapter {newChapterId}).");
                     await _googleWorkspaceService.AddMemberToGroupAsync(newGroupEmail, email);
+                    Console.WriteLine($"[GoogleSync] Add call for {email} to {newGroupEmail} completed without throwing.");
+                }
+                else
+                {
+                    Console.WriteLine($"[GoogleSync] Chapter {newChapterId} has no StudentEmailGroup configured in AMC_ChapterMaster — nothing to add {email} to.");
                 }
             }
             catch (Exception syncEx)
             {
-                Console.WriteLine($"Google Workspace sync failed: {syncEx.Message}");
+                Console.WriteLine($"[GoogleSync] Google Workspace sync FAILED for {email}: {syncEx}");
             }
         }
-     
+
         private async Task RemoveFromGoogleWorkspaceGroupAsync(string? chapterId, string? email)
         {
-            if (string.IsNullOrWhiteSpace(chapterId) || string.IsNullOrWhiteSpace(email)) return;
+            if (string.IsNullOrWhiteSpace(chapterId) || string.IsNullOrWhiteSpace(email))
+            {
+                Console.WriteLine($"[GoogleSync] Skipped student removal: chapterId='{chapterId}', email='{email}'.");
+                return;
+            }
 
             try
             {
                 var groupEmail = await _registeredStudentListRepository.GetChapterStudentEmailGroupAsync(chapterId);
                 if (!string.IsNullOrWhiteSpace(groupEmail))
                 {
+                    Console.WriteLine($"[GoogleSync] Removing {email} from group {groupEmail} (chapter {chapterId}).");
                     await _googleWorkspaceService.RemoveMemberFromGroupAsync(groupEmail, email);
+                }
+                else
+                {
+                    Console.WriteLine($"[GoogleSync] Chapter {chapterId} has no StudentEmailGroup configured — nothing to remove {email} from.");
                 }
             }
             catch (Exception syncEx)
             {
-                Console.WriteLine($"Google Workspace sync failed: {syncEx.Message}");
+                Console.WriteLine($"[GoogleSync] Google Workspace sync FAILED for {email}: {syncEx}");
             }
         }
 

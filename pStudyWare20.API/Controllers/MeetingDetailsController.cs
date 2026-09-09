@@ -217,7 +217,7 @@ namespace pStudyWare20.API.Controllers
                 // Remove admin credentials for non-admin users
                 var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
                 var memberType = User.FindFirst("MemberType")?.Value ?? "";
-                var isAdmin = userRole == "Admin" || userRole == "SystemAdmin" || memberType == "A";
+                var isAdmin = userRole == "Admin" || userRole == "SystemAdmin" || memberType == "A" || memberType == "C";
 
                 if (!isAdmin && response.IsSuccess && response.MeetingSchedules != null)
                 {
