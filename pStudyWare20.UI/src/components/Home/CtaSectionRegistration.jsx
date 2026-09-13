@@ -16,10 +16,16 @@ import class005 from "../../assets/images/gallery/photos/AwardCeremony2026/IMG 6
 import class006 from "../../assets/images/class/005.jpg";
 import class007 from "../../assets/images/class/006.jpg";
 import class008 from "../../assets/images/class/007.jpg";
+
+import documentationTeamImg from "../../assets/images/teams/documentation-team.jpg";
+import technologicalTeamImg from "../../assets/images/teams/technological-team.jpg";
+
 import "../../styles/Home/CtaSection.css";
 
 // Class images for carousel
 const classImages = [
+  documentationTeamImg,
+  technologicalTeamImg,
   class001,
   class002,
   class003,

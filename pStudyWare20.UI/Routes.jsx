@@ -11,7 +11,6 @@ import Home from "./src/components/Home";
 import Overview from "./src/components/Overview";
 import About from "./src/components/About";
 import MathCircle from "./src/components/MathCircle";
-import Leadership from "./src/components/Leadership";
 import OurTeam from "./src/components/OurTeam";
 import Alumini from "./src/components/Alumini";
 import EngineeringCircle from "./src/components/EngineeringCircle";
@@ -301,7 +300,6 @@ const AppRoutes = () => {
                 </RoleProtectedRoute>
               }
             />
-            <Route path="/Leadership" element={<Leadership />} />
             <Route path="/ourteam" element={<OurTeam />} />
             <Route path="/Alumini" element={<Alumini />} />
             <Route

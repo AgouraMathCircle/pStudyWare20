@@ -15,15 +15,11 @@ import rajImg from "../assets/images/team/volunteers/RajDenduluri.png";
 import sasikalaImg from "../assets/images/team/volunteers/Sasikala.png";
 import farzanehImg from "../assets/images/team/volunteers/Farzaneh.png";
 import ashokImg from "../assets/images/team/volunteers/Ashok.jpg";
-import sindhuImg from "../assets/images/team/volunteers/Sindhu.jpg";
 import anandImg from "../assets/images/team/volunteers/Anand.png";
-import veenaImg from "../assets/images/team/volunteers/Veena.png";
 import madhaviImg from "../assets/images/team/volunteers/Madhavi.jpg";
 import sundaresanImg from "../assets/images/team/volunteers/Sundaresan.png";
 import sujataImg from "../assets/images/team/volunteers/Sujata.jpg";
-import sireeshaImg from "../assets/images/team/volunteers/Sireesha.jpg";
 import adhunikaImg from "../assets/images/team/volunteers/Adhunika.jpg";
-import gopiImg from "../assets/images/team/volunteers/Gopi.jpg";
 import anneImg from "../assets/images/team/volunteers/Anne.jpg";
 import elyImg from "../assets/images/team/volunteers/Ely.jpg";
 import sathyaImg from "../assets/images/team/volunteers/Sathya.png";
@@ -203,16 +199,12 @@ const OurTeam = () => {
             { img: sasikalaImg, name: "SASIKALA", role: "Vice President" },
             { img: farzanehImg, name: "FARZANEH SEINI", role: "Vice President" },
             { img: ashokImg, name: "ASHOK RAJENDRAN", role: "Vice President" },
-            { img: sindhuImg, name: "SINDHU SREERAJ", role: "Vice President" },
+            
             { img: anandImg, name: "ANAND", role: "Vice President" },
-            { img: veenaImg, name: "VEENA GANESAN", role: "Vice President" },
             { img: madhaviImg, name: "MADHAVI SOMYSETTY", role: "Vice President" },
             { img: sundaresanImg, name: "SUNDARESAN", role: "Vice President" },
             { img: sujataImg, name: "SUJATA BHATTACHARYA", role: "Vice President" },
-            { img: sireeshaImg, name: "SIREESHA CHINTALAPATI", role: "Vice President" },
             { img: suhaImg, name: "SUHASINI YENDAMURI", role: "Vice President" },
-            { img: gopiImg, name: "GOPINATH SRINIVASAN", role: "Vice President" },
-            { img: anneImg, name: "SRI ANNE", role: "Vice President" },
             { img: elyImg, name: "ELY TJIPTO", role: "Vice President" },
           ].map((m) => (
             <Grid key={m.name} item xs={12} sm={3} md={3}>
@@ -237,9 +229,6 @@ const OurTeam = () => {
                 <Box className="ourteam-info">
                   <Typography className="ourteam-name" variant="h6">
                     {formatName(m.name)}
-                  </Typography>
-                  <Typography className="ourteam-role" variant="body2">
-                    {m.role}
                   </Typography>
                 </Box>
               </Box>

@@ -40,8 +40,13 @@ import award2026_20 from "../../assets/images/gallery/photos/AwardCeremony2026/7
 import award2026_21 from "../../assets/images/gallery/photos/AwardCeremony2026/702621355_2701217093581076_2170575568894046260_n.jpg";
 import award2026_22 from "../../assets/images/gallery/photos/AwardCeremony2026/702718823_2701217206914398_1760117873653005247_n.jpg";
 
+import documentationTeamImg from "../../assets/images/teams/documentation-team.jpg";
+import technologicalTeamImg from "../../assets/images/teams/technological-team.jpg";
+
 // All Award 2026 images
 const award2026Images = [
+  documentationTeamImg,
+  technologicalTeamImg,
   award2026_1,
   award2026_2,
   award2026_3,
@@ -216,7 +221,7 @@ const CtaSection = () => {
                     >
                       <CardMedia
                         component="img"
-                        image={award2026Images[0]}
+                        image={award2026Images[currentImageIndex]}
                         alt="Award Ceremony 2026"
                         sx={{
                           height: "100%",
@@ -238,7 +243,7 @@ const CtaSection = () => {
                     >
                       <CardMedia
                         component="img"
-                        image={award2026Images[1]}
+                        image={award2026Images[(currentImageIndex + 1) % award2026Images.length]}
                         alt="Award Ceremony 2026"
                         sx={{
                           height: "100%",
