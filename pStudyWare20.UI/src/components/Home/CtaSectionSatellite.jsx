@@ -274,7 +274,7 @@ const CtaSectionSatellite = () => {
                         marginBottom: 0,
                       }}
                     >
-                      Coming Soon!!
+                      Sept. 19th, 2026
                     </Typography>
                   </Box>
                   <Box
@@ -315,7 +315,7 @@ const CtaSectionSatellite = () => {
                     <Button
                       variant="outlined"
                       endIcon={<PlayArrowIcon />}
-                      href="https://us06web.zoom.us/j/3215897076"
+                      href="https://us06web.zoom.us/j/84030050040?pwd=fuIeBxbR2rMasndXbA4hmT56a8Kdfe.1"
                       component="a"
                       target="_blank"
                       sx={{

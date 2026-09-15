@@ -83,20 +83,6 @@ const About = () => {
                 </div>
                 <div className="row">
                   <div
-                    className="col-lg-3 btn-read"
-                    style={{ textAlign: "center" }}
-                  >
-                    <div
-                      className="btn-part wow fadeInUp"
-                      data-wow-delay="300ms"
-                      data-wow-duration="2000ms"
-                    >
-                      <a className="readon" href="/leadership">
-                        Leadership
-                      </a>
-                    </div>
-                  </div>
-                  <div
                     className="col-lg-5 btn-read"
                     style={{ textAlign: "center", paddingLeft: "50px" }}
                   >

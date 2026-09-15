@@ -15,6 +15,8 @@ import AppleIcon from "@mui/icons-material/Apple";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 import VideoGallerys from "../components/Home/VideoGallery";
 import AMCTeam from "./AMCTeam";
+import AMCStudentBoard from "./AMCStudentBoard";
+import AMCLeadershipTeams from "./AMCLeadershipTeams";
 import ComputerOutlinedIcon from "@mui/icons-material/ComputerOutlined";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
@@ -820,36 +822,9 @@ const MathCircle = () => {
                   <Grid
                     container
                     spacing={2}
-                    justifyContent="space-between"
-                    alignItems="center"
+                    justifyContent="center"
                   >
-                    <Grid item xs={12} sm={4}>
-                      <Box sx={{ textAlign: "center" }}>
-                        <Button
-                          variant="contained"
-                          onClick={() => handleNavigation("/Leadership")}
-                          sx={{
-                            backgroundColor: "#58a82d",
-                            color: "white",
-                            px: 3,
-                            py: 1.5,
-                            borderRadius: "5px",
-                            fontWeight: 600,
-                            textDecoration: "none",
-                            "&:hover": {
-                              backgroundColor: "#191970",
-                              transform: "translateY(-3px)",
-                              boxShadow: "0 6px 12px rgba(0,0,0,0.2)",
-                              textDecoration: "none",
-                            },
-                            transition: "all 0.3s ease",
-                          }}
-                        >
-                          Leadership
-                        </Button>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12} sm={6}>
                       <Box sx={{ textAlign: "center" }}>
                         <Button
                           variant="contained"
@@ -875,7 +850,7 @@ const MathCircle = () => {
                         </Button>
                       </Box>
                     </Grid>
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12} sm={6}>
                       <Box sx={{ textAlign: "center" }}>
                         <Button
                           variant="contained"
@@ -1046,6 +1021,8 @@ const MathCircle = () => {
             <AMCTeam />
           </Box>
         </Container>
+        <AMCLeadershipTeams />
+        <AMCStudentBoard />
       </Box>
 
       {/* Download Section */}

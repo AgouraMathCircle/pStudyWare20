@@ -29,7 +29,7 @@ const fadeInAnimation = keyframes`
 const newsItems = [
   {
     subtitle: "Agoura Math Circle",
-    title: "Triangular Talks - coming soon !!",
+    title: "Triangular Talks - Sept. 19th, 2026",
   },
   {
     subtitle: "Math Circle",
@@ -38,7 +38,7 @@ const newsItems = [
   {
     subtitle: "Agoura Engineering Circle",
     title:
-      "Mobile App Development and Artificial Intelligence courses start on Aug 29, 2026",
+      "Artificial Intelligence courses start on Aug 29, 2026",
   },
   {
     subtitle: "Satellite Program",

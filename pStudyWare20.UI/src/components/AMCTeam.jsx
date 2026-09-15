@@ -35,11 +35,11 @@ export const chief = [
 ];
 export const teamMembers = [
   // Senior Vice Presidents
-  { name: "JOSHNA JUDE", role: "SENIOR VICE PRESIDENT", image: joshna },
-  { name: "MUGIL", role: "SENIOR VICE PRESIDENT", image: mugil },
-  { name: "VIBUSHA", role: "SVP", image: vibusha },
-  { name: "MONISHKA TANWANI", role: "SENIOR VICE PRESIDENT", image: monishka },
-  { name: "RUHAN", role: "SENIOR VICE PRESIDENT", image: ruhan },
+  // { name: "JOSHNA JUDE", role: "SENIOR VICE PRESIDENT", image: joshna },
+  // { name: "MUGIL", role: "SENIOR VICE PRESIDENT", image: mugil },
+  // { name: "VIBUSHA", role: "SVP", image: vibusha },
+  // { name: "MONISHKA TANWANI", role: "SENIOR VICE PRESIDENT", image: monishka },
+  // { name: "RUHAN", role: "SENIOR VICE PRESIDENT", image: ruhan },
   // { name: "AUSTIN LAW", role: "SENIOR VICE PRESIDENT", image: austinLaw },
   // { name: "CHARLIE NICKS", role: "SENIOR VICE PRESIDENT", image: teamMember14 },
   // Vice Presidents
