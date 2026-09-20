@@ -298,7 +298,7 @@ namespace pStudyWare20.Repository.Implementations
             }
         }
 
-        public async Task<(string currentSession, string currentSemester, string volunteerAvailability)> GetCurrentSessionAndSemesterAsync(string chapterId)
+        public async Task<(string currentSession, string currentSemester, string volunteerAvailability)> GetCurrentSessionAndSemesterAsync(string chapterId, string? mode = null)
         {
             string currentSession = "";
             string currentSemester = "";
@@ -336,6 +336,7 @@ namespace pStudyWare20.Repository.Implementations
                 {
                     command.CommandType = CommandType.StoredProcedure;
                     command.Parameters.Add(new SqlParameter("@ChapterID", string.IsNullOrEmpty(chapterId) ? "3" : chapterId));
+                    command.Parameters.Add(new SqlParameter("@Mode", (object?)mode ?? DBNull.Value));
                     using var reader = await command.ExecuteReaderAsync();
                     if (await reader.ReadAsync())
                     {

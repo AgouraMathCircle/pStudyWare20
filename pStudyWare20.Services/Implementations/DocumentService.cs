@@ -261,6 +261,14 @@ namespace pStudyWare20.Services.Implementations
                     return response;
                 }
 
+                if (!isRepositoryDocument && fileContent.Length > ClassMaterialMaxFileSizeBytes)
+                {
+                    response.IsSuccess = false;
+                    response.ErrorMessage = "File size must be less than 5 MB.";
+                    response.Message = "Failed to upload document";
+                    return response;
+                }
+
                 request.FileContent = fileContent;
                 request.Class = NormalizeRepositoryClassCode(request.Class);
 
@@ -612,10 +620,10 @@ namespace pStudyWare20.Services.Implementations
                     return response;
                 }
 
-                if (fileContent.Length > 2 * 1024 * 1024)
+                if (fileContent.Length > 3 * 1024 * 1024)
                 {
                     response.IsSuccess = false;
-                    response.ErrorMessage = "File size must be less than 2 MB.";
+                    response.ErrorMessage = "File size must be less than 3 MB.";
                     response.Message = "Failed to upload document";
                     return response;
                 }
@@ -918,6 +926,8 @@ namespace pStudyWare20.Services.Implementations
             {
                 ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
             };
+
+        private const long ClassMaterialMaxFileSizeBytes = 5 * 1024 * 1024;
 
         private static bool IsAllowedRepositoryExtension(string fileName)
         {

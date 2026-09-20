@@ -656,21 +656,27 @@
   flex-wrap: nowrap;
   gap: 3px;
   margin-bottom: 0;
-  white-space: nowrap;
   line-height: 1.1;
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 .student-dashboard .meeting-detail-label {
   color: #000000;
   font-weight: 600;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .student-dashboard .meeting-detail-value {
   font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: #0f7d22;
-  flex-shrink: 0;
+  flex-shrink: 1;
 }
 
 .student-dashboard .meeting-copy-icon {

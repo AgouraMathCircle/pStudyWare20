@@ -212,25 +212,9 @@ namespace pStudyWare20.API.Controllers
                     UserName = username.Trim()
                 };
 
+                // AMC_spMeetingSchedule_Select now returns role-appropriate values directly:
+                // Student -> MeetingId/Passcode; Coordinator/Admin/SystemAdmin -> AdminLogin/AdminPassCode.
                 var response = await _meetingDetailsService.GetMeetingScheduleListAsync(request);
-
-                // Remove admin credentials for non-admin users
-                var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
-                var memberType = User.FindFirst("MemberType")?.Value ?? "";
-                var isAdmin = userRole == "Admin" || userRole == "SystemAdmin" || memberType == "A" || memberType == "C";
-
-                if (!isAdmin && response.IsSuccess && response.MeetingSchedules != null)
-                {
-                    // Clear admin credentials for students/non-admins
-                    if (response.MeetingSchedules is List<MeetingSchedule> scheduleList)
-                    {
-                        foreach (var schedule in scheduleList)
-                        {
-                            schedule.AdminLogin = "";
-                            schedule.AdminPassCode = "";
-                        }
-                    }
-                }
 
                 return Ok(response);
             }
