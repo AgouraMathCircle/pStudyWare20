@@ -17,7 +17,6 @@ import {
   VpnKey as VpnKeyIcon,
   MeetingRoom as MeetingRoomIcon,
   ContentCopy as ContentCopyIcon,
-  AdminPanelSettings as AdminPanelSettingsIcon,
 } from "@mui/icons-material";
 import meetingDetailsService from "../../../services/meetingDetailsService";
 import {
@@ -231,8 +230,6 @@ const StudentMeetingSchedule = ({
               const meetingID =
                 getProp(meeting, "MeetingID") || getProp(meeting, "MeetingId");
               const passcode = getProp(meeting, "Passcode");
-              const adminLogin = getProp(meeting, "AdminLogin");
-              const adminPassCode = getProp(meeting, "AdminPassCode");
               const classDisplay = getMeetingClassDisplay(meeting, getProp);
               const section = getProp(meeting, "Section");
 
@@ -255,7 +252,7 @@ const StudentMeetingSchedule = ({
                     )}
                   </Box>
 
-                  {(meetingID || passcode || adminLogin || adminPassCode) && (
+                  {(meetingID || passcode) && (
                     <Box className="meeting-meta">
                       {meetingID && (
                         <Box className="meeting-detail-row">
@@ -301,56 +298,6 @@ const StudentMeetingSchedule = ({
                               type="button"
                               className="meeting-copy-icon"
                               onClick={() => handleCopy(String(passcode))}
-                            >
-                              <ContentCopyIcon sx={{ fontSize: 11, display: "block" }} />
-                            </Box>
-                          </Tooltip>
-                        </Box>
-                      )}
-                      {adminLogin && (
-                        <Box className="meeting-detail-row">
-                          <AdminPanelSettingsIcon sx={{ fontSize: 15, flexShrink: 0 }} />
-                          <span className="meeting-detail-label">Admin Login</span>
-                          <span className="meeting-detail-value">{adminLogin}</span>
-                          <Tooltip
-                            title={
-                              copiedText === String(adminLogin) ? "Copied" : "Copy"
-                            }
-                            open={
-                              copiedText === String(adminLogin) ? true : undefined
-                            }
-                            placement="top"
-                          >
-                            <Box
-                              component="button"
-                              type="button"
-                              className="meeting-copy-icon"
-                              onClick={() => handleCopy(String(adminLogin))}
-                            >
-                              <ContentCopyIcon sx={{ fontSize: 11, display: "block" }} />
-                            </Box>
-                          </Tooltip>
-                        </Box>
-                      )}
-                      {adminPassCode && (
-                        <Box className="meeting-detail-row">
-                          <VpnKeyIcon sx={{ fontSize: 15, flexShrink: 0 }} />
-                          <span className="meeting-detail-label">Admin Passcode</span>
-                          <span className="meeting-detail-value">{adminPassCode}</span>
-                          <Tooltip
-                            title={
-                              copiedText === String(adminPassCode) ? "Copied" : "Copy"
-                            }
-                            open={
-                              copiedText === String(adminPassCode) ? true : undefined
-                            }
-                            placement="top"
-                          >
-                            <Box
-                              component="button"
-                              type="button"
-                              className="meeting-copy-icon"
-                              onClick={() => handleCopy(String(adminPassCode))}
                             >
                               <ContentCopyIcon sx={{ fontSize: 11, display: "block" }} />
                             </Box>
