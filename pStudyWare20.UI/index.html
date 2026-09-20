@@ -2,6 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      Belt-and-suspenders alongside the no-cache headers in public/web.config: this file
+      references the current build's content-hashed /assets/*.js|css filenames, so a cached
+      copy of it points at bundles a later deploy has deleted (symptom: users can't log in
+      until they clear their browser cache). The web.config headers are the real fix; this
+      meta tag just covers any intermediary that strips response headers but leaves the HTML.
+    -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta
       name="viewport"
