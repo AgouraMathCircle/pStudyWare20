@@ -39,6 +39,10 @@ import StudentHeader, { StudentRoleHeaderSpacer } from "./StudentHeader";
 import { getPortalUsername } from "../../../utils/portalUsername";
 import AdminHeader, { AdminRoleHeaderSpacer } from "../Admin/AdminHeader";
 import AdminStudentDocumentList from "../Admin/AdminStudentDocumentList";
+import SystemAdminHeader, {
+  SystemAdminRoleHeaderSpacer,
+} from "../SystemAdmin/SystemAdminHeader";
+import SystemAdminStudentDocumentList from "../SystemAdmin/SystemAdminStudentDocumentList";
 import InstructorStudentDocumentList from "../Instructor/InstructorStudentDocumentList";
 import {
   adminSessionListFindButtonSx,
@@ -209,9 +213,12 @@ const StudentDocuments = () => {
   const isAdminStudentDocsRoute = location.pathname.includes(
     "/pstudyware/admin/student-docs",
   );
-  /** Instructor shell + admin Student Docs: grid only (legacy hides upload for I/A). */
+  const isSystemAdminStudentDocsRoute = location.pathname.includes(
+    "/pstudyware/systemadmin/student-docs",
+  );
+  /** Instructor shell + admin/systemadmin Student Docs: grid only (legacy hides upload for I/A). */
   const useStaffDocumentsLayout =
-    isInstructorDocsRoute || isAdminStudentDocsRoute;
+    isInstructorDocsRoute || isAdminStudentDocsRoute || isSystemAdminStudentDocsRoute;
   const allowDocumentUpload = !useStaffDocumentsLayout;
   const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -650,8 +657,8 @@ const StudentDocuments = () => {
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      showMessage("File size must be less than 2MB", "error");
+    if (file.size > 3 * 1024 * 1024) {
+      showMessage("File size must be less than 3MB", "error");
       event.target.value = "";
       return;
     }
@@ -863,7 +870,28 @@ const StudentDocuments = () => {
     <>
       {useStaffDocumentsLayout ? (
         <>
-          {isAdminStudentDocsRoute ? (
+          {isSystemAdminStudentDocsRoute ? (
+            <Box sx={adminStudentDocsPageSx}>
+              <SystemAdminHeader user={user} />
+              <SystemAdminRoleHeaderSpacer />
+              <Container maxWidth="xl" sx={{ mb: 4 }}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <Card sx={adminSessionListPanelCardSx}>
+                      <CardContent sx={adminSessionListPanelContentSx}>
+                        <SystemAdminStudentDocumentList
+                          documents={documents}
+                          onView={handleView}
+                          onDownload={handleDownload}
+                          onDelete={handleDeleteClick}
+                        />
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Grid>
+              </Container>
+            </Box>
+          ) : isAdminStudentDocsRoute ? (
             <Box sx={adminStudentDocsPageSx}>
               <AdminHeader user={user} />
               <AdminRoleHeaderSpacer />
@@ -1125,7 +1153,7 @@ const StudentDocuments = () => {
         onClose={handleUploadDialogClose}
         maxWidth="md"
         disableClose={uploadSubmitting}
-        title="Upload Documents (Only PDF < 2 MB)"
+        title="Upload Documents (Only PDF < 3 MB)"
         icon={<UploadIcon sx={{ fontSize: 20 }} />}
         actions={
           <Button
@@ -1163,7 +1191,7 @@ const StudentDocuments = () => {
           >
             <Typography variant="body2" sx={{ color: "error.main" }}>
               File Name must be student First Name (Example: David.PDF). Please
-              upload SINGLE PDF file (less than 2 MB). File Upload only for AI
+              upload SINGLE PDF file (less than 3 MB). File Upload only for AI
               and Data Science Class. All Math Circle, ACT and PSAT Class need
               to use the{" "}
               <Link

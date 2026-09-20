@@ -99,9 +99,9 @@ const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
         e.target.value = "";
         return;
       }
-      // Validate file size (2MB = 2097152 bytes)
-      if (file.size > 2097152) {
-        showSnackbar("File size must be less than 2 MB.", "error");
+      // Validate file size (5MB = 5242880 bytes)
+      if (file.size > 5242880) {
+        showSnackbar("File size must be less than 5 MB.", "error");
         setSelectedFile(null);
         e.target.value = "";
         return;
@@ -187,7 +187,7 @@ const DocumentUploadForm = ({ open, onClose, onSubmit, loading }) => {
       }
     >
       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-        PDF only, max 2 MB
+        PDF only, max 5 MB
       </Typography>
 
       <Grid container spacing={2}>

@@ -36,7 +36,7 @@ namespace pStudyWare20.Services.Implementations
             {
                 var chapterId = GetChapterIdFromContext();
                 var (currentSession, currentSemester, _) =
-                    await _memberRepository.GetCurrentSessionAndSemesterAsync(chapterId);
+                    await _memberRepository.GetCurrentSessionAndSemesterAsync(chapterId, "V");
                 request.Session = VolunteerAvailabilitySessionHelper.NormalizeSubmittedSession(
                     request.Session,
                     currentSession);
@@ -94,7 +94,7 @@ namespace pStudyWare20.Services.Implementations
             {
                 var chapterId = GetChapterIdFromContext();
                 var (currentSession, currentSemester, _) =
-                    await _memberRepository.GetCurrentSessionAndSemesterAsync(chapterId);
+                    await _memberRepository.GetCurrentSessionAndSemesterAsync(chapterId, "V");
                 request.Session = VolunteerAvailabilitySessionHelper.NormalizeSubmittedSession(
                     request.Session,
                     currentSession);
@@ -161,7 +161,7 @@ namespace pStudyWare20.Services.Implementations
             try
             {
                 var (currentSession, currentSemester, _) =
-                    await _memberRepository.GetCurrentSessionAndSemesterAsync(chapterId);
+                    await _memberRepository.GetCurrentSessionAndSemesterAsync(chapterId, "V");
 
                 var targetSession = VolunteerAvailabilitySessionHelper.GetTargetSession(currentSession);
 
