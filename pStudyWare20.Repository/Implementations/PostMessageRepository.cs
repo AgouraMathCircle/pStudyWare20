@@ -119,7 +119,19 @@ namespace pStudyWare20.Repository.Implementations
                 using var adapter = new SqlDataAdapter(command);
                 adapter.Fill(dataTable);
 
-                return System.Text.Json.JsonSerializer.Serialize(dataTable);
+                var rows = new List<Dictionary<string, object?>>();
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    var rowDict = new Dictionary<string, object?>();
+                    foreach (DataColumn column in dataTable.Columns)
+                    {
+                        var value = row[column];
+                        rowDict[column.ColumnName] = value == DBNull.Value ? null : value;
+                    }
+                    rows.Add(rowDict);
+                }
+
+                return System.Text.Json.JsonSerializer.Serialize(rows);
             }
             catch (Exception ex)
             {
