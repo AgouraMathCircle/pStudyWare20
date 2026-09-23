@@ -92,6 +92,7 @@ import {
   ChangePassword,
   VolunteerAvailability,
 } from "./src/components/pstudyware/Common";
+import EmailInbox from "./src/components/pstudyware/EmailInbox/EmailInbox";
 
 
 // function PstudywareUpdateProfileRedirect() {
@@ -828,6 +829,28 @@ const AppRoutes = () => {
               }
             />
             <Route
+              path="/pstudyware/admin/email-inbox"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <EmailInbox />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/email-inbox"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Admin", "SystemAdmin"]}
+                  allowedMemberTypes={["A"]}
+                >
+                  <EmailInbox />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
               path="/pstudyware/admin/meeting-details"
               element={
                 <RoleProtectedRoute
@@ -899,6 +922,7 @@ const AppRoutes = () => {
               <Route path="student-documents" element={<StudentDocuments />} />
               <Route path="report-card" element={<AdminReportCard />} />
               <Route path="message-center" element={<EmailManager />} />
+              <Route path="email-inbox" element={<EmailInbox />} />
               <Route
                 path="change-password"
                 element={<ChangePassword skipRoleHeader />}
@@ -968,6 +992,19 @@ const AppRoutes = () => {
                 >
                   <VolunteerShell>
                     <EmailManager />
+                  </VolunteerShell>
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/pstudyware/volunteer/email-inbox"
+              element={
+                <RoleProtectedRoute
+                  allowedRoles={["Volunteer"]}
+                  allowedMemberTypes={["V"]}
+                >
+                  <VolunteerShell>
+                    <EmailInbox />
                   </VolunteerShell>
                 </RoleProtectedRoute>
               }

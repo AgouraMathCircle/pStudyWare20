@@ -14,10 +14,12 @@ namespace pStudyWare20.API.Controllers
     public class EmailManagerController : ControllerBase
     {
         private readonly IEmailManagerService _emailManagerService;
+        private readonly IGoogleWorkspaceService _googleWorkspaceService;
 
-        public EmailManagerController(IEmailManagerService emailManagerService)
+        public EmailManagerController(IEmailManagerService emailManagerService, IGoogleWorkspaceService googleWorkspaceService)
         {
             _emailManagerService = emailManagerService;
+            _googleWorkspaceService = googleWorkspaceService;
         }
 
         /// <summary>
@@ -46,6 +48,97 @@ namespace pStudyWare20.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "An error occurred while getting messages", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get messages from Gmail for a user
+        /// </summary>
+        [HttpPost("GetGmailMessages")]
+        public async Task<IActionResult> GetGmailMessages([FromBody] GetMessagesRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                if (string.IsNullOrEmpty(request.Username))
+                {
+                    return BadRequest(new { message = "Username (email) is required for Gmail integration." });
+                }
+
+                var response = await _googleWorkspaceService.GetGmailMessagesAsync(request.Username, request.Label, request.SearchQuery, 20);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while getting Gmail messages", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get a specific Gmail message by ID
+        /// </summary>
+        [HttpPost("GetGmailMessage")]
+        public async Task<IActionResult> GetGmailMessage([FromBody] GetGmailMessageRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.GmailId))
+                {
+                    return BadRequest(new { message = "Username and GmailId are required." });
+                }
+
+                var response = await _googleWorkspaceService.GetGmailMessageAsync(request.Username, request.GmailId);
+                if (!response.IsSuccess)
+                {
+                    return BadRequest(new { message = response.ErrorMessage });
+                }
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while getting Gmail message", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Toggle star status on a Gmail message
+        /// </summary>
+        [HttpPost("ToggleMessageStar")]
+        public async Task<IActionResult> ToggleMessageStar([FromBody] ToggleStarRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.GmailId))
+                {
+                    return BadRequest(new { message = "Username and GmailId are required." });
+                }
+
+                var success = await _googleWorkspaceService.ToggleMessageStarAsync(request.Username, request.GmailId, request.IsStarred);
+                if (!success)
+                {
+                    return BadRequest(new { message = "Failed to toggle star status" });
+                }
+
+                return Ok(new { success = true, message = "Star status toggled successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while toggling star status", error = ex.Message });
             }
         }
 
@@ -111,7 +204,39 @@ namespace pStudyWare20.API.Controllers
         }
 
         /// <summary>
-        /// Send a new message or reply to a message
+        /// Send a new message or reply to a message via Gmail API
+        /// </summary>
+        [HttpPost("SendGmailMessage")]
+        public async Task<IActionResult> SendGmailMessage([FromBody] SendGmailMessageRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid request data", errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                if (string.IsNullOrEmpty(request.Username))
+                {
+                    return BadRequest(new { message = "Username (email) is required for Gmail integration." });
+                }
+
+                var response = await _googleWorkspaceService.SendGmailMessageAsync(request);
+                if (!response.IsSuccess)
+                {
+                    return BadRequest(new { message = response.ErrorMessage });
+                }
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while sending Gmail message", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Send a new message or reply to a message (Legacy DB)
         /// </summary>
         /// <param name="request">Send message request</param>
         /// <returns>Send message response</returns>

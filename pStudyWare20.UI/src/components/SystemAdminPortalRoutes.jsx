@@ -7,6 +7,7 @@ import {
   EmailManager,
   ChangePassword,
 } from "./pstudyware/Common";
+import EmailInbox from "./pstudyware/EmailInbox/EmailInbox";
 import * as SystemAdminPages from "./pstudyware/SystemAdmin";
 
 /**
@@ -141,6 +142,11 @@ export function buildSystemAdminPortalRoutes() {
       key={`${base}-message-center`}
       path={`${prefix}/message-center`}
       element={wrap(<EmailManager />)}
+    />,
+    <Route
+      key={`${base}-email-inbox`}
+      path={`${prefix}/email-inbox`}
+      element={wrap(<EmailInbox />)}
     />,
     <Route
       key={`${base}-meeting-details`}

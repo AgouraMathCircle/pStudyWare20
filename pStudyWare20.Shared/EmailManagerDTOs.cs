@@ -9,6 +9,12 @@ namespace pStudyWare20.Shared
     {
         [Display(Name = "Username")]
         public string Username { get; set; } = string.Empty;
+
+        [Display(Name = "Label")]
+        public string Label { get; set; } = string.Empty;
+
+        [Display(Name = "SearchQuery")]
+        public string SearchQuery { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -58,6 +64,11 @@ namespace pStudyWare20.Shared
         public string SenderName { get; set; } = string.Empty;
         /// <summary>Raw ET.SendFrom username parsed from legacy Emailinfo (used for replies).</summary>
         public string SenderUsername { get; set; } = string.Empty;
+        
+        /// <summary>Google Workspace Gmail ID if applicable</summary>
+        public string GmailId { get; set; } = string.Empty;
+
+        public bool IsStarred { get; set; }
     }
 
     /// <summary>
@@ -68,6 +79,20 @@ namespace pStudyWare20.Shared
         [Required]
         [Display(Name = "Email ID")]
         public int EmailID { get; set; }
+    }
+
+    /// <summary>
+    /// Model for get specific Gmail message request
+    /// </summary>
+    public class GetGmailMessageRequest
+    {
+        [Required]
+        [Display(Name = "Username")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required]
+        [Display(Name = "Gmail ID")]
+        public string GmailId { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -83,6 +108,24 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Message")]
         public MessageInfo? Message { get; set; }
+    }
+
+    /// <summary>
+    /// Model for toggle star request
+    /// </summary>
+    public class ToggleStarRequest
+    {
+        [Required]
+        [Display(Name = "Username")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required]
+        [Display(Name = "Gmail ID")]
+        public string GmailId { get; set; } = string.Empty;
+
+        [Required]
+        [Display(Name = "Is Starred")]
+        public bool IsStarred { get; set; }
     }
 
     /// <summary>
@@ -136,6 +179,24 @@ namespace pStudyWare20.Shared
 
         [Display(Name = "Error Message")]
         public string ErrorMessage { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Model for send Gmail message request
+    /// </summary>
+    public class SendGmailMessageRequest
+    {
+        [Required]
+        public string Username { get; set; } = string.Empty;
+        [Required]
+        public string To { get; set; } = string.Empty;
+        public string Cc { get; set; } = string.Empty;
+        public string Bcc { get; set; } = string.Empty;
+        [Required]
+        public string Subject { get; set; } = string.Empty;
+        [Required]
+        public string Body { get; set; } = string.Empty;
+        public string FromName { get; set; } = string.Empty;
     }
 
     /// <summary>
