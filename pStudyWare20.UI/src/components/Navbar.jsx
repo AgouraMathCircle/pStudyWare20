@@ -58,6 +58,7 @@ import {
   MenuBook as ResourcesIcon,
   Lock as LockIcon,
   Close as CloseIcon,
+  Inbox as InboxIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { authService } from "../services";
@@ -300,6 +301,11 @@ const Navbar = ({ usePortalLogo = false }) => {
       icon: <MessageIcon fontSize="small" />,
     },
     {
+      label: "Email Inbox",
+      href: `${portalBase}/email-inbox`,
+      icon: <InboxIcon fontSize="small" />,
+    },
+    {
       label: "Password",
       href: `${portalBase}/change-password`,
       icon: <LockIcon fontSize="small" />,
@@ -351,6 +357,11 @@ const Navbar = ({ usePortalLogo = false }) => {
       icon: <MessageIcon fontSize="small" />,
     },
     {
+      label: "Email Inbox",
+      href: "/pstudyware/instructor/email-inbox",
+      icon: <InboxIcon fontSize="small" />,
+    },
+    {
       label: "Change Password",
       href: "/pstudyware/instructor/change-password",
       icon: <LockIcon fontSize="small" />,
@@ -384,6 +395,11 @@ const Navbar = ({ usePortalLogo = false }) => {
       label: "Message Center",
       href: "/pstudyware/volunteer/message-center",
       icon: <MessageIcon fontSize="small" />,
+    },
+    {
+      label: "Email Inbox",
+      href: "/pstudyware/volunteer/email-inbox",
+      icon: <InboxIcon fontSize="small" />,
     },
     {
       label: "Change Password",

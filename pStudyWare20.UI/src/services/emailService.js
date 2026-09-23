@@ -4,7 +4,7 @@ import config from "../utils/config";
 const BASE = "/EmailManager";
 const ALLOWED_EMAIL_DOMAIN = "agouramathcircle.org";
 const DOMAIN_ACCESS_MESSAGE =
-  "You do not have an agouramathcircle email to access this feature.";
+  "You need agouramathcircle email to access it.";
 
 function getCurrentUser() {
   try {
@@ -47,7 +47,7 @@ function getErrorResult(error, fallback = "Network error") {
 
 function mapMessage(item = {}) {
   return {
-    Id: item.messageID ?? item.MessageID ?? item.id ?? item.Id,
+    Id: item.gmailId || item.GmailId || item.messageID || item.MessageID || item.id || item.Id,
     TrackingID: item.trackingID ?? item.TrackingID,
     From: item.senderName || item.SenderName || item.sendFrom || item.SendFrom,
     To: item.sendTo || item.SendTo,
@@ -55,59 +55,61 @@ function mapMessage(item = {}) {
     Body: item.message || item.Message || "",
     Date: item.sendDate || item.SendDate || "",
     Status: item.status || item.Status || "",
+    IsStarred: item.isStarred || item.IsStarred || false,
   };
 }
 
 export function getAuthorizedEmails() {
+  const user = getCurrentUser();
+  const role = (user.role || "").toLowerCase();
+  const systemAdmin = user.systemAdmin === 'Y' || user.systemAdmin === true;
   const email = getCurrentEmail();
-  if (!hasAllowedEmailDomain(email)) {
+
+  if (role === 'superadmin' || systemAdmin) {
     return Promise.resolve({
-      success: false,
-      message: DOMAIN_ACCESS_MESSAGE,
+      success: true,
+      data: [
+        "support@agouramathcircle.org",
+        "info@agouramathcircle.org",
+        "exam@agouramathcircle.org",
+        "Registration@agouramathcircle.org"
+      ]
     });
   }
 
-  return Promise.resolve({ success: true, data: email ? [email] : [] });
+  const allowedRoles = ['coordinator', 'volunteer', 'instructor', 'admin'];
+  if (allowedRoles.includes(role)) {
+    if (!hasAllowedEmailDomain(email)) {
+      return Promise.resolve({
+        success: false,
+        message: DOMAIN_ACCESS_MESSAGE,
+      });
+    }
+    return Promise.resolve({ success: true, data: email ? [email] : [] });
+  }
+
+  return Promise.resolve({
+    success: false,
+    message: "You are not authorized to access this feature."
+  });
 }
 
-export function getEmailList(labelId, targetEmail, pageToken) {
-  if (!hasAllowedEmailDomain(targetEmail || getCurrentEmail())) {
+export function getEmailList(labelId, targetEmail, pageToken, searchQuery = '') {
+  const currentEmail = getCurrentEmail();
+  if (!hasAllowedEmailDomain(targetEmail || currentEmail)) {
     return Promise.resolve({
       success: false,
       message: DOMAIN_ACCESS_MESSAGE,
     });
   }
 
-  if (labelId === "SENT") {
-    const url = `/SentEmail/GetSentMessages?username=${encodeURIComponent(targetEmail || "")}`;
-    return api
-      .get(url)
-      .then((response) => {
-        const data = response.data || {};
-        if (data.isSuccess === false || data.IsSuccess === false) {
-          return {
-            success: false,
-            message: data.errorMessage || data.ErrorMessage || "Failed to load sent messages",
-          };
-        }
-        const messages = data.messages || data.Messages || [];
-        return {
-          success: true,
-          data: {
-            Items: messages.map(mapMessage),
-            NextPageToken: null,
-          },
-        };
-      })
-      .catch((error) => getErrorResult(error, "Failed to load sent messages"));
-  }
+  // If fetching for their own email, send their actual email to fetch Gmail messages
+  const apiUsername = (targetEmail && targetEmail !== currentEmail) ? targetEmail : currentEmail;
 
-  if (labelId && labelId !== "INBOX") {
-    return Promise.resolve({ success: true, data: { Items: [] } });
-  }
+  // Allow all labels to hit GetGmailMessages
 
   return api
-    .post(`${BASE}/GetMessages`, { username: targetEmail || "" })
+    .post(`${BASE}/GetGmailMessages`, { username: apiUsername, label: labelId, searchQuery: searchQuery })
     .then((response) => {
       const data = response.data || {};
 
@@ -118,7 +120,8 @@ export function getEmailList(labelId, targetEmail, pageToken) {
         };
       }
 
-      const messages = data.messages || data.Messages || [];
+      let messages = data.messages || data.Messages || [];
+
       return {
         success: true,
         data: {
@@ -136,6 +139,33 @@ export function getEmailBody(id, targetEmail) {
       success: false,
       message: DOMAIN_ACCESS_MESSAGE,
     });
+  }
+
+  // Gmail IDs are typically 16-character hex strings, while legacy IDs are numeric ints (usually short)
+  const isGmailId = typeof id === 'string' && id.length > 10;
+  
+  if (isGmailId) {
+    return api
+      .post(`${BASE}/GetGmailMessage`, { username: targetEmail || getCurrentEmail(), gmailId: id })
+      .then((response) => {
+        const data = response.data || {};
+        if (data.isSuccess === false || data.IsSuccess === false) {
+          return { success: false, message: data.errorMessage || data.ErrorMessage || "Failed to load Gmail message" };
+        }
+        const message = data.message || data.Message || {};
+        return {
+          success: true,
+          data: {
+            id: message.gmailId || message.GmailId || id,
+            from: message.senderName || message.SenderName || message.sendFrom || message.SendFrom,
+            to: message.sendTo || message.SendTo || targetEmail || getCurrentEmail(),
+            subject: message.subject || message.Subject || "",
+            body: message.message || message.Message || "",
+            date: message.sendDate || message.SendDate || "",
+          },
+        };
+      })
+      .catch((error) => getErrorResult(error, "Failed to load Gmail message"));
   }
 
   return api
@@ -187,20 +217,18 @@ export function sendOrDraftEmail({ to, cc, bcc, subject, body, isDraft, schedule
 
   const user = getCurrentUser();
   const sendFrom = targetEmail || getCurrentEmail();
+  const apiSendFrom = (targetEmail && targetEmail !== getCurrentEmail()) ? targetEmail : getCurrentEmail();
   const fromName = user.fullName || user.name || user.userName || sendFrom;
 
   return api
-    .post(`${BASE}/SendMessage`, {
-      sendTo: to,
-      sendFrom,
-      subject,
-      message: body,
-      sendBy: sendFrom,
-      replyToEmailID: replyToEmailID || 0,
-      mode: mode || "N",
-      chapterID: user.chapterID || user.chapterId || "",
-      memberType: user.memberType || "",
-      fromName,
+    .post(`${BASE}/SendGmailMessage`, {
+      username: apiSendFrom,
+      to: to,
+      cc: cc || "",
+      bcc: bcc || "",
+      subject: subject,
+      body: body,
+      fromName: fromName
     })
     .then((response) => {
       const data = response.data || {};
@@ -220,10 +248,33 @@ export function sendOrDraftEmail({ to, cc, bcc, subject, body, isDraft, schedule
     .catch((error) => getErrorResult(error, "Failed to send message"));
 }
 
+export function toggleMessageStar(targetEmail, gmailId, isStarred) {
+  if (!hasAllowedEmailDomain(targetEmail || getCurrentEmail())) {
+    return Promise.resolve({
+      success: false,
+      message: DOMAIN_ACCESS_MESSAGE,
+    });
+  }
+
+  const apiUsername = (targetEmail && targetEmail !== getCurrentEmail()) ? targetEmail : getCurrentEmail();
+
+  return api
+    .post(`${BASE}/ToggleMessageStar`, { username: apiUsername, gmailId, isStarred })
+    .then((response) => {
+      const data = response.data || {};
+      if (data.isSuccess === false || data.IsSuccess === false || data.success === false) {
+        return { success: false, message: data.message || data.errorMessage || "Failed to toggle star status" };
+      }
+      return { success: true, message: data.message || "Star status toggled" };
+    })
+    .catch((error) => getErrorResult(error, "Failed to toggle star status"));
+}
+
 export default {
   getAuthorizedEmails,
   getEmailList,
   getEmailBody,
   getEmailSuggestions,
-  sendOrDraftEmail
+  sendOrDraftEmail,
+  toggleMessageStar
 };
