@@ -1,0 +1,2 @@
+CREATE SCHEMA [AMCAdminDB]
+    AUTHORIZATION [dbo];
