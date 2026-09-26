@@ -84,4 +84,5 @@ foreach ($s in $db.Schemas) {
     $script:count++
 }
 
+[void](Sync-ProjectItems)
 Write-Host "Wrote $script:count files. Review with: git status -- pStudyWare20.DB"

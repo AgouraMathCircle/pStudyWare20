@@ -27,6 +27,7 @@ param(
 )
 . "$PSScriptRoot\Common.ps1"
 $sqlpackage = Get-SqlPackage
+$msbuild = Get-MSBuild
 $projectRel = 'pStudyWare20.DB\pStudyWare20.DB.sqlproj'
 $work = Join-Path ([IO.Path]::GetTempPath()) ("pStudyWare20-db-" + [Guid]::NewGuid().ToString('N').Substring(0, 8))
 New-Item -ItemType Directory $work | Out-Null
@@ -35,9 +36,15 @@ function Build-Dacpac([string]$repo, [string]$dest) {
     $proj = Join-Path $repo $projectRel
     if (-not (Test-Path $proj)) { throw "No DB project at $proj" }
     $out = Join-Path $work ([IO.Path]::GetFileNameWithoutExtension($dest))
-    dotnet build $proj -c Release -nologo -v:q "-p:OutDir=$out\" | Out-Host
+    # /restore lets the same MSBuild also build older SDK-style commits of this project.
+    & $msbuild $proj /restore /p:Configuration=Release "/p:OutDir=$out\" /nologo /v:q /clp:ErrorsOnly | Out-Host
     if ($LASTEXITCODE -ne 0) { throw "Build failed for $proj" }
     Copy-Item (Join-Path $out 'pStudyWare20.DB.dacpac') $dest
+}
+
+# A .sql file on disk but missing from the .sqlproj would silently be left out of the script.
+if (Sync-ProjectItems) {
+    Write-Warning "pStudyWare20.DB.sqlproj didn't list every .sql file on disk and has been updated - commit it with your change."
 }
 
 $worktree = $null
