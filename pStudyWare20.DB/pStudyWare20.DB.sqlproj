@@ -7,13 +7,16 @@
   -->
   <PropertyGroup>
     <Name>pStudyWare20.DB</Name>
-    <ProjectGuid>{DC269B47-54D1-483D-9BB1-3AC183B17BEA}</ProjectGuid>
+    <ProjectGuid>{dc269b47-54d1-483d-9bb1-3ac183b17bea}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
     <ModelCollation>1033,CI</ModelCollation>
     <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
     <!-- SQL71558: identifier casing differs from its definition (harmless: CI collation).
          SQL71562: usp_pStudyware_Select_StudentLog references the external PranavDB database. -->
     <SuppressTSqlWarnings>71558;71562</SuppressTSqlWarnings>
+    <TargetDatabaseSet>True</TargetDatabaseSet>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <ItemGroup>
     <!-- Hand-run scripts: visible in the project but never compiled into the schema model. -->
@@ -23,5 +26,10 @@
     <None Include="OnetimeScript\**" />
     <None Include="Tools\**" />
     <None Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ChangeScripts\" />
+    <Folder Include="OnetimeScript\" />
+    <Folder Include="Tools\" />
   </ItemGroup>
 </Project>
