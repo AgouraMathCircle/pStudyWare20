@@ -68,6 +68,19 @@ export default defineConfig({
   optimizeDeps: {
     include: ["pdfjs-dist/legacy/build/pdf.mjs"],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // IIS has no MIME type for .mjs and answers 404 for it, which kills the PDF
+        // viewer's worker (pdf.worker.min-*.mjs) on the deployed site. The server's
+        // web.config is managed outside git, so emit the worker as .js instead.
+        assetFileNames: (assetInfo) =>
+          assetInfo.names?.some((name) => name.endsWith(".mjs"))
+            ? "assets/[name]-[hash].js"
+            : "assets/[name]-[hash][extname]",
+      },
+    },
+  },
   server: {
     port: 3000,
     host: true,
