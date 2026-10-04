@@ -56,8 +56,17 @@ const legacyDocumentsPlugin = () => ({
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), legacyDocumentsPlugin()],
+  resolve: {
+    alias: [
+      // pdfjs-dist 5's modern build calls Promise.withResolvers() unpolyfilled,
+      // which older phone browsers (iOS Safari < 17.4, Chrome < 119) lack — react-pdf
+      // then fails and the viewer drops to a native iframe that doesn't work on
+      // mobile. The legacy build ships the polyfills; worker is matched in PdfViewer.
+      { find: /^pdfjs-dist$/, replacement: "pdfjs-dist/legacy/build/pdf.mjs" },
+    ],
+  },
   optimizeDeps: {
-    include: ["pdfjs-dist"],
+    include: ["pdfjs-dist/legacy/build/pdf.mjs"],
   },
   server: {
     port: 3000,

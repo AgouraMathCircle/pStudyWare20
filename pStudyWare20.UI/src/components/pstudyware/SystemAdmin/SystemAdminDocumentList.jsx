@@ -427,11 +427,12 @@ const SystemAdminDocumentList = ({
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
+          // Phones: note text full width on top, Upload button below it.
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: { xs: "flex-start", sm: "center" },
           justifyContent: "space-between",
-          gap: 2,
+          gap: { xs: 1, sm: 2 },
           mb: 1,
-          flexWrap: { xs: "wrap", sm: "nowrap" },
         }}
       >
         <Typography
@@ -439,7 +440,8 @@ const SystemAdminDocumentList = ({
           sx={{
             ...studentPortalIntroTextSx,
             mb: 0,
-            flex: 1,
+            flex: { xs: "none", sm: 1 },
+            width: { xs: "100%", sm: "auto" },
             minWidth: 0,
             whiteSpace: { xs: "normal", sm: "nowrap" },
             fontSize: "calc(1rem - 1pt)",

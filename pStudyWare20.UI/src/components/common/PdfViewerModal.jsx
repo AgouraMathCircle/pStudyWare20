@@ -36,6 +36,10 @@ const PdfViewerModal = ({
       PaperProps={{
         sx: {
           ...portalModalPaperSx,
+          // Default 32px dialog margins waste a lot of a phone screen on a document viewer.
+          m: { xs: 1, sm: 4 },
+          width: { xs: "calc(100% - 16px)", sm: "calc(100% - 64px)" },
+          maxWidth: { xs: "calc(100% - 16px)", sm: "calc(100% - 64px)" },
           height: { xs: "95vh", sm: "90vh" },
           maxHeight: { xs: "95vh", sm: "90vh" },
           display: "flex",

@@ -26,7 +26,9 @@ import {
   FullscreenExit as FullscreenExitIcon,
 } from "@mui/icons-material";
 import { Document, Page, pdfjs } from "react-pdf";
-import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+// Legacy build (with polyfills) so older phone browsers can render; must match the
+// "pdfjs-dist" -> legacy alias in vite.config.js.
+import pdfWorkerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import config, { getPublicDocumentUrl, getSessionDocumentUrl } from "../../utils/config";
@@ -40,6 +42,16 @@ pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 const ZOOM_STEP = 0.2;
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 3.0;
+// Pages render at the viewer width, capped so wide desktop dialogs keep a readable page size.
+const MAX_BASE_PAGE_WIDTH = 816;
+const PAGE_ASPECT_RATIO = 11 / 8.5;
+
+// Touch devices can't use the native-viewer iframe fallback (iOS shows only page 1 with
+// no scrolling, Android shows nothing), so they get open-in-new-tab/download instead.
+const isTouchDevice = () =>
+  typeof window !== "undefined" && !!window.matchMedia?.("(pointer: coarse)").matches;
+
+const hideOnPhoneSx = { display: { xs: "none", sm: "inline-flex" } };
 
 const isPdfBlob = async (blob) => {
   const headerBuffer = await blob.slice(0, 5).arrayBuffer();
@@ -72,8 +84,14 @@ const PdfViewer = ({
   const [pdfBlob, setPdfBlob] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
   const [loadingDocument, setLoadingDocument] = useState(true);
+  const [viewerWidth, setViewerWidth] = useState(0);
   const containerRef = React.useRef(null);
   const blobUrlRef = React.useRef(null);
+  const scrollRef = React.useRef(null);
+  const pageRefs = React.useRef([]);
+  const touchDevice = useMemo(isTouchDevice, []);
+  const fullscreenSupported =
+    typeof document !== "undefined" && !!document.fullscreenEnabled;
 
   const getFullPdfUrl = useCallback(() => {
     if (!pdfUrl) return null;
@@ -99,6 +117,22 @@ const PdfViewer = ({
     cMapPacked: true,
     standardFontDataUrl: `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
   }), []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(([entry]) => {
+      setViewerWidth(Math.floor(entry.contentRect.width));
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [useFallback]);
+
+  useEffect(() => {
+    const syncFullscreen = () => setFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", syncFullscreen);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreen);
+  }, []);
 
   useEffect(() => {
     if (error && !useFallback) {
@@ -240,38 +274,49 @@ const PdfViewer = ({
     setError(null);
   };
 
-  const goToPrevPage = () => {
-    if (pageNumber > 1) {
-      const nextPage = pageNumber - 1;
-      setPageNumber(nextPage);
-      setPageInput(String(nextPage));
+  const scrollToPage = (page) => {
+    const container = scrollRef.current;
+    const pageEl = pageRefs.current[page - 1];
+    setPageNumber(page);
+    setPageInput(String(page));
+    if (container && pageEl) {
+      container.scrollTo({ top: pageEl.offsetTop - 8, behavior: "smooth" });
     }
+  };
+
+  // All pages render in one scroll column; keep the page counter in sync with scrolling.
+  const handleViewerScroll = () => {
+    const container = scrollRef.current;
+    if (!container || !numPages) return;
+    const probe = container.scrollTop + container.clientHeight / 3;
+    let current = 1;
+    pageRefs.current.slice(0, numPages).forEach((el, index) => {
+      if (el && el.offsetTop <= probe) current = index + 1;
+    });
+    if (current !== pageNumber) {
+      setPageNumber(current);
+      setPageInput(String(current));
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (pageNumber > 1) scrollToPage(pageNumber - 1);
   };
 
   const goToNextPage = () => {
-    if (numPages && pageNumber < numPages) {
-      const nextPage = pageNumber + 1;
-      setPageNumber(nextPage);
-      setPageInput(String(nextPage));
-    }
+    if (numPages && pageNumber < numPages) scrollToPage(pageNumber + 1);
   };
 
-  const goToFirstPage = () => {
-    setPageNumber(1);
-    setPageInput("1");
-  };
+  const goToFirstPage = () => scrollToPage(1);
 
   const goToLastPage = () => {
-    if (numPages) {
-      setPageNumber(numPages);
-      setPageInput(String(numPages));
-    }
+    if (numPages) scrollToPage(numPages);
   };
 
   const goToPage = () => {
     const page = parseInt(pageInput, 10);
     if (!Number.isNaN(page) && page >= 1 && page <= (numPages || 1)) {
-      setPageNumber(page);
+      scrollToPage(page);
     } else {
       setPageInput(String(pageNumber));
     }
@@ -290,12 +335,10 @@ const PdfViewer = ({
   };
 
   const toggleFullscreen = () => {
-    if (!fullscreen) {
+    if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen?.();
-      setFullscreen(true);
     } else {
       document.exitFullscreen?.();
-      setFullscreen(false);
     }
   };
 
@@ -323,11 +366,20 @@ const PdfViewer = ({
     }
   };
 
-  const handlePrint = () => {
+  const openInNewTab = () => {
     const printUrl = pdfFile || fullPdfUrl;
     if (printUrl) {
       window.open(printUrl, "_blank", "noopener,noreferrer");
     }
+  };
+
+  const openInBrowserViewer = () => {
+    if (touchDevice) {
+      openInNewTab();
+      return;
+    }
+    setUseFallback(true);
+    setError(null);
   };
 
   const handlePageInputChange = (event) => {
@@ -349,17 +401,20 @@ const PdfViewer = ({
       sx={{
         display: "flex",
         alignItems: "center",
-        gap: 1,
-        padding: "8px 16px",
+        gap: { xs: 0.5, sm: 1 },
+        padding: { xs: "4px 8px", sm: "8px 16px" },
         backgroundColor: "#fff",
         borderBottom: "1px solid #e0e0e0",
-        flexWrap: "wrap",
+        // Phones: one row — compact icons, fullscreen/first/last/reset hidden.
+        flexWrap: { xs: "nowrap", sm: "wrap" },
+        justifyContent: { xs: "space-between", sm: "flex-start" },
+        "& .MuiIconButton-root": { padding: { xs: "4px", sm: "5px" } },
         flexShrink: 0,
       }}
     >
-      <Stack direction="row" spacing={0.5} alignItems="center">
+      <Stack direction="row" spacing={{ xs: 0, sm: 0.5 }} alignItems="center">
         <Tooltip title="First Page">
-          <span>
+          <Box component="span" sx={hideOnPhoneSx}>
             <IconButton
               size="small"
               onClick={goToFirstPage}
@@ -368,7 +423,7 @@ const PdfViewer = ({
             >
               <FirstPageIcon fontSize="small" />
             </IconButton>
-          </span>
+          </Box>
         </Tooltip>
         <Tooltip title="Previous Page">
           <span>
@@ -389,7 +444,7 @@ const PdfViewer = ({
           onKeyDown={handlePageInputKeyDown}
           onBlur={goToPage}
           sx={{
-            width: "72px",
+            width: { xs: "58px", sm: "68px" },
             "& .MuiOutlinedInput-root": {
               fontSize: "0.75rem",
               height: "32px",
@@ -416,7 +471,7 @@ const PdfViewer = ({
           </span>
         </Tooltip>
         <Tooltip title="Last Page">
-          <span>
+          <Box component="span" sx={hideOnPhoneSx}>
             <IconButton
               size="small"
               onClick={goToLastPage}
@@ -425,13 +480,13 @@ const PdfViewer = ({
             >
               <LastPageIcon fontSize="small" />
             </IconButton>
-          </span>
+          </Box>
         </Tooltip>
       </Stack>
 
-      <Box sx={{ flexGrow: 1 }} />
+      <Box sx={{ flexGrow: 1, display: { xs: "none", sm: "block" } }} />
 
-      <Stack direction="row" spacing={0.5} alignItems="center">
+      <Stack direction="row" spacing={{ xs: 0, sm: 0.5 }} alignItems="center">
         <Tooltip title="Zoom Out">
           <span>
             <IconButton
@@ -444,7 +499,7 @@ const PdfViewer = ({
             </IconButton>
           </span>
         </Tooltip>
-        <Typography sx={{ fontSize: "0.75rem", minWidth: "50px", textAlign: "center" }}>
+        <Typography sx={{ fontSize: "0.75rem", minWidth: { xs: "36px", sm: "50px" }, textAlign: "center" }}>
           {Math.round(scale * 100)}%
         </Typography>
         <Tooltip title="Zoom In">
@@ -460,37 +515,74 @@ const PdfViewer = ({
           </span>
         </Tooltip>
         <Tooltip title="Reset Zoom">
-          <IconButton size="small" onClick={resetZoom} sx={{ color: "#4caf50" }}>
+          <IconButton size="small" onClick={resetZoom} sx={{ color: "#4caf50", ...hideOnPhoneSx }}>
             <RefreshIcon fontSize="small" />
           </IconButton>
         </Tooltip>
       </Stack>
 
-      <Stack direction="row" spacing={0.5}>
+      <Stack direction="row" spacing={{ xs: 0, sm: 0.5 }}>
         <Tooltip title="Download">
           <IconButton size="small" onClick={handleDownload} sx={{ color: "#4caf50" }}>
             <DownloadIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Print">
-          <IconButton size="small" onClick={handlePrint} sx={{ color: "#4caf50" }}>
+          <IconButton size="small" onClick={openInNewTab} sx={{ color: "#4caf50" }}>
             <PrintIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-        <Tooltip title={fullscreen ? "Exit Fullscreen" : "Fullscreen"}>
-          <IconButton size="small" onClick={toggleFullscreen} sx={{ color: "#4caf50" }}>
-            {fullscreen ? (
-              <FullscreenExitIcon fontSize="small" />
-            ) : (
-              <FullscreenIcon fontSize="small" />
-            )}
-          </IconButton>
-        </Tooltip>
+        {fullscreenSupported ? (
+          <Tooltip title={fullscreen ? "Exit Fullscreen" : "Fullscreen"}>
+            <IconButton size="small" onClick={toggleFullscreen} sx={{ color: "#4caf50", ...hideOnPhoneSx }}>
+              {fullscreen ? (
+                <FullscreenExitIcon fontSize="small" />
+              ) : (
+                <FullscreenIcon fontSize="small" />
+              )}
+            </IconButton>
+          </Tooltip>
+        ) : null}
       </Stack>
     </Box>
   );
 
-  const viewerBody = useFallback ? (
+  const baseWidth = Math.min(viewerWidth || MAX_BASE_PAGE_WIDTH, MAX_BASE_PAGE_WIDTH);
+
+  const viewerBody = useFallback && touchDevice ? (
+    <Box
+      sx={{
+        flex: 1,
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 2,
+        padding: "24px 16px",
+        backgroundColor: "#fafafa",
+        textAlign: "center",
+      }}
+    >
+      <Typography variant="body2" sx={{ maxWidth: "360px" }}>
+        This document can&apos;t be previewed here on this device. Open it in a new tab or
+        download it instead.
+      </Typography>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+        <Button variant="contained" onClick={openInNewTab} sx={{ backgroundColor: "#4caf50" }}>
+          Open PDF
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={handleDownload}
+          startIcon={<DownloadIcon />}
+          sx={{ borderColor: "#4caf50", color: "#4caf50" }}
+        >
+          Download PDF
+        </Button>
+      </Stack>
+    </Box>
+  ) : useFallback ? (
     <Box sx={{ flex: 1, minHeight: 0, backgroundColor: "#525252" }}>
       <iframe
         src={`${fallbackViewerUrl}#toolbar=1&navpanes=1&scrollbar=1`}
@@ -502,14 +594,15 @@ const PdfViewer = ({
     </Box>
   ) : (
     <Box
+      ref={scrollRef}
+      onScroll={handleViewerScroll}
       sx={{
         flex: 1,
         minHeight: 0,
+        position: "relative",
         overflow: "auto",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-start",
-        padding: "16px",
+        WebkitOverflowScrolling: "touch",
+        padding: { xs: "8px", sm: "16px" },
         backgroundColor: "#525252",
       }}
     >
@@ -536,16 +629,13 @@ const PdfViewer = ({
           >
             {error}
           </Typography>
-          <Stack direction="row" spacing={2}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <Button
               variant="contained"
-              onClick={() => {
-                setUseFallback(true);
-                setError(null);
-              }}
+              onClick={openInBrowserViewer}
               sx={{ backgroundColor: "#4caf50" }}
             >
-              Open in Browser Viewer
+              {touchDevice ? "Open PDF" : "Open in Browser Viewer"}
             </Button>
             <Button
               variant="outlined"
@@ -577,12 +667,39 @@ const PdfViewer = ({
             </Box>
           }
         >
-          <Page
-            pageNumber={pageNumber}
-            scale={scale}
-            renderTextLayer
-            renderAnnotationLayer
-          />
+          {/* fit-content + auto margins centers pages but, unlike flex centering, keeps a
+              zoomed-in page's left edge reachable by horizontal scroll. */}
+          <Box sx={{ width: "fit-content", mx: "auto" }}>
+            {Array.from({ length: numPages || 0 }, (_, index) => (
+              <Box
+                key={index}
+                ref={(el) => {
+                  pageRefs.current[index] = el;
+                }}
+                sx={{
+                  mb: { xs: 1, sm: 2 },
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+                  backgroundColor: "#fff",
+                }}
+              >
+                <Page
+                  pageNumber={index + 1}
+                  width={baseWidth}
+                  scale={scale}
+                  renderTextLayer
+                  renderAnnotationLayer
+                  loading={
+                    <Box
+                      sx={{
+                        width: baseWidth * scale,
+                        height: baseWidth * scale * PAGE_ASPECT_RATIO,
+                      }}
+                    />
+                  }
+                />
+              </Box>
+            ))}
+          </Box>
         </Document>
       ) : null}
     </Box>

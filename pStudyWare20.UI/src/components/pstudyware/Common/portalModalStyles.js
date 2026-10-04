@@ -139,7 +139,13 @@ export const portalModalContentSx = {
   pb: 2.5,
   // MUI sets padding-top: 0 on DialogContent after DialogTitle — override explicitly.
   pt: "24px !important",
-  overflow: "visible",
+  // Content must be the scroll region: the paper is overflow:hidden, so with
+  // overflow:visible tall forms (e.g. on phones) push the footer actions out of
+  // view with no way to scroll to them. The 24px top padding above keeps the
+  // first field's floating label clear of the scroll clip.
+  overflowX: "hidden",
+  overflowY: "auto",
+  WebkitOverflowScrolling: "touch",
   width: "100%",
   boxSizing: "border-box",
   ...portalModalFormLayoutSx,
