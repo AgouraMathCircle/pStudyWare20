@@ -23,6 +23,7 @@ import josephImg from "../assets/images/team/Team/JosephKeays.png";
 import chitraImg from "../assets/images/team/Team/Chitra-2.png";
 
 // Executive Team
+import ashokImg from "../assets/images/team/Ashok.png";
 import srinivasuImg from "../assets/images/team/volunteers/Srinivasu.png";
 import swapnaImg from "../assets/images/team/volunteers/Swapna.jpg";
 import sasikalaImg from "../assets/images/team/volunteers/Sasikala.png";
@@ -34,6 +35,13 @@ import venugopalImg from "../assets/images/team/volunteers/Venugopal.png";
 import amarpalImg from "../assets/images/team/volunteers/Amarpal.png";
 import swaytha from "../assets/images/team/volunteers/Swaytha.jpg";
 import sumitaImg from "../assets/images/team/volunteers/SumitaEswaran.jpeg";
+import shreyaImg from "../assets/images/team/volunteers/ShreyaMukherjee.jpeg";
+import monishkaImg from "../assets/images/team/volunteers/Monishka.png";
+import ruhanImg from "../assets/images/team/volunteers/ruhan.png";
+import sangeethaImg from "../assets/images/team/volunteers/SANGEETHA.jpeg";
+import vibushaImg from "../assets/images/team/volunteers/VIBUSHA VADIVEL.jpeg";
+import mugilImg from "../assets/images/team/volunteers/mugil.jpg";
+import bhayvyaImg from "../assets/images/team/volunteers/Bhavya_Shanmugam_Photo.jpg";
 
 const formatName = (name) => name;
 
@@ -99,7 +107,7 @@ const AMCLeadershipTeams = () => {
             { img: pawanImg, name: "PAWAN DUBEY", role: "Director" },
             { img: woodburyImg, name: "JONATHAN WOODBURY", role: "Director" },
             { img: prabhaharanImg, name: "PRABHAHARAN R", role: "Director" },
-            { img: personIcon, name: "ASHOK RAJADURAI", role: "Treasurer" },
+            { img: ashokImg, name: "ASHOK RAJADURAI", role: "Treasurer" },
             { img: venodhaImg, name: "VENODHA SUNDARESAN", role: "Director" },
           ].map((m) => (
             <MemberCard key={m.name} m={m} altText="Board Member" />
@@ -141,20 +149,20 @@ const AMCLeadershipTeams = () => {
             { img: swapnaImg, name: "SWAPNA MADHAN", role: "EVP, Satellite Program" },
             { img: sasikalaImg, name: "SASIKALA", role: "EVP, Social Media" },
             { img: anandImg, name: "ANAND VINAYAGAM", role: "EVP, Standardized Test Prep" },
-            { img: lisaImg, name: "LISA GUO", role: "EVP, Triangular Talks" },
             { img: hussainImg, name: "HUSSIAN PATEL", role: "EVP, Information Technology" },
-            { img: personIcon, name: "ASHOK RAJADURAI", role: "EVP, Finance" },
+            { img: ashokImg, name: "ASHOK RAJADURAI", role: "EVP, Finance" },
             { img: visaImg, name: "VISALAKSHI KASI", role: "EVP, Competitive Math & Admin" },
             { img: swaytha, name: "SWAYTHA RAVIKUMAR", role: "EVP, Student Board Operation" },
             { img: sumitaImg, name: "SUMITA ESWARAN", role: "EVP, Student Board Operation" },
             { img: amarpalImg, name: "AMARPAL SINGH", role: "EVP, Engineering Circle" },
-            { img: personIcon, name: "SANGEETHA", role: "SVP, Online Operations" },
-            { img: personIcon, name: "KESAV", role: "SVP, Online Operations" },
+            { img: sangeethaImg, name: "SANGEETHA", role: "SVP, Online Operations" },
             { img: personIcon, name: "JOSHNA JUDE", role: "SVP, Online Operations" },
             { img: personIcon, name: "THANUSHRI", role: "SVP, Online Operations" },
-            { img: personIcon, name: "VIBUSHA VADIVEL", role: "SVP, Engineering Circle" },
-            { img: personIcon, name: "BHAYVYA SHANMUGAM", role: "SVP, Test Preparation" },
-            { img: personIcon, name: "MUGIL SHANMUGAM", role: "SVP, Test Preparation" },
+            { img: vibushaImg, name: "VIBUSHA VADIVEL", role: "SVP, Triangular Talks" },
+            { img: bhayvyaImg, name: "BHAYVYA SHANMUGAM", role: "SVP, Test Preparation" },
+            { img: mugilImg, name: "MUGIL SHANMUGAM", role: "SVP, Test Preparation" },
+            { img: monishkaImg, name: "MONISHKA TANWANIL", role: "Senior Vice President" },
+            { img: ruhanImg, name: "RUHAN", role: "Student Board Member" },
           ].map((m) => (
             <MemberCard key={m.name} m={m} altText="Executive Team Member" />
           ))}

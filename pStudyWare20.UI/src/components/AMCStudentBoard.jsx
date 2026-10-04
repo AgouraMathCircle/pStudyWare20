@@ -29,8 +29,12 @@ import haridevImg from "../assets/images/team/volunteers/Haridev.jpg";
 import swaytha from "../assets/images/team/volunteers/Swaytha.jpg";
 import sumitaImg from "../assets/images/team/volunteers/SumitaEswaran.jpeg";
 import aaravImg from "../assets/images/team/volunteers/Aaru.jpeg";
-import monishkaImg from "../assets/images/team/volunteers/Monishka.png";
-import ruhanImg from "../assets/images/team/volunteers/ruhan.png";
+import darshanaImg from "../assets/images/team/volunteers/Darshana.jpeg";
+import ethanImg from "../assets/images/team/volunteers/Ethan.jpeg";
+import diyaImg from "../assets/images/team/volunteers/DIYA RAVIKUMAR.jpeg";
+import yazhiniImg from "../assets/images/team/volunteers/Yazhini Vadivel.jpeg";
+import sashankImg from "../assets/images/team/volunteers/Sashank.jpeg";
+import yaliniImg from "../assets/images/team/volunteers/Yalini_Saravanan.jpeg";
 
 const smritiImg = new URL("../assets/images/team/volunteers/Smriti Chaudhury.jpeg", import.meta.url).href;
 const shubhamImg = new URL("../assets/images/team/volunteers/Shubham Bhattacharya.jpeg", import.meta.url).href;
@@ -92,8 +96,6 @@ const AMCStudentBoard = () => {
       <SectionTitle>AMC Student Board</SectionTitle>
       <Box className="leaders-grid">
         {[
-          { img: monishkaImg, name: "MONISHKA TANWANIL", role: "Senior Vice President" },
-          { img: ruhanImg, name: "RUHAN", role: "Senior Vice President" },
           { img: nayana, name: "NAYANA ASHOK", role: "Vice President, Operations - Onsite" },
           { img: smritiImg, name: "SMRITI CHAUDHURY", role: "Assistant Vice President, Operations - Onsite" },
           { img: ioneImg, name: "IONE MCLAIN", role: "Vice President, Operations - Online" },
@@ -108,17 +110,17 @@ const AMCStudentBoard = () => {
           { img: shubhamImg, name: "SHUBHAM BHATTACHARYA", role: "Officer, Media" },
           { img: aaravImg, name: "AARAV SAVANI", role: "Assistant Vice President, Finance" },
           { img: dakshinImg, name: "DAKSHIN SARAVANA", role: "Assistant Vice President, Finance" },
-          { img: personIcon, name: "DIYA RAVIKUMAR", role: "Officer, Event Management" },
-          { img: personIcon, name: "YAZHINI VADIVEL", role: "Officer, Event Management" },
+          { img: diyaImg, name: "DIYA RAVIKUMAR", role: "Officer, Event Management" },
+          { img: yazhiniImg, name: "YAZHINI VADIVEL", role: "Officer, Event Management" },
           { img: baavikasaiImg, name: "BAAVIKASAI BALASUBRAMANIAM", role: "Assistant Vice President, Marketing" },
-          { img: personIcon, name: "DHARSHANA GOPINATH", role: "Officer, Marketing" },
+          { img: darshanaImg, name: "DHARSHANA GOPINATH", role: "Officer, Marketing" },
           { img: simranImg, name: "SIMRAN KAUR", role: "Vice President, Engineering Circle" },
           { img: haridevImg, name: "HARIDEV PONSWAMINATHAN", role: "Officer, Engineering Circle" },
-          { img: personIcon, name: "ETHAN SUH", role: "Officer, Engineering Circle" },
+          { img: ethanImg, name: "ETHAN YANG", role: "Officer, Engineering Circle" },
           { img: avaImg, name: "AVA SHAMSABADI", role: "Assistant Vice President, Triangular Talks" },
           { img: shreyaImg, name: "SHREYA MUKHERJEE", role: "Assistant Vice President, Triangular Talks" },
-          { img: personIcon, name: "SASHANK VINOTH", role: "Vice President, Test Preparation" },
-          { img: personIcon, name: "YALINI SARAVANAN", role: "Officer, Test Preparation" },
+          { img: sashankImg, name: "SASHANK VINOTH", role: "Vice President, Test Preparation" },
+          { img: yaliniImg, name: "YALINI SARAVANAN", role: "Officer, Test Preparation" },
         ].map((m) => (
           <MemberCard key={m.name} m={m} altText="Student Board Member" />
         ))}

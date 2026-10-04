@@ -36,7 +36,7 @@ import srihariImg from "../assets/images/team/volunteers/srihari.jpeg";
 import nayanaImg from "../assets/images/team/volunteers/Nayana_Ashok_Photo.jpg";
 import haridevImg from "../assets/images/team/volunteers/Haridev.jpg";
 import Joshua_Manoj_Img from "../assets/images/team/volunteers/Joshua.png";
-import Ethan_Yang_Img from "../assets/images/team/volunteers/Ethan.png";
+import Ethan_Yang_Img from "../assets/images/team/volunteers/Ethan.jpeg";
 import Monn_Maiti_Img from "../assets/images/team/volunteers/Monn Maiti.jpeg";
 import Sylesh_Sunderesan_Img from "../assets/images/team/volunteers/Sylesh.jpg";
 import Srihari_Img from "../assets/images/team/volunteers/srihari.jpeg";
