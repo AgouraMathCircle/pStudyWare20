@@ -69,7 +69,7 @@ namespace pStudyWare20.API.Controllers
                     return BadRequest(new { message = "Username (email) is required for Gmail integration." });
                 }
 
-                var response = await _googleWorkspaceService.GetGmailMessagesAsync(request.Username, request.Label, request.SearchQuery, 20);
+                var response = await _googleWorkspaceService.GetGmailMessagesAsync(request.Username, request.Label, request.SearchQuery, 500);
                 return Ok(response);
             }
             catch (Exception ex)

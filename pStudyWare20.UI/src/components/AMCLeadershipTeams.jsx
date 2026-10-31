@@ -42,6 +42,8 @@ import sangeethaImg from "../assets/images/team/volunteers/SANGEETHA.jpeg";
 import vibushaImg from "../assets/images/team/volunteers/VIBUSHA VADIVEL.jpeg";
 import mugilImg from "../assets/images/team/volunteers/mugil.jpg";
 import bhayvyaImg from "../assets/images/team/volunteers/Bhavya_Shanmugam_Photo.jpg";
+import tanushreeImg from "../assets/images/team/volunteers/Tanushree.jpeg";
+import joshnaImg from "../assets/images/team/Team/Joshna.png";
 
 const formatName = (name) => name;
 
@@ -156,8 +158,8 @@ const AMCLeadershipTeams = () => {
             { img: sumitaImg, name: "SUMITA ESWARAN", role: "EVP, Student Board Operation" },
             { img: amarpalImg, name: "AMARPAL SINGH", role: "EVP, Engineering Circle" },
             { img: sangeethaImg, name: "SANGEETHA", role: "SVP, Online Operations" },
-            { img: personIcon, name: "JOSHNA JUDE", role: "SVP, Online Operations" },
-            { img: personIcon, name: "THANUSHRI", role: "SVP, Online Operations" },
+            { img: joshnaImg, name: "JOSHNA JUDE", role: "SVP, Online Operations" },
+            { img: tanushreeImg, name: "TANUSHREE", role: "SVP, Online Operations" },
             { img: vibushaImg, name: "VIBUSHA VADIVEL", role: "SVP, Triangular Talks" },
             { img: bhayvyaImg, name: "BHAYVYA SHANMUGAM", role: "SVP, Test Preparation" },
             { img: mugilImg, name: "MUGIL SHANMUGAM", role: "SVP, Test Preparation" },
