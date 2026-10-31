@@ -8,9 +8,12 @@ import {
   keyframes,
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import satelliteLogoImg from "../../assets/images/about/Satellite_logo.jpg";
+import DescriptionIcon from "@mui/icons-material/Description";
+import academicResourcesImg from "../../assets/images/about/academic-resources-badge.png";
 import triangularTalksLogoImg from "../../assets/images/talk/Triangular-Talks-Logo.png";
 import ctaBgImage from "../../assets/images/bg/cta-bg.jpg";
+import collegeBragSheet from "../../assets/files/CollegeApplication_BragSheet_Template.docx?url";
+import collegeApplicationTracker from "../../assets/files/CollegeApplication_Tracker_Template.xlsx?url";
 // Import images from src/assets
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import "../../styles/Home/CtaSection.css";
@@ -30,7 +33,7 @@ const fadeInAnimation = keyframes`
 const CtaSectionSatellite = () => {
   return (
     <>
-      {/* Second CTA Section - Satellite Program and Triangular Talks */}
+      {/* Second CTA Section - Academic Resources and Triangular Talks */}
       <Box
         className="cta-section cta-section-primary"
         sx={{
@@ -62,7 +65,7 @@ const CtaSectionSatellite = () => {
               justifyContent="space-evenly"
               sx={{ width: "100%" }}
             >
-              {/* Satellite Program */}
+              {/* Academic Resources */}
               <Grid
                 item
                 xs={12}
@@ -78,10 +81,9 @@ const CtaSectionSatellite = () => {
                     height: "100%",
                     display: "flex",
                     flexDirection: "column",
-                    justifyContent: "space-evenly",
+                    justifyContent: "space-between",
                     minHeight: { xs: "auto", sm: "300px", md: "320px" },
                     padding: { xs: "12px", sm: "10px", md: "12px" },
-                    gap: { xs: "12px", sm: "10px", md: "12px" },
                   }}
                 >
                   <Box
@@ -93,8 +95,8 @@ const CtaSectionSatellite = () => {
                   >
                     <Box
                       component="img"
-                      src={satelliteLogoImg}
-                      alt="Satellite Program"
+                      src={academicResourcesImg}
+                      alt="Academic Resources"
                       sx={{
                         width: { xs: "180px", sm: "160px", md: "200px" },
                         height: { xs: "100px", sm: "90px", md: "115px" },
@@ -102,7 +104,7 @@ const CtaSectionSatellite = () => {
                         objectFit: "contain",
                         display: "block",
                         margin: "0 auto",
-                        marginBottom: { xs: "8px", sm: "6px", md: "8px" },
+                        marginBottom: { xs: "6px", sm: "4px", md: "6px" },
                       }}
                     />
                     <Typography
@@ -112,35 +114,148 @@ const CtaSectionSatellite = () => {
                         fontWeight: 600,
                         textDecoration: "none",
                         fontSize: { xs: "1.1rem", sm: "1.05rem", md: "1.25rem" },
-                        marginBottom: 0,
+                        marginBottom: "4px",
                       }}
                     >
-                      Start your own club
+                      Resources
                     </Typography>
+
+                    <Typography
+                      sx={{
+                        color: "#53b50a",
+                        fontSize: { xs: "0.8rem", sm: "0.82rem", md: "0.85rem" },
+                        fontWeight: 600,
+                        marginBottom: "6px",
+                      }}
+                    >
+                      College Application Process
+                    </Typography>
+
+                    {/* Downloadable Links */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0.8,
+                        width: "100%",
+                        maxWidth: "250px",
+                        margin: "0 auto",
+                      }}
+                    >
+                      <Box
+                        component="a"
+                        href={collegeBragSheet}
+                        target="_blank"
+                        download="CollegeApplication_BragSheet_Template.docx"
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          color: "#ffffff",
+                          textDecoration: "none",
+                          fontSize: { xs: "0.8rem", sm: "0.82rem", md: "0.85rem" },
+                          fontWeight: 500,
+                          padding: "4px 10px",
+                          borderRadius: "4px",
+                          backgroundColor: "rgba(255, 255, 255, 0.08)",
+                          transition: "all 0.2s ease",
+                          "&:hover": {
+                            backgroundColor: "rgba(83, 181, 10, 0.25)",
+                            color: "#53b50a",
+                            transform: "translateX(2px)",
+                          },
+                        }}
+                      >
+                        <DescriptionIcon
+                          sx={{
+                            fontSize: "1.1rem",
+                            color: "#53b50a",
+                            mr: 0.8,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <Typography
+                          component="span"
+                          sx={{
+                            fontSize: "inherit",
+                            fontWeight: "inherit",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          College Brag Sheet
+                        </Typography>
+                      </Box>
+                      <Box
+                        component="a"
+                        href={collegeApplicationTracker}
+                        target="_blank"
+                        download="CollegeApplication_Tracker_Template.xlsx"
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          color: "#ffffff",
+                          textDecoration: "none",
+                          fontSize: { xs: "0.8rem", sm: "0.82rem", md: "0.85rem" },
+                          fontWeight: 500,
+                          padding: "4px 10px",
+                          borderRadius: "4px",
+                          backgroundColor: "rgba(255, 255, 255, 0.08)",
+                          transition: "all 0.2s ease",
+                          "&:hover": {
+                            backgroundColor: "rgba(83, 181, 10, 0.25)",
+                            color: "#53b50a",
+                            transform: "translateX(2px)",
+                          },
+                        }}
+                      >
+                        <DescriptionIcon
+                          sx={{
+                            fontSize: "1.1rem",
+                            color: "#53b50a",
+                            mr: 0.8,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <Typography
+                          component="span"
+                          sx={{
+                            fontSize: "inherit",
+                            fontWeight: "inherit",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          College Application Tracking
+                        </Typography>
+                      </Box>
+                    </Box>
                   </Box>
                   <Box
                     sx={{
                       display: "flex",
-                      flexDirection: { xs: "column", sm: "row" },
-                      gap: { xs: 1, sm: 1 },
                       justifyContent: "center",
-                      flexWrap: "wrap",
-                      marginTop: { xs: "8px", sm: "6px", md: "8px" },
+                      alignItems: "center",
+                      marginTop: "auto",
+                      paddingTop: { xs: "12px", sm: "14px", md: "16px" },
                     }}
                   >
                     <Button
                       variant="contained"
                       endIcon={<ArrowForwardIcon />}
-                      href="/satellite-program"
+                      href="/resources"
                       component="a"
                       sx={{
                         backgroundColor: "#53b50a",
                         color: "#ffffff",
-                        padding: { xs: "6px 12px", sm: "6px 10px", md: "8px 16px" },
+                        padding: { xs: "6px 14px", sm: "6px 14px", md: "8px 18px" },
                         borderRadius: "3px",
                         textTransform: "capitalize",
                         fontWeight: 600,
                         fontSize: { xs: "0.8rem", sm: "0.75rem", md: "0.85rem" },
+                        height: { xs: "36px", sm: "36px", md: "38px" },
+                        boxSizing: "border-box",
                         transition: "all 0.3s ease",
                         "&:hover": {
                           backgroundColor: "transparent",
@@ -151,32 +266,6 @@ const CtaSectionSatellite = () => {
                       }}
                     >
                       Learn More
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      endIcon={<ArrowForwardIcon />}
-                      href="https://docs.google.com/forms/d/e/1FAIpQLSee8eQUL8tt0Iygl_-ocQ9c4fzO3F3VwfIrPRlwXBFZ2XVfBA/viewform?usp=pp_url"
-                      component="a"
-                      target="_blank"
-                      sx={{
-                        borderColor: "#53b50a",
-                        backgroundColor: "#53b50a",
-                        color: "#ffffff",
-                        padding: { xs: "6px 12px", sm: "6px 10px", md: "8px 16px" },
-                        borderRadius: "3px",
-                        textTransform: "capitalize",
-                        fontWeight: 600,
-                        fontSize: { xs: "0.8rem", sm: "0.75rem", md: "0.85rem" },
-                        transition: "all 0.3s ease",
-                        "&:hover": {
-                          borderColor: "#ffffff",
-                          backgroundColor: "transparent",
-                          color: "#ffffff",
-                          transform: "translateY(-2px)",
-                        },
-                      }}
-                    >
-                      Register Now
                     </Button>
                   </Box>
                 </Box>
@@ -237,10 +326,9 @@ const CtaSectionSatellite = () => {
                     height: "100%",
                     display: "flex",
                     flexDirection: "column",
-                    justifyContent: "space-evenly",
+                    justifyContent: "space-between",
                     minHeight: { xs: "auto", sm: "300px", md: "320px" },
                     padding: { xs: "12px", sm: "10px", md: "12px" },
-                    gap: { xs: "12px", sm: "10px", md: "12px" },
                   }}
                 >
                   <Box
@@ -261,7 +349,7 @@ const CtaSectionSatellite = () => {
                         objectFit: "contain",
                         display: "block",
                         margin: "0 auto",
-                        marginBottom: { xs: "8px", sm: "6px", md: "8px" },
+                        marginBottom: { xs: "6px", sm: "4px", md: "6px" },
                       }}
                     />
                     <Typography
@@ -271,7 +359,7 @@ const CtaSectionSatellite = () => {
                         fontWeight: 600,
                         textDecoration: "none",
                         fontSize: { xs: "1.1rem", sm: "1.05rem", md: "1.25rem" },
-                        marginBottom: 0,
+                        marginBottom: "4px",
                       }}
                     >
                       Sept. 19th, 2026
@@ -283,8 +371,10 @@ const CtaSectionSatellite = () => {
                       flexDirection: { xs: "column", sm: "row" },
                       gap: { xs: 1, sm: 1 },
                       justifyContent: "center",
+                      alignItems: "center",
                       flexWrap: "wrap",
-                      marginTop: { xs: "8px", sm: "6px", md: "8px" },
+                      marginTop: "auto",
+                      paddingTop: { xs: "12px", sm: "14px", md: "16px" },
                     }}
                   >
                     <Button
@@ -296,11 +386,13 @@ const CtaSectionSatellite = () => {
                       sx={{
                         backgroundColor: "#53b50a",
                         color: "#ffffff",
-                        padding: { xs: "6px 12px", sm: "6px 10px", md: "8px 16px" },
+                        padding: { xs: "6px 14px", sm: "6px 14px", md: "8px 18px" },
                         borderRadius: "3px",
                         textTransform: "capitalize",
                         fontWeight: 600,
                         fontSize: { xs: "0.8rem", sm: "0.75rem", md: "0.85rem" },
+                        height: { xs: "36px", sm: "36px", md: "38px" },
+                        boxSizing: "border-box",
                         transition: "all 0.3s ease",
                         "&:hover": {
                           backgroundColor: "transparent",
@@ -322,11 +414,13 @@ const CtaSectionSatellite = () => {
                         borderColor: "#53b50a",
                         backgroundColor: "#53b50a",
                         color: "#ffffff",
-                        padding: { xs: "6px 12px", sm: "6px 10px", md: "8px 16px" },
+                        padding: { xs: "6px 14px", sm: "6px 14px", md: "8px 18px" },
                         borderRadius: "3px",
                         textTransform: "capitalize",
                         fontWeight: 600,
                         fontSize: { xs: "0.8rem", sm: "0.75rem", md: "0.85rem" },
+                        height: { xs: "36px", sm: "36px", md: "38px" },
+                        boxSizing: "border-box",
                         transition: "all 0.3s ease",
                         "&:hover": {
                           borderColor: "#ffffff",
