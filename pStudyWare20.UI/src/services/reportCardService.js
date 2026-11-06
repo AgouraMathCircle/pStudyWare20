@@ -185,6 +185,20 @@ const reportCardService = {
       fileName: file.name,
     });
   },
+  downloadScoreTemplate: (filename = "StudentReportCard.csv") => {
+    const csvContent =
+      "StudentID,Quiz,ClassWork,HomeWork,Quiz Comments,Class Work Comments,Home Work Comments\r\n";
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    return filename;
+  },
   exportToExcel: async (request) => {
     const fileName = await postExcelExport(
       api,
