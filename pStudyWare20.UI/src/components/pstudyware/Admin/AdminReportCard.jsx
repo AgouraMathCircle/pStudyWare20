@@ -818,6 +818,13 @@ const AdminReportCard = () => {
     setUploadDialogOpen(true);
   };
 
+  const handleDownloadTemplate = (e) => {
+    if (e && typeof e.preventDefault === "function") {
+      e.preventDefault();
+    }
+    reportCardService.downloadScoreTemplate();
+  };
+
   const handleUploadScore = async () => {
     if (!uploadForm.className || !uploadForm.examDate || !uploadForm.file) {
       setSnackbar({
@@ -2635,10 +2642,20 @@ const AdminReportCard = () => {
             Download the template, enter the scores, and upload the file.{" "}
             <Box
               component="a"
-              href={SCORE_UPLOAD_TEMPLATE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{ color: "#0000ee", textDecoration: "underline" }}
+              href={`data:text/csv;charset=utf-8,${encodeURIComponent(
+                "StudentID,Quiz,ClassWork,HomeWork,Quiz Comments,Class Work Comments,Home Work Comments\r\n"
+              )}`}
+              download="StudentReportCard.csv"
+              onClick={handleDownloadTemplate}
+              sx={{
+                color: "#0000ee",
+                textDecoration: "underline",
+                cursor: "pointer",
+                display: "inline",
+                "&:hover": {
+                  color: "#0000aa",
+                },
+              }}
             >
               Download Template
             </Box>
